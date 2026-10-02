@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Stencil Spray — raw concrete, a fluorescent-orange stencil piece with soft overspray, the photo sprayed onto a
+     black under-coat with stencil registration crosses, fat-cap splatter around it.
+     tall / 3:4 → headline over photo over offer · square / wide → type left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #9E9C96; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1B1B1A; font-family: "IBM Plex Mono", "Courier New", monospace;
+    --o: #FF5A1F;
+    background:
+      radial-gradient(circle at 78% 18%, rgba(255,90,31,.9) 0 .5vmin, transparent .6vmin),
+      radial-gradient(circle at 83% 14%, rgba(255,90,31,.8) 0 .25vmin, transparent .35vmin),
+      radial-gradient(circle at 12% 88%, rgba(255,90,31,.85) 0 .4vmin, transparent .5vmin),
+      radial-gradient(circle at 16% 93%, rgba(255,90,31,.7) 0 .2vmin, transparent .3vmin),
+      radial-gradient(circle at 90% 72%, rgba(27,27,26,.6) 0 .3vmin, transparent .4vmin),
+      radial-gradient(50vmin 30vmin at 30% 10%, rgba(255,255,255,.14), transparent 70%),
+      radial-gradient(60vmin 60vmin at 90% 100%, rgba(40,38,34,.22), transparent 70%),
+      radial-gradient(circle, rgba(40,38,34,.18) 0 .12vmin, transparent .16vmin) 0 0 / 1.3vmin 1.3vmin,
+      radial-gradient(circle, rgba(255,255,255,.2) 0 .1vmin, transparent .14vmin) .6vmin .5vmin / 1.7vmin 1.9vmin,
+      linear-gradient(180deg, transparent 0 49.6%, rgba(40,38,34,.18) 49.8% 50.1%, transparent 50.3%),
+      #A3A19B; }
+
+  .kick { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .kick span:last-child { color: #3E3C38; }
+  h1 { position: absolute; left: 5.4vmin; top: 8.6vmin; margin: 0; font-family: "Big Shoulders Stencil Display", Impact, sans-serif; font-weight: 900; font-size: 24vmin; line-height: .84; text-transform: uppercase; letter-spacing: .005em;
+    color: var(--o); text-shadow: 0 0 .5vmin rgba(255,90,31,.75), 0 0 2.4vmin rgba(255,90,31,.35), .3vmin .3vmin 0 rgba(120,30,0,.25); }
+
+  .frame { position: absolute; left: 8vmin; right: 8vmin; top: 57vmin; height: calc(100% - 83vmin); }
+  .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; display: block;
+    box-shadow: 0 0 0 1.8vmin #1B1B1A, 0 0 2.2vmin 3vmin rgba(27,27,26,.45), 0 0 5vmin 4vmin rgba(27,27,26,.18); }
+  .reg { position: absolute; width: 3.4vmin; height: 3.4vmin;
+    background: linear-gradient(var(--o), var(--o)) 50% 0 / 1px 100% no-repeat, linear-gradient(var(--o), var(--o)) 0 50% / 100% 1px no-repeat; }
+  .reg::after { content: ""; position: absolute; inset: .9vmin; border: 1px solid var(--o); border-radius: 50%; }
+  .r1 { left: -6vmin; top: -6vmin; } .r2 { right: -6vmin; top: -6vmin; } .r3 { left: -6vmin; bottom: -6vmin; } .r4 { right: -6vmin; bottom: -6vmin; }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .sub { font-size: 2vmin; line-height: 1.45; max-width: 44vmin; }
+  .sub b { font-weight: 600; }
+  .buy { display: flex; flex-direction: column; align-items: flex-end; gap: 1.2vmin; flex: none; }
+  .price { font-family: "Big Shoulders Stencil Display", Impact, sans-serif; font-weight: 900; font-size: 9vmin; line-height: .85; color: #1B1B1A; }
+  .price s { font-size: 4vmin; color: #55524C; margin-right: 1vmin; text-decoration-thickness: .3vmin; }
+  .cta { font-family: "Big Shoulders Stencil Display", Impact, sans-serif; font-weight: 700; font-size: 3vmin; letter-spacing: .12em; text-transform: uppercase; color: #1B1B1A;
+    padding: .6vmin 1.8vmin; border: .45vmin dashed #1B1B1A; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .kick { top: 4.4vmin; }
+    h1 { top: 7.6vmin; font-size: 19vmin; }
+    .frame { top: 46vmin; height: calc(100% - 69vmin); left: 9vmin; right: 9vmin; }
+    .foot { bottom: 4.4vmin; }
+    .price { font-size: 7.6vmin; }
+  }
+  /* square / wide — type column left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .kick { left: 6vmin; right: auto; top: 6vmin; flex-direction: column; gap: .8vmin; }
+    h1 { left: 5.4vmin; top: 14vmin; font-size: 11vmin; }
+    .frame { left: auto; right: 7.4vmin; top: 7.4vmin; bottom: 7.4vmin; height: auto; width: 40%; }
+    .r1 { left: -5.6vmin; top: -5.6vmin; } .r2 { right: -5.6vmin; top: -5.6vmin; } .r3 { left: -5.6vmin; bottom: -5.6vmin; } .r4 { right: -5.6vmin; bottom: -5.6vmin; }
+    .foot { right: auto; left: 6vmin; bottom: 6vmin; width: calc(60% - 22vmin); flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .buy { align-items: flex-start; }
+    .sub { font-size: 1.8vmin; }
+    .price { font-size: 7.4vmin; }
+    .cta { font-size: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    h1 { top: 15vmin; font-size: 15vmin; }
+    .frame { width: 42%; right: 8vmin; top: 8vmin; bottom: 8vmin; }
+    .foot { width: calc(58% - 26vmin); flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    .buy { align-items: flex-end; }
+    .sub { font-size: 2vmin; }
+    .price { font-size: 8.4vmin; }
+    .kick { flex-direction: row; gap: 4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="kick"><span>Atelier Gris · Stencil Nº 3</span><span>Layer A / Orange</span></div>
+  <h1>Sprayed<br>to order</h1>
+  <div class="frame"><img src="{{PRODUCT_IMAGE}}" alt=""><i class="reg r1"></i><i class="reg r2"></i><i class="reg r3"></i><i class="reg r4"></i></div>
+  <div class="foot">
+    <div class="sub">Cut by hand, made in <b>short runs</b>.<br>No two walls the same.</div>
+    <div class="buy"><div class="price"><s>€180</s>€140</div><div class="cta">Shop 3 colourways</div></div>
+  </div>
+</div>
+</body>
+</html>

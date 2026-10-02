@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Deck Graphic — the drop printed as a skateboard's bottom graphic: the photo fills a popsicle deck whose dyed
+     7-ply edge shows in red / maple / black, a pro-model title runs up the rail like a board graphic, a round
+     size sticker and a shrink-wrap price label carry the offer.
+     tall → deck left, vertical title right, offer below · square/wide → deck left, horizontal spec sheet right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2CF3E; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F2CF3E; color: #151515; font-family: "IBM Plex Mono", "SF Mono", Menlo, monospace; }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: multiply; opacity: .5; }
+
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 4.6vmin; display: flex; justify-content: space-between; align-items: baseline; font-size: 2vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding-bottom: 1.4vmin; border-bottom: .35vmin solid #151515; }
+  .top b { font-family: "Bungee", Impact, sans-serif; font-weight: 400; font-size: 2.6vmin; letter-spacing: .04em; }
+
+  /* the deck: popsicle shape by concept, photo inside, dyed plies as stacked offsets */
+  .deck { position: absolute; left: 7vmin; top: 12.5vmin; width: 52vmin; height: calc(100% - 45vmin); border-radius: 50% / 17%; overflow: hidden;
+    box-shadow: .7vmin .7vmin 0 #E0412F, 1.4vmin 1.4vmin 0 #E9D3A6, 2.1vmin 2.1vmin 0 #151515; background: #151515; }
+  .deck img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .deck::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 .5vmin rgba(255,255,255,.18); }
+
+  .rail { position: absolute; right: 5vmin; top: 12.5vmin; height: calc(100% - 45vmin); width: 30vmin; }
+  .vt { position: absolute; right: 0; bottom: 0; writing-mode: vertical-rl; transform: rotate(180deg); font-family: "Bungee", Impact, sans-serif; font-size: 19vmin; line-height: .86; white-space: nowrap; }
+  .vt span { color: #E0412F; }
+  .vs { position: absolute; left: 0; bottom: 0; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 2vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  .size { position: absolute; left: 1vmin; top: 0; width: 13vmin; height: 13vmin; border-radius: 50%; background: #151515; color: #F2CF3E; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-12deg); }
+  .size small { font-size: 1.6vmin; letter-spacing: .16em; }
+  .size b { font-family: "Bungee", Impact, sans-serif; font-weight: 400; font-size: 4.2vmin; line-height: 1; }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .offer { min-width: 0; }
+  .offer .pct { display: block; font-family: "Bungee", Impact, sans-serif; font-size: 12vmin; line-height: .9; }
+  .offer .pct i { font-style: normal; color: #E0412F; }
+  .offer p { margin: 1.4vmin 0 0; font-size: 2.2vmin; line-height: 1.35; }
+  .offer p b { background: #151515; color: #F2CF3E; padding: .1vmin 1vmin; font-weight: 600; letter-spacing: .08em; }
+  .label { flex: none; width: 30vmin; background: #FFFDF6; padding: 1.8vmin 2vmin 1.6vmin; transform: rotate(2.5deg); box-shadow: 0 .6vmin 1.2vmin rgba(0,0,0,.18); }
+  .label .bar { height: 5vmin; background: repeating-linear-gradient(90deg, #151515 0 .35vmin, transparent .35vmin .7vmin, #151515 .7vmin 1.3vmin, transparent 1.3vmin 1.6vmin, #151515 1.6vmin 1.8vmin, transparent 1.8vmin 2.4vmin); }
+  .label .num { display: flex; justify-content: space-between; font-size: 1.6vmin; letter-spacing: .12em; margin-top: .6vmin; }
+  .label .cta { display: block; margin-top: 1.2vmin; padding-top: 1.2vmin; border-top: 1px dashed #151515; font-size: 2.1vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+  .specs { display: none; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .deck, .rail { height: calc(100% - 42vmin); }
+    .vt { font-size: 16.5vmin; }
+    .offer .pct { font-size: 10.5vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .top { top: 4vmin; }
+    .deck { top: 11vmin; width: 56vmin; height: calc(100% - 38vmin); border-radius: 50% / 19%; }
+    .rail { top: 11vmin; height: calc(100% - 38vmin); width: 28vmin; }
+    .vt { font-size: 13.5vmin; }
+    .size { width: 11vmin; height: 11vmin; }
+    .size b { font-size: 3.6vmin; }
+    .foot { bottom: 4vmin; }
+    .offer .pct { font-size: 9vmin; }
+    .offer p { font-size: 2vmin; margin-top: 1vmin; }
+    .label { width: 27vmin; padding: 1.4vmin 1.8vmin 1.3vmin; }
+    .label .bar { height: 4vmin; }
+  }
+  /* square / wide → deck left, horizontal spec sheet right */
+  @media (min-aspect-ratio: 9/10) {
+    .top { left: 5vmin; right: 5vmin; }
+    .deck { left: 6vmin; top: 11.5vmin; width: 37vmin; height: calc(100% - 17vmin); border-radius: 50% / 17%; }
+    .rail { left: 50vmin; right: 5vmin; top: 11.5vmin; width: auto; height: auto; }
+    .vt { position: static; writing-mode: horizontal-tb; transform: none; font-size: 9.6vmin; line-height: .92; white-space: normal; }
+    .vt span { display: block; }
+    .vs { position: static; writing-mode: horizontal-tb; transform: none; display: block; margin-top: 1.8vmin; font-size: 1.8vmin; }
+    .size { left: auto; right: 1vmin; top: 50vmin; width: 11.5vmin; height: 11.5vmin; }
+    .size b { font-size: 3.6vmin; }
+    .specs { display: block; position: absolute; left: 50vmin; right: 5vmin; top: 44vmin; margin: 0; padding: 0; list-style: none; }
+    .specs li { display: flex; justify-content: space-between; gap: 2vmin; padding: 1vmin 0; border-top: 1px solid rgba(21,21,21,.45); font-size: 1.9vmin; letter-spacing: .06em; text-transform: uppercase; }
+    .specs li:last-child { border-bottom: 1px solid rgba(21,21,21,.45); }
+    .specs li b { font-weight: 600; }
+    .foot { left: 50vmin; right: 5vmin; bottom: 5.5vmin; }
+    .offer .pct { font-size: 7.4vmin; }
+    .offer p { font-size: 1.8vmin; }
+    .label { width: 18vmin; padding: 1.2vmin 1.4vmin; }
+    .label .bar { height: 3.4vmin; }
+    .label .num { font-size: 1.6vmin; }
+    .label .cta { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .top { left: 6vmin; right: 6vmin; }
+    .deck { left: 10vmin; width: 40vmin; }
+    .rail { left: 64vmin; right: 6vmin; }
+    .vt { font-size: 10.4vmin; }
+    .vt span { display: inline; }
+    .size { width: 13vmin; height: 13vmin; top: 42vmin; right: 2vmin; }
+    .size b { font-size: 4.2vmin; }
+    .specs { left: 64vmin; right: 6vmin; top: 36vmin; }
+    .specs li { font-size: 2vmin; }
+    .foot { left: 64vmin; right: 6vmin; bottom: 6vmin; }
+    .offer .pct { font-size: 11vmin; }
+    .offer p { font-size: 2.1vmin; }
+    .label { width: 25vmin; padding: 1.6vmin 1.8vmin; }
+    .label .bar { height: 4.4vmin; }
+    .label .cta { font-size: 2vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     1.0s the deck ollies — pops up, tilts, the dyed plies swing to the other side, then lands with a little shake ·
+     3.0s the size sticker spins a full turn like a wheel · 4.0s PRO MODEL is re-stencilled (wipe) ·
+     4.8s the −30% punches · 5.3s a light sheen runs over the shrink-wrap label */
+  .deck { animation: ollie 6s linear infinite; }
+  @keyframes ollie {
+    0%, 15% { transform: translate(0, 0) rotate(0); box-shadow: .7vmin .7vmin 0 #E0412F, 1.4vmin 1.4vmin 0 #E9D3A6, 2.1vmin 2.1vmin 0 #151515; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    17% { transform: translate(0, .6vmin) rotate(0) scale(1, .99); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    23% { transform: translate(-.6vmin, -2.6vmin) rotate(-2.4deg); box-shadow: -.7vmin 1vmin 0 #E0412F, -1.4vmin 2vmin 0 #E9D3A6, -2.1vmin 3vmin 0 #151515; animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    29% { transform: translate(0, .4vmin) rotate(.8deg); box-shadow: .7vmin .7vmin 0 #E0412F, 1.4vmin 1.4vmin 0 #E9D3A6, 2.1vmin 2.1vmin 0 #151515; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    32% { transform: translate(0, -.3vmin) rotate(-.3deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    35%, 100% { transform: translate(0, 0) rotate(0); box-shadow: .7vmin .7vmin 0 #E0412F, 1.4vmin 1.4vmin 0 #E9D3A6, 2.1vmin 2.1vmin 0 #151515; }
+  }
+  .size { animation: spin 6s linear infinite; }
+  @keyframes spin {
+    0%, 50% { transform: rotate(-12deg) scale(1); animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    60% { transform: rotate(356deg) scale(1.06); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    64%, 100% { transform: rotate(348deg) scale(1); }
+  }
+  .vt { animation: stencil 6s linear infinite; }
+  @keyframes stencil {
+    0%, 66% { clip-path: inset(-5% -5% -5% -5%); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    70% { clip-path: inset(-5% -5% 105% -5%); animation-timing-function: steps(1, end); }
+    70.5% { clip-path: inset(105% -5% -5% -5%); animation-timing-function: cubic-bezier(.3,0,.1,1); }
+    77%, 100% { clip-path: inset(-5% -5% -5% -5%); }
+  }
+  .offer .pct { transform-origin: 0% 80%; animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 79% { transform: scale(1) rotate(0); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    80.5% { transform: scale(.94) rotate(0); animation-timing-function: cubic-bezier(.2,.9,.3,1.2); }
+    84% { transform: scale(1.08) rotate(-2deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    88%, 100% { transform: scale(1) rotate(0); }
+  }
+  .label { position: relative; overflow: hidden; }
+  .label::after { content: ""; position: absolute; top: -40%; bottom: -40%; left: 0; width: 34%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.75) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: wrap 6s linear infinite; }
+  @keyframes wrap { 0%, 87% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 98%, 100% { transform: translateX(420%) skewX(-18deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .4  0 0 0 0 .1  0 0 0 -1.6 1.1"/></filter><rect width="100%" height="100%" filter="url(#g)" opacity=".35"/></svg>
+  <div class="top"><b>Oro Skate Co.</b><span>Drop 04 — Summer ’26</span></div>
+  <div class="deck"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="rail">
+    <div class="size"><small>Size</small><b>8.25</b></div>
+    <div class="vt">Pro <span>model</span></div>
+    <div class="vs">Signature series · Nº 04 / 12</div>
+  </div>
+  <ul class="specs">
+    <li><span>Build</span><b>7-ply maple</b></li>
+    <li><span>Wheelbase</span><b>14.25″</b></li>
+    <li><span>Run</span><b>Limited · 500</b></li>
+  </ul>
+  <div class="foot">
+    <div class="offer"><span class="pct"><i>−</i>30%</span><p>on the whole drop · code <b>DECK30</b></p></div>
+    <div class="label"><div class="bar"></div><div class="num"><span>0 4 2 6</span><span>8.25</span></div><span class="cta">Shop the drop →</span></div>
+  </div>
+</div>
+</body>
+</html>

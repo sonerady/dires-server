@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;700;800&family=Libre+Caslon+Text:ital,wght@0,400;1,400&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* Weekly Edit — a "this week's edit" digest email: one product told in three numbered frames
+     (the look, the detail, the finish — zoomed crops of the same photo), a short pick list and a Sunday deadline.
+     tall → header / gallery / list stacked · 3:4 → gallery top, list + CTA in two columns · square → gallery left, copy right · wide → copy left, gallery right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCE2D2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #DCE2D2; color: #1E2A21; font-family: "Epilogue", "Helvetica Neue", Arial, sans-serif; }
+
+  .head { position: absolute; left: 5vmin; right: 5vmin; top: 4vmin; display: flex; align-items: center; gap: 2vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .logo { font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-weight: 400; font-size: 3.4vmin; letter-spacing: -.01em; text-transform: none; margin-right: auto; }
+  .pill { padding: .9vmin 1.8vmin; border-radius: 99vmin; background: #1E2A21; color: #DCE2D2; }
+  .wk { color: #E4572E; }
+
+  .intro { position: absolute; left: 5vmin; right: 5vmin; top: 12vmin; }
+  h1 { margin: 0; font-weight: 800; font-size: 9.4vmin; line-height: .92; letter-spacing: -.045em; }
+  h1 i { font-family: "Libre Caslon Text", Georgia, serif; font-weight: 400; letter-spacing: -.03em; color: #E4572E; }
+  .lede { margin: 1.8vmin 0 0; font-size: 2.2vmin; line-height: 1.45; color: #435046; max-width: 70vmin; }
+
+  .gal { position: absolute; left: 5vmin; right: 5vmin; top: 42vmin; height: calc(100% - 79vmin); display: grid; grid-template-columns: 1fr 32%; grid-template-rows: 1fr 1fr; gap: 1.8vmin; }
+  .f { position: relative; margin: 0; display: flex; flex-direction: column; min-height: 0; }
+  .f.hero { grid-row: 1 / 3; }
+  .crop { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #C9D1BE; }
+  .crop img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .d1 img { transform: scale(2.8); transform-origin: 50% 40%; }
+  .d2 img { transform: scale(3.2); transform-origin: 40% 72%; }
+  .f figcaption { flex: none; display: flex; align-items: baseline; gap: 1vmin; padding-top: 1vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .f figcaption b { color: #E4572E; font-weight: 800; }
+
+  .list { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.4vmin; height: 30vmin; display: flex; flex-direction: column; }
+  .row { display: grid; grid-template-columns: 5vmin 1fr auto; align-items: baseline; gap: 1.6vmin; padding: 1.3vmin 0; border-bottom: 1px solid rgba(30,42,33,.25); }
+  .row .n { font-size: 1.7vmin; font-weight: 800; color: #E4572E; }
+  .row .t { font-size: 2.3vmin; font-weight: 500; line-height: 1.25; }
+  .row .t i { font-family: "Libre Caslon Text", Georgia, serif; }
+  .row .v { font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+  .go { margin-top: auto; display: flex; align-items: center; gap: 2.6vmin; }
+  .cta { padding: 1.9vmin 3.6vmin; border-radius: 99vmin; background: #E4572E; color: #FFF6EE; font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+  .due { font-size: 1.7vmin; line-height: 1.4; color: #435046; }
+  .due b { color: #1E2A21; }
+
+  /* ── 3:4 ── */
+  @media (min-aspect-ratio: 7/10) {
+    h1 { font-size: 8.4vmin; }
+    .intro { right: 30vmin; }
+    .lede { font-size: 2vmin; }
+    .gal { top: 38vmin; height: calc(100% - 70vmin); grid-template-columns: 1fr 30%; }
+    .list { height: 24vmin; bottom: 4vmin; flex-direction: row; gap: 3vmin; }
+    .rows { flex: 1; }
+    .row { padding: 1vmin 0; }
+    .row .t { font-size: 2vmin; }
+    .go { margin-top: 0; width: 26vmin; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1.8vmin; }
+  }
+  /* ── square — gallery left, copy right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .head { right: auto; width: calc(46% - 8vmin); left: calc(54% + 3vmin); flex-wrap: wrap; row-gap: 1.2vmin; }
+    .logo { width: 100%; }
+    .intro { left: calc(54% + 3vmin); right: 5vmin; top: 17vmin; }
+    h1 { font-size: 6.4vmin; }
+    .lede { font-size: 1.8vmin; }
+    .gal { left: 5vmin; right: auto; width: calc(54% - 5vmin); top: 5vmin; bottom: 5vmin; height: auto; grid-template-columns: 1fr 34%; }
+    .list { left: calc(54% + 3vmin); right: 5vmin; bottom: 5vmin; height: 38vmin; flex-direction: column; gap: 0; }
+    .row { grid-template-columns: 3.6vmin 1fr auto; padding: 1vmin 0; }
+    .row .t { font-size: 1.8vmin; }
+    .row .v { font-size: 1.8vmin; }
+    .go { width: auto; margin-top: auto; flex-direction: row; align-items: center; gap: 2vmin; }
+    .cta { padding: 1.6vmin 2.8vmin; font-size: 1.8vmin; }
+    .due { font-size: 1.6vmin; }
+  }
+  /* ── wide — copy left, gallery right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .head { left: 6vmin; width: calc(46% - 12vmin); top: 5vmin; flex-wrap: nowrap; }
+    .logo { width: auto; }
+    .intro { left: 6vmin; right: calc(54% + 4vmin); top: 14vmin; }
+    h1 { font-size: 7.6vmin; }
+    .lede { font-size: 2vmin; }
+    .gal { left: calc(46%); right: 5vmin; width: auto; top: 5vmin; bottom: 5vmin; grid-template-columns: 1fr 32%; }
+    .list { left: 6vmin; right: calc(54% + 4vmin); bottom: 5vmin; height: 36vmin; }
+    .row .t { font-size: 2vmin; }
+    .row .v { font-size: 1.9vmin; }
+    .cta { padding: 1.8vmin 3.2vmin; font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head"><span class="logo">field &amp; hem</span><span class="pill">This week's edit</span><span class="wk">Wk 39</span></div>
+  <div class="intro">
+    <h1>One piece, <i>three</i> reasons.</h1>
+    <p class="lede">We looked closer so you don't have to. Here's why this one made the cut.</p>
+  </div>
+  <div class="gal">
+    <figure class="f hero"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><figcaption><b>01</b>The look</figcaption></figure>
+    <figure class="f d1"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><figcaption><b>02</b>The detail</figcaption></figure>
+    <figure class="f d2"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><figcaption><b>03</b>The finish</figcaption></figure>
+  </div>
+  <div class="list">
+    <div class="rows">
+      <div class="row"><span class="n">01</span><span class="t">Cut to move, <i>not</i> to cling</span><span class="v">$210</span></div>
+      <div class="row"><span class="n">02</span><span class="t">Hand-finished edges</span><span class="v">Made in Porto</span></div>
+      <div class="row"><span class="n">03</span><span class="t">Washed soft before it ships</span><span class="v">4 colours</span></div>
+    </div>
+    <div class="go">
+      <div class="cta">Shop the edit</div>
+      <div class="due">Edit changes <b>Sunday, midnight</b><br>Free returns, 30 days</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

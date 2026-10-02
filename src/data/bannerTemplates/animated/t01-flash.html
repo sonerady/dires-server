@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="4">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  /* Flash Sale — responsive: the frame takes the product photo's ratio; text column left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F4F1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6F4F1; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; color: #111; }
+  .ticker { position: absolute; left: 0; right: 0; top: 0; height: 7vmin; background: #E4002B; color: #fff; display: flex; align-items: center; white-space: nowrap; overflow: hidden;
+    font-family: "Anton", Impact, sans-serif; font-size: 3.4vmin; letter-spacing: .12em; z-index: 2; }
+  .ticker .run { display: flex; width: max-content; margin-left: 3vmin; }
+  .ticker .run i { font-style: normal; white-space: pre; }
+  .photo { position: absolute; top: 7vmin; right: 0; height: calc(100% - 7vmin); width: 56%; object-fit: cover; object-position: 50% 25%; }
+  .fade { position: absolute; top: 7vmin; bottom: 0; left: 44%; width: 16%; background: linear-gradient(90deg, rgba(246,244,241,1) 0%, rgba(246,244,241,0.985) 7.7%, rgba(246,244,241,0.943) 15.4%, rgba(246,244,241,0.874) 23.1%, rgba(246,244,241,0.784) 30.8%, rgba(246,244,241,0.677) 38.5%, rgba(246,244,241,0.56) 46.2%, rgba(246,244,241,0.44) 53.8%, rgba(246,244,241,0.323) 61.5%, rgba(246,244,241,0.216) 69.2%, rgba(246,244,241,0.126) 76.9%, rgba(246,244,241,0.057) 84.6%, rgba(246,244,241,0.015) 92.3%, rgba(246,244,241,0) 100%); }
+  .copy { position: absolute; left: 6vmin; top: 13vmin; bottom: 6vmin; width: calc(44% - 7vmin); display: flex; flex-direction: column; }
+  .kicker { font-weight: 900; font-size: 2.7vmin; letter-spacing: .26em; text-transform: uppercase; }
+  .kicker b { color: #E4002B; }
+  .big { font-family: "Anton", Impact, sans-serif; line-height: .84; margin-top: 2.4vmin; }
+  .big .num { display: block; font-size: 28vmin; color: #E4002B; letter-spacing: -.01em; white-space: nowrap; }
+  .big .num sup { font-size: .42em; vertical-align: .95em; margin-left: .04em; }
+  .big .off { display: block; margin-top: 2.6vmin; font-size: 21vmin; color: transparent; -webkit-text-stroke: .45vmin #111; letter-spacing: .02em; }
+  .sub { margin-top: 4vmin; font-weight: 700; font-size: 3.4vmin; line-height: 1.24; }
+  .code { align-self: flex-start; display: inline-flex; align-items: center; gap: 1.6vmin; margin-top: 4vmin; border: .4vmin dashed #111; padding: 1.5vmin 2.4vmin; font-weight: 900; font-size: 2.8vmin; letter-spacing: .14em; background: rgba(246,244,241,.92); }
+  .code small { font-weight: 500; font-size: 2vmin; letter-spacing: .2em; color: #555; }
+  .cta { margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 2vmin; background: #111; color: #fff; padding: 2.8vmin 4.6vmin; font-weight: 900; font-size: 3vmin; letter-spacing: .2em; white-space: nowrap; }
+  .badge { position: absolute; left: calc(44% - 8vmin); bottom: 16vmin; width: 15vmin; height: 15vmin; border-radius: 50%; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-12deg); box-shadow: 0 1vmin 3vmin rgba(0,0,0,.2); }
+  .badge .h { font-family: "Anton", Impact, sans-serif; font-size: 5.8vmin; line-height: .9; }
+  .badge .t { font-weight: 700; font-size: 1.5vmin; letter-spacing: .24em; margin-top: .6vmin; }
+  /* wide photo: more room for the product, a slightly smaller offer */
+  /* square / wide photo: the frame is short — a tighter offer stack, the badge moves to the photo's foot */
+  @media (min-aspect-ratio: 17/20) {
+    .copy { top: 11vmin; }
+    .kicker { font-size: 2.2vmin; }
+    .big .num { font-size: 21vmin; }
+    .big .off { font-size: 15vmin; margin-top: 1.8vmin; }
+    .sub { margin-top: 3vmin; font-size: 2.8vmin; }
+    .code { margin-top: 3vmin; font-size: 2.4vmin; }
+    .cta { padding: 2.2vmin 3.8vmin; font-size: 2.5vmin; }
+    .badge { left: calc(44% - 2vmin); bottom: 4vmin; width: 13vmin; height: 13vmin; }
+    .badge .h { font-size: 5vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 60%; }
+    .fade { left: 40%; }
+    .copy { width: calc(40% - 8vmin); }
+    .badge { left: calc(40% - 2vmin); }
+  }
+
+  /* ───────── motion: 4s loop, t=0 = the static design ───────── */
+  /* ticker: constant crawl, exactly one unit per loop (8 identical units → -12.5%) */
+  .ticker .run { animation: crawl 4s linear infinite; }
+  @keyframes crawl { from { transform: translateX(0); } to { transform: translateX(-12.5%); } }
+  /* ticker strobe: two quick black hits the moment the offer punches in */
+  .ticker { animation: strobe 4s linear infinite; }
+  @keyframes strobe {
+    0%, 38.9% { background-color: #E4002B; }
+    39%, 40.4% { background-color: #111; }
+    40.5%, 41.9% { background-color: #E4002B; }
+    42%, 43.4% { background-color: #111; }
+    43.5%, 100% { background-color: #E4002B; }
+  }
+  /* live dot: REC-style blink, one per second (the clock is running) */
+  .kicker b { display: inline-block; animation: blink 1s steps(1, end) infinite; }
+  @keyframes blink { 0%, 55% { opacity: 1; } 56%, 92% { opacity: .15; } 93%, 100% { opacity: 1; } }
+  /* the discount: snaps out, then punches back in with overshoot */
+  .big .num { transform-origin: 0% 62%; animation: punch 4s linear infinite; }
+  @keyframes punch {
+    0%, 35% { transform: scale(1); opacity: 1; filter: blur(0); animation-timing-function: cubic-bezier(.55,0,.9,.4); }
+    38.5% { transform: scale(.72); opacity: 0; filter: blur(.6vmin); animation-timing-function: steps(1, end); }
+    39% { transform: scale(1.16); opacity: 1; filter: blur(.5vmin); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    43.5% { transform: scale(.965); filter: blur(0); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    48% { transform: scale(1.012); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    52%, 100% { transform: scale(1); opacity: 1; filter: blur(0); }
+  }
+  /* OFF: an ink fill wipes through the outline, holds, and wipes out to the right */
+  .big .off { background: linear-gradient(90deg, transparent 0 20%, #111 22% 78%, transparent 80% 100%) 100% 0 / 500% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; animation: ink 4s linear infinite; }
+  @keyframes ink {
+    0%, 50% { background-position: 100% 0; animation-timing-function: cubic-bezier(.7,0,.25,1); }
+    58%, 71% { background-position: 50% 0; animation-timing-function: cubic-bezier(.7,0,.25,1); }
+    79% { background-position: 0% 0; animation-timing-function: steps(1, end); }
+    79.5%, 100% { background-position: 100% 0; }
+  }
+  /* CTA: a specular sheen crosses the button, the arrow nudges twice */
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.07) 30%, rgba(255,255,255,.32) 50%, rgba(255,255,255,.07) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 4s linear infinite; }
+  @keyframes sheen {
+    0%, 70% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    86%, 100% { transform: translateX(330%) skewX(-18deg); }
+  }
+  .cta span { display: inline-block; animation: nudge 4s linear infinite; }
+  @keyframes nudge {
+    0%, 72% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    76% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    80% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    84% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88%, 100% { transform: translateX(0); }
+  }
+  /* 48H badge: a clock tick every second + a red pulse ring leaving it */
+  .badge { animation: tick 1s linear infinite; }
+  @keyframes tick {
+    0% { transform: rotate(-12deg) scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    9% { transform: rotate(-5deg) scale(1.08); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    22% { transform: rotate(-13.5deg) scale(.99); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    34%, 100% { transform: rotate(-12deg) scale(1); }
+  }
+  .badge::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .5vmin solid #E4002B; opacity: 0; animation: ring 1s linear infinite; }
+  @keyframes ring {
+    0% { transform: scale(1); opacity: 0; }
+    4% { transform: scale(1.02); opacity: .85; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    62% { transform: scale(1.42); opacity: 0; }
+    100% { transform: scale(1.42); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="fade"></div>
+  <div class="ticker"><span class="run"><i>FLASH SALE ✦ 48 HOURS ONLY ✦ </i><i>FLASH SALE ✦ 48 HOURS ONLY ✦ </i><i>FLASH SALE ✦ 48 HOURS ONLY ✦ </i><i>FLASH SALE ✦ 48 HOURS ONLY ✦ </i><i>FLASH SALE ✦ 48 HOURS ONLY ✦ </i><i>FLASH SALE ✦ 48 HOURS ONLY ✦ </i><i>FLASH SALE ✦ 48 HOURS ONLY ✦ </i><i>FLASH SALE ✦ 48 HOURS ONLY ✦ </i></span></div>
+  <div class="copy">
+    <div class="kicker">Summer sale <b>●</b> up to</div>
+    <div class="big"><span class="num">50<sup>%</sup></span><span class="off">OFF</span></div>
+    <div class="sub">Dresses, kaftans &amp; resort pieces — while stock lasts.</div>
+    <div class="code"><small>CODE</small>FLASH50</div>
+    <div class="cta">SHOP NOW <span>→</span></div>
+  </div>
+  <div class="badge"><span class="h">48H</span><span class="t">ONLY</span></div>
+</div>
+</body>
+</html>

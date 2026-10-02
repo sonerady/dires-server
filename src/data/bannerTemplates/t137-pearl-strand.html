@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Pearl Strand — heirloom restraint: a single strand of pearls (CSS-drawn, lustre on every bead) hangs down
+     the seam of a blush column, caught by a gold box clasp. The look stands to the right.
+     every ratio → blush column left (the strand along its inner edge), photo right; the column widens as the frame does */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE4DB; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3A2A26; font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(140% 60% at 0% 0%, #F4EAE2 0%, #EFE4DB 50%, #E8DBD0 100%); }
+  .photo { position: absolute; top: 0; right: 0; width: 58%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+
+  .strand { position: absolute; top: 0; bottom: 0; left: calc(42% - 5.2vmin); width: 3.2vmin;
+    background: radial-gradient(circle at 38% 32%, #FFFFFF 0, #FBF8F3 .35vmin, #EDE6DC .8vmin, #D3C8BB 1.25vmin, #A99C8E 1.52vmin, rgba(169,156,142,0) 1.62vmin) 0 0 / 3.2vmin 3.2vmin repeat-y;
+    filter: drop-shadow(.3vmin .5vmin .4vmin rgba(90,60,50,.28)); }
+  .clasp { position: absolute; left: calc(42% - 6.6vmin); top: 56%; width: 6vmin; height: 4.2vmin; border-radius: 1vmin;
+    background: linear-gradient(135deg, #8F6A2C 0%, #E9CC86 30%, #B88E45 55%, #F2DDA2 75%, #9C7633 100%);
+    box-shadow: inset 0 0 0 .25vmin rgba(255,240,200,.5), 0 .6vmin 1vmin rgba(80,50,30,.35); }
+  .clasp::after { content: ""; position: absolute; inset: 1.1vmin 1.3vmin; border-radius: .4vmin; border: 1px solid rgba(90,62,20,.55); }
+
+  .col { position: absolute; left: 6vmin; top: 7vmin; bottom: 7vmin; width: calc(42% - 15vmin); display: flex; flex-direction: column; justify-content: space-between; }
+  .k { font-size: 1.8vmin; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; line-height: 1.7; color: #8C5A4E; }
+  h1 { margin: 0; font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-weight: 400; font-size: 7.6vmin; line-height: .98; letter-spacing: -.01em; }
+  h1 i { font-weight: 400; }
+  .lede { margin-top: 2.6vmin; font-size: 2.3vmin; line-height: 1.5; color: #5B4A44; }
+  .rule { width: 7vmin; height: 1px; background: #8C5A4E; margin-bottom: 2.4vmin; }
+  .off { font-family: "Bodoni Moda", Didot, serif; font-size: 7vmin; line-height: 1; }
+  .off small { display: block; margin-top: 1vmin; font-family: "Jost", sans-serif; font-size: 1.8vmin; letter-spacing: .24em; text-transform: uppercase; color: #8C5A4E; }
+  .cta { margin-top: 3vmin; display: inline-block; font-size: 1.9vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; padding-bottom: .6vmin; border-bottom: 1px solid #3A2A26; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 60%; }
+    .strand { left: calc(40% - 5.2vmin); }
+    .clasp { left: calc(40% - 6.6vmin); top: 58%; }
+    .col { width: calc(40% - 15vmin); top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 6.8vmin; }
+    .lede { font-size: 2.1vmin; }
+    .off { font-size: 6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 58%; object-position: 50% 25%; }
+    .strand { left: calc(42% - 5.2vmin); }
+    .clasp { left: calc(42% - 6.6vmin); top: 60%; }
+    .col { width: calc(42% - 15vmin); }
+    h1 { font-size: 6.8vmin; }
+    .lede { font-size: 2.1vmin; }
+    .off { font-size: 6.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 60%; object-position: 40% 25%; }
+    .strand { left: calc(40% - 5.6vmin); }
+    .clasp { left: calc(40% - 7vmin); top: 62%; }
+    .col { left: 8vmin; top: 8vmin; bottom: 8vmin; width: calc(40% - 19vmin); }
+    h1 { font-size: 9.6vmin; }
+    .lede { font-size: 2.4vmin; max-width: 36vmin; }
+    .off { font-size: 7.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="strand"></div>
+  <div class="clasp"></div>
+  <div class="col">
+    <div class="k">The Heirloom<br>Edit</div>
+    <div>
+      <h1>Handed<br><i>down.</i></h1>
+      <div class="lede">Pieces chosen to outlast the season, and the next.</div>
+    </div>
+    <div>
+      <div class="rule"></div>
+      <div class="off">15% off<small>Three days only</small></div>
+      <div class="cta">Discover</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

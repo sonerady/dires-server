@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Archivo:wdth,wght@75,500;75,700;75,800;100,500&display=swap" rel="stylesheet">
+<style>
+  /* Beeper Page — the offer arrives on a 90s pager: a translucent-purple beeper with a green-grey backlit LCD in pixel
+     type, soft buttons and a belt clip, next to a typed "page codes" key card (143, 911…). Headline: "You got paged."
+     tall → photo above, lilac panel with headline + pager + code key · square & wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D8D1EE; }
+  .banner { --bg: #D8D1EE; --ink: #1C1530; --pur: #4B2E8F; --lcd: #A9BC8F; --pix: #1E2A16; --lime: #C8F547;
+    position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: "Archivo", "Arial Narrow", Arial, sans-serif; font-stretch: 75%; }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 70vmin); overflow: hidden; }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 61vmin; display: flex; flex-direction: column; gap: 3.4vmin; }
+  .hl { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .hl h1 { margin: 0; font-weight: 800; font-size: 10.6vmin; line-height: .88; letter-spacing: -.02em; text-transform: uppercase; white-space: nowrap; }
+  .hl small { font-family: "Silkscreen", monospace; font-size: 1.8vmin; line-height: 1.5; text-align: right; color: var(--pur); white-space: nowrap; }
+
+  .row { flex: 1; display: flex; gap: 4vmin; align-items: stretch; min-height: 0; }
+  .pager { position: relative; flex: 1.45; min-width: 0; border-radius: 3vmin 3vmin 3vmin 6vmin; padding: 2.6vmin 2.8vmin 2.4vmin;
+    background: linear-gradient(160deg, rgba(118,84,210,.95), rgba(75,46,143,.96) 55%, rgba(52,30,110,.98)); box-shadow: 0 1.2vmin 2.4vmin rgba(28,21,48,.35), inset 0 .5vmin 0 rgba(255,255,255,.25), inset 0 -.6vmin 0 rgba(0,0,0,.25);
+    display: flex; flex-direction: column; gap: 2vmin; }
+  .pager::before { content: ""; position: absolute; right: -1.6vmin; top: 22%; width: 1.6vmin; height: 44%; background: linear-gradient(90deg, #2E1C63, #4B2E8F); border-radius: 0 1vmin 1vmin 0; }
+  .brand { display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 1.7vmin; letter-spacing: .3em; text-transform: uppercase; color: rgba(255,255,255,.85); white-space: nowrap; }
+  .brand i { width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: var(--lime); box-shadow: 0 0 1vmin var(--lime); }
+  .lcd { flex: 1; background: linear-gradient(180deg, #B4C69A, var(--lcd)); border-radius: .8vmin; box-shadow: inset 0 .5vmin 1vmin rgba(0,0,0,.35), 0 0 0 .5vmin #22163F;
+    padding: 1.4vmin 2vmin; color: var(--pix); font-family: "Silkscreen", monospace; display: flex; flex-direction: column; justify-content: space-between; min-height: 0;
+    background-image: linear-gradient(90deg, rgba(30,42,22,.06) 0 1px, rgba(0,0,0,0) 1px), linear-gradient(180deg, rgba(30,42,22,.06) 0 1px, rgba(0,0,0,0) 1px), linear-gradient(180deg, #B4C69A, var(--lcd));
+    background-size: .6vmin .6vmin, .6vmin .6vmin, 100% 100%; }
+  .lcd .st { display: flex; justify-content: space-between; font-size: 1.8vmin; line-height: 1; white-space: nowrap; }
+  .lcd .msg { font-weight: 700; font-size: 5.4vmin; line-height: 1; letter-spacing: -.02em; white-space: nowrap; text-shadow: .25vmin .25vmin 0 rgba(30,42,22,.18); }
+  .lcd .ln { font-size: 2.2vmin; line-height: 1.2; white-space: nowrap; }
+  .btns { display: flex; gap: 1.6vmin; }
+  .btns i { flex: 1; height: 3.4vmin; border-radius: 99vmin; background: linear-gradient(180deg, #2A1A55, #1A0F38); box-shadow: inset 0 .3vmin 0 rgba(255,255,255,.18); }
+  .btns i:first-child { flex: .6; background: linear-gradient(180deg, #D9F77A, #A6D12E); }
+
+  .key { flex: 1; min-width: 0; background: #FBF8F1; padding: 2.6vmin 2.6vmin 2.4vmin; box-shadow: 0 .6vmin 1.4vmin rgba(28,21,48,.18); transform: rotate(1.5deg); display: flex; flex-direction: column; }
+  .key h3 { margin: 0 0 1.4vmin; font-family: "Silkscreen", monospace; font-weight: 700; font-size: 1.9vmin; letter-spacing: .06em; border-bottom: .3vmin solid var(--ink); padding-bottom: 1vmin; white-space: nowrap; }
+  .key dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 1.3vmin 1.8vmin; align-items: baseline; }
+  .key dt { font-family: "Silkscreen", monospace; font-weight: 700; font-size: 3vmin; line-height: 1; color: var(--pur); }
+  .key dd { margin: 0; font-weight: 500; font-size: 2.3vmin; line-height: 1.15; }
+  .key .cta { margin-top: auto; padding-top: 1.6vmin; font-weight: 800; font-size: 2.4vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 62vmin); }
+    .panel { left: 12vmin; right: 12vmin; height: 54vmin; bottom: 4vmin; gap: 2.8vmin; }
+    .hl h1 { font-size: 9.2vmin; }
+    .lcd .msg { font-size: 5vmin; }
+  }
+
+  /* square & wide: photo left, panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; bottom: 0; height: 100%; width: 46%; }
+    .panel { left: calc(46% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; gap: 3vmin; }
+    .hl { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .hl h1 { font-size: 8.4vmin; white-space: normal; }
+    .hl small { text-align: left; }
+    .row { flex-direction: column; gap: 3vmin; }
+    .pager { flex: none; height: 30vmin; padding: 2vmin 2.4vmin; gap: 1.4vmin; }
+    .lcd .msg { font-size: 4.6vmin; }
+    .lcd .ln { font-size: 1.9vmin; }
+    .btns i { height: 2.8vmin; }
+    .key { flex: 1; padding: 2vmin 2.4vmin; transform: rotate(-1deg); }
+    .key h3 { font-size: 1.7vmin; margin-bottom: 1vmin; }
+    .key dl { grid-template-columns: auto 1fr; gap: .8vmin 1.6vmin; }
+    .key dt { font-size: 2.4vmin; }
+    .key dd { font-size: 2vmin; }
+    .key .x { display: none; }
+    .key .cta { font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .panel { left: calc(42% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .hl h1 { font-size: 9.6vmin; white-space: nowrap; }
+    .row { flex-direction: row; align-items: center; }
+    .pager { flex: 1.8; height: 36vmin; }
+    .lcd .msg { font-size: 4.6vmin; }
+    .key { flex: 1; align-self: stretch; }
+    .key .x { display: block; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     the page arrives: the pager buzzes twice (bzz-bzz) with the lime LED flashing · the LCD backlight comes on and
+     "*30% OFF*" blinks in three times, the envelope icon flashes · "1 new message" pings · the CTA arrow nudges */
+  .photo img { transform-origin: 50% 30%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+
+  .pager { animation: bzz 6s linear infinite; }
+  @keyframes bzz {
+    0%, 12% { transform: translate(0, 0) rotate(0deg); }
+    12.6% { transform: translate(-.5vmin, 0) rotate(-1deg); } 13.2% { transform: translate(.5vmin, 0) rotate(1deg); }
+    13.8% { transform: translate(-.5vmin, 0) rotate(-1deg); } 14.4% { transform: translate(.5vmin, 0) rotate(1deg); }
+    15% { transform: translate(-.4vmin, 0) rotate(-.8deg); } 15.6% { transform: translate(.4vmin, 0) rotate(.8deg); }
+    16.2% { transform: translate(-.3vmin, 0) rotate(-.5deg); } 16.8%, 19% { transform: translate(0, 0) rotate(0deg); }
+    19.6% { transform: translate(-.5vmin, 0) rotate(-1deg); } 20.2% { transform: translate(.5vmin, 0) rotate(1deg); }
+    20.8% { transform: translate(-.5vmin, 0) rotate(-1deg); } 21.4% { transform: translate(.5vmin, 0) rotate(1deg); }
+    22% { transform: translate(-.4vmin, 0) rotate(-.8deg); } 22.6% { transform: translate(.4vmin, 0) rotate(.8deg); }
+    23.2% { transform: translate(-.3vmin, 0) rotate(-.5deg); } 23.8%, 100% { transform: translate(0, 0) rotate(0deg); }
+  }
+  .brand i { animation: led 6s steps(1, end) infinite; }
+  @keyframes led {
+    0%, 12%, 14%, 16%, 19%, 21%, 23%, 100% { opacity: 1; }
+    13%, 15%, 20%, 22% { opacity: .2; }
+  }
+
+  /* LCD: backlight glows on while the message blinks in */
+  .lcd { animation: backlight 6s linear infinite; }
+  @keyframes backlight {
+    0%, 23% { filter: brightness(1) saturate(1); box-shadow: inset 0 .5vmin 1vmin rgba(0,0,0,.35), 0 0 0 .5vmin #22163F; animation-timing-function: cubic-bezier(.2,0,.3,1); }
+    26%, 62% { filter: brightness(1.14) saturate(1.25); box-shadow: inset 0 .5vmin 1vmin rgba(0,0,0,.2), 0 0 0 .5vmin #22163F, 0 0 2.4vmin rgba(200,245,71,.55); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    72%, 100% { filter: brightness(1) saturate(1); box-shadow: inset 0 .5vmin 1vmin rgba(0,0,0,.35), 0 0 0 .5vmin #22163F; }
+  }
+  .lcd .msg { animation: msg 6s steps(1, end) infinite; }
+  @keyframes msg {
+    0%, 25%, 29%, 33%, 37%, 100% { opacity: 1; }
+    27%, 31%, 35% { opacity: 0; }
+  }
+  .lcd .env { animation: env 6s steps(1, end) infinite; }
+  @keyframes env {
+    0%, 25%, 30%, 35%, 40%, 45%, 50%, 100% { opacity: 1; }
+    27.5%, 32.5%, 37.5%, 42.5%, 47.5% { opacity: .15; }
+  }
+
+  .hl small { animation: ping 6s linear infinite; }
+  @keyframes ping {
+    0%, 24% { transform: translateY(0); color: #4B2E8F; animation-timing-function: cubic-bezier(.2,.9,.3,1.4); }
+    27% { transform: translateY(-.8vmin); color: #7A4FE0; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    32%, 100% { transform: translateY(0); color: #4B2E8F; }
+  }
+
+  .key .cta span { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 74% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    77% { transform: translateX(.8vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    80% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    83% { transform: translateX(.8vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    86%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="panel">
+    <div class="hl"><h1>You got<br>paged.</h1><small>1 new message<br>from Studio Oro</small></div>
+    <div class="row">
+      <div class="pager">
+        <div class="brand"><span>Skytalk 90</span><i></i></div>
+        <div class="lcd">
+          <div class="st"><span>09:43P</span><span class="env">✉ 01</span></div>
+          <div class="msg">*30% OFF*</div>
+          <div class="ln">NEW DROP · CODE 143</div>
+        </div>
+        <div class="btns"><i></i><i></i><i></i></div>
+      </div>
+      <div class="key">
+        <h3>PAGE CODES</h3>
+        <dl>
+          <dt>143</dt><dd>New drop, just landed</dd>
+          <dt>30</dt><dd>Percent off, sitewide</dd>
+          <dt class="x">911</dt><dd class="x">Sale ends Sunday</dd>
+        </dl>
+        <div class="cta">Call back · shop <span>→</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

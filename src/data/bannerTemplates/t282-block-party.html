@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Courier+Prime:wght@400;700&family=Sedgwick+Ave&display=swap" rel="stylesheet">
+<style>
+  /* Block Party — a photocopied flyer on fluoro-yellow paper: toner grain, stacked Anton billing, the look taped on,
+     a marker ring around the offer and a row of tear-off tabs carrying the promo code (one already torn away).
+     tall → billing / photo / details / tabs · square & wide → billing left, photo right, tabs across the foot */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F7EA2A; }
+  .banner { --pap: #F7EA2A; --ink: #111; --red: #E3261C;
+    position: fixed; inset: 0; overflow: hidden; background: var(--pap); color: var(--ink); font-family: "Courier Prime", "Courier New", monospace; }
+  .toner { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: multiply; pointer-events: none; }
+  .edge { position: absolute; top: 0; bottom: 0; left: 0; width: 3vmin; background: linear-gradient(90deg, rgba(17,17,17,.28), rgba(17,17,17,.2) 30%, rgba(17,17,17,0)); }
+
+  .bill { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; text-align: center; }
+  .pres { font-weight: 700; font-size: 2.2vmin; letter-spacing: .3em; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 2vmin; }
+  .star { display: inline-block; width: 2.6vmin; height: 2.6vmin; background: var(--ink); clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+  .big { font-family: "Anton", Impact, sans-serif; font-size: 17.4vmin; line-height: .9; text-transform: uppercase; letter-spacing: .005em; margin-top: 1.6vmin; white-space: nowrap; }
+  .offer { position: relative; display: inline-flex; align-items: baseline; gap: 2vmin; font-family: "Anton", Impact, sans-serif; font-size: 7.4vmin; line-height: 1; text-transform: uppercase; margin-top: 1.8vmin; white-space: nowrap; }
+  .offer .pc { position: relative; padding: 0 1.4vmin; }
+  .offer .pc svg { position: absolute; left: -2.4vmin; top: -2.6vmin; width: calc(100% + 4.8vmin); height: calc(100% + 5.2vmin); overflow: visible; }
+
+  .photo { position: absolute; left: 7vmin; right: 7vmin; top: 44vmin; height: calc(100% - 44vmin - 46vmin); transform: rotate(-1.2deg); box-shadow: .6vmin .8vmin 0 rgba(17,17,17,.18); }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .tape { position: absolute; width: 15vmin; height: 4.6vmin; background: rgba(250,248,236,.58); border-left: 1px dashed rgba(17,17,17,.18); border-right: 1px dashed rgba(17,17,17,.18); z-index: 2; }
+  .tp1 { left: -5vmin; top: -1.4vmin; transform: rotate(-38deg); }
+  .tp2 { right: -5vmin; top: -1.4vmin; transform: rotate(38deg); }
+
+  .info { position: absolute; left: 6vmin; right: 6vmin; bottom: 25vmin; display: flex; flex-direction: column; align-items: center; gap: 1.4vmin; }
+  .when { font-family: "Anton", Impact, sans-serif; font-size: 5.2vmin; line-height: 1; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+  .band { background: var(--ink); color: var(--pap); font-weight: 700; font-size: 2.2vmin; letter-spacing: .22em; text-transform: uppercase; padding: 1vmin 2.4vmin; white-space: nowrap; }
+  .note { position: absolute; right: 5vmin; bottom: 37.6vmin; font-family: "Sedgwick Ave", "Marker Felt", cursive; font-size: 5vmin; line-height: 1; color: var(--red); transform: rotate(-8deg); white-space: nowrap; z-index: 3; text-shadow: 0 0 .6vmin var(--pap), 0 0 .6vmin var(--pap); }
+
+  /* tear-off tabs */
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 21vmin; display: flex; border-top: 1px dashed rgba(17,17,17,.7); }
+  .tabs::before { content: "✂"; position: absolute; left: 2vmin; top: -1.7vmin; font-size: 2.6vmin; line-height: 1; background: var(--pap); padding: 0 .6vmin; font-family: "Courier Prime", monospace; }
+  .tab { flex: 1; position: relative; border-left: 1px dashed rgba(17,17,17,.7); display: grid; place-items: center; overflow: hidden; }
+  .tab:first-child { border-left: 0; }
+  .tab span { transform: rotate(-90deg); white-space: nowrap; font-weight: 700; font-size: 2.4vmin; letter-spacing: .1em; line-height: 1.15; text-align: left; text-transform: uppercase; }
+  .tab span b { display: block; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 4.2vmin; letter-spacing: .03em; }
+  .tab.gone { background: #2B2A26; border-left-style: solid; }
+  .tab.gone span { visibility: hidden; }
+  .tab.gone + .tab { border-left: 1px solid #2B2A26; }
+  .t6 { display: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .big { font-size: 15vmin; }
+    .offer { font-size: 6.4vmin; }
+    .photo { left: 16vmin; right: 16vmin; top: 39vmin; height: calc(100% - 39vmin - 41vmin); }
+    .info { bottom: 21vmin; }
+    .tabs { height: 17vmin; }
+    .note { bottom: 33vmin; right: 8vmin; }
+    .tab span { font-size: 2vmin; }
+    .tab span b { font-size: 3.4vmin; }
+  }
+
+  /* square & wide: billing column left, photo right, tabs across the foot */
+  @media (min-aspect-ratio: 9/10) {
+    .bill { left: 5vmin; right: 51%; top: 6vmin; text-align: left; }
+    .pres { justify-content: flex-start; font-size: 1.8vmin; gap: 1.4vmin; }
+    .big { font-size: 16vmin; white-space: normal; line-height: .86; margin-top: 2vmin; }
+    .offer { font-size: 5.8vmin; margin-top: 3vmin; }
+    .photo { left: auto; right: 5vmin; top: 5vmin; width: calc(46% - 5vmin); height: calc(100% - 5vmin - 24vmin); transform: rotate(1.2deg); }
+    .info { left: 5vmin; right: 51%; bottom: 24vmin; align-items: flex-start; }
+    .when { font-size: 4.2vmin; }
+    .band { font-size: 1.7vmin; letter-spacing: .16em; padding: 1vmin 1.8vmin; }
+    .note { right: auto; left: 22vmin; bottom: auto; top: 52vmin; font-size: 4.6vmin; }
+    .tabs { height: 18vmin; }
+    .tab span { font-size: 1.8vmin; }
+    .tab span b { font-size: 3.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .bill { right: 49%; left: 7vmin; }
+    .big { font-size: 17vmin; }
+    .offer { font-size: 6.4vmin; }
+    .photo { width: calc(44% - 6vmin); right: 7vmin; }
+    .info { left: 7vmin; right: 49%; }
+    .when { font-size: 4.6vmin; }
+    .band { font-size: 1.8vmin; }
+    .note { left: 36vmin; top: 55vmin; font-size: 5vmin; }
+    .t6 { display: grid; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="toner" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .1  0 0 0 0 .08  0 0 0 -2.6 1.45"/></filter><filter id="s"><feTurbulence type="fractalNoise" baseFrequency=".004 .09" numOctaves="2" seed="2"/><feColorMatrix values="0 0 0 0 .35  0 0 0 0 .33  0 0 0 0 .2  0 0 0 .12 0"/></filter><rect width="100%" height="100%" filter="url(#s)"/><rect width="100%" height="100%" filter="url(#n)" opacity=".35"/></svg>
+  <i class="edge"></i>
+  <div class="bill">
+    <div class="pres"><i class="star"></i>Studio Oro presents<i class="star"></i></div>
+    <div class="big">Block Party</div>
+    <div class="offer">Up to <span class="pc">40% off<svg viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M8 22 C 6 8, 40 2, 70 4 C 96 6, 100 22, 88 32 C 72 42, 22 40, 8 30 C 2 24, 10 12, 24 8" fill="none" stroke="#E3261C" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke" style="stroke-width:.7vmin"/></svg></span></div>
+  </div>
+  <div class="photo"><i class="tape tp1"></i><i class="tape tp2"></i><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="note">free raffle!</div>
+  <div class="info">
+    <div class="when">Sat 17 Aug · 1pm till dark</div>
+    <div class="band">Live DJ · all ages · all sizes</div>
+  </div>
+  <div class="tabs">
+    <div class="tab"><span><b>BLOCK40</b>40% off</span></div>
+    <div class="tab"><span><b>BLOCK40</b>40% off</span></div>
+    <div class="tab gone"><span><b>BLOCK40</b>40% off</span></div>
+    <div class="tab"><span><b>BLOCK40</b>40% off</span></div>
+    <div class="tab"><span><b>BLOCK40</b>40% off</span></div>
+    <div class="tab"><span><b>BLOCK40</b>40% off</span></div>
+    <div class="tab"><span><b>BLOCK40</b>40% off</span></div>
+    <div class="tab t6"><span><b>BLOCK40</b>40% off</span></div>
+    <div class="tab t6"><span><b>BLOCK40</b>40% off</span></div>
+    <div class="tab t6"><span><b>BLOCK40</b>40% off</span></div>
+  </div>
+</div>
+</body>
+</html>

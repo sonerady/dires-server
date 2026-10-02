@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Race Bib — a ski-race start bib (dossard) laid on a cobalt start-house wall: shoulder straps, side ties,
+     sponsor bands, and the discount printed as the start number. The bib scales as one unit (--k).
+     tall → photo above; square/wide → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1F3FB8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #fff; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; background: #1F3FB8; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 20%; }
+  .wall { position: absolute; left: 0; right: 0; bottom: 0; height: 86vmin; --k: .9vmin;
+    background: radial-gradient(circle, rgba(255,255,255,.14) 0 .22vmin, transparent .26vmin) 0 0 / 3vmin 3vmin, linear-gradient(180deg, #2445C4, #17309A); }
+  .side { position: absolute; top: 50%; font-size: 1.7vmin; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; color: #C9D4FF; }
+  .side.l { left: 3.6vmin; transform: translate(-50%, -50%) rotate(-90deg) translateY(50%); }
+  .side.r { right: 3.6vmin; transform: translate(50%, -50%) rotate(90deg) translateY(50%); }
+
+  .bib { position: absolute; left: 50%; top: 13vmin; width: calc(var(--k) * 62); height: calc(var(--k) * 66); margin-left: calc(var(--k) * -31); color: #0F1A3D; transform: rotate(-2deg); }
+  .bib > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 .5vmin .6vmin rgba(5,12,40,.35)) drop-shadow(0 2.4vmin 3vmin rgba(5,12,40,.3)); }
+  .band { position: absolute; left: calc(var(--k) * 3); right: calc(var(--k) * 3); display: flex; justify-content: space-between; align-items: center; padding: 0 calc(var(--k) * 2.4); box-sizing: border-box; font-weight: 700; font-size: calc(var(--k) * 2.5); letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .band.top { top: calc(var(--k) * 14.5); height: calc(var(--k) * 7.4); background: #E4312B; color: #fff; }
+  .band.bot { bottom: calc(var(--k) * 4); height: calc(var(--k) * 6.6); background: #0F1A3D; color: #fff; }
+  .band.bot b { color: #FFD23F; font-weight: 700; }
+  .no { position: absolute; left: 0; right: 0; top: calc(var(--k) * 23); display: flex; justify-content: center; align-items: flex-start; gap: calc(var(--k) * 1.4); }
+  .no b { font-family: "Bebas Neue", "Oswald", Impact, sans-serif; font-weight: 400; font-size: calc(var(--k) * 34); line-height: .82; letter-spacing: -.01em; }
+  .no span { display: flex; flex-direction: column; padding-top: calc(var(--k) * 1.4); font-family: "Bebas Neue", "Oswald", Impact, sans-serif; font-size: calc(var(--k) * 10); line-height: .86; }
+  .no span i { font-style: normal; color: #E4312B; }
+  .cat { position: absolute; left: 0; right: 0; top: calc(var(--k) * 51.5); text-align: center; font-weight: 500; font-size: calc(var(--k) * 2.4); letter-spacing: .24em; text-transform: uppercase; }
+
+  .hl { position: absolute; left: 6vmin; right: 6vmin; top: 4vmin; text-align: center; font-family: "Bebas Neue", "Oswald", Impact, sans-serif; font-size: 8vmin; line-height: .9; letter-spacing: .02em; }
+  .hl em { font-style: normal; color: #FFD23F; }
+  .cta { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; padding: 1.7vmin 2.6vmin; background: #FFD23F; color: #0F1A3D; font-weight: 700; font-size: 2.3vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 78vmin); }
+    .wall { height: 78vmin; --k: .8vmin; }
+    .hl { top: 3.4vmin; font-size: 7vmin; }
+    .bib { top: 11vmin; }
+    .cta { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .wall { height: 66vmin; --k: .66vmin; }
+    .hl { top: 3vmin; font-size: 6vmin; }
+    .bib { top: 9.6vmin; }
+    .cta { bottom: 3.4vmin; padding: 1.3vmin 2.4vmin; font-size: 2vmin; }
+  }
+  /* square / wide → photo left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .wall { left: 50%; top: 0; height: auto; --k: .72vmin; }
+    .side { display: none; }
+    .hl { left: 4vmin; right: 4vmin; top: 7vmin; font-size: 7.4vmin; }
+    .bib { top: 21vmin; }
+    .cta { left: 5vmin; right: 5vmin; bottom: 5vmin; font-size: 1.9vmin; padding: 1.4vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .wall { left: 48%; --k: .9vmin; }
+    .hl { top: 5vmin; font-size: 8.4vmin; }
+    .hl em { display: block; }
+    .bib { top: 22vmin; }
+    .cta { left: 9vmin; right: 9vmin; bottom: 5.4vmin; font-size: 2.2vmin; padding: 1.6vmin 2.6vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+     constant: the bib hangs in the start-house draught and sways from its straps
+     beats: 1.8s timing clock ticks · 2.4s start gun — "40" kicks and settles · 3.4s "Sale on." wipes off and back ·
+            4.6s sheen crosses the CTA, arrow nudges twice */
+  .bib { transform-origin: 50% 0; animation: sway 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-2deg); }
+    25% { transform: rotate(-2.9deg) translateY(-.2vmin); }
+    55% { transform: rotate(-1.1deg) translateY(.15vmin); }
+    80% { transform: rotate(-2.5deg); }
+  }
+  .no b { transform-origin: 50% 60%; animation: gun 6s linear infinite; }
+  @keyframes gun {
+    0%, 38% { transform: scale(1); animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    41% { transform: scale(.9); animation-timing-function: cubic-bezier(.2,.9,.3,1.2); }
+    45% { transform: scale(1.07); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    50% { transform: scale(.985); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    55%, 100% { transform: scale(1); }
+  }
+  .no span { animation: pct 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pct { 0%, 42% { transform: none; } 46% { transform: translateY(-.8vmin); } 52%, 100% { transform: none; } }
+  .hl em { -webkit-clip-path: inset(-10% -2% -20% 0); clip-path: inset(-10% -2% -20% 0); animation: wipe 6s linear infinite; }
+  @keyframes wipe {
+    0%, 56% { -webkit-clip-path: inset(-10% -2% -20% 0); clip-path: inset(-10% -2% -20% 0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    62%, 64% { -webkit-clip-path: inset(-10% -2% -20% 100%); clip-path: inset(-10% -2% -20% 100%); animation-timing-function: steps(1, end); }
+    64.5% { -webkit-clip-path: inset(-10% 102% -20% 0); clip-path: inset(-10% 102% -20% 0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    71%, 100% { -webkit-clip-path: inset(-10% -2% -20% 0); clip-path: inset(-10% -2% -20% 0); }
+  }
+  .side.r { animation: tick 1s steps(1, end) infinite; }
+  @keyframes tick { 0%, 60% { opacity: 1; } 61%, 100% { opacity: .55; } }
+  .cta { overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 30%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.55) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 76% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    90%, 100% { transform: translateX(420%) skewX(-18deg); }
+  }
+  .cta span:last-child { animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 80% { transform: none; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    83% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    86% { transform: none; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    89% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    93%, 100% { transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="wall">
+    <div class="side l">Start house · Gate 01</div>
+    <div class="side r">Timing · 00:40.00</div>
+    <div class="hl">On your marks. <em>Sale on.</em></div>
+    <div class="bib">
+      <svg viewBox="0 0 62 66" preserveAspectRatio="none" aria-hidden="true">
+        <defs><linearGradient id="fab" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".6" stop-color="#F3F5FA"/><stop offset="1" stop-color="#E3E8F2"/></linearGradient></defs>
+        <!-- side ties -->
+        <path d="M3 30 L -1.5 37.5 M3 30 L -2.5 33.5 M59 30 L 63.5 37.5 M59 30 L 64.5 33.5 M3 52 L -1.5 59.5 M3 52 L -2.5 55.5 M59 52 L 63.5 59.5 M59 52 L 64.5 55.5" stroke="#FFFFFF" stroke-opacity=".85" stroke-width=".6" fill="none" stroke-linecap="round"/>
+        <!-- tabard: straps + neck scoop + body -->
+        <path d="M8 0 H20 V6 C 22 12, 40 12, 42 6 V0 H54 V9 C 57 10, 59 12, 59 15 V64 C 59 65, 58 66, 57 66 H5 C 4 66, 3 65, 3 64 V15 C 3 12, 5 10, 8 9 Z" fill="url(#fab)"/>
+        <path d="M8 0 H20 V6 C 22 12, 40 12, 42 6 V0 H54" fill="none" stroke="#C9D2E6" stroke-width=".5"/>
+        <!-- stitched hem -->
+        <path d="M5.2 62.6 H56.8 M5.2 16 V62.6 M56.8 16 V62.6" stroke="#B8C2D8" stroke-width=".35" stroke-dasharray="1 .8" fill="none"/>
+        <circle cx="3" cy="30" r="1" fill="#0F1A3D"/><circle cx="59" cy="30" r="1" fill="#0F1A3D"/><circle cx="3" cy="52" r="1" fill="#0F1A3D"/><circle cx="59" cy="52" r="1" fill="#0F1A3D"/>
+      </svg>
+      <div class="band top"><span>Atelier Nord</span><span>Winter Cup</span></div>
+      <div class="no"><b>40</b><span><i>%</i>OFF</span></div>
+      <div class="cat">Giant sale · all styles</div>
+      <div class="band bot"><span>Code <b>BIB40</b></span><span>12.12—06.01</span></div>
+    </div>
+    <div class="cta"><span>Get to the start line</span><span>→</span></div>
+  </div>
+</div>
+</body>
+</html>

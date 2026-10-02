@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400&family=Space+Grotesk:wght@400;500;700&family=Nothing+You+Could+Do&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Envelope Pocket — a kraft envelope glued into the back of a journal as a pocket (thumb notch, V seams), a manila
+     shipping tag with a red string pulled half out of it carrying the welcome code, a handwritten address label and
+     a perforated postage stamp printed with a crop of the product itself. The photo is pasted above, untouched.
+     tall → title / photo / pocket · 3:4 & square → photo left, title + pocket right · wide → photo left, title + wide pocket right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE2D6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3B2A22; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(circle at 30% 40%, rgba(150,110,80,.07) 0 .15vmin, transparent .25vmin) 0 0 / 2.1vmin 2.5vmin,
+      radial-gradient(ellipse at 50% 30%, #F4E9DF 0%, #EDDFD2 65%, #E3D2C3 100%); }
+
+  .head { position: absolute; left: 8vmin; right: 8vmin; top: 6vmin; }
+  .kick { font-size: 1.7vmin; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: #8A6A58; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 8.4vmin; line-height: .95; letter-spacing: -.02em; color: #3B2A22; }
+  h1 i { font-weight: 400; color: #A1473A; }
+
+  .photo { position: absolute; left: 8vmin; top: 29vmin; width: calc(100% - 16vmin); height: calc(100% - 95vmin); object-fit: cover; object-position: 50% 30%; display: block;
+    box-shadow: 0 .6vmin 1.6vmin rgba(80,50,30,.25); }
+
+  .wrap { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; height: 56vmin; }
+  /* tag — the lower half hides inside the pocket */
+  .tag { position: absolute; left: 10%; top: 0; width: 36vmin; height: 46vmin; background: linear-gradient(180deg, #E9D39A 0%, #E2C98C 100%); transform: rotate(-3deg); transform-origin: 50% 100%;
+    clip-path: polygon(16% 0, 84% 0, 100% 12%, 100% 100%, 0 100%, 0 12%); box-shadow: inset 0 0 0 1px rgba(120,90,40,.2);
+    display: flex; flex-direction: column; align-items: center; gap: 1.2vmin; padding-top: 6vmin; box-sizing: border-box; text-align: center; }
+  .tag::before { content: ""; position: absolute; left: calc(50% - 2.2vmin); top: 1.4vmin; width: 4.4vmin; height: 4.4vmin; border-radius: 50%;
+    background: radial-gradient(circle, #EFE2D6 0 .9vmin, #C9AE6C 1vmin 2.2vmin, transparent 2.3vmin); }
+  .tag small { font-size: 1.6vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #6E5220; }
+  .tag b { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 7.6vmin; line-height: 1; color: #3B2A22; }
+  .tag em { font-style: normal; font-size: 1.9vmin; font-weight: 700; letter-spacing: .12em; color: #A1473A; border: 1px dashed #A1473A; padding: .4vmin 1.2vmin; margin-top: .4vmin; }
+  .string { position: absolute; left: calc(10% + 14vmin); top: -3.4vmin; width: 16vmin; height: 7vmin; box-sizing: border-box; border: .35vmin solid transparent; border-left-color: #B8413A; border-top-color: #B8413A; border-radius: 100% 0 0 0 / 100% 0 0 0; z-index: 1; }
+
+  .pocket { position: absolute; left: 0; right: 0; bottom: 0; height: 34vmin; z-index: 2;
+    background:
+      linear-gradient(to top right, transparent calc(50% - 1px), rgba(90,60,30,.22) 50%, transparent calc(50% + 1px)) left bottom / 50% 70% no-repeat,
+      linear-gradient(to top left, transparent calc(50% - 1px), rgba(90,60,30,.22) 50%, transparent calc(50% + 1px)) right bottom / 50% 70% no-repeat,
+      repeating-linear-gradient(95deg, rgba(90,60,30,.04) 0 1px, transparent 1px .8vmin),
+      linear-gradient(180deg, #C69F74 0%, #BC9469 100%);
+    -webkit-mask: radial-gradient(circle at 50% 0, transparent 5vmin, #000 5.1vmin); mask: radial-gradient(circle at 50% 0, transparent 5vmin, #000 5.1vmin);
+    box-shadow: 0 .6vmin 1.4vmin rgba(80,50,30,.3); }
+  .label { position: absolute; left: 5vmin; bottom: 4.4vmin; width: 48vmin; background: #FBF7F0; padding: 1.6vmin 2.4vmin 2vmin; box-sizing: border-box; box-shadow: 0 .2vmin .5vmin rgba(60,40,20,.2); }
+  .label .to { font-family: "Nothing You Could Do", cursive; font-size: 3.2vmin; line-height: 1.25; color: #2C3B66; }
+  .label .cta { display: inline-block; margin-top: 1.4vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .06em; color: #FBF7F0; background: #3B2A22; padding: .9vmin 1.8vmin; white-space: nowrap; }
+  .label .fine { margin-top: 1vmin; font-size: 1.6vmin; color: #8A6A58; white-space: nowrap; }
+  .stamp { position: absolute; right: 4.4vmin; top: 8vmin; width: 13vmin; height: 16vmin; padding: 1vmin; box-sizing: border-box; background: #FBF7F0; transform: rotate(4deg);
+    -webkit-mask: radial-gradient(circle, transparent .55vmin, #000 .6vmin) -.8vmin -.8vmin / 1.6vmin 1.6vmin, linear-gradient(#000, #000) center / calc(100% - 1.6vmin) calc(100% - 1.6vmin) no-repeat;
+            mask: radial-gradient(circle, transparent .55vmin, #000 .6vmin) -.8vmin -.8vmin / 1.6vmin 1.6vmin, linear-gradient(#000, #000) center / calc(100% - 1.6vmin) calc(100% - 1.6vmin) no-repeat; }
+  .stamp img { display: block; width: 100%; height: calc(100% - 3vmin); object-fit: cover; object-position: 50% 30%; }
+  .stamp span { display: block; font-size: 1.6vmin; font-weight: 700; text-align: center; margin-top: .3vmin; color: #A1473A; line-height: 1.5; }
+  .post { position: absolute; right: 12vmin; top: 5.6vmin; width: 12vmin; height: 12vmin; border-radius: 50%; border: .3vmin solid rgba(59,42,34,.45); z-index: 3; pointer-events: none;
+    background: repeating-linear-gradient(0deg, transparent 0 1.6vmin, rgba(59,42,34,.35) 1.6vmin calc(1.6vmin + .3vmin)) right center / 60% 50% no-repeat; }
+
+  /* ── 3:4 & square — photo left, title + pocket right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { left: 6vmin; top: 6vmin; width: 50vmin; height: calc(100% - 12vmin); }
+    .head { left: 61vmin; right: 4vmin; top: 6vmin; }
+    .kick { white-space: normal; line-height: 1.5; font-size: 1.6vmin; }
+    h1 { font-size: 6vmin; }
+    .wrap { left: 60vmin; right: 4vmin; bottom: 6vmin; height: 64vmin; }
+    .tag { left: 6%; width: 26vmin; height: 50vmin; padding-top: 5.8vmin; }
+    .tag b { font-size: 6vmin; }
+    .tag em { font-size: 1.7vmin; }
+    .string { left: calc(6% + 8.6vmin); width: 12vmin; }
+    .pocket { height: 38vmin; }
+    .stamp { right: 3vmin; top: 6.4vmin; width: 10vmin; height: 12.4vmin; }
+    .post { right: 9vmin; top: 5vmin; width: 9vmin; height: 9vmin; }
+    .label { left: 2.4vmin; right: 2.4vmin; width: auto; bottom: 2.6vmin; padding: 1.4vmin 1.8vmin 1.6vmin; }
+    .label .to { font-size: 2.6vmin; }
+    .label .cta { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 5vmin; top: 5vmin; width: 46vmin; height: calc(100% - 10vmin); }
+    .head { left: 57vmin; top: 5vmin; }
+    .kick { white-space: nowrap; }
+    h1 { font-size: 5.4vmin; }
+    .wrap { left: 56vmin; bottom: 5vmin; height: 62vmin; }
+    .tag { height: 48vmin; }
+    .pocket { height: 37vmin; }
+    .label .fine { display: none; }
+  }
+  /* ── wide — photo left, title + wide pocket right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 6vmin; top: 6vmin; width: 56vmin; height: calc(100% - 12vmin); }
+    .head { left: 70vmin; right: 6vmin; top: 7vmin; }
+    h1 { font-size: 7vmin; }
+    .wrap { left: 69vmin; right: 6vmin; bottom: 6vmin; height: 60vmin; }
+    .tag { left: 8%; width: 30vmin; height: 46vmin; }
+    .tag b { font-size: 6.6vmin; }
+    .string { left: calc(8% + 11vmin); width: 14vmin; }
+    .pocket { height: 34vmin; }
+    .label { left: 4vmin; right: auto; width: 44vmin; bottom: 4vmin; padding: 1.6vmin 2.2vmin 1.8vmin; }
+    .label .to { font-size: 2.9vmin; }
+    .label .fine { display: block; }
+    .stamp { right: 4vmin; top: 8vmin; width: 13vmin; height: 16vmin; }
+    .post { right: 12vmin; top: 5.6vmin; width: 12vmin; height: 12vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div class="kick">Ondine Studio · kept for you</div>
+    <h1>A little something, <i>tucked inside.</i></h1>
+  </div>
+
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="wrap">
+    <div class="tag"><small>Welcome gift</small><b>−30%</b><em>HELLO30</em></div>
+    <i class="string"></i>
+    <div class="pocket">
+      <div class="stamp"><img src="{{PRODUCT_IMAGE}}" alt=""><span>$72</span></div>
+      <div class="label">
+        <div class="to">For you — pull the tag, keep the code.</div>
+        <div class="cta">Open your gift →</div>
+        <div class="fine">First order only · ends 30 Sept</div>
+      </div>
+      <i class="post"></i>
+    </div>
+  </div>
+</div>
+</body>
+</html>

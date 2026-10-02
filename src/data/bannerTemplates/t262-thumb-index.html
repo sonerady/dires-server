@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Thumb Index — a thick seasonal catalogue opened at its first section: six die-cut index tabs step down the
+     fore-edge (a sand scale, the open section in vermilion), the page stack shows between them, and the page
+     carries the section's running head, headline and folio.
+     tall → photo above the section text · square & wide → photo left, text beside it; the tabs always run down the right edge */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #CFC5B5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #231A14; font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    background: repeating-linear-gradient(90deg, #D6CCBC 0 .28vmin, #BFB4A2 .28vmin .36vmin); }
+
+  .tabs { position: absolute; right: 1.6vmin; top: 3vmin; bottom: 3vmin; width: 11vmin; display: flex; flex-direction: column; gap: .7vmin; }
+  .tab { flex: 1; min-height: 0; position: relative; border-radius: 0 1.6vmin 1.6vmin 0; box-shadow: .2vmin .3vmin .5vmin rgba(60,40,20,.22);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2vmin; padding-left: 2.6vmin; }
+  .tab b { font-size: 1.7vmin; font-weight: 700; letter-spacing: .08em; }
+  .tab span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 1.8vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .t1 { background: #C8442A; color: #FFF6EC; margin-right: -1.6vmin; }
+  .t2 { background: #F1E6D3; }
+  .t3 { background: #E4D1B3; }
+  .t4 { background: #D4BA93; }
+  .t5 { background: #C1A177; }
+  .t6 { background: #A7835A; color: #FFF8EE; }
+
+  .page { position: absolute; left: 0; top: 0; bottom: 0; right: 10.8vmin; background: #F8F4EE; box-shadow: .5vmin 0 1.4vmin rgba(50,35,20,.28); overflow: hidden; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 68vmin); object-fit: cover; object-position: 50% 22%; }
+  .bar { position: absolute; left: 0; right: 0; top: calc(100% - 68vmin); height: .9vmin; background: #C8442A; }
+
+  .copy { position: absolute; left: 6vmin; right: 5vmin; top: calc(100% - 68vmin + 4.4vmin); bottom: 4.6vmin; display: flex; flex-direction: column; }
+  .rh { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; white-space: nowrap; font-size: 1.7vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; }
+  .rh b { font-weight: 700; color: #C8442A; }
+  .rh span { color: #7C6E60; }
+  h1 { margin: 3.4vmin 0 0; font-family: "Gloock", Georgia, "Times New Roman", serif; font-weight: 400; font-size: 11vmin; line-height: .92; letter-spacing: -.02em; }
+  .lede { margin: 2.6vmin 0 0; max-width: 60vmin; font-size: 2.3vmin; line-height: 1.4; color: #4A3E33; }
+  .inside { margin: auto 0 0; padding: 0; list-style: none; border-top: 1px solid rgba(35,26,20,.28); }
+  .inside li { display: flex; align-items: baseline; gap: 1.2vmin; padding: .9vmin 0; border-bottom: 1px solid rgba(35,26,20,.28); font-size: 1.9vmin; white-space: nowrap; }
+  .inside li i { flex: 1; border-bottom: 1px dotted rgba(35,26,20,.5); transform: translateY(-.4vmin); }
+  .inside li b { font-weight: 500; font-variant-numeric: tabular-nums; }
+  .inside li:first-child { color: #C8442A; font-weight: 700; }
+  .foot { margin-top: 3.4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; padding-top: 1.6vmin; border-top: 1px solid #231A14; }
+  .price { display: flex; flex-direction: column; gap: .6vmin; }
+  .price small { font-size: 1.6vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #7C6E60; }
+  .price b { font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 4.6vmin; line-height: 1; }
+  .cta { display: flex; align-items: center; gap: 1.4vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .cta i { display: block; width: 6vmin; height: 1px; background: #231A14; position: relative; }
+  .cta i::after { content: ""; position: absolute; right: .1vmin; top: -.6vmin; width: 1.2vmin; height: 1.2vmin; box-sizing: border-box; border-top: 1px solid #231A14; border-right: 1px solid #231A14; transform: rotate(45deg); }
+  .folio { font-family: "Gloock", Georgia, serif; font-size: 2.6vmin; line-height: 1; color: #231A14; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 56vmin); }
+    .bar { top: calc(100% - 56vmin); }
+    .copy { top: calc(100% - 56vmin + 4vmin); bottom: 4.2vmin; }
+    h1 { font-size: 9.6vmin; margin-top: 2.8vmin; }
+    .lede { font-size: 2.1vmin; margin-top: 2vmin; }
+    .inside li { padding: .6vmin 0; font-size: 1.75vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .tabs { top: 2.4vmin; bottom: 2.4vmin; gap: .6vmin; }
+    .tab { gap: .8vmin; }
+    .tab b { font-size: 1.6vmin; }
+    .tab span { font-size: 1.6vmin; letter-spacing: .14em; }
+    .photo { width: 50%; height: 100%; object-position: 50% 24%; }
+    .bar { top: 0; bottom: 0; height: auto; left: 50%; right: auto; width: .9vmin; }
+    .copy { left: calc(50% + 5.4vmin); right: 4.4vmin; top: 5vmin; bottom: 5vmin; }
+    .rh { flex-direction: column; align-items: flex-start; gap: .8vmin; font-size: 1.6vmin; }
+    h1 { font-size: 7.4vmin; margin-top: 3.4vmin; }
+    .lede { font-size: 1.95vmin; margin-top: 2vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .price b { font-size: 4vmin; }
+    .cta { font-size: 1.7vmin; }
+    .inside li { padding: .7vmin 0; font-size: 1.7vmin; }
+    .foot { margin-top: 2.6vmin; }
+    .folio { position: absolute; right: 0; top: .2vmin; font-size: 2.3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .bar { left: 48%; }
+    .copy { left: calc(48% + 7vmin); right: 6vmin; top: 6.4vmin; bottom: 6vmin; }
+    .rh { flex-direction: row; align-items: baseline; font-size: 1.7vmin; }
+    h1 { font-size: 10vmin; margin-top: 5vmin; }
+    .lede { font-size: 2.2vmin; margin-top: 2.6vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .price b { font-size: 4.6vmin; }
+    .cta { font-size: 1.85vmin; }
+    .inside li { padding: .9vmin 0; font-size: 1.9vmin; }
+    .foot { margin-top: 3.4vmin; }
+    .folio { position: static; font-size: 2.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="tabs">
+    <div class="tab t1"><b>01</b><span>New in</span></div>
+    <div class="tab t2"><b>02</b><span>The edit</span></div>
+    <div class="tab t3"><b>03</b><span>Basics</span></div>
+    <div class="tab t4"><b>04</b><span>Evening</span></div>
+    <div class="tab t5"><b>05</b><span>Archive</span></div>
+    <div class="tab t6"><b>06</b><span>Sale</span></div>
+  </div>
+  <div class="page">
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="bar"></div>
+    <div class="copy">
+      <div class="rh"><b>01 — New in</b><span>Studio Oro · Autumn 2026</span></div>
+      <h1>The new arrivals.</h1>
+      <p class="lede">Forty pieces for the season, first to arrive and first to go.</p>
+      <ul class="inside">
+        <li>Looks 01–12<i></i><b>p. 006</b></li>
+        <li>The colour story<i></i><b>p. 018</b></li>
+        <li>Price list<i></i><b>p. 030</b></li>
+      </ul>
+      <div class="foot">
+        <div class="price"><small>New in from</small><b>€89</b></div>
+        <div class="cta">Shop the section<i></i></div>
+        <div class="folio">004</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

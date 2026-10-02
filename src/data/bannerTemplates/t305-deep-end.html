@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Deep End — a skatepark plan drawing of a kidney bowl on poured concrete: coping, depth contours, a drain,
+     a "drop in" arrow on the deck, and the depths doubling as the discount (shallow end −20%, deep end −50%).
+     A band of blue pool tile runs along the seam with the photo.
+     tall → photo above, plan below · square/wide → photo left, plan right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #CDC8BF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #CDC8BF; color: #1A1A1A; font-family: "Space Mono", "SF Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 88vmin); object-fit: cover; object-position: 50% 20%; }
+  .tile { position: absolute; left: 0; right: 0; top: calc(100% - 88vmin); height: 4vmin;
+    background: linear-gradient(90deg, #E9E6DE .35vmin, transparent .35vmin) 0 0 / 4vmin 4vmin, linear-gradient(180deg, #E9E6DE .35vmin, transparent .35vmin) 0 0 / 4vmin 4vmin, linear-gradient(180deg, #3A7BBE, #2A659F); box-shadow: 0 .4vmin 0 #1A1A1A; }
+  .pad { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; }
+  .concrete { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: multiply; }
+  .kick { position: absolute; left: 6vmin; right: 6vmin; top: 4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; }
+  h1 { position: absolute; left: 6vmin; top: 8vmin; margin: 0; font-family: "Archivo Black", Impact, sans-serif; font-weight: 400; font-size: 14vmin; line-height: .88; letter-spacing: -.03em; text-transform: uppercase; }
+  h1 span { color: #F26B1D; }
+  .lede { position: absolute; right: 6vmin; top: 10vmin; width: 30vmin; margin: 0; font-size: 2vmin; line-height: 1.45; text-align: right; }
+  .plan { position: absolute; left: 13vmin; right: 13vmin; top: 31vmin; }
+  .plan svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .plan text { font-family: "Space Mono", "SF Mono", Menlo, monospace; font-weight: 700; }
+  .cta { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; font-size: 2.1vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .cta b { display: flex; gap: 2vmin; align-items: center; background: #1A1A1A; color: #CDC8BF; padding: 1.5vmin 2.8vmin; font-weight: 700; white-space: nowrap; }
+  .cta b span { color: #F26B1D; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 80vmin); }
+    .tile { top: calc(100% - 80vmin); }
+    .pad { height: 76vmin; }
+    h1 { font-size: 12vmin; top: 7.5vmin; }
+    .plan { left: 18vmin; right: 18vmin; top: 27vmin; }
+    .cta { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 68vmin); }
+    .tile { top: calc(100% - 68vmin); height: 3.4vmin; background-size: 3.4vmin 3.4vmin, 3.4vmin 3.4vmin, auto; }
+    .pad { height: 64.6vmin; }
+    .kick { top: 3.4vmin; }
+    h1 { font-size: 9.6vmin; top: 7vmin; }
+    .lede { top: 7.6vmin; font-size: 1.8vmin; width: 34vmin; }
+    .plan { left: 16vmin; right: 16vmin; top: 20vmin; }
+    .cta { bottom: 3.4vmin; font-size: 1.9vmin; }
+    .cta b { padding: 1.2vmin 2.4vmin; }
+  }
+  /* square / wide → photo left, plan right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .tile { top: 0; bottom: 0; left: 48%; right: auto; width: 3.4vmin; height: auto; background-size: 3.4vmin 3.4vmin, 3.4vmin 3.4vmin, auto; box-shadow: .4vmin 0 0 #1A1A1A; }
+    .pad { left: calc(48% + 3.8vmin); top: 0; height: auto; }
+    .kick { left: 4vmin; right: 4vmin; top: 4.6vmin; font-size: 1.6vmin; }
+    .kick span:last-child { display: none; }
+    h1 { left: 4vmin; top: 9vmin; font-size: 8.6vmin; }
+    .lede { left: 4vmin; right: 4vmin; top: 66vmin; width: auto; text-align: left; font-size: 1.8vmin; }
+    .plan { left: 2vmin; right: 3vmin; top: 33vmin; }
+    .cta { left: 4vmin; right: 4vmin; bottom: 5vmin; font-size: 1.7vmin; flex-direction: column; align-items: stretch; gap: 1.4vmin; }
+    .cta b { justify-content: space-between; padding: 1.3vmin 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .tile { left: 44%; }
+    .pad { left: calc(44% + 3.8vmin); }
+    .kick { left: 6vmin; right: 6vmin; font-size: 1.7vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { left: 6vmin; top: 9vmin; font-size: 10.5vmin; }
+    .lede { left: auto; right: 6vmin; top: 10vmin; width: 26vmin; text-align: right; }
+    .plan { left: 8vmin; right: 8vmin; top: 31vmin; }
+    .cta { left: 6vmin; right: 6vmin; bottom: 5vmin; font-size: 1.9vmin; flex-direction: row; align-items: center; }
+    .cta b { flex: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tile"></div>
+  <div class="pad">
+    <svg class="concrete" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="k"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="3" seed="21"/><feColorMatrix values="0 0 0 0 .45  0 0 0 0 .43  0 0 0 0 .4  0 0 0 -1.3 .95"/></filter><rect width="100%" height="100%" filter="url(#k)" opacity=".55"/><g stroke="#7E786F" stroke-width="1" opacity=".5"><path d="M0 50% H100%"/></g></svg>
+    <div class="kick"><span>Plan view · Bowl Nº 3 · 1:50</span><span>Oro Skatepark</span></div>
+    <h1>Drop<br><span>in.</span></h1>
+    <p class="lede">The deeper you go, the more you save. Summer sale, this weekend.</p>
+    <div class="plan">
+      <svg viewBox="0 0 220 128" aria-hidden="true">
+        <defs>
+          <path id="kid" d="M44 28 C 72 6, 110 22, 136 18 C 172 12, 204 40, 196 76 C 188 112, 132 120, 104 104 C 88 95, 70 108, 46 104 C 12 98, 14 48, 44 28 Z"/>
+        </defs>
+        <!-- deck -->
+        <use href="#kid" fill="none" stroke="#1A1A1A" stroke-width="7" stroke-linejoin="round" opacity=".12" transform="translate(0 0)"/>
+        <!-- bowl floor -->
+        <use href="#kid" fill="#B7B1A7"/>
+        <!-- tile band + coping -->
+        <use href="#kid" fill="none" stroke="#2F6FB0" stroke-width="3.2"/>
+        <use href="#kid" fill="none" stroke="#1A1A1A" stroke-width="1.2" transform="translate(-6.5 -3.4) scale(1.05)"/>
+        <!-- depth contours toward the deep end -->
+        <g fill="none" stroke="#1A1A1A" stroke-width=".45" stroke-dasharray="2 1.4" opacity=".75">
+          <use href="#kid" transform="translate(40.5 16.2) scale(.73)"/>
+          <use href="#kid" transform="translate(76 29.6) scale(.5)"/>
+          <use href="#kid" transform="translate(110.5 42.4) scale(.28)"/>
+        </g>
+        <!-- drain -->
+        <circle cx="152" cy="60" r="3.2" fill="#1A1A1A"/><circle cx="152" cy="60" r="1.6" fill="#B7B1A7"/>
+        <!-- drop-in arrow -->
+        <path d="M112 -2 V14" stroke="#F26B1D" stroke-width="1.6"/><path d="M107.5 9 L112 15 L116.5 9" fill="none" stroke="#F26B1D" stroke-width="1.6"/>
+        <text x="118" y="4" font-size="5.2" fill="#1A1A1A">DROP IN</text>
+        <!-- shallow tag -->
+        <rect x="26" y="58" width="44" height="16" fill="#1A1A1A"/>
+        <text x="48" y="65" font-size="4.6" text-anchor="middle" fill="#CDC8BF">SHALLOW 5FT</text>
+        <text x="48" y="72" font-size="5.6" text-anchor="middle" fill="#CDC8BF">−20%</text>
+        <!-- deep tag -->
+        <path d="M152 60 L 176 38" stroke="#F26B1D" stroke-width="1"/>
+        <rect x="160" y="18" width="50" height="22" fill="#F26B1D"/>
+        <text x="185" y="27" font-size="4.8" text-anchor="middle" fill="#1A1A1A">DEEP END 10FT</text>
+        <text x="185" y="36.5" font-size="8.4" text-anchor="middle" fill="#1A1A1A">−50%</text>
+        <!-- dimension line -->
+        <g stroke="#1A1A1A" stroke-width=".5"><path d="M20 120 H200 M20 116 V124 M200 116 V124"/></g>
+        <rect x="95" y="116.5" width="30" height="7" fill="#CDC8BF"/>
+        <text x="110" y="122" font-size="4.6" text-anchor="middle" fill="#1A1A1A" font-weight="400">12.4 M</text>
+      </svg>
+    </div>
+    <div class="cta"><span>Code DEEPEND</span><b>Shop the sale <span>→</span></b></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Auction Lot — a fine-jewellery auction catalogue page: running head, the photo as the lot plate,
+     a huge Didone lot number, provenance in italic, estimate struck through for the hammer price, folio.
+     tall → plate above the lot entry; 3:4 / square / wide → plate left, entry right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FAF8F3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FAF8F3; color: #141312; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 4.6vmin; display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid #141312; font-size: 1.7vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; }
+  .head span:last-child { white-space: nowrap; }
+  .plate { position: absolute; left: 6vmin; right: 6vmin; top: 11vmin; width: calc(100% - 12vmin); height: calc(100% - 11vmin - 62vmin); object-fit: cover; object-position: 50% 22%; }
+  .cap { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - 62vmin + 1.4vmin); font-family: "Bodoni Moda", Didot, Georgia, serif; font-style: italic; font-size: 1.9vmin; color: #5E5A54; }
+
+  .entry { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - 62vmin + 7vmin); bottom: 11vmin; display: grid; grid-template-columns: auto 1fr; column-gap: 5vmin; align-items: start; }
+  .lot { font-family: "Bodoni Moda", Didot, Georgia, serif; font-weight: 400; line-height: .8; }
+  .lot small { display: block; font-family: "Inter Tight", sans-serif; font-size: 1.7vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #9A2E24; margin-bottom: 1.6vmin; }
+  .lot b { display: block; font-weight: 400; font-size: 26vmin; letter-spacing: -.04em; }
+  .txt { padding-top: 3vmin; }
+  .prov { margin: 0; font-family: "Bodoni Moda", Didot, Georgia, serif; font-style: italic; font-size: 3.8vmin; line-height: 1.1; }
+  .desc { margin: 1.6vmin 0 0; font-size: 2vmin; line-height: 1.5; color: #4A4640; }
+  .est { margin-top: 2.6vmin; padding-top: 1.6vmin; border-top: 1px solid rgba(20,19,18,.3); display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; }
+  .est span { font-size: 1.7vmin; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #5E5A54; white-space: nowrap; }
+  .est s { font-family: "Bodoni Moda", Didot, Georgia, serif; font-size: 2.8vmin; color: #7A756D; white-space: nowrap; }
+  .hammer { margin-top: 1vmin; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; }
+  .hammer span { font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #9A2E24; white-space: nowrap; }
+  .hammer b { font-family: "Bodoni Moda", Didot, Georgia, serif; font-weight: 500; font-size: 5.4vmin; line-height: 1; white-space: nowrap; }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.6vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .closes { font-size: 1.9vmin; color: #4A4640; }
+  .closes b { font-weight: 600; color: #141312; }
+  .cta { padding: 1.8vmin 3vmin; background: #141312; color: #FAF8F3; font-size: 1.9vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .notes { display: none; margin: 3vmin 0 0; padding: 0; list-style: none; border-top: 1px solid rgba(20,19,18,.3); }
+  .notes li { display: flex; justify-content: space-between; gap: 2vmin; padding: 1vmin 0; border-bottom: 1px solid rgba(20,19,18,.14); font-size: 1.8vmin; }
+  .notes li span { color: #5E5A54; }
+  .notes li b { font-weight: 500; text-align: right; }
+
+  /* ── 3:4 / square / wide — plate left, the lot entry right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .plate { left: 6vmin; right: auto; top: 11vmin; bottom: 7vmin; width: 50%; height: calc(100% - 18vmin); }
+    .cap { left: 6vmin; right: auto; width: 50%; top: auto; bottom: 3vmin; font-size: 1.7vmin; }
+    .entry { left: calc(50% + 11vmin); right: 6vmin; top: 12vmin; bottom: 18vmin; grid-template-columns: 1fr; align-content: start; }
+    .lot b { font-size: 20vmin; }
+    .txt { padding-top: 2.4vmin; }
+    .prov { font-size: 3.2vmin; }
+    .desc { font-size: 1.8vmin; }
+    .foot { left: calc(50% + 11vmin); right: 6vmin; bottom: 7vmin; flex-direction: column; align-items: stretch; gap: 1.6vmin; }
+    .cta { text-align: center; font-size: 1.8vmin; }
+    .notes { display: block; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .plate { width: 46%; }
+    .cap { width: 46%; }
+    .entry { left: calc(46% + 10vmin); top: 11vmin; }
+    .foot { left: calc(46% + 10vmin); }
+    .lot small { margin-bottom: 1vmin; }
+    .lot b { font-size: 15vmin; }
+    .txt { padding-top: 1.6vmin; }
+    .prov { font-size: 2.8vmin; }
+    .desc { display: none; }
+    .est { margin-top: 2vmin; }
+    .hammer b { font-size: 4.6vmin; }
+    .notes { margin-top: 2.4vmin; }
+    .notes li { padding: .7vmin 0; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .plate { width: 40%; }
+    .cap { width: 40%; }
+    .entry { left: calc(40% + 12vmin); right: 7vmin; top: 14vmin; grid-template-columns: auto 1fr; column-gap: 5vmin; align-content: start; }
+    .foot { left: calc(40% + 12vmin); right: 7vmin; flex-direction: row; align-items: center; }
+    .lot b { font-size: 22vmin; }
+    .txt { padding-top: 3.4vmin; }
+    .prov { font-size: 3.2vmin; }
+    .desc { display: block; font-size: 1.8vmin; }
+    .hammer b { font-size: 5vmin; }
+    .notes { margin-top: 3.4vmin; }
+    .notes li { padding: 1vmin 0; font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* the estimate is crossed out again in the auctioneer's red */
+  .est s { position: relative; }
+  .est s::after { content: ""; position: absolute; left: -6%; right: -6%; top: 50%; height: .3vmin; margin-top: -.15vmin; background: #9A2E24;
+    clip-path: inset(0 100% 0 0); animation: cross 6s linear infinite; }
+  @keyframes cross {
+    0%, 22% { clip-path: inset(0 100% 0 0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.25,1); }
+    30%, 84% { clip-path: inset(0 0 0 0); opacity: 1; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    94%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
+  }
+  /* the hammer falls: the price lifts away and is knocked down with a thud */
+  .hammer b { display: inline-block; transform-origin: 100% 90%; animation: knock 6s linear infinite; }
+  @keyframes knock {
+    0%, 32% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    37% { transform: translateY(-1.6vmin) scale(1.04); opacity: 0; filter: blur(.3vmin); animation-timing-function: steps(1, end); }
+    41% { transform: translateY(-2.4vmin) scale(1.3); opacity: 0; filter: blur(.4vmin); animation-timing-function: cubic-bezier(.7,0,1,.5); }
+    44% { transform: translateY(0) scale(.95); opacity: 1; filter: blur(0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    49% { transform: translateY(0) scale(1.02); opacity: 1; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    54%, 100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+  }
+  /* the page thuds with the gavel */
+  .entry { animation: thud 6s linear infinite; }
+  @keyframes thud {
+    0%, 43.8% { transform: translateY(0); }
+    44.5% { transform: translateY(.35vmin); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    48%, 100% { transform: translateY(0); }
+  }
+  .hammer span { animation: sold 6s linear infinite; }
+  @keyframes sold {
+    0%, 43.5% { letter-spacing: .16em; opacity: 1; }
+    44% { letter-spacing: .26em; opacity: .6; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    56%, 100% { letter-spacing: .16em; opacity: 1; }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.07) 30%, rgba(255,255,255,.3) 50%, rgba(255,255,255,.07) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: ctaSheen 6s linear infinite; }
+  @keyframes ctaSheen {
+    0%, 70% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    83%, 100% { transform: translateX(330%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head"><span>The Autumn Sale · Geneva</span><span>Sale 2604</span></div>
+  <img class="plate" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cap">Lot 118, as illustrated.</div>
+  <div class="entry">
+    <div class="lot"><small>Lot</small><b>118</b></div>
+    <div class="txt">
+      <p class="prov">Property from the Atelier Nord archive</p>
+      <p class="desc">The first piece of the new season, offered without reserve.</p>
+      <div class="est"><span>Estimate</span><s>$240</s></div>
+      <div class="hammer"><span>Hammer price</span><b>$180</b></div>
+      <ul class="notes"><li><span>Condition</span><b>New, with tags</b></li><li><span>Sizes</span><b>XS — XL</b></li><li><span>Delivery</span><b>Free, insured</b></li></ul>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="closes">Sale closes <b>Sunday, 8 p.m.</b></div>
+    <div class="cta">Shop the lot →</div>
+  </div>
+</div>
+</body>
+</html>

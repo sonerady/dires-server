@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Knockout Edit — the headline is cut out of black: the letters are windows onto a close crop of the
+     same product (its fabric, print or colour), while the full look stays clear beside it.
+     Built with a white-on-black type layer in multiply over a duplicate photo — no image in CSS.
+     TALL → look on top, knockout word + offer below · 7/10+ → look left, "ED/IT" stacked right · WIDE → one line */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0D0D0D; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0D0D0D; color: #F3F0EA; font-family: "Space Mono", Menlo, monospace; display: flex; flex-direction: column; }
+  .ph { position: relative; flex: 1; min-height: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .side { flex: none; box-sizing: border-box; padding: 3.4vmin 4vmin 4.2vmin; display: flex; flex-direction: column; }
+  .lab { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .06em; text-transform: uppercase; color: rgba(243,240,234,.72); }
+  .lab b { color: #F3F0EA; font-weight: 700; }
+
+  .ko { position: relative; overflow: hidden; isolation: isolate; margin-top: 2.2vmin; }
+  .ko .zoom { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; display: block; transform: scale(2.2); filter: brightness(1.14) saturate(1.12); }
+  .ko .mask { position: relative; background: #0D0D0D; color: #FFFFFF; mix-blend-mode: multiply; display: flex; flex-direction: column; }
+  .t { font-family: "Archivo Black", "Arial Black", sans-serif; font-size: 36.4vmin; line-height: .74; letter-spacing: -.02em; text-transform: uppercase; white-space: nowrap; padding: 1.2vmin 0 .4vmin; margin-left: -.3vmin; }
+  .t2 { display: none; }
+
+  .row { margin-top: 2.6vmin; display: flex; align-items: stretch; justify-content: space-between; gap: 3vmin; }
+  .row p { margin: 0; font-size: 1.9vmin; line-height: 1.5; }
+  .row p b { font-weight: 700; color: #FF3D2E; }
+  .cta { flex: none; display: flex; align-items: center; background: #F3F0EA; color: #0D0D0D; font-weight: 700; font-size: 2.1vmin; letter-spacing: .04em; text-transform: uppercase; padding: 0 3vmin; white-space: nowrap; }
+
+  /* SHORTER PORTRAIT — photo left, the word breaks into ED / IT on the right */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { flex-direction: row; }
+    .side { width: 50%; height: 100%; padding: 4.4vmin 4.4vmin 4.4vmin 4vmin; }
+    .ko { margin-top: auto; }
+    .t1 { display: none; }
+    .t2 { display: block; font-size: 28vmin; }
+    .t2 + .t2 { padding-top: .4vmin; }
+    .row { flex-direction: column; gap: 2.4vmin; margin-top: 3vmin; }
+    .cta { justify-content: space-between; padding: 1.8vmin 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .side { width: 48%; padding: 3.8vmin; }
+    .t2 { font-size: 26vmin; }
+    .row p { font-size: 1.7vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.6vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .side { width: 54%; padding: 4.6vmin 5vmin; }
+    .t1 { display: block; font-size: 30.4vmin; }
+    .t2 { display: none; }
+    .row { flex-direction: row; margin-top: 3vmin; }
+    .cta { padding: 0 3vmin; font-size: 2.1vmin; }
+    .row p { font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static knockout) ─────────
+     constant: the close crop drifts slowly behind the cut-out letters (a slow elliptical pan over the fabric)
+     2.4s  focus pull: the crop punches in a touch and racks back into focus through the letters
+     4.2s  the offer blinks red · 4.6s a sheen crosses the CTA */
+  .ko .zoom { animation: pan 6s linear infinite; }
+  @keyframes pan {
+    0% { transform: scale(2.2) translate(0, 0); filter: brightness(1.14) saturate(1.12) blur(0); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    25% { transform: scale(2.2) translate(-6%, 3%); filter: brightness(1.14) saturate(1.12) blur(0); animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    40% { transform: scale(2.2) translate(-3%, 5%); filter: brightness(1.14) saturate(1.12) blur(0); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    44% { transform: scale(2.45) translate(-3%, 5%); filter: brightness(1.3) saturate(1.12) blur(.5vmin); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    54% { transform: scale(2.2) translate(0, 4%); filter: brightness(1.14) saturate(1.12) blur(0); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    75% { transform: scale(2.2) translate(6%, 1%); filter: brightness(1.14) saturate(1.12) blur(0); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    100% { transform: scale(2.2) translate(0, 0); filter: brightness(1.14) saturate(1.12) blur(0); }
+  }
+  .row p b { animation: blink 6s steps(1, end) infinite; }
+  @keyframes blink {
+    0%, 69% { color: #FF3D2E; } 70%, 71.9% { color: #F3F0EA; } 72%, 73.9% { color: #FF3D2E; } 74%, 75.9% { color: #F3F0EA; } 76%, 100% { color: #FF3D2E; }
+  }
+  .lab b { display: inline-block; animation: lift 6s linear infinite; }
+  @keyframes lift {
+    0%, 38% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    41% { transform: translateY(-.5vmin); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    45%, 100% { transform: translateY(0); }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%;
+    background: linear-gradient(90deg, rgba(255,61,46,0), rgba(255,61,46,.28) 50%, rgba(255,61,46,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 76% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    90%, 100% { transform: translateX(330%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="side">
+    <div class="lab"><span>The <b>new</b> collection</span><span>Look 07 / Detail</span></div>
+    <div class="ko">
+      <img class="zoom" src="{{PRODUCT_IMAGE}}" alt="">
+      <div class="mask"><div class="t t1">Edit</div><div class="t t2">Ed</div><div class="t t2">it</div></div>
+    </div>
+    <div class="row">
+      <p>Cut from the new season.<br><b>20% off</b> with code CUT20</p>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

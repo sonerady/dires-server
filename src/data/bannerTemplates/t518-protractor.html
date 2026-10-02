@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Protractor — a Frank Stella shaped canvas: a half-disc of concentric fluorescent bands split by raw-canvas pinstripes,
+     the offer sits in its empty centre. tall & 3:4: the arch stands on the photo's top edge like a rising sun ·
+     square & wide: photo right, the protractor stands on the floor of the copy column */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EEE4; }
+  .banner { --bg: #F3EEE4; --ink: #1D1B22; --R: 42vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif; }
+  .arch { position: absolute; left: 50%; top: calc(50vmin - var(--R)); width: calc(var(--R) * 2); height: var(--R); transform: translateX(-50%);
+    border-radius: var(--R) var(--R) 0 0;
+    background: radial-gradient(circle var(--R) at 50% 100%,
+      transparent 0 44%,
+      #5B4BD8 44% 51.2%, var(--bg) 51.2% 52%,
+      #1AA38F 52% 59.2%, var(--bg) 59.2% 60%,
+      #F6B400 60% 67.2%, var(--bg) 67.2% 68%,
+      #FF8A1E 68% 75.2%, var(--bg) 75.2% 76%,
+      #F2542D 76% 83.2%, var(--bg) 83.2% 84%,
+      #E8448F 84% 91.2%, var(--bg) 91.2% 92%,
+      #8C3FC1 92% 100%, transparent 100%); }
+  .hole { position: absolute; left: 50%; bottom: 0; width: calc(var(--R) * .8); transform: translateX(-50%); text-align: center; }
+  .hole b { display: block; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 8.4vmin; line-height: .95; }
+  .hole small { display: block; margin: .4vmin 0 1.4vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .kick { position: absolute; left: 5vmin; right: 5vmin; top: 4vmin; display: flex; justify-content: space-between; gap: 2vmin;
+    font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .photo { position: absolute; left: 5vmin; top: 50vmin; width: calc(100% - 10vmin); height: calc(100% - 50vmin - 38vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .copy { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 28vmin; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 13vmin; line-height: .95; text-transform: uppercase; letter-spacing: .005em; }
+  .row { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .sub { font-size: 2.1vmin; line-height: 1.42; max-width: 50vmin; }
+  .cta { flex: none; padding: 1.7vmin 3vmin; background: var(--ink); color: var(--bg); font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+  .fine { font-size: 1.6vmin; color: #5F5A52; margin-top: 1vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --R: 30vmin; }
+    .arch { top: calc(38vmin - var(--R)); }
+    .hole b { font-size: 6.4vmin; }
+    .hole small { font-size: 1.6vmin; letter-spacing: .12em; margin-bottom: 1vmin; }
+    .kick { top: 3.6vmin; }
+    .photo { top: 38vmin; height: calc(100% - 38vmin - 31vmin); }
+    .copy { bottom: 4vmin; height: 23vmin; }
+    h1 { font-size: 9vmin; }
+    .sub { font-size: 1.9vmin; }
+  }
+  /* square & wide: photo right, the protractor stands on the bottom edge of the copy column */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --R: 21vmin; }
+    .photo { left: auto; right: 0; top: 0; width: 50%; height: 100%; }
+    .arch { left: 25%; top: auto; bottom: 0; }
+    .hole b { font-size: 4.6vmin; }
+    .hole small { display: none; }
+    .hole { padding-bottom: 2.2vmin; }
+    .kick { right: auto; width: calc(50% - 10vmin); flex-direction: column; gap: .8vmin; top: 5vmin; }
+    .copy { left: 5vmin; right: auto; width: calc(50% - 10vmin); top: 16vmin; bottom: calc(var(--R) + 4vmin); height: auto; }
+    h1 { font-size: 8.4vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .sub { font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --R: 30vmin; }
+    .photo { width: 48%; object-position: 60% 30%; }
+    .arch { left: 26%; }
+    .hole b { font-size: 7vmin; }
+    .hole small { display: block; font-size: 1.6vmin; letter-spacing: .14em; margin-bottom: .6vmin; }
+    .hole { padding-bottom: 0; }
+    .kick { width: calc(52% - 12vmin); flex-direction: row; left: 6vmin; top: 5vmin; }
+    .copy { left: 6vmin; width: calc(52% - 12vmin); top: 12vmin; bottom: calc(var(--R) + 4vmin); }
+    h1 { font-size: 9vmin; }
+    .row { flex-direction: row; align-items: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="kick"><span>Arc &amp; Band Supply</span><span>Series 07</span></div>
+  <div class="arch"><div class="hole"><b>−40%</b><small>Spectrum sale</small></div></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <h1>Full spectrum.</h1>
+    <div class="row">
+      <div class="sub">Every colour of the season, in one drop.<div class="fine">Code BANDS40 · online &amp; in store</div></div>
+      <div class="cta">Shop every shade →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

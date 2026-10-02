@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Twelve Inch — a 12" single: the look is the sleeve, the black record slides out from behind it with fine grooves,
+     a light sheen and a paper centre label that carries the offer (33⅓ rpm → −33%). Catalogue number, side A/B
+     credits and a round hype sticker complete the record-shop vibe.
+     tall → title block / sleeve / record sliding out below · square & wide → title + credits left, sleeve right, record peeking out left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D33A22; }
+  .banner { --bg: #D33A22; --cr: #F3E9D2; --ink: #121212; --yel: #FFD23F;
+    position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: var(--cr); font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .5; mix-blend-mode: multiply; }
+
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; z-index: 3; }
+  .cat { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.8vmin; letter-spacing: .18em; text-transform: uppercase; border-bottom: 1px solid rgba(243,233,210,.6); padding-bottom: 1.2vmin; white-space: nowrap; }
+  .ttl { font-family: "Archivo Black", "Arial Black", sans-serif; font-size: 14vmin; line-height: .86; letter-spacing: -.035em; text-transform: uppercase; margin-top: 2vmin; white-space: nowrap; }
+  .sub { font-weight: 500; font-size: 2.8vmin; letter-spacing: .01em; margin-top: 1.4vmin; white-space: nowrap; }
+  .sub b { font-weight: 700; }
+
+  .rec { position: absolute; left: 50%; top: calc(100% - 38vmin); width: 76vmin; height: 76vmin; margin: -38vmin 0 0 -38vmin; border-radius: 50%;
+    background: repeating-radial-gradient(circle, #151515 0 .28vmin, #242424 .28vmin .5vmin, #121212 .5vmin .75vmin);
+    box-shadow: 0 1vmin 2.4vmin rgba(0,0,0,.35); }
+  .rec::before { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(from 0deg, rgba(255,255,255,0) 0 8%, rgba(255,255,255,.16) 13%, rgba(255,255,255,0) 18% 50%, rgba(255,255,255,0) 58%, rgba(255,255,255,.12) 63%, rgba(255,255,255,0) 68% 100%); }
+  .rec::after { content: ""; position: absolute; inset: 2.2vmin; border-radius: 50%; box-shadow: inset 0 0 0 .5vmin #0C0C0C; }
+  .lbl { position: absolute; left: 50%; top: 50%; width: 32vmin; height: 32vmin; margin: -16vmin 0 0 -16vmin; border-radius: 50%; background: var(--cr); color: var(--ink); z-index: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .lbl::before { content: ""; position: absolute; left: 50%; top: 50%; width: 2vmin; height: 2vmin; margin: -1vmin 0 0 -1vmin; border-radius: 50%; background: #111; box-shadow: 0 0 0 .5vmin rgba(0,0,0,.08); }
+  .lbl::after { content: ""; position: absolute; inset: 1.4vmin; border-radius: 50%; border: 1px solid rgba(18,18,18,.35); }
+  .lbl .s { font-weight: 700; font-size: 1.7vmin; letter-spacing: .22em; text-transform: uppercase; }
+  .lbl .o { font-family: "Archivo Black", sans-serif; font-size: 6.6vmin; line-height: 1; letter-spacing: -.03em; color: var(--bg); margin: .4vmin 0 4.6vmin; }
+  .lbl .n { font-weight: 700; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; line-height: 1.5; }
+
+  .sleeve { position: absolute; left: 6vmin; right: 6vmin; top: 31vmin; height: calc(100% - 31vmin - 56vmin); z-index: 2; box-shadow: 0 1vmin 2vmin rgba(0,0,0,.3); }
+  .sleeve img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .stk { position: absolute; z-index: 3; width: 17vmin; height: 17vmin; border-radius: 50%; background: var(--yel); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: rotate(-12deg);
+    right: 4vmin; bottom: 17vmin; box-shadow: 0 .5vmin 1vmin rgba(0,0,0,.25); }
+  .stk small { font-weight: 700; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; line-height: 1.2; }
+  .stk b { font-family: "Archivo Black", sans-serif; font-weight: 400; font-size: 3.4vmin; line-height: 1.05; }
+  .foot { position: absolute; left: 5vmin; bottom: 5vmin; z-index: 3; font-weight: 700; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; line-height: 1.8; white-space: nowrap; }
+  .foot span { display: block; }
+  .foot b { display: inline-block; background: var(--cr); color: var(--ink); padding: .2vmin 1vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .top { left: 12vmin; right: 12vmin; top: 4vmin; }
+    .ttl { font-size: 12vmin; }
+    .sleeve { left: 12vmin; right: 12vmin; top: 27vmin; height: calc(100% - 27vmin - 50vmin); }
+    .rec { top: calc(100% - 33vmin); width: 66vmin; height: 66vmin; margin: -33vmin 0 0 -33vmin; }
+    .lbl { width: 28vmin; height: 28vmin; margin: -14vmin 0 0 -14vmin; }
+    .lbl .o { font-size: 5.8vmin; margin-bottom: 4vmin; }
+    .stk { right: 4vmin; bottom: 14vmin; width: 15vmin; height: 15vmin; }
+    .stk b { font-size: 3vmin; }
+    .foot { left: 4vmin; bottom: 4vmin; }
+  }
+
+  /* square & wide: title + credits left, sleeve right, record sliding out to the left */
+  @media (min-aspect-ratio: 9/10) {
+    .top { left: 5vmin; right: auto; top: 5vmin; width: 40vmin; }
+    .cat span + span { display: none; }
+    .ttl { font-size: 10.4vmin; white-space: normal; }
+    .sub { font-size: 2.4vmin; white-space: normal; line-height: 1.3; }
+    .sleeve { left: auto; right: 5vmin; top: 5vmin; width: 50vmin; height: calc(100% - 10vmin); }
+    .rec { left: auto; right: 38vmin; top: 58%; width: 62vmin; height: 62vmin; margin: -31vmin 0 0 0; }
+    .lbl { width: 26vmin; height: 26vmin; margin: -13vmin 0 0 -13vmin; }
+    .lbl .s, .lbl .n { font-size: 1.6vmin; letter-spacing: .12em; }
+    .lbl .o { font-size: 5.4vmin; margin-bottom: 3.8vmin; }
+    .lbl::before { width: 1.6vmin; height: 1.6vmin; margin: -.8vmin 0 0 -.8vmin; }
+    .stk { right: auto; left: 4vmin; bottom: 14vmin; top: auto; width: 14vmin; height: 14vmin; }
+    .stk b { font-size: 2.8vmin; }
+    .stk small { font-size: 1.6vmin; }
+    .foot { left: 5vmin; bottom: 5vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .top { left: 6vmin; width: 52vmin; top: 6vmin; }
+    .cat span + span { display: inline; }
+    .ttl { font-size: 12vmin; }
+    .sub { font-size: 2.6vmin; }
+    .sleeve { right: 6vmin; top: 6vmin; width: 60vmin; height: calc(100% - 12vmin); }
+    .rec { right: 46vmin; top: 56%; width: 78vmin; height: 78vmin; margin-top: -39vmin; }
+    .lbl { width: 30vmin; height: 30vmin; margin: -15vmin 0 0 -15vmin; }
+    .lbl .o { font-size: 6.2vmin; margin-bottom: 4.4vmin; }
+    .stk { left: 6vmin; bottom: 17vmin; width: 16vmin; height: 16vmin; }
+    .stk b { font-size: 3.2vmin; }
+    .foot { left: 6vmin; bottom: 6vmin; font-size: 1.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .2  0 0 0 0 .15  0 0 0 .35 0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  <div class="top">
+    <div class="cat"><span>12″ single · DRS-033</span><span>Stereo · 33⅓ rpm</span></div>
+    <div class="ttl">The Drop</div>
+    <div class="sub">Side A: <b>New Season (Extended)</b></div>
+  </div>
+  <div class="rec"><div class="lbl"><span class="s">Side A · Sale mix</span><span class="o">−33%</span><span class="n">Code RPM33<br>Studio Oro Records</span></div></div>
+  <div class="sleeve"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="stk"><small>Includes</small><b>Free<br>ship</b></div>
+  <div class="foot"><span>Out now</span><b>Shop the single</b></div>
+</div>
+</body>
+</html>

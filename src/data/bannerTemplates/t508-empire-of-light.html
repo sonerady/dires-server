@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Empire of Light — after Magritte: a bright midday sky full of cumulus, and beneath it a street already deep in
+     night — black trees, a dark house, one street lamp burning. The photo is the house's big lit window, glowing
+     warm; its reflection shivers in the pond at the foot. "Open late."
+     tall → headline in the day sky, house + window below, offer on the pond · 3:4 → house left, copy column
+     among the trees · square / wide → house left, headline in the sky right, offer in the night right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0F1714; }
+  .banner { --nt: 40vmin; --hx: 6vmin; --hw: 70vmin; --pt: 52vmin; --pb: 24vmin; --wt: 18vmin; --lx: 86vmin;
+    position: fixed; inset: 0; overflow: hidden; color: #F6E7C8; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #3F7FC4 0%, #6FA2D6 22%, #A9C8E6 44%, #D6E4EE 60%, #EAF0F2 100%); }
+  .cloud { position: absolute; display: block; overflow: visible; }
+  .c1 { width: 44vmin; height: 22vmin; right: -6vmin; top: 4vmin; }
+  .c2 { display: none; width: 30vmin; height: 15vmin; left: -8vmin; top: 22vmin; }
+  .c3 { width: 36vmin; height: 18vmin; right: 18vmin; top: 26vmin; }
+
+  /* the night below: tree canopies, the house, a lamp, the pond */
+  .trees { position: absolute; left: 0; right: 0; top: var(--nt); bottom: 0;
+    background:
+      radial-gradient(9vmin 8vmin at 3% 10vmin, #0E1613 97%, transparent 100%),
+      radial-gradient(8vmin 7vmin at 13% 7vmin, #101A16 97%, transparent 100%),
+      radial-gradient(7vmin 6vmin at 22% 11vmin, #0F1814 97%, transparent 100%),
+      radial-gradient(9vmin 8vmin at 62% 12vmin, #101A16 97%, transparent 100%),
+      radial-gradient(8vmin 7vmin at 72% 8vmin, #0E1613 97%, transparent 100%),
+      radial-gradient(10vmin 9vmin at 83% 9.5vmin, #111B17 97%, transparent 100%),
+      radial-gradient(7vmin 6.4vmin at 92% 6.8vmin, #0E1613 97%, transparent 100%),
+      radial-gradient(8vmin 7vmin at 99% 11vmin, #101A16 97%, transparent 100%),
+      linear-gradient(#0F1714, #0B110F) 0 13vmin / 100% 100% no-repeat; }
+  .roof { position: absolute; left: calc(var(--hx) - 3vmin); width: calc(var(--hw) + 6vmin); top: calc(var(--pt) - 16vmin); height: 10.4vmin;
+    background: linear-gradient(180deg, #23252B, #1A1B20); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .chimney { position: absolute; left: calc(var(--hx) + var(--hw) * .72); top: calc(var(--pt) - 17vmin); width: 4vmin; height: 7vmin; background: #1E2025; }
+  .house { position: absolute; left: var(--hx); width: var(--hw); top: calc(var(--pt) - 6vmin); bottom: calc(var(--wt) - .5vmin); background: linear-gradient(180deg, #24262C, #1B1C21); }
+  .house::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.2vmin; background: #2E3037; }
+  .glow { position: absolute; left: calc(var(--hx) + 6vmin); width: calc(var(--hw) - 12vmin); top: var(--pt); bottom: var(--pb);
+    box-shadow: 0 0 0 1.2vmin #3B2F20, 0 0 7vmin 2vmin rgba(255,190,110,.5), 0 0 22vmin 4vmin rgba(255,170,90,.22); }
+  .photo { position: absolute; left: calc(var(--hx) + 6vmin); width: calc(var(--hw) - 12vmin); top: var(--pt); height: calc(100% - var(--pt) - var(--pb)); object-fit: cover; object-position: 50% 25%; display: block; }
+  .sill { position: absolute; left: calc(var(--hx) + 4.4vmin); width: calc(var(--hw) - 8.8vmin); bottom: calc(var(--pb) - 2.4vmin); height: 1.6vmin; background: #3B2F20; box-shadow: 0 .6vmin 1.4vmin rgba(255,180,100,.25); }
+  .lamp { position: absolute; left: var(--lx); width: .9vmin; top: calc(var(--pt) + 6vmin); bottom: var(--wt); background: #07090A; }
+  .lamp::before { content: ""; position: absolute; left: 50%; top: -5vmin; width: 3.4vmin; height: 4.6vmin; transform: translateX(-50%); border-radius: .6vmin .6vmin 0 0;
+    background: radial-gradient(circle at 50% 55%, #FFF6D8 0 30%, #FFD58A 70%, #E7A64E 100%); box-shadow: 0 0 0 .4vmin #07090A; }
+  .halo { position: absolute; left: calc(var(--lx) - 16vmin); top: calc(var(--pt) - 15vmin); width: 33vmin; height: 33vmin; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255,214,140,.5), rgba(255,214,140,.16) 45%, rgba(255,214,140,0)); }
+  /* the pond, with the lit window's reflection */
+  .pond { position: absolute; left: 0; right: 0; bottom: 0; height: var(--wt); overflow: hidden; background: linear-gradient(180deg, #0C1420, #080C14); }
+  .refl { position: absolute; left: calc(var(--hx) + 6vmin); width: calc(var(--hw) - 12vmin); top: 0; height: 100%; object-fit: cover; object-position: 50% 100%; transform: scaleY(-1);
+    filter: blur(.6vmin) brightness(.75); opacity: .34; display: block; }
+  .ripple { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, transparent 0 1.6vmin, rgba(8,12,20,.45) 1.6vmin 2vmin); }
+  .lampref { position: absolute; left: calc(var(--lx) - .6vmin); top: 0; width: 2.2vmin; filter: blur(.25vmin); height: 70%; background: repeating-linear-gradient(180deg, rgba(255,214,140,.55) 0 .6vmin, transparent .6vmin 1.6vmin);
+    -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent); }
+
+  /* type */
+  .mast { position: absolute; left: 7vmin; right: 7vmin; top: 5vmin; display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; white-space: nowrap; color: #13223A; }
+  .mast span + span { font-weight: 500; }
+  .head { position: absolute; left: 6.4vmin; right: 7vmin; top: 9vmin; color: #13223A; }
+  h1 { margin: 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 17vmin; line-height: .88; letter-spacing: -.02em; white-space: nowrap; }
+  h1 i { color: #1F4E86; }
+  .sub { margin: 1.6vmin 0 0 .6vmin; font-size: 2.1vmin; line-height: 1.45; font-weight: 500; max-width: 56vmin; }
+  .foot { position: absolute; left: 7vmin; right: 7vmin; bottom: 0; height: var(--wt); display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 2vmin; line-height: 1.35; }
+  .offer b { display: block; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-style: italic; font-size: 5vmin; line-height: 1.05; color: #FFD58A; }
+  .offer small { display: block; margin-top: .4vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: rgba(246,231,200,.75); }
+  .cta { flex: none; padding: 1.7vmin 3.2vmin; border-radius: 99vmin; background: #FFD58A; color: #13131A; font-size: 1.9vmin; font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
+
+  /* 3:4 / 4:5 → house left, copy column among the trees */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --nt: 30vmin; --hx: 5vmin; --hw: 58vmin; --pt: 40vmin; --pb: 17vmin; --wt: 12vmin; --lx: 67vmin; }
+    h1 { font-size: 14vmin; }
+    .sub { position: absolute; left: 66vmin; top: calc(var(--pt) - 9vmin); width: 25vmin; margin: 0; color: #F6E7C8; font-size: 1.8vmin; }
+    .foot { left: 73vmin; right: 5vmin; top: calc(var(--pt) + 14vmin); bottom: calc(var(--wt) + 5vmin); height: auto; flex-direction: column; align-items: flex-start; justify-content: flex-end; }
+    .offer b { font-size: 4.6vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2.6vmin; }
+    .c3 { right: -8vmin; top: 17vmin; width: 28vmin; height: 14vmin; }
+    .c2 { display: block; top: 16vmin; }
+  }
+  /* square → house left, sky copy right, offer in the night */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --nt: 46%; --hx: 5vmin; --hw: 50%; --pt: 22vmin; --pb: 14vmin; --wt: 10vmin; --lx: calc(50% + 9vmin); }
+    .mast { left: calc(50% + 14vmin); right: 5vmin; top: 7vmin; flex-direction: column; gap: 1vmin; }
+    .head { left: calc(50% + 13.4vmin); right: 5vmin; top: 14vmin; }
+    h1 { font-size: 10.4vmin; white-space: normal; }
+    .sub { position: static; width: auto; margin: 1.6vmin 0 0 .6vmin; color: #13223A; font-size: 1.8vmin; }
+    .foot { left: calc(50% + 14vmin); right: 5vmin; top: auto; bottom: calc(var(--wt) + 5vmin); }
+    .c1 { width: 34vmin; height: 17vmin; right: -8vmin; top: -2vmin; }
+    .c2 { left: -6vmin; top: 2vmin; width: 26vmin; height: 13vmin; }
+    .c3 { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --nt: 50%; --hx: 7vmin; --hw: 44%; --pt: 21vmin; --wt: 11vmin; --pb: 15vmin; --lx: calc(44% + 13vmin); }
+    .mast { left: calc(44% + 21vmin); right: 7vmin; top: 7vmin; flex-direction: row; }
+    .head { left: calc(44% + 20.4vmin); right: 7vmin; top: 13vmin; }
+    h1 { font-size: 13vmin; white-space: nowrap; }
+    .sub { font-size: 2vmin; max-width: 52vmin; }
+    .foot { left: calc(44% + 21vmin); right: 7vmin; flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    .c3 { display: block; right: 30vmin; top: 36vmin; width: 26vmin; height: 13vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="#FFFFFF"/><stop offset=".75" stop-color="#EEF3F7"/><stop offset="1" stop-color="#BFCFDF"/></linearGradient>
+      <filter id="soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>
+      <symbol id="cl" viewBox="0 0 200 100"><g filter="url(#soft)" fill="#A9BED3"><circle cx="58" cy="64" r="24"/><circle cx="92" cy="50" r="31"/><circle cx="130" cy="56" r="26"/><circle cx="158" cy="68" r="19"/><rect x="30" y="64" width="144" height="26" rx="13"/></g><g filter="url(#soft)" fill="url(#cg)"><circle cx="56" cy="60" r="22"/><circle cx="90" cy="44" r="30"/><circle cx="127" cy="50" r="24"/><circle cx="154" cy="63" r="16"/><circle cx="34" cy="71" r="12"/><circle cx="74" cy="66" r="17"/><circle cx="110" cy="64" r="18"/></g></symbol>
+    </defs>
+  </svg>
+  <svg class="cloud c1" viewBox="0 0 200 100" aria-hidden="true"><use href="#cl"/></svg>
+  <svg class="cloud c2" viewBox="0 0 200 100" aria-hidden="true"><use href="#cl"/></svg>
+  <svg class="cloud c3" viewBox="0 0 200 100" aria-hidden="true"><use href="#cl"/></svg>
+  <div class="trees"></div>
+  <div class="halo"></div>
+  <div class="roof"></div>
+  <div class="chimney"></div>
+  <div class="house"></div>
+  <div class="glow"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sill"></div>
+  <div class="lamp"></div>
+  <div class="pond"><img class="refl" src="{{PRODUCT_IMAGE}}" alt=""><i class="ripple"></i><i class="lampref"></i></div>
+  <div class="mast"><span>Lumen House</span><span>Late opening</span></div>
+  <div class="head">
+    <h1>Open <i>late.</i></h1>
+    <div class="sub">Day outside, night inside — the new collection stays lit until midnight.</div>
+  </div>
+  <div class="foot">
+    <div class="offer"><b>20% off after 6 pm</b>online and in store<small>Code NIGHT20</small></div>
+    <span class="cta">Come in →</span>
+  </div>
+</div>
+</body>
+</html>

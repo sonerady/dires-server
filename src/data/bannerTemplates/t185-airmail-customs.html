@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;1,500&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Airmail & Customs — the collection shipped by air: red/blue airmail chevron seam, a navy PAR AVION label,
+     a drawn sun-and-sea stamp with perforations, a typed address block, and a CN 22 customs label declaring the offer.
+     tall → photo above the envelope; square / wide → photo left, chevron seam vertical, envelope right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCE6EE; }
+  .banner { --env: #DCE6EE; --navy: #1B2D5C; --red: #D0343A; --ink: #1D2433;
+    position: fixed; inset: 0; overflow: hidden; background: var(--env); color: var(--ink); font-family: "Courier Prime", "Courier New", monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 78vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .seam { position: absolute; left: 0; right: 0; bottom: 78vmin; height: 3.2vmin; background: repeating-linear-gradient(-45deg, var(--red) 0 2.4vmin, #F6F3EC 2.4vmin 3.6vmin, var(--navy) 3.6vmin 6vmin, #F6F3EC 6vmin 7.2vmin); }
+  .env { position: absolute; left: 0; right: 0; bottom: 0; height: 78vmin; box-sizing: border-box; padding: 5.4vmin 6vmin 5.4vmin;
+    display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr auto; gap: 0 4vmin;
+    background: repeating-linear-gradient(0deg, rgba(27,45,92,.035) 0 1px, transparent 1px .8vmin), var(--env); }
+  .label { grid-column: 1; grid-row: 1; align-self: start; justify-self: start; background: var(--navy); color: #fff; padding: 1.2vmin 2.4vmin 1.3vmin; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; text-transform: uppercase; line-height: 1; box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.12); }
+  .label b { display: block; font-weight: 700; font-size: 4.4vmin; letter-spacing: .08em; white-space: nowrap; }
+  .label span { display: block; margin-top: .5vmin; font-weight: 500; font-size: 1.9vmin; letter-spacing: .26em; white-space: nowrap; }
+  .stamp { grid-column: 2; grid-row: 1 / 3; justify-self: end; align-self: start; width: 20vmin; height: 24vmin; box-sizing: border-box; padding: 1.3vmin; transform: rotate(3deg);
+    background: radial-gradient(circle, transparent .55vmin, #FBF8F1 .6vmin) 0 0 / 1.6vmin 1.6vmin; filter: drop-shadow(0 .3vmin .5vmin rgba(0,0,0,.16)); }
+  .stamp svg { width: 100%; height: 100%; display: block; }
+  .h { grid-column: 1; grid-row: 2; align-self: center; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; font-size: 12.4vmin; line-height: .88; text-transform: uppercase; color: var(--navy); letter-spacing: -.005em; padding: 3vmin 0; }
+  .h i { font-style: italic; font-weight: 500; color: var(--red); }
+  .addr { grid-column: 1; grid-row: 3; align-self: end; font-size: 2.2vmin; line-height: 1.55; }
+  .addr div { border-bottom: 1px solid rgba(29,36,51,.35); white-space: nowrap; }
+  .addr b { font-weight: 700; }
+  .cn { grid-column: 2; grid-row: 3; align-self: end; width: 36vmin; box-sizing: border-box; background: #FDFCF8; border: 1px solid rgba(29,36,51,.55); font-size: 1.7vmin; line-height: 1.3; transform: rotate(-2deg); box-shadow: 0 .4vmin .9vmin rgba(0,0,0,.1); }
+  .cn .t { display: flex; justify-content: space-between; align-items: baseline; gap: 1vmin; padding: 1vmin 1.4vmin; border-bottom: 1px solid rgba(29,36,51,.55); font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 2vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .cn .t span { font-size: 3vmin; color: var(--red); }
+  .cn .ck { display: grid; grid-template-columns: 1fr 1fr; gap: .5vmin 1vmin; padding: 1vmin 1.4vmin; border-bottom: 1px solid rgba(29,36,51,.55); white-space: nowrap; }
+  .cn .ck i { font-style: normal; display: inline-block; width: 1.6vmin; height: 1.6vmin; border: 1px solid var(--ink); margin-right: .8vmin; vertical-align: -.2vmin; text-align: center; line-height: 1.6vmin; font-size: 1.6vmin; font-weight: 700; color: var(--red); }
+  .cn .v { display: flex; justify-content: space-between; align-items: baseline; padding: 1vmin 1.4vmin; white-space: nowrap; }
+  .cn .v b { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 3.4vmin; color: var(--red); line-height: 1; }
+  .cn .c { padding: .9vmin 1.4vmin 1vmin; background: var(--navy); color: #fff; font-weight: 700; font-size: 1.9vmin; letter-spacing: .14em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 70vmin); }
+    .seam { bottom: 70vmin; }
+    .env { height: 70vmin; padding: 4.6vmin 7vmin 4.6vmin; }
+    .h { font-size: 11vmin; padding: 2vmin 0; }
+    .stamp { width: 18vmin; height: 21.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 24%; }
+    .seam { left: 50%; right: auto; top: 0; bottom: 0; width: 3.2vmin; height: auto; }
+    .env { left: calc(50% + 3.2vmin); top: 0; height: 100%; padding: 5vmin 5vmin 5vmin 4.6vmin; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr auto auto; gap: 0 2vmin; }
+    .label b { font-size: 3.6vmin; }
+    .label span { font-size: 1.6vmin; letter-spacing: .18em; }
+    .stamp { grid-column: 2; grid-row: 1 / 2; width: 14vmin; height: 16.8vmin; padding: 1vmin; }
+    .h { grid-column: 1 / 3; grid-row: 2; font-size: 9.4vmin; padding: 2vmin 0; }
+    .addr { grid-column: 1 / 3; grid-row: 3; font-size: 1.9vmin; margin-bottom: 3vmin; }
+    .cn { grid-column: 1 / 3; grid-row: 4; justify-self: end; width: 34vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .seam { left: 44%; }
+    .env { left: calc(44% + 3.2vmin); padding: 6vmin 6vmin 6vmin 5.4vmin; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto 1fr auto; gap: 0 3.4vmin; }
+    .label b { font-size: 4.2vmin; }
+    .label span { font-size: 1.8vmin; letter-spacing: .24em; }
+    .stamp { grid-row: 1 / 3; width: 19vmin; height: 22.8vmin; padding: 1.3vmin; }
+    .h { grid-column: 1; font-size: 10vmin; padding: 3vmin 0; }
+    .addr { grid-column: 1; grid-row: 3; font-size: 1.9vmin; margin-bottom: 0; min-width: 0; }
+    .cn { grid-column: 2; grid-row: 3; width: 31vmin; justify-self: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="seam"></div>
+  <div class="env">
+    <div class="label"><b>Par avion</b><span>By air mail</span></div>
+    <div class="stamp"><svg viewBox="0 0 100 120" aria-hidden="true">
+      <rect width="100" height="120" fill="#F2B544"/>
+      <circle cx="50" cy="58" r="24" fill="#D0343A"/>
+      <rect y="62" width="100" height="58" fill="#2E5E9E"/>
+      <path d="M0 72 q12.5 -6 25 0 t25 0 t25 0 t25 0 M0 84 q12.5 -6 25 0 t25 0 t25 0 t25 0 M0 96 q12.5 -6 25 0 t25 0 t25 0 t25 0" fill="none" stroke="#DCE6EE" stroke-width="2.2"/>
+      <text x="8" y="20" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="20" fill="#1B2D5C">30</text>
+      <text x="92" y="114" text-anchor="end" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="10" letter-spacing="1.5" fill="#FBF8F1">RESORT</text>
+    </svg></div>
+    <div class="h">Arriving<br><i>by air.</i></div>
+    <div class="addr">
+      <div>To: <b>You, wherever the sun is</b></div>
+      <div>The Resort Collection</div>
+      <div>Free express delivery</div>
+    </div>
+    <div class="cn">
+      <div class="t">Customs declaration<span>CN 22</span></div>
+      <div class="ck"><div><i>✓</i>Gift</div><div><i></i>Documents</div><div><i>✓</i>New season</div><div><i></i>Other</div></div>
+      <div class="v"><span>Value</span><b>−25%</b></div>
+      <div class="c">CODE AIRMAIL25</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

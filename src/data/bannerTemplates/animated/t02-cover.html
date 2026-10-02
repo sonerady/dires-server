@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,800;1,6..96,500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Magazine Cover — responsive: the whole photo, full bleed (the frame has the photo's ratio) */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0d0d0f; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #fff; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+  .top { position: absolute; left: 0; right: 0; top: 0; height: 34%; background: linear-gradient(180deg, rgba(8,8,10,0.72) 0%, rgba(8,8,10,0.709) 7.7%, rgba(8,8,10,0.679) 15.4%, rgba(8,8,10,0.629) 23.1%, rgba(8,8,10,0.564) 30.8%, rgba(8,8,10,0.487) 38.5%, rgba(8,8,10,0.403) 46.2%, rgba(8,8,10,0.317) 53.8%, rgba(8,8,10,0.233) 61.5%, rgba(8,8,10,0.156) 69.2%, rgba(8,8,10,0.091) 76.9%, rgba(8,8,10,0.041) 84.6%, rgba(8,8,10,0.011) 92.3%, rgba(8,8,10,0) 100%); }
+  .bottom { position: absolute; left: 0; right: 0; bottom: 0; height: 44%; background: linear-gradient(0deg, rgba(8,8,10,0.88) 0%, rgba(8,8,10,0.867) 7.7%, rgba(8,8,10,0.83) 15.4%, rgba(8,8,10,0.769) 23.1%, rgba(8,8,10,0.69) 30.8%, rgba(8,8,10,0.596) 38.5%, rgba(8,8,10,0.493) 46.2%, rgba(8,8,10,0.387) 53.8%, rgba(8,8,10,0.284) 61.5%, rgba(8,8,10,0.19) 69.2%, rgba(8,8,10,0.111) 76.9%, rgba(8,8,10,0.05) 84.6%, rgba(8,8,10,0.013) 92.3%, rgba(8,8,10,0) 100%); }
+  .left { position: absolute; left: 0; top: 0; bottom: 0; width: 42%; background: linear-gradient(90deg, rgba(8,8,10,0.42) 0%, rgba(8,8,10,0.414) 7.7%, rgba(8,8,10,0.396) 15.4%, rgba(8,8,10,0.367) 23.1%, rgba(8,8,10,0.329) 30.8%, rgba(8,8,10,0.284) 38.5%, rgba(8,8,10,0.235) 46.2%, rgba(8,8,10,0.185) 53.8%, rgba(8,8,10,0.136) 61.5%, rgba(8,8,10,0.091) 69.2%, rgba(8,8,10,0.053) 76.9%, rgba(8,8,10,0.024) 84.6%, rgba(8,8,10,0.006) 92.3%, rgba(8,8,10,0) 100%); }
+  .head { position: absolute; top: 2.6vmin; left: 5vmin; right: 5vmin; text-align: center; }
+  .masthead { font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-weight: 800; font-size: min(21vw, 17vh); line-height: .9; letter-spacing: -.01em; text-shadow: 0 .4vmin 2.4vmin rgba(0,0,0,.25); }
+  .issue { margin-top: 1.4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; opacity: .92; }
+  .lines { position: absolute; left: 5vmin; top: calc(min(21vw, 17vh) + 16vmin); width: 23vmin; }
+  .line { margin-bottom: 4vmin; }
+  .line .n { font-family: "Bodoni Moda", Didot, serif; font-style: italic; font-size: 5.6vmin; line-height: .9; }
+  .line .t { margin-top: .8vmin; font-size: 2vmin; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; line-height: 1.35; }
+  .line .d { margin-top: .5vmin; font-size: 1.9vmin; font-weight: 400; line-height: 1.35; opacity: .88; }
+  .story { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; }
+  .story .k { font-size: 1.9vmin; font-weight: 800; letter-spacing: .32em; text-transform: uppercase; color: #E8D9C4; }
+  .story h1 { margin: 1.4vmin 0 0; font-family: "Bodoni Moda", Didot, serif; font-style: italic; font-weight: 500; font-size: 11.5vmin; line-height: .92; letter-spacing: -.015em; }
+  .story .row { margin-top: 2.4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 4vmin; }
+  .story .p { font-size: 2.5vmin; line-height: 1.4; }
+  .story .p b { font-weight: 800; letter-spacing: .06em; }
+  .barcode { flex: none; width: 14vmin; text-align: center; font-size: 1.3vmin; letter-spacing: .2em; }
+  .barcode i { display: block; height: 6.5vmin; margin-bottom: .6vmin;
+    background: repeating-linear-gradient(90deg, #fff 0 .35vmin, transparent .35vmin .7vmin, #fff .7vmin .85vmin, transparent .85vmin 1.4vmin, #fff 1.4vmin 2.1vmin, transparent 2.1vmin 2.45vmin); }
+  /* wide photo: masthead top-left, the story keeps to the left so the product stays clear */
+  @media (min-aspect-ratio: 6/5) {
+    .head { right: auto; text-align: left; }
+    .masthead { font-size: 17vmin; }
+    .issue { gap: 4vmin; justify-content: flex-start; }
+    .lines { display: none; }
+    .story { right: auto; width: 46%; }
+    .left { width: 55%; background: linear-gradient(90deg, rgba(8,8,10,0.6) 0%, rgba(8,8,10,0.591) 7.7%, rgba(8,8,10,0.566) 15.4%, rgba(8,8,10,0.524) 23.1%, rgba(8,8,10,0.47) 30.8%, rgba(8,8,10,0.406) 38.5%, rgba(8,8,10,0.336) 46.2%, rgba(8,8,10,0.264) 53.8%, rgba(8,8,10,0.194) 61.5%, rgba(8,8,10,0.13) 69.2%, rgba(8,8,10,0.076) 76.9%, rgba(8,8,10,0.034) 84.6%, rgba(8,8,10,0.009) 92.3%, rgba(8,8,10,0) 100%); }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  .photo { transform-origin: 50% 50%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push {
+    0%, 100% { transform: scale(1); clip-path: inset(0); }
+    50% { transform: scale(1.035); clip-path: inset(1.691%); }
+  }
+  /* cover lines slide back onto the page, one after another */
+  .line { animation: cl1 6s linear infinite; }
+  .line:nth-child(2) { animation-name: cl2; }
+  @keyframes cl1 {
+    0%, 8% { opacity: 1; transform: translateX(0); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    14% { opacity: 0; transform: translateX(-2vmin); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    26%, 100% { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes cl2 {
+    0%, 12% { opacity: 1; transform: translateX(0); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    18% { opacity: 0; transform: translateX(-2vmin); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    30%, 100% { opacity: 1; transform: translateX(0); }
+  }
+  /* the cover story headline is set again */
+  .story h1 { animation: story 6s linear infinite; }
+  @keyframes story {
+    0%, 40% { clip-path: inset(-25% -10% -25% -10%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    48% { clip-path: inset(-25% -10% -25% 110%); animation-timing-function: steps(1, end); }
+    48.2% { clip-path: inset(-25% 110% -25% -10%); animation-timing-function: cubic-bezier(.22,.7,.2,1); }
+    66%, 100% { clip-path: inset(-25% -10% -25% -10%); }
+  }
+  /* the kicker warms on the beat */
+  .story .k { animation: kick 6s linear infinite; }
+  @keyframes kick {
+    0%, 62% { color: #E8D9C4; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    68% { color: #FFFFFF; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    78%, 100% { color: #E8D9C4; }
+  }
+  /* a red scan line reads the barcode */
+  .barcode i { position: relative; }
+  .barcode i::after { content: ""; position: absolute; left: -1vmin; right: -1vmin; top: 0; height: .35vmin; background: #FF3B2F; box-shadow: 0 0 1.2vmin .2vmin rgba(255,59,47,.7); opacity: 0;
+    animation: scan 6s linear infinite; }
+  @keyframes scan {
+    0%, 78% { opacity: 0; transform: translateY(0); }
+    80% { opacity: 1; transform: translateY(0); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    88% { opacity: 1; transform: translateY(6.1vmin); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    94% { opacity: 1; transform: translateY(0); }
+    96%, 100% { opacity: 0; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="top"></div>
+  <div class="left"></div>
+  <div class="bottom"></div>
+  <div class="head">
+    <div class="masthead">MAISON</div>
+    <div class="issue"><span>No. 27</span><span>The Summer Issue</span><span>2026</span></div>
+  </div>
+  <div class="lines">
+    <div class="line"><div class="n">01</div><div class="t">Hand-stitched</div><div class="d">Embroidery comes home</div></div>
+    <div class="line"><div class="n">02</div><div class="t">Slow summer</div><div class="d">Linen, cotton, sea air</div></div>
+  </div>
+  <div class="story">
+    <div class="k">New resort collection</div>
+    <h1>The Riviera Edit</h1>
+    <div class="row">
+      <div class="p">Maxi dresses &amp; kaftans from <b>$129</b><br>Shop the full story online</div>
+      <div class="barcode"><i></i>0 26 2710</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

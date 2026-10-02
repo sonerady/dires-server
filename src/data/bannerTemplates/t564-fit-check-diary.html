@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=Manrope:wght@400;600;800&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Fit Check Diary — an outfit-of-the-day challenge cover: a tear-off calendar tile (Day 14 / 30), giant OOTD letters,
+     a 30-dot streak grid with today ringed, and a weather chip — the product is today's fit.
+     tall / 3:4 → header, photo, streak + offer · square / wide → photo left, diary column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2A45D6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #2A45D6; color: #F5F0E6;
+    font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column;
+    padding: 5vmin 6vmin 5.4vmin; box-sizing: border-box; }
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(100vmin 80vmin at 100% 0%, rgba(255,255,255,.10), transparent 70%), radial-gradient(90vmin 70vmin at 0% 100%, rgba(10,20,90,.35), transparent 70%); }
+
+  .top { position: relative; flex: none; display: flex; align-items: center; gap: 4vmin; }
+  .tile { flex: none; width: 19vmin; background: #F5F0E6; color: #16225E; text-align: center; box-shadow: 1vmin 1vmin 0 rgba(10,18,70,.4); }
+  .tile .m { background: #FFB627; font-size: 1.7vmin; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; padding: .9vmin 0 .8vmin; }
+  .tile .d { font-family: "Syne", sans-serif; font-weight: 800; font-size: 9vmin; line-height: 1.12; padding-top: 1vmin; letter-spacing: -.04em; }
+  .tile .o { font-size: 1.7vmin; font-weight: 600; padding: .4vmin 0 1.4vmin; color: #52609E; }
+  .word { min-width: 0; }
+  .ootd { font-family: "Syne", sans-serif; font-weight: 800; font-size: 12.4vmin; line-height: .8; letter-spacing: -.05em; }
+  .ootd span { color: #FFB627; }
+  .lab { margin-top: 1.8vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .02em; opacity: .85; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 4.4vmin; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .foot { position: relative; flex: none; margin-top: 3.6vmin; display: grid; grid-template-columns: auto 1fr; column-gap: 4vmin; align-items: end; }
+  .streak { display: grid; grid-template-columns: repeat(10, 2.4vmin); gap: 1vmin; }
+  .streak i { width: 2.4vmin; height: 2.4vmin; border-radius: 50%; box-sizing: border-box; border: 1px solid rgba(245,240,230,.45); }
+  .streak i.x { background: #F5F0E6; border-color: #F5F0E6; }
+  .streak i.t { background: #FFB627; border-color: #FFB627; box-shadow: 0 0 0 .6vmin rgba(255,182,39,.35); }
+  .cap { margin-top: 1.4vmin; font-size: 1.7vmin; font-weight: 600; opacity: .8; white-space: nowrap; }
+  .buy { display: flex; flex-direction: column; align-items: flex-end; gap: 1.4vmin; }
+  .wx { font-size: 1.7vmin; font-weight: 600; padding: .7vmin 1.6vmin; border-radius: 99vmin; border: 1px solid rgba(245,240,230,.5); white-space: nowrap; }
+  .price { font-family: "Syne", sans-serif; font-weight: 800; font-size: 5.6vmin; line-height: 1; letter-spacing: -.03em; }
+  .cta { padding: 1.8vmin 3vmin; border-radius: 99vmin; background: #FFB627; color: #16225E; font-size: 2vmin; font-weight: 800; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.6vmin; }
+    .tile { width: 16vmin; }
+    .tile .d { font-size: 7.6vmin; }
+    .ootd { font-size: 12.4vmin; }
+    .lab { margin-top: 1.2vmin; }
+    .photo { margin-top: 3.6vmin; }
+    .foot { margin-top: 3vmin; }
+    .price { font-size: 4.8vmin; }
+    .buy { gap: 1.1vmin; }
+  }
+  /* ── square: header band across, photo left, streak + offer right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .top { position: absolute; left: 5.6vmin; right: 5.6vmin; top: 5vmin; gap: 3.4vmin; }
+    .tile { width: 13vmin; }
+    .tile .d { font-size: 6.4vmin; }
+    .ootd { font-size: 11vmin; }
+    .lab { margin-top: 1.2vmin; }
+    .photo { position: absolute; left: 5.6vmin; top: 29vmin; bottom: 5.6vmin; width: 50%; height: auto; margin: 0; }
+    .foot { position: absolute; left: calc(50% + 11vmin); right: 5.6vmin; top: 29vmin; bottom: 5.6vmin; margin: 0;
+      display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; }
+    .streak { grid-template-columns: repeat(6, 2.8vmin); gap: 1.2vmin; }
+    .streak i { width: 2.8vmin; height: 2.8vmin; }
+    .buy { align-items: flex-start; gap: 1.8vmin; }
+  }
+  /* ── wide: photo left, tall diary column right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; left: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .top { left: calc(42% + 14vmin); right: 7vmin; top: 7vmin; flex-direction: column; align-items: flex-start; gap: 3.4vmin; }
+    .tile { width: 15vmin; }
+    .tile .d { font-size: 7.6vmin; }
+    .ootd { font-size: 12.4vmin; }
+    .foot { left: calc(42% + 14vmin); right: 7vmin; top: auto; bottom: 6.4vmin; display: grid; grid-template-columns: auto 1fr; column-gap: 4vmin; align-items: end; }
+    .streak { grid-template-columns: repeat(10, 2.4vmin); gap: 1vmin; }
+    .streak i { width: 2.4vmin; height: 2.4vmin; }
+    .buy { align-items: flex-end; gap: 1.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <div class="tile"><div class="m">Day</div><div class="d">14</div><div class="o">of 30</div></div>
+    <div class="word"><div class="ootd">OOTD<span>.</span></div><div class="lab">30 days, 30 fits · Norell Studio</div></div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="foot">
+    <div>
+      <div class="streak"><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="t"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="cap">13 fits done · 16 to go</div>
+    </div>
+    <div class="buy">
+      <div class="wx">Today · 18° · light rain</div>
+      <div class="price">$56</div>
+      <div class="cta">Wear it tomorrow →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

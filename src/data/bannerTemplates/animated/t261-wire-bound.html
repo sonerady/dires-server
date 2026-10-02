@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,200..700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  /* Wire-Bound — the wholesale showroom book, opened flat: the look on one page, its look sheet on the facing
+     page, joined by a run of wire-O loops through punched holes; gutter shadow on both pages, running head, folio.
+     tall → top-bound flip book (photo page above, sheet below) · square & wide → side-bound, photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EEE6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F2EEE6; color: #1D1B18;
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; font-variation-settings: "wdth" 100; }
+  .serif { font-family: "Newsreader", Georgia, "Times New Roman", serif; }
+
+  /* photo page */
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 64vmin); object-fit: cover; object-position: 50% 22%; }
+  .shade-a { position: absolute; left: 0; width: 100%; height: 6vmin; top: calc(100% - 64vmin - 6vmin);
+    background: linear-gradient(to top, rgba(0,0,0,.3), rgba(0,0,0,.296) 7.7%, rgba(0,0,0,.283) 15.4%, rgba(0,0,0,.262) 23.1%, rgba(0,0,0,.235) 30.8%, rgba(0,0,0,.203) 38.5%, rgba(0,0,0,.168) 46.2%, rgba(0,0,0,.132) 53.8%, rgba(0,0,0,.097) 61.5%, rgba(0,0,0,.065) 69.2%, rgba(0,0,0,.038) 76.9%, rgba(0,0,0,.017) 84.6%, rgba(0,0,0,.005) 92.3%, rgba(0,0,0,0)); }
+  /* sheet page */
+  .shade-b { position: absolute; left: 0; width: 100%; height: 7vmin; top: calc(100% - 64vmin);
+    background: linear-gradient(to bottom, rgba(60,45,30,.2), rgba(60,45,30,.197) 7.7%, rgba(60,45,30,.189) 15.4%, rgba(60,45,30,.175) 23.1%, rgba(60,45,30,.157) 30.8%, rgba(60,45,30,.135) 38.5%, rgba(60,45,30,.112) 46.2%, rgba(60,45,30,.088) 53.8%, rgba(60,45,30,.065) 61.5%, rgba(60,45,30,.043) 69.2%, rgba(60,45,30,.025) 76.9%, rgba(60,45,30,.011) 84.6%, rgba(60,45,30,.003) 92.3%, rgba(60,45,30,0)); }
+
+  /* wire-O binding: 21 double loops, always 100vmin long (the frame's short side) */
+  .wire { position: absolute; left: 0; width: 100vmin; height: 7vmin; top: calc(100% - 64vmin - 3.5vmin); box-sizing: border-box; padding: 0 4vmin;
+    display: flex; justify-content: space-between; align-items: center; }
+  .wire i { position: relative; display: block; width: 2.2vmin; height: 7vmin;
+    background:
+      radial-gradient(ellipse .95vmin .62vmin at 50% 1.05vmin, #1A1714 0 92%, rgba(26,23,20,0) 100%),
+      radial-gradient(ellipse .95vmin .62vmin at 50% 5.95vmin, #1A1714 0 92%, rgba(26,23,20,0) 100%); }
+  .wire i::before, .wire i::after { content: ""; position: absolute; top: .95vmin; bottom: .95vmin; width: .62vmin; border-radius: .31vmin;
+    background: linear-gradient(90deg, #4E4B47, #D9D6D0 30%, #FFFFFF 45%, #A9A5A0 72%, #45423E);
+    box-shadow: .25vmin .3vmin .35vmin rgba(0,0,0,.32); }
+  .wire i::before { left: .28vmin; }
+  .wire i::after { right: .28vmin; }
+
+  .page { position: absolute; left: 0; right: 0; top: calc(100% - 64vmin); bottom: 0; box-sizing: border-box; padding: 7vmin 6.5vmin 4.6vmin; display: flex; flex-direction: column; }
+  .rh { display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.3vmin; border-bottom: 1px solid #1D1B18; white-space: nowrap;
+    font-size: 1.75vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; }
+  .rh span:last-child { color: #6B645A; font-weight: 500; }
+  .main { flex: 1; min-height: 0; display: grid; grid-template-columns: auto 1fr; column-gap: 5.5vmin; align-items: end; padding: 3vmin 0 2.4vmin; }
+  .num { line-height: .78; }
+  .num small { display: block; margin-bottom: 1.6vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #A2402C; }
+  .num b { display: block; font-weight: 200; font-variation-settings: "wdth" 62; font-size: 35vmin; letter-spacing: -.03em; }
+  .det { min-width: 0; padding-bottom: .6vmin; }
+  .det h2 { margin: 0 0 2.2vmin; font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 300; font-size: 4.3vmin; line-height: 1.08; letter-spacing: -.01em; }
+  .det dl { margin: 0; display: grid; grid-template-columns: auto 1fr; border-top: 1px solid rgba(29,27,24,.3); }
+  .det dt, .det dd { margin: 0; padding: .95vmin 0; border-bottom: 1px solid rgba(29,27,24,.3); font-size: 1.9vmin; white-space: nowrap; }
+  .det dt { padding-right: 3vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #6B645A; font-size: 1.65vmin; }
+  .det dd { font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
+  .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .offer { display: flex; flex-direction: column; gap: .8vmin; }
+  .offer b { font-size: 2.5vmin; font-weight: 700; font-variation-settings: "wdth" 88; letter-spacing: .01em; text-transform: uppercase; }
+  .offer b em { font-style: normal; color: #A2402C; }
+  .offer span { font-size: 1.7vmin; letter-spacing: .06em; color: #6B645A; }
+  .folio { font-family: "Newsreader", Georgia, serif; font-size: 3vmin; line-height: 1; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 58vmin); }
+    .shade-a { top: calc(100% - 58vmin - 6vmin); }
+    .shade-b, .page { top: calc(100% - 58vmin); }
+    .wire { top: calc(100% - 58vmin - 3.5vmin); }
+    .page { padding-top: 6.6vmin; }
+    .num b { font-size: 27vmin; }
+    .det h2 { font-size: 3.9vmin; }
+  }
+  /* square & wide: side-bound, the wire runs down the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 24%; }
+    .shade-a { top: 0; height: 100%; width: 6vmin; left: calc(50% - 6vmin);
+      background: linear-gradient(to left, rgba(0,0,0,.3), rgba(0,0,0,.296) 7.7%, rgba(0,0,0,.283) 15.4%, rgba(0,0,0,.262) 23.1%, rgba(0,0,0,.235) 30.8%, rgba(0,0,0,.203) 38.5%, rgba(0,0,0,.168) 46.2%, rgba(0,0,0,.132) 53.8%, rgba(0,0,0,.097) 61.5%, rgba(0,0,0,.065) 69.2%, rgba(0,0,0,.038) 76.9%, rgba(0,0,0,.017) 84.6%, rgba(0,0,0,.005) 92.3%, rgba(0,0,0,0)); }
+    .shade-b { top: 0; height: 100%; width: 7vmin; left: 50%;
+      background: linear-gradient(to right, rgba(60,45,30,.2), rgba(60,45,30,.197) 7.7%, rgba(60,45,30,.189) 15.4%, rgba(60,45,30,.175) 23.1%, rgba(60,45,30,.157) 30.8%, rgba(60,45,30,.135) 38.5%, rgba(60,45,30,.112) 46.2%, rgba(60,45,30,.088) 53.8%, rgba(60,45,30,.065) 61.5%, rgba(60,45,30,.043) 69.2%, rgba(60,45,30,.025) 76.9%, rgba(60,45,30,.011) 84.6%, rgba(60,45,30,.003) 92.3%, rgba(60,45,30,0)); }
+    .wire { left: calc(50% - 50vmin); top: calc(50% - 3.5vmin); transform: rotate(90deg); }
+    .page { left: 50%; top: 0; padding: 5.5vmin 5vmin 5vmin 7.5vmin; }
+    .rh { flex-direction: column; gap: .8vmin; font-size: 1.6vmin; }
+    .main { grid-template-columns: 1fr; row-gap: 2.6vmin; align-items: start; align-content: end; padding: 2.4vmin 0 2.6vmin; }
+    .num { display: flex; align-items: flex-end; gap: 2.4vmin; }
+    .num small { order: 2; margin-bottom: 1vmin; font-size: 1.6vmin; }
+    .num b { font-size: 21vmin; }
+    .det h2 { font-size: 3.1vmin; margin-bottom: 1.6vmin; }
+    .det dt, .det dd { padding: .7vmin 0; font-size: 1.7vmin; }
+    .det dt { font-size: 1.6vmin; letter-spacing: .12em; }
+    .offer b { font-size: 2.1vmin; }
+    .offer span { font-size: 1.6vmin; }
+    .folio { font-size: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 52%; }
+    .shade-a { left: calc(52% - 6vmin); }
+    .shade-b { left: 52%; }
+    .wire { left: calc(52% - 50vmin); }
+    .page { left: 52%; padding: 6vmin 6.5vmin 5.5vmin 9vmin; }
+    .rh { flex-direction: row; font-size: 1.6vmin; letter-spacing: .16em; }
+    .main { grid-template-columns: auto 1fr; column-gap: 5vmin; align-items: end; padding: 3vmin 0 3vmin; }
+    .num { display: block; }
+    .num small { margin-bottom: 1.6vmin; font-size: 1.8vmin; }
+    .num b { font-size: 34vmin; }
+    .det h2 { font-size: 3.9vmin; margin-bottom: 2.2vmin; }
+    .det dt, .det dd { padding: .9vmin 0; font-size: 1.85vmin; }
+    .offer b { font-size: 2.5vmin; }
+    .offer span { font-size: 1.75vmin; }
+    .folio { font-size: 3vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     2.3s a specular glint runs along the wire-O loops · 1.8s the look number turns over like a new page ·
+     2.8s the look sheet values are re-set line by line · 3.9s a soft light glides across the paper · 5.2s the −15% pops */
+  .wire i { animation: glint 6s linear infinite; }
+  .wire i:nth-child(1) { animation-delay: -1.20s; }
+  .wire i:nth-child(2) { animation-delay: -1.14s; }
+  .wire i:nth-child(3) { animation-delay: -1.08s; }
+  .wire i:nth-child(4) { animation-delay: -1.02s; }
+  .wire i:nth-child(5) { animation-delay: -0.96s; }
+  .wire i:nth-child(6) { animation-delay: -0.90s; }
+  .wire i:nth-child(7) { animation-delay: -0.84s; }
+  .wire i:nth-child(8) { animation-delay: -0.78s; }
+  .wire i:nth-child(9) { animation-delay: -0.72s; }
+  .wire i:nth-child(10) { animation-delay: -0.66s; }
+  .wire i:nth-child(11) { animation-delay: -0.60s; }
+  .wire i:nth-child(12) { animation-delay: -0.54s; }
+  .wire i:nth-child(13) { animation-delay: -0.48s; }
+  .wire i:nth-child(14) { animation-delay: -0.42s; }
+  .wire i:nth-child(15) { animation-delay: -0.36s; }
+  .wire i:nth-child(16) { animation-delay: -0.30s; }
+  .wire i:nth-child(17) { animation-delay: -0.24s; }
+  .wire i:nth-child(18) { animation-delay: -0.18s; }
+  .wire i:nth-child(19) { animation-delay: -0.12s; }
+  .wire i:nth-child(20) { animation-delay: -0.06s; }
+  .wire i:nth-child(21) { animation-delay: -0.00s; }
+  @keyframes glint {
+    0%, 40% { filter: brightness(1); animation-timing-function: cubic-bezier(.3,.5,.4,1); }
+    44% { filter: brightness(1.75); animation-timing-function: cubic-bezier(.5,0,.6,1); }
+    52%, 100% { filter: brightness(1); }
+  }
+  .num b { animation: turn 6s linear infinite; }
+  @keyframes turn {
+    0%, 28% { transform: translateY(0); opacity: 1; animation-timing-function: cubic-bezier(.55,0,.8,.4); }
+    32% { transform: translateY(-2.4vmin); opacity: 0; animation-timing-function: steps(1, end); }
+    32.5% { transform: translateY(3vmin); opacity: 0; animation-timing-function: cubic-bezier(.2,.7,.25,1); }
+    41%, 100% { transform: translateY(0); opacity: 1; }
+  }
+  .det dd { animation: reset 6s linear infinite; }
+  .det dd:nth-of-type(1) { animation-delay: -.36s; }
+  .det dd:nth-of-type(2) { animation-delay: -.18s; }
+  @keyframes reset {
+    0%, 46% { clip-path: inset(-10% 0 -10% -4%); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    48.5% { clip-path: inset(-10% 0 -10% -4%); opacity: 0; animation-timing-function: steps(1, end); }
+    49% { clip-path: inset(-10% 0 -10% 104%); opacity: 1; animation-timing-function: cubic-bezier(.3,.3,.3,1); }
+    56%, 100% { clip-path: inset(-10% 0 -10% -4%); opacity: 1; }
+  }
+  .page::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 43%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 57%) 100% 0 / 300% 100% no-repeat;
+    animation: paper 6s linear infinite; }
+  @keyframes paper {
+    0%, 60% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    86%, 100% { background-position: 0% 0; }
+  }
+  .offer b em { display: inline-block; transform-origin: 30% 80%; animation: pop 6s linear infinite; }
+  @keyframes pop {
+    0%, 85% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    88% { transform: scale(1.22); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    91.5% { transform: scale(.96); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    94.5% { transform: scale(1.02); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    97%, 100% { transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="shade-a"></div>
+  <div class="shade-b"></div>
+  <div class="page">
+    <div class="rh"><span>Atelier Nord — Showroom Book</span><span>Pre-Fall 2027</span></div>
+    <div class="main">
+      <div class="num"><small>Look</small><b>12</b></div>
+      <div class="det">
+        <h2>Shown as it will hang in store, before anyone else sees it.</h2>
+        <dl>
+          <dt>Colourway</dt><dd>Écru 04</dd>
+          <dt>Delivery</dt><dd>October</dd>
+          <dt>Retail</dt><dd>€320</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="offer"><b>Pre-order <em>−15%</em></b><span>Code SHOWROOM · until 20 Oct</span></div>
+      <div class="folio">24</div>
+    </div>
+  </div>
+  <div class="wire"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</div>
+</body>
+</html>

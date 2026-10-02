@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gasoek+One&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Idol Photocard — Seoul K-pop merch culture: the product shot printed as a collectible photocard (holo foil band,
+     version tag, signature) slipped into a clear toploader with deco stickers, and a 12-slot collection strip where
+     card 07 is the one you pulled.
+     tall → card above, collection + copy below · square & wide → card left, copy + collection right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCD9FF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #231B4D; font-family: "Space Grotesk", "Helvetica Neue", sans-serif;
+    background:
+      radial-gradient(circle, rgba(255,255,255,.9) 0 .2vmin, transparent .32vmin) 0 0 / 5vmin 5vmin,
+      radial-gradient(90% 60% at 15% 0%, #F7D6F0 0%, rgba(247,214,240,0) 70%),
+      radial-gradient(90% 70% at 100% 100%, #C9E6FF 0%, rgba(201,230,255,0) 70%),
+      #DCD9FF; }
+
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 4vmin; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 1.9vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .top span:last-child { background: #231B4D; color: #fff; padding: .6vmin 1.4vmin; border-radius: 3vmin; letter-spacing: .08em; }
+
+  /* toploader + card */
+  .sleeve { position: absolute; left: 13vmin; right: 13vmin; top: 11vmin; height: calc(100% - 71vmin); padding: 2.2vmin; box-sizing: border-box; border-radius: 1.6vmin; transform: rotate(-2.5deg);
+    background: linear-gradient(135deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,.28) 38%, rgba(255,255,255,.5) 62%, rgba(255,255,255,.2) 100%);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.95), inset 0 0 0 .5vmin rgba(255,255,255,.35), 0 1.6vmin 3.4vmin rgba(60,40,140,.22); }
+  .sleeve::before { content: ""; position: absolute; left: 50%; top: -.1vmin; width: 7vmin; height: 2.2vmin; margin-left: -3.5vmin; border-radius: 0 0 3.5vmin 3.5vmin; background: rgba(220,217,255,.9); box-shadow: inset 0 -1px 0 rgba(255,255,255,.9); }
+  .card { position: relative; width: 100%; height: 100%; background: #fff; border-radius: .9vmin; padding: 1vmin 1vmin 0; box-sizing: border-box; display: flex; flex-direction: column; }
+  .card .ph { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+  .card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .band { flex: none; height: 6.4vmin; display: flex; align-items: center; justify-content: space-between; gap: 1.6vmin; padding: 0 .4vmin; }
+  .band .ver { font-weight: 700; font-size: 1.7vmin; letter-spacing: .08em; line-height: 1.25; white-space: nowrap; }
+  .band .ver small { display: block; font-weight: 400; font-size: 1.6vmin; letter-spacing: .04em; color: #6C66A0; }
+  .sig { width: 13vmin; height: 5vmin; fill: none; stroke: #231B4D; stroke-width: 1.6; stroke-linecap: round; }
+  .holo { flex: none; width: 4.6vmin; height: 4.6vmin; border-radius: .6vmin; background: conic-gradient(from 30deg, #FFB3E6, #B3F0FF, #D6FFB3, #FFF3B3, #D9B3FF, #FFB3E6); box-shadow: inset 0 0 0 .3vmin rgba(255,255,255,.7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.6vmin; color: #231B4D; }
+
+  .stk { position: absolute; width: 8vmin; height: 8vmin; filter: drop-shadow(0 .4vmin .5vmin rgba(60,40,140,.25)); }
+  .s1 { right: 7vmin; top: 7.6vmin; transform: rotate(14deg); }
+  .s2 { left: 6.4vmin; top: calc(100% - 66vmin); width: 7vmin; height: 7vmin; transform: rotate(-12deg); }
+  .s3 { left: 7vmin; top: 17vmin; width: 5.4vmin; height: 5.4vmin; }
+
+  /* collection strip */
+  .coll { position: absolute; left: 6vmin; right: 6vmin; bottom: 41vmin; }
+  .coll .lbl { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 1.2vmin; white-space: nowrap; }
+  .coll .lbl span:last-child { font-weight: 400; letter-spacing: .06em; }
+  .slots { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1vmin; }
+  .slot { position: relative; aspect-ratio: 5.5 / 8.5; border-radius: .5vmin; border: .25vmin dashed rgba(35,27,77,.4); box-sizing: border-box; display: flex; align-items: flex-end; justify-content: center; font-weight: 700; font-size: 1.6vmin; color: rgba(35,27,77,.6); padding-bottom: .5vmin; overflow: hidden; }
+  .slot.got { border: 0; background: #fff; box-shadow: 0 .4vmin .8vmin rgba(60,40,140,.2); padding: .4vmin; color: #fff; }
+  .slot.got img { position: absolute; inset: .4vmin; width: calc(100% - .8vmin); height: calc(100% - .8vmin); object-fit: cover; object-position: 50% 20%; }
+  .slot.got b { position: relative; background: #FF4FA3; padding: 0 .5vmin; border-radius: .3vmin; font-weight: 700; }
+  .slot.have { border: 0; background: linear-gradient(135deg, #FFFFFF, #EDE9FF); color: #231B4D; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; }
+  .copy .kr { font-weight: 700; font-size: 1.9vmin; letter-spacing: .1em; color: #FF4FA3; }
+  h1 { margin: .8vmin 0 0; font-family: "Gasoek One", "Arial Black", sans-serif; font-weight: 400; font-size: 9.6vmin; line-height: .98; letter-spacing: -.01em; }
+  .row { margin-top: 2.4vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .row p { margin: 0; font-size: 2.2vmin; line-height: 1.35; }
+  .deal { flex: none; display: flex; align-items: center; background: #231B4D; color: #fff; border-radius: 4vmin; padding: .7vmin .7vmin .7vmin 2.4vmin; gap: 1.6vmin; font-weight: 700; font-size: 2vmin; letter-spacing: .06em; white-space: nowrap; }
+  .deal b { background: linear-gradient(90deg, #FFB3E6, #B3F0FF); color: #231B4D; padding: 1vmin 1.8vmin; border-radius: 3vmin; font-size: 2.2vmin; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .sleeve { left: 20vmin; right: 20vmin; height: calc(100% - 64vmin); top: 10vmin; }
+    .s1 { right: 14vmin; top: 6.6vmin; }
+    .s2 { left: 13vmin; top: calc(100% - 60vmin); }
+    .s3 { left: 12vmin; top: 16vmin; }
+    .coll { bottom: 37vmin; }
+    .slots { gap: .8vmin; }
+    h1 { font-size: 8.6vmin; }
+    .row { margin-top: 1.8vmin; }
+    .copy { bottom: 4.4vmin; }
+  }
+  /* SQUARE — card left, copy + collection right */
+  @media (min-aspect-ratio: 9/10) {
+    .top { left: calc(44% + 11vmin); right: 5vmin; top: 5vmin; }
+    .top span:first-child { display: none; }
+    .top { justify-content: flex-start; }
+    .sleeve { left: 7vmin; right: auto; top: 7vmin; bottom: 7vmin; height: auto; width: 44%; }
+    .s1 { right: auto; left: calc(44% + 2vmin); top: 4vmin; width: 7vmin; height: 7vmin; }
+    .s2 { left: 3vmin; top: auto; bottom: 4vmin; }
+    .s3 { left: 3vmin; top: 12vmin; width: 4.6vmin; height: 4.6vmin; }
+    .copy { left: calc(44% + 11vmin); right: 5vmin; top: 14vmin; bottom: auto; }
+    h1 { font-size: 7.4vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2.4vmin; margin-top: 2vmin; }
+    .row p { font-size: 2vmin; }
+    .coll { left: calc(44% + 11vmin); right: 5vmin; bottom: 8vmin; }
+    .coll .lbl span:last-child { display: none; }
+    .slots { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1.2vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .top { left: calc(40% + 13vmin); right: 6vmin; }
+    .top span:first-child { display: inline; }
+    .top { justify-content: space-between; }
+    .sleeve { width: 40%; left: 8vmin; }
+    .s1 { left: calc(40% + 4vmin); }
+    .copy { left: calc(40% + 13vmin); right: 6vmin; top: 13vmin; }
+    h1 { font-size: 8.6vmin; }
+    .row { flex-direction: row; align-items: center; }
+    .coll { left: calc(40% + 13vmin); right: 6vmin; bottom: 7vmin; }
+    .slots { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1vmin; }
+    .coll .lbl span:last-child { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><span>Photocard · 포토카드</span><span>PC 07 / 12</span></div>
+  <div class="sleeve"><div class="card">
+    <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="band"><div class="ver">DROP 26 · VER. B<small>Seoul edition</small></div><svg class="sig" viewBox="0 0 52 20"><path d="M3 14c4-9 7-11 8-8s-3 9-1 9 5-10 8-10-2 8 1 8 4-6 6-6 0 5 2 5 5-4 8-5M30 16c5-1 12-3 19-8"/></svg><div class="holo">07</div></div>
+  </div></div>
+  <svg class="stk s1" viewBox="0 0 24 24"><path d="M12 1.5l3 6.6 7.2.7-5.4 4.9 1.6 7.1L12 17.2l-6.4 3.6 1.6-7.1L1.8 8.8 9 8.1z" fill="#FFE066" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+  <svg class="stk s2" viewBox="0 0 24 24"><path d="M12 21.2s-8.4-5-10.2-10A5.6 5.6 0 0 1 12 6.1a5.6 5.6 0 0 1 10.2 5.1C20.4 16.2 12 21.2 12 21.2z" fill="#FF7CC0" stroke="#fff" stroke-width="1.6"/></svg>
+  <svg class="stk s3" viewBox="0 0 24 24"><path d="M12 1C13 8.5 15.5 11 23 12C15.5 13 13 15.5 12 23C11 15.5 8.5 13 1 12C8.5 11 11 8.5 12 1Z" fill="#9FE3FF" stroke="#fff" stroke-width="1.4"/></svg>
+  <div class="coll">
+    <div class="lbl"><span>Collect all 12</span><span>1 random card per order · 랜덤</span></div>
+    <div class="slots">
+      <div class="slot have">01</div><div class="slot">02</div><div class="slot have">03</div><div class="slot">04</div><div class="slot">05</div><div class="slot">06</div>
+      <div class="slot got"><img src="{{PRODUCT_IMAGE}}" alt=""><b>07</b></div><div class="slot">08</div><div class="slot">09</div><div class="slot have">10</div><div class="slot">11</div><div class="slot">12</div>
+    </div>
+  </div>
+  <div class="copy">
+    <div class="kr">신상 · New drop</div>
+    <h1>Pull your<br>new look.</h1>
+    <div class="row"><p>Every order ships with<br>a random photocard.</p><div class="deal">−15%<b>PC15</b></div></div>
+  </div>
+</div>
+</body>
+</html>

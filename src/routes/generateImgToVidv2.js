@@ -270,9 +270,11 @@ async function generateVideoPrompt(
 /** 🎬 Video stüdyosu kartı → Gemini yönetmen talimatı (+ sabit ürün kimliği kuralı) */
 async function generateSkillPrompt(skillBrief, imageUrls, ctx) {
   // Kalite kilidi (kart örneklerinin stil bloğu) + ürün kimliği kuralı her zaman sonda
-  const clause = `${skillStyleSuffix(skillBrief)} ${skillIdentityClause(skillBrief, ctx.imageCount)}`;
+  const clause = `${skillStyleSuffix(skillBrief)} ${skillIdentityClause(skillBrief, ctx.imageCount, ctx.presenterImageIndex, ctx.locationImageIndex)}`;
   try {
-    const visionUrls = (imageUrls || []).filter((u) => /^https?:\/\//i.test(u)).slice(0, 3);
+    const sceneIndex = ctx.presenterImageIndex || ctx.locationImageIndex;
+    const visionSources = sceneIndex ? [...imageUrls.slice(0, Math.min(2, ctx.imageCount)), imageUrls[sceneIndex - 1]] : (imageUrls || []).slice(0, 3);
+    const visionUrls = [...new Set(visionSources)].filter((u) => /^https?:\/\//i.test(u));
     const enhanced = await callReplicateGeminiFlash(buildSkillGeminiPrompt(skillBrief, ctx), visionUrls, 3);
     console.log("🎬 [VIDEO-SKILL] prompt:", `${String(enhanced).substring(0, 100)}...`);
     return `${String(enhanced).trim()} ${clause}`;
@@ -858,6 +860,11 @@ function extractVideoUrl(payload) {
   );
 }
 
+/** 🧩 Onaylı storyboard talimatı — `index` = ızgaranın @Image numarası */
+function storyboardDirective(index, addProductRef = false) {
+  return `${addProductRef ? "The product is @Image1 — keep it identical in every shot. " : ""}STORYBOARD: @Image${index} is the approved 6-panel storyboard of THIS video (read left→right, top→bottom). Follow it shot by shot — same shot order, framing, setting, props, people and actions — while keeping the product identical to the product reference photos. It is a planning sheet only: NEVER show a grid, panels, gutters, borders or a split screen; every shot is a single full-frame shot.`;
+}
+
 async function submitSeedanceGeneration({
   imageUrl,
   prompt,
@@ -926,11 +933,25 @@ router.post("/generateImgToVidv2", async (req, res) => {
       skill = null,
       skillInputs = null,
       product_images = null,
+      presenter_image = null,
+      location_image = null,
       reference_video_url = null,
       generate_audio = false,
+      // 🧩 24 Eyl 2026: kullanıcının onayladığı storyboard önizlemesi (/api/videoPreviewGrid) —
+      // kart ve brief akışında SON referans görsel olarak Seedance'a gider
+      preview_grid_url = null,
     } = req.body;
+    const previewGridUrl =
+      typeof preview_grid_url === "string" && /^https?:\/\//i.test(preview_grid_url) ? preview_grid_url : null;
     const brief = sanitizeBrief(rawBrief);
     const skillBrief = sanitizeSkill(skill, skillInputs);
+    if (skillBrief?.skill === "ugc" && presenter_image != null && (typeof presenter_image !== "string" || !/^(https?:\/\/|data:image\/)/i.test(presenter_image))) {
+      return res.status(400).json({ success: false, message: "Invalid presenter image" });
+    }
+    const locationImage = skillBrief?.skill === "spin360" ? location_image : null;
+    if (locationImage != null && (typeof locationImage !== "string" || !/^(https?:\/\/|data:image\/)/i.test(locationImage))) {
+      return res.status(400).json({ success: false, message: "Invalid location image" });
+    }
     const referenceVideoUrl =
       typeof reference_video_url === "string" && /^https?:\/\//i.test(reference_video_url) ? reference_video_url : null;
     // Remix referans videosuz olmaz — kredi düşmeden ÖNCE reddet
@@ -1060,10 +1081,12 @@ router.post("/generateImgToVidv2", async (req, res) => {
 
     // 🎬 Video stüdyosu: ek ürün görselleri yüklenir (@Image2..N), toplam kart limitine kadar
     let skillImageUrls = null;
+    let presenterImageIndex = null;
+    let locationImageIndex = null;
     if (skillBrief) {
       const extra = (Array.isArray(product_images) ? product_images : [])
         .filter((x) => typeof x === "string" && x.length > 0)
-        .slice(0, VIDEO_SKILLS[skillBrief.skill].maxImages - 1);
+        .slice(0, Math.min(VIDEO_SKILLS[skillBrief.skill].maxImages, 9 - (previewGridUrl ? 1 : 0) - (locationImage ? 1 : 0) - (skillBrief.skill === "ugc" && presenter_image ? 1 : 0)) - 1);
       const uploaded = await Promise.all(extra.map(async (img) => {
         if (img.startsWith("data:image/")) {
           try { return await uploadImageToSupabase(img); } catch (err) { console.warn("⚠️ [VIDEO-SKILL] ek görsel yüklenemedi:", err?.message); return null; }
@@ -1071,6 +1094,16 @@ router.post("/generateImgToVidv2", async (req, res) => {
         return /^https?:\/\//i.test(img) ? img : null;
       }));
       skillImageUrls = [imageUrl, ...uploaded.filter(Boolean)];
+      if (skillBrief.skill === "ugc" && presenter_image) {
+        const presenterUrl = presenter_image.startsWith("data:image/") ? await uploadImageToSupabase(presenter_image) : presenter_image;
+        skillImageUrls.push(presenterUrl);
+        presenterImageIndex = skillImageUrls.length;
+      }
+      if (locationImage) {
+        const locationUrl = locationImage.startsWith("data:image/") ? await uploadImageToSupabase(locationImage) : locationImage;
+        skillImageUrls.push(locationUrl);
+        locationImageIndex = skillImageUrls.length;
+      }
       console.log(`🎬 [VIDEO-SKILL] ${skillBrief.skill}: ${skillImageUrls.length} görsel${referenceVideoUrl ? " + referans video" : ""}${generate_audio ? " + ses" : ""}`);
     }
 
@@ -1087,7 +1120,9 @@ router.post("/generateImgToVidv2", async (req, res) => {
       ? await generateSkillPrompt(skillBrief, skillImageUrls, {
           audio: !!generate_audio,
           duration: normalizedDuration,
-          imageCount: skillImageUrls.length,
+          imageCount: skillImageUrls.length - (presenterImageIndex ? 1 : 0) - (locationImageIndex ? 1 : 0),
+          presenterImageIndex,
+          locationImageIndex,
         })
       : await generateVideoPrompt(
           imageUrl,
@@ -1098,16 +1133,29 @@ router.post("/generateImgToVidv2", async (req, res) => {
           !brief && isGridPreview === true
         );
 
+    // 🧩 Onaylı storyboard: istem ürün görselleriyle yazıldıktan SONRA eklenir (istem yazan model
+    // ızgarayı ürün fotoğrafı sanmasın). Kart: ürünlerin arkasına; brief: referans moduna geçilir.
+    let finalPrompt = enhancedPrompt;
+    let finalImageUrls = skillImageUrls;
+    let finalReferenceMode = skillBrief ? true : isReferenceMode(brief);
+    if (previewGridUrl && (skillBrief || brief)) {
+      const base = skillBrief ? skillImageUrls.slice(0, 8) : [imageUrl, backImageUrl].filter(Boolean);
+      finalImageUrls = [...base, previewGridUrl];
+      finalReferenceMode = true;
+      finalPrompt = `${enhancedPrompt}\n\n${storyboardDirective(finalImageUrls.length, !skillBrief && !isReferenceMode(brief))}`;
+      console.log(`🧩 [VIDEO-V2] storyboard önizlemesi @Image${finalImageUrls.length} olarak eklendi`);
+    }
+
     const requestId = await submitSeedanceGeneration({
       imageUrl,
-      prompt: enhancedPrompt,
+      prompt: finalPrompt,
       duration: normalizedDuration,
       aspectRatio: normalizedAspectRatio,
       resolution: normalizedResolution,
       endUserId: String(userId),
-      endImageUrl: skillBrief ? null : backImageUrl,
-      referenceMode: skillBrief ? true : isReferenceMode(brief),
-      imageUrls: skillImageUrls,
+      endImageUrl: skillBrief || finalReferenceMode ? null : backImageUrl,
+      referenceMode: finalReferenceMode,
+      imageUrls: finalImageUrls,
       videoUrls: referenceVideoUrl ? [referenceVideoUrl] : null,
       generateAudio: skillBrief ? !!generate_audio : false,
     });
@@ -1122,7 +1170,7 @@ router.post("/generateImgToVidv2", async (req, res) => {
       status: "processing",
       original_image_url: imageUrl,
       user_prompt: userPrompt,
-      enhanced_prompt: enhancedPrompt,
+      enhanced_prompt: finalPrompt,
       duration: normalizedDuration,
       aspect_ratio: normalizedAspectRatio,
       resolution: normalizedResolution,

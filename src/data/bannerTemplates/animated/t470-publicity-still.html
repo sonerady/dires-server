@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500&family=Mrs+Saint+Delafield&family=Special+Elite&family=Tenor+Sans&display=swap" rel="stylesheet">
+<style>
+  /* Publicity Still — a 1940s studio glamour still: the photo printed as an 8×10 glossy with a wide white bottom border,
+     autographed in ink across that border, lying on black satin under a key light; the studio's name in spaced
+     capitals above and a typewritten caption snipe pasted beneath, carrying the offer as the press release.
+     tall / 3:4 → headline, print, snipe stacked; square / wide → headline + snipe left, print right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E0D0F; }
+  .banner { --ink: #0E0D0F; --print: #F6F3EC; --snipe: #EDE5D2; --silver: #C9C4BA; --rose: #C98F86;
+    position: fixed; inset: 0; overflow: hidden; color: var(--print);
+    font-family: "Tenor Sans", "Gill Sans", "Helvetica Neue", sans-serif;
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 48%, rgba(255,250,240,.16), transparent 70%),
+      repeating-linear-gradient(115deg, rgba(255,255,255,0) 0 6vmin, rgba(255,255,255,.035) 9vmin, rgba(255,255,255,0) 13vmin),
+      linear-gradient(180deg, #1A181C, #0B0A0C); }
+
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; text-align: center; }
+  .head small { display: block; font-size: 1.8vmin; letter-spacing: .5em; padding-left: .5em; text-transform: uppercase; color: var(--silver); white-space: nowrap; }
+  .head h1 { margin: 1.4vmin 0 0; font-family: "Bodoni Moda", "Didot", serif; font-weight: 500; font-size: 13.4vmin; line-height: 1; letter-spacing: -.01em; white-space: nowrap; }
+  .head h1 span, .head h1 i { display: inline-block; }
+  .head h1 i { font-weight: 500; color: var(--rose); }
+  .head .rule { display: flex; align-items: center; justify-content: center; gap: 1.6vmin; margin-top: 1.6vmin; font-size: 1.7vmin; letter-spacing: .3em; padding-left: .3em; text-transform: uppercase; color: var(--silver); white-space: nowrap; }
+  .head .rule::before, .head .rule::after { content: ""; width: 8vmin; height: 1px; background: var(--silver); opacity: .6; }
+
+  .print { position: absolute; left: 11vmin; right: 11vmin; top: 31vmin; bottom: 38vmin; box-sizing: border-box; padding: 2.4vmin 2.4vmin 11vmin; background: var(--print);
+    transform: rotate(-1.2deg); box-shadow: 0 2vmin 4vmin rgba(0,0,0,.7), 0 .3vmin .6vmin rgba(0,0,0,.5); }
+  .print::after { content: ""; position: absolute; left: 2.4vmin; right: 2.4vmin; top: 2.4vmin; bottom: 11vmin; pointer-events: none;
+    background: linear-gradient(125deg, rgba(255,255,255,0) 0 55%, rgba(255,255,255,.1) 62%, rgba(255,255,255,0) 72%); }
+  .print .img { position: absolute; left: 2.4vmin; right: 2.4vmin; top: 2.4vmin; bottom: 11vmin; overflow: hidden; background: #222; }
+  .print img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; filter: contrast(1.04); }
+  .auto { position: absolute; left: 5vmin; bottom: 1.6vmin; font-family: "Mrs Saint Delafield", cursive; font-size: 7.4vmin; line-height: 1.1; color: #1D2B55; white-space: nowrap; transform: rotate(-4deg); transform-origin: 0 100%; }
+
+  .snipe { position: absolute; left: 8vmin; right: 8vmin; bottom: 5vmin; box-sizing: border-box; padding: 2.4vmin 3vmin 2.2vmin; background: var(--snipe); color: #1F1C1A;
+    font-family: "Special Elite", "Courier New", monospace; box-shadow: 0 1vmin 2vmin rgba(0,0,0,.55); }
+  .snipe .id { display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .06em; padding-bottom: 1vmin; border-bottom: 1px dashed rgba(31,28,26,.5); white-space: nowrap; }
+  .snipe p { margin: 1.2vmin 0 0; font-size: 2.3vmin; line-height: 1.4; }
+  .snipe p b { font-weight: 400; background: #1F1C1A; color: var(--snipe); padding: 0 .8vmin; }
+  .snipe .cta { display: flex; justify-content: space-between; align-items: baseline; margin-top: 1.2vmin; font-size: 2vmin; white-space: nowrap; }
+  .snipe .cta span:last-child { font-family: "Tenor Sans", sans-serif; letter-spacing: .2em; text-transform: uppercase; font-size: 1.8vmin; }
+
+  /* 3:4 · 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .head { top: 4vmin; }
+    .head h1 { font-size: 11vmin; margin-top: 1vmin; }
+    .head .rule { display: none; }
+    .print { left: 20vmin; right: 20vmin; top: 20.4vmin; bottom: 32vmin; padding-bottom: 9vmin; }
+    .print .img, .print::after { bottom: 9vmin; }
+    .auto { font-size: 6.2vmin; bottom: 1.4vmin; left: 4vmin; }
+    .snipe { left: 10vmin; right: 10vmin; bottom: 4vmin; padding: 1.8vmin 2.6vmin 1.8vmin; }
+    .snipe p { font-size: 2.1vmin; line-height: 1.35; margin-top: 1vmin; }
+    .snipe .cta { margin-top: .8vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { background:
+      radial-gradient(ellipse 45% 70% at 70% 50%, rgba(255,250,240,.16), transparent 70%),
+      repeating-linear-gradient(115deg, rgba(255,255,255,0) 0 6vmin, rgba(255,255,255,.035) 9vmin, rgba(255,255,255,0) 13vmin),
+      linear-gradient(180deg, #1A181C, #0B0A0C); }
+    .head { left: 5vmin; right: auto; width: 44vmin; top: 7vmin; text-align: left; }
+    .head small { font-size: 1.6vmin; letter-spacing: .34em; padding-left: 0; }
+    .head h1 { font-size: 10.4vmin; margin-top: 1.4vmin; white-space: normal; }
+    .head h1 span { display: block; }
+    .head .rule { display: flex; justify-content: flex-start; font-size: 1.6vmin; letter-spacing: .22em; padding-left: 0; margin-top: 2vmin; }
+    .head .rule::before { display: none; }
+    .print { left: 53vmin; right: 5vmin; top: 6vmin; bottom: 6vmin; padding: 2vmin 2vmin 9.6vmin; }
+    .print .img, .print::after { left: 2vmin; right: 2vmin; top: 2vmin; bottom: 9.6vmin; }
+    .auto { font-size: 5.8vmin; left: 3vmin; bottom: 1.6vmin; }
+    .snipe { left: 5vmin; right: auto; width: 44vmin; bottom: 7vmin; padding: 1.8vmin 2.2vmin; }
+    .snipe .id { font-size: 1.6vmin; letter-spacing: 0; }
+    .snipe p { font-size: 2.1vmin; line-height: 1.4; }
+    .snipe .cta { flex-direction: column; gap: .6vmin; font-size: 1.8vmin; }
+    .snipe .cta span:last-child { font-size: 1.6vmin; letter-spacing: .14em; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .head { left: 7vmin; width: 70vmin; top: 8vmin; }
+    .head small { font-size: 1.8vmin; }
+    .head h1 { font-size: 12.8vmin; white-space: nowrap; }
+    .head h1 span { display: block; }
+    .print { left: auto; right: 8vmin; width: 58vmin; top: 6vmin; bottom: 6vmin; padding: 2.2vmin 2.2vmin 10vmin; }
+    .print .img, .print::after { left: 2.2vmin; right: 2.2vmin; top: 2.2vmin; bottom: 10vmin; }
+    .auto { font-size: 6.4vmin; left: 3.4vmin; }
+    .snipe { left: 7vmin; width: 64vmin; bottom: 8vmin; padding: 2.2vmin 2.8vmin; }
+    .snipe .id { font-size: 1.7vmin; letter-spacing: .06em; }
+    .snipe p { font-size: 2.5vmin; }
+    .snipe .cta { flex-direction: row; font-size: 2vmin; }
+    .snipe .cta span:last-child { font-size: 1.7vmin; letter-spacing: .2em; }
+  }
+  /* ───────── motion (8s loop, slow & glamorous) ─────────
+     the glossy: slow 1.03 push-in, the key light sways softly over the satin · 1.0s a press flashbulb pops, and a
+     sheen then glides across the glossy print · 3.2s the autograph is signed again, left to right in one stroke ·
+     6.2s the "See the picture" arrow nudges */
+  .print .img img { animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .banner::before { content: ""; position: absolute; inset: -10%; pointer-events: none; opacity: 0;
+    background: radial-gradient(ellipse 40% 30% at 50% 45%, rgba(255,250,240,.09), transparent 70%);
+    animation: key 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes key { 0%, 100% { opacity: 0; transform: translateX(0); } 50% { opacity: 1; transform: translateX(6%); } }
+
+  .banner::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0;
+    background: radial-gradient(ellipse 80% 70% at 50% 40%, #fff, rgba(255,255,255,.6) 60%, rgba(255,255,255,.3)); }
+  .banner::after { animation: flash 8s linear infinite; }
+  @keyframes flash { 0%, 12% { opacity: 0; } 12.6% { opacity: .55; } 14% { opacity: .22; } 18%, 100% { opacity: 0; } }
+
+  .print::after { background-repeat: no-repeat; background-size: 300% 100%; background-position: 50% 0;
+    background-image: linear-gradient(125deg, rgba(255,255,255,0) 0 45%, rgba(255,255,255,.18) 48%, rgba(255,255,255,0) 52%, rgba(255,255,255,0) 100%),
+                      linear-gradient(125deg, rgba(255,255,255,0) 0 55%, rgba(255,255,255,.1) 62%, rgba(255,255,255,0) 72%); }
+  .print::after { background-size: 300% 100%, 100% 100%; background-position: 100% 0, 0 0; animation: sheen 8s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 14% { background-position: 100% 0, 0 0; } 34% { background-position: 0% 0, 0 0; } 34.1%, 100% { background-position: 100% 0, 0 0; } }
+
+  .auto { animation: sign 8s cubic-bezier(.5,0,.4,1) infinite; }
+  @keyframes sign {
+    0%, 38% { clip-path: inset(-20% -4% -30% -4%); }
+    41%, 42% { clip-path: inset(-20% 104% -30% -4%); animation-timing-function: cubic-bezier(.35,.1,.55,1); }
+    60%, 100% { clip-path: inset(-20% -4% -30% -4%); }
+  }
+  .snipe .cta span:last-child { display: inline-block; animation: nudge 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 74%, 86%, 100% { transform: translateX(0); } 80% { transform: translateX(1vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <small>Belvedere Studios</small>
+    <h1><span>Star</span> <i>Quality</i></h1>
+    <div class="rule">The spring picture</div>
+  </div>
+  <div class="print">
+    <div class="img"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="auto">Yours in spring, V.</div>
+  </div>
+  <div class="snipe">
+    <div class="id"><span>STILL Nº 470-12</span><span>FOR RELEASE 12 MAY</span></div>
+    <p>HOLLYWOOD — The new season arrives on set. Every look <b>25% OFF</b> for the premiere week with code <b>STILL25</b>.</p>
+    <div class="cta"><span>— Publicity Dept.</span><span>See the picture →</span></div>
+  </div>
+</div>
+</body>
+</html>

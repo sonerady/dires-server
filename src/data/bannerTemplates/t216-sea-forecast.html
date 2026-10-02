@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Sea Forecast — the early-morning marine bulletin read like poetry: invented sea areas in bold small caps,
+     wind and visibility rewritten as markdowns, a red gale-warning strip carrying the offer and a compass rose.
+     tall → photo above, typed bulletin below · square/wide → bulletin left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEF0EA; }
+  .banner { --panel: 96vmin; position: fixed; inset: 0; overflow: hidden; background: #EEF0EA; color: #13262E; font-family: "Libre Caslon Text", Georgia, serif; }
+  .type { font-family: "Courier Prime", "Courier New", monospace; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 5vmin 6vmin 5vmin; display: flex; flex-direction: column;
+    background: repeating-linear-gradient(180deg, transparent 0 4.4vmin, rgba(19,38,46,.05) 4.4vmin calc(4.4vmin + 1px)), #EEF0EA; }
+
+  .head { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 3vmin; }
+  .head .meta { font-size: 1.8vmin; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; color: #3D5560; }
+  .head .meta b { color: #13262E; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 400; font-size: 10.6vmin; line-height: .95; letter-spacing: -.03em; }
+  h1 i { color: #1F5B73; }
+  .rose { width: 17vmin; height: 17vmin; }
+
+  .gale { margin-top: 3.4vmin; display: flex; align-items: center; gap: 2vmin; padding: 1.6vmin 2.4vmin; background: #C8352B; color: #FFF6EE; }
+  .gale b { font-family: "Courier Prime", monospace; font-weight: 700; font-size: 2vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .gale span { margin-left: auto; font-weight: 700; font-size: 4.6vmin; line-height: 1; letter-spacing: -.02em; white-space: nowrap; }
+  .gale i { flex: none; width: 0; height: 0; border-left: 1.5vmin solid transparent; border-right: 1.5vmin solid transparent; border-bottom: 2.6vmin solid #FFF6EE; }
+
+  .areas { margin: 3vmin 0 0; padding: 0; list-style: none; }
+  .areas li { padding: 1.9vmin 0; border-top: 1px solid rgba(19,38,46,.28); font-size: 2.6vmin; line-height: 1.42; }
+  .areas li b { font-family: "Courier Prime", monospace; font-weight: 700; font-size: 2.2vmin; letter-spacing: .12em; text-transform: uppercase; margin-right: 1vmin; }
+  .areas li em { font-style: italic; color: #C8352B; white-space: nowrap; }
+
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; padding-top: 2.2vmin; border-top: 1px solid #13262E; }
+  .foot .code { font-size: 1.9vmin; line-height: 1.45; letter-spacing: .06em; color: #3D5560; }
+  .foot .code b { color: #13262E; letter-spacing: .12em; }
+  .cta { flex: none; padding: 1.8vmin 3vmin; background: #13262E; color: #EEF0EA; font-family: "Courier Prime", monospace; font-weight: 700; font-size: 2vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --panel: 88vmin; }
+    .sheet { padding-top: 4.4vmin; padding-bottom: 4.4vmin; }
+    h1 { font-size: 9.6vmin; }
+    .rose { width: 15vmin; height: 15vmin; }
+    .gale { margin-top: 2.8vmin; }
+    .areas { margin-top: 2.2vmin; }
+    .areas li { padding: 1.5vmin 0; font-size: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 74vmin; }
+    .sheet { padding: 3.8vmin 5.4vmin 3.8vmin; }
+    h1 { font-size: 8.4vmin; }
+    .rose { width: 12vmin; height: 12vmin; }
+    .gale { margin-top: 2.2vmin; padding: 1.2vmin 2vmin; }
+    .gale span { font-size: 4vmin; }
+    .areas li:nth-child(3) { display: none; }
+    .areas li { font-size: 2.1vmin; }
+    .cta { padding: 1.5vmin 2.6vmin; }
+  }
+  /* square / wide → bulletin left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 44%; height: 100%; object-position: 50% 24%; }
+    .sheet { top: 0; right: 44%; height: auto; padding: 5vmin 4.6vmin 4.6vmin; }
+    .head .meta span { display: none; }
+    h1 { font-size: 7.6vmin; }
+    .rose { width: 11vmin; height: 11vmin; }
+    .gale { margin-top: 2.6vmin; padding: 1.3vmin 1.8vmin; gap: 1.4vmin; }
+    .gale b { font-size: 1.7vmin; letter-spacing: .08em; }
+    .gale span { font-size: 3.6vmin; }
+    .gale i { border-left-width: 1.2vmin; border-right-width: 1.2vmin; border-bottom-width: 2vmin; }
+    .areas { margin-top: 1.6vmin; }
+    .areas { margin-top: 2.4vmin; }
+    .areas li { font-size: 2.1vmin; padding: 1.4vmin 0; line-height: 1.38; }
+    .areas li b { font-size: 1.8vmin; }
+    .areas li:nth-child(3) { display: block; }
+    .foot { padding-top: 1.8vmin; gap: 2vmin; }
+    .foot .code { font-size: 1.7vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .sheet { right: 42%; padding: 5.4vmin 6vmin 5vmin; }
+    .head .meta span { display: inline; }
+    h1 { font-size: 9.8vmin; }
+    .rose { width: 15vmin; height: 15vmin; }
+    .gale { margin-top: 3.4vmin; padding: 1.6vmin 2.4vmin; }
+    .areas { margin-top: 3vmin; }
+    .gale b { font-size: 1.9vmin; letter-spacing: .12em; }
+    .gale span { font-size: 4.2vmin; }
+    .areas li { font-size: 2.4vmin; padding: 1.7vmin 0; }
+    .areas li b { font-size: 2vmin; }
+    .foot .code { font-size: 1.8vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.7vmin 2.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sheet">
+    <div class="head">
+      <div>
+        <div class="meta type"><b>Issued 05:20</b><span> · Atelier Nord</span><br>Next 24 hours</div>
+        <h1>The sea<br><i>forecast.</i></h1>
+      </div>
+      <svg class="rose" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="52" r="34" fill="none" stroke="#13262E" stroke-width=".8"/>
+        <circle cx="50" cy="52" r="29" fill="none" stroke="#13262E" stroke-width=".5" stroke-dasharray="1 2.2"/>
+        <g fill="#13262E"><path d="M50 14 L54 48 L50 52 Z"/><path d="M50 90 L46 56 L50 52 Z"/><path d="M88 52 L54 56 L50 52 Z"/><path d="M12 52 L46 48 L50 52 Z"/></g>
+        <g fill="#EEF0EA" stroke="#13262E" stroke-width=".7"><path d="M50 14 L46 48 L50 52 Z"/><path d="M50 90 L54 56 L50 52 Z"/><path d="M88 52 L54 48 L50 52 Z"/><path d="M12 52 L46 56 L50 52 Z"/></g>
+        <g fill="#C8352B"><path d="M73 29 L55 50 L52 47 Z"/><path d="M27 75 L45 54 L48 57 Z"/><path d="M73 75 L52 57 L55 54 Z"/><path d="M27 29 L48 47 L45 50 Z"/></g>
+        <circle cx="50" cy="52" r="2.4" fill="#13262E"/>
+        <text x="50" y="10" text-anchor="middle" font-family="Libre Caslon Text, Georgia, serif" font-size="10" fill="#13262E">N</text>
+      </svg>
+    </div>
+
+    <div class="gale"><i></i><b>Gale warning in force</b><span>40% off</span></div>
+
+    <ul class="areas">
+      <li><b>Harbour, Outer Harbour.</b>Westerly 5 to 7. Rain later. Prices falling, <em>20% off</em>.</li>
+      <li><b>Atelier.</b>Southwest 6, gale 8 by Sunday. Squally showers. <em>40% off</em>, good.</li>
+      <li><b>North Studio.</b>Variable 3. Fair. New arrivals, moderate, becoming good.</li>
+    </ul>
+
+    <div class="foot"><div class="code type">Code <b>GALEFORCE</b><br>Ends Sunday midnight</div><div class="cta">Set sail</div></div>
+  </div>
+</div>
+</body>
+</html>

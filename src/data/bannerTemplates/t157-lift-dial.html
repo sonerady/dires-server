@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Lift Dial — the members' floor announced by a department-store lift indicator: a brass half-dial
+     with engraved floors, the needle swung all the way to the lit "M", on blush plaster.
+     tall → plaster panel above, photo below; square/wide → plaster left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EAD9CD; }
+  .banner { --panel: 88vmin; --dw: 66vmin; position: fixed; inset: 0; overflow: hidden; background: #EAD9CD; color: #2A211C; font-family: "Outfit", "Helvetica Neue", Arial, sans-serif; }
+  .plaster { position: absolute; left: 0; top: 0; width: 100%; height: var(--panel); overflow: hidden; background: radial-gradient(ellipse 70% 50% at 50% 34%, #F4E7DD, rgba(244,231,221,0) 70%), #EAD9CD; }
+  .plaster svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .12; mix-blend-mode: multiply; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .top { align-self: stretch; display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(42,33,28,.35); font-size: 1.7vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; }
+
+  /* dial */
+  .dial { --r: calc(var(--dw) * .38); position: relative; flex: none; width: var(--dw); height: calc(var(--dw) * .5 + var(--dw) * .06); margin: auto 0 0; }
+  .plate { position: absolute; left: 0; right: 0; top: 0; height: calc(var(--dw) * .5); border-radius: var(--dw) var(--dw) 0 0;
+    background: radial-gradient(circle at 50% 100%, #7E5A26 0 calc(var(--dw) * .1), transparent calc(var(--dw) * .1)), linear-gradient(160deg, #F6E1A9 0%, #C99A4B 35%, #9A6F2E 62%, #E0BB72 100%);
+    box-shadow: 0 1.6vmin 2.6vmin rgba(90,60,30,.35), inset 0 0 0 .5vmin rgba(255,240,200,.45), inset 0 0 0 .9vmin rgba(110,78,32,.5); }
+  .face { position: absolute; left: 7%; right: 7%; top: calc(var(--dw) * .07); height: calc(var(--dw) * .43); border-radius: var(--dw) var(--dw) 0 0; background: linear-gradient(180deg, #2E2520, #1C1612); box-shadow: inset 0 .6vmin 1.2vmin rgba(0,0,0,.6); }
+  .ticks { position: absolute; left: 0; right: 0; top: 0; height: calc(var(--dw) * .5); border-radius: var(--dw) var(--dw) 0 0;
+    background: repeating-conic-gradient(from -90deg at 50% 100%, rgba(231,203,140,.8) 0 .5deg, transparent .5deg 7.5deg);
+    -webkit-mask: radial-gradient(circle at 50% 100%, transparent calc(var(--dw) * .3), #000 calc(var(--dw) * .3), #000 calc(var(--dw) * .33), transparent calc(var(--dw) * .33));
+    mask: radial-gradient(circle at 50% 100%, transparent calc(var(--dw) * .3), #000 calc(var(--dw) * .3), #000 calc(var(--dw) * .33), transparent calc(var(--dw) * .33)); }
+  .n { position: absolute; left: 50%; top: calc(var(--dw) * .5); width: calc(var(--dw) * .1); height: calc(var(--dw) * .1); margin: calc(var(--dw) * -.05) 0 0 calc(var(--dw) * -.05);
+    display: flex; align-items: center; justify-content: center; font-family: "Marcellus", Georgia, serif; font-size: calc(var(--dw) * .055); color: #E7CB8C;
+    transform: rotate(var(--a)) translateY(calc(var(--r) * -1)) rotate(calc(var(--a) * -1)); }
+  .n.m { border-radius: 50%; background: radial-gradient(circle, #FFE3A0, #F2A93B 55%, #B5561E); color: #2A1608; box-shadow: 0 0 1.6vmin rgba(255,190,90,.9), 0 0 4vmin rgba(255,170,60,.5); font-size: calc(var(--dw) * .06); }
+  .needle { position: absolute; left: 50%; top: calc(var(--dw) * .5 - var(--dw) * .29); width: calc(var(--dw) * .026); height: calc(var(--dw) * .29); margin-left: calc(var(--dw) * -.013); transform-origin: 50% 100%; transform: rotate(72deg);
+    background: linear-gradient(90deg, #C08A38, #F7DFA4 50%, #A87630); clip-path: polygon(50% 0, 100% 22%, 80% 100%, 20% 100%, 0 22%); }
+  .hub { position: absolute; left: 50%; top: calc(var(--dw) * .5); width: calc(var(--dw) * .08); height: calc(var(--dw) * .08); margin: calc(var(--dw) * -.04) 0 0 calc(var(--dw) * -.04); border-radius: 50%; background: radial-gradient(circle at 35% 35%, #FBE8B8, #B8893E 55%, #6C4A1C); }
+  .sill { position: absolute; left: -3%; right: -3%; bottom: 0; height: calc(var(--dw) * .06); background: linear-gradient(180deg, #E4C27A, #9A6F2E); box-shadow: 0 1vmin 1.6vmin rgba(90,60,30,.3); }
+
+  .kick { margin-top: 4vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; color: #8C3B22; }
+  h1 { margin: 1.2vmin 0 0; font-family: "Marcellus", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: 1; letter-spacing: -.005em; }
+  .sub { margin: 1.6vmin 0 0; font-weight: 300; font-size: 2.4vmin; line-height: 1.4; }
+  .info { align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; margin: auto 0 0; padding-top: 2vmin; border-top: 1px solid rgba(42,33,28,.35); text-align: left; }
+  .info p { margin: 0; font-size: 1.9vmin; line-height: 1.45; }
+  .info b { font-weight: 600; }
+  .cta { flex: none; display: flex; align-items: center; gap: 1.4vmin; background: #2A211C; color: #F4E7DD; padding: 1.7vmin 3vmin 1.7vmin 2.2vmin; border-radius: 99vmin; font-size: 1.9vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .cta i { width: 0; height: 0; border-left: 1vmin solid transparent; border-right: 1vmin solid transparent; border-bottom: 1.5vmin solid #F2A93B; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 76vmin; --dw: 54vmin; }
+    .copy { top: 4.5vmin; height: calc(var(--panel) - 9vmin); }
+    .kick { margin-top: 3vmin; }
+    h1 { font-size: 9.4vmin; }
+    .sub { font-size: 2.1vmin; margin-top: 1.2vmin; }
+  }
+  /* square — plaster left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --dw: 40vmin; }
+    .plaster { width: 52%; height: 100%; }
+    .photo { left: 52%; width: 48%; height: 100%; }
+    .copy { left: 5vmin; right: auto; width: calc(52% - 10vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    .top { font-size: 1.6vmin; letter-spacing: .16em; }
+    .kick { font-size: 1.6vmin; letter-spacing: .26em; margin-right: -.26em; }
+    h1 { font-size: 7.6vmin; }
+    .sub { font-size: 1.9vmin; }
+    .info { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .info p { font-size: 1.7vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2.6vmin 1.5vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --dw: 46vmin; }
+    .plaster { width: 50%; }
+    .photo { left: 50%; width: 50%; }
+    .copy { left: 6vmin; width: calc(50% - 12vmin); top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 9vmin; }
+    .sub { font-size: 2vmin; }
+    .info { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="plaster">
+    <svg aria-hidden="true"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="top"><span>Studio Oro</span><span>Lift B</span></div>
+    <div class="dial">
+      <div class="plate"></div>
+      <div class="face"></div>
+      <div class="ticks"></div>
+      <div class="n" style="--a:-72deg">G</div>
+      <div class="n" style="--a:-43deg">1</div>
+      <div class="n" style="--a:-14deg">2</div>
+      <div class="n" style="--a:14deg">3</div>
+      <div class="n" style="--a:43deg">4</div>
+      <div class="n m" style="--a:72deg">M</div>
+      <div class="needle"></div>
+      <div class="hub"></div>
+      <div class="sill"></div>
+    </div>
+    <div class="kick">Members' floor</div>
+    <h1>Going up.</h1>
+    <p class="sub">A whole floor of the new season, members only.</p>
+    <div class="info"><p><b>Floor M</b> · Thu to Sat<br>20% off + free tailoring</p><div class="cta"><i></i>Take the lift</div></div>
+  </div>
+</div>
+</body>
+</html>

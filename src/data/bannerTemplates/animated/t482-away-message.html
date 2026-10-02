@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Away Message — instant-messenger nostalgia: the headline is the brand's away message ("Auto-response from studio_oro"),
+     set as a big italic serif quote, next to a buddy list whose buddies are the offers (new_arrivals online,
+     sale_30off idle, last_season signed off). tall → photo above, cream panel · square → photo left · wide → photo | away | list */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EEE4; }
+  .banner { --bg: #F2EEE4; --ink: #18204D; --blue: #2B45C8; --line: rgba(24,32,77,.18); --panel: 80vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--panel)); overflow: hidden; }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .away { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - var(--panel) + 5.5vmin); }
+  .auto { display: flex; align-items: center; gap: 1.4vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .02em; color: var(--blue); white-space: nowrap; }
+  .auto i { flex: none; width: 1.9vmin; height: 1.9vmin; border-radius: 50%; background: #F2B51C; box-shadow: inset 0 0 0 .35vmin #fff, 0 0 0 1px rgba(24,32,77,.35); }
+  .auto span { font-weight: 500; color: rgba(24,32,77,.6); }
+  h1 { margin: 2.2vmin 0 0; font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400; font-size: 10.4vmin; line-height: .95; letter-spacing: -.03em; }
+  h1 b { font-weight: 500; color: var(--blue); }
+  .typing { margin-top: 2.4vmin; display: flex; align-items: center; gap: 1.2vmin; font-size: 1.7vmin; font-weight: 500; color: rgba(24,32,77,.62); white-space: nowrap; }
+  .typing em { display: inline-flex; gap: .5vmin; }
+  .typing em i { width: .9vmin; height: .9vmin; border-radius: 50%; background: rgba(24,32,77,.55); }
+  .typing em i + i { opacity: .6; } .typing em i + i + i { opacity: .3; }
+
+  .list { position: absolute; right: 6vmin; bottom: 5vmin; width: 44vmin; background: #FBF9F4; box-shadow: 0 0 0 1px var(--line), 0 1.6vmin 3vmin rgba(24,32,77,.12); }
+  .lh { display: flex; justify-content: space-between; align-items: center; padding: 1.3vmin 1.8vmin; background: linear-gradient(180deg, #3E57D6, #22379F); color: #fff; font-size: 1.7vmin; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+  .lh span:last-child { font-weight: 500; opacity: .85; }
+  .grp { padding: 1.3vmin 1.8vmin .6vmin; font-size: 1.7vmin; font-weight: 800; letter-spacing: .02em; white-space: nowrap; }
+  .bud { display: flex; align-items: center; gap: 1.3vmin; padding: .75vmin 1.8vmin .75vmin 3.4vmin; font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+  .bud i { flex: none; width: 1.5vmin; height: 1.5vmin; border-radius: 50%; background: #2DB36B; box-shadow: 0 0 0 1px rgba(0,0,0,.18); }
+  .bud small { margin-left: auto; font-size: 1.6vmin; font-weight: 500; color: rgba(24,32,77,.55); }
+  .bud.idle i { background: linear-gradient(90deg, #2DB36B 50%, #C9CDD9 50%); }
+  .bud.aw i { background: #F2B51C; }
+  .bud.off { color: rgba(24,32,77,.42); font-weight: 500; font-style: italic; }
+  .bud.off i { background: transparent; box-shadow: inset 0 0 0 .3vmin #B4B9C9; }
+  .bud.sel { background: #DDE3FA; }
+  .lf { margin-top: .8vmin; padding: 1.2vmin 1.8vmin; border-top: 1px solid var(--line); font-size: 1.7vmin; font-weight: 500; white-space: nowrap; }
+  .lf b { font-weight: 800; letter-spacing: .08em; color: var(--blue); }
+
+  .offer { position: absolute; left: 6vmin; bottom: 5vmin; width: 36vmin; }
+  .offer .pct { font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 500; font-size: 13vmin; line-height: .8; letter-spacing: -.04em; }
+  .offer .pct small { font-size: .38em; letter-spacing: 0; margin-left: .5vmin; }
+  .offer p { margin: 2vmin 0 0; font-size: 2vmin; line-height: 1.4; }
+  .offer .cta { margin-top: 2.4vmin; display: inline-flex; align-items: center; gap: 1.2vmin; padding: 1.4vmin 2.4vmin; background: var(--ink); color: #fff; font-size: 1.8vmin; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 70vmin; }
+    .away { left: 10vmin; right: 10vmin; top: calc(100% - var(--panel) + 5vmin); }
+    h1 { font-size: 9.2vmin; }
+    .list { right: 10vmin; bottom: 4.5vmin; width: 40vmin; }
+    .offer { left: 10vmin; bottom: 4.5vmin; width: 32vmin; }
+    .offer .pct { font-size: 11.5vmin; }
+  }
+
+  /* square: photo left, away + offer + list stacked right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; bottom: 0; width: 48%; height: 100%; }
+    .away { left: calc(48% + 5vmin); right: 5vmin; top: 5vmin; }
+    h1 { font-size: 7.4vmin; margin-top: 1.8vmin; }
+    .typing { margin-top: 1.8vmin; }
+    .list { right: 5vmin; bottom: 5vmin; width: calc(52% - 10vmin); }
+    .bud { padding-top: .55vmin; padding-bottom: .55vmin; font-size: 1.9vmin; }
+    .offer { left: calc(48% + 5vmin); top: 38vmin; bottom: auto; width: auto; right: 5vmin; }
+    .offer .pct { font-size: 10vmin; }
+    .offer p { margin-top: 1.6vmin; font-size: 1.9vmin; }
+    .offer .cta { display: none; }
+    .lf { display: flex; justify-content: space-between; }
+  }
+  /* wide: photo left; away message across the top, offer and buddy list side by side below */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 38%; }
+    .away { left: calc(38% + 6vmin); right: 6vmin; top: 6vmin; }
+    h1 { font-size: 7.4vmin; }
+    .list { right: 6vmin; bottom: 6vmin; width: 40vmin; }
+    .offer { left: calc(38% + 6vmin); top: auto; bottom: 6vmin; right: auto; width: 34vmin; }
+    .offer .pct { font-size: 11vmin; }
+    .offer .cta { display: inline-flex; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     constant: the "typing…" dots bounce, the away icon glows softly, the selected buddy row breathes
+     beats: 0.7 s "new drop." gets highlight-selected, deselects at 2.4 s · 3.2 s free_shipping comes back online
+     (yellow → green, buddy-list window nudges like an incoming IM) until 5.4 s · 4 s the 30% gets a soft pop */
+  .photo img { transform-origin: 50% 35%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .typing em i { animation: dot 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  .typing em i + i { animation-delay: -1.3s; } .typing em i + i + i { animation-delay: -1.1s; }
+  @keyframes dot { 0%, 30%, 100% { transform: translateY(0); } 15% { transform: translateY(-.6vmin); } }
+
+  .auto i { animation: awayglow 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes awayglow { 0%, 100% { box-shadow: inset 0 0 0 .35vmin #fff, 0 0 0 1px rgba(24,32,77,.35); } 50% { box-shadow: inset 0 0 0 .35vmin #fff, 0 0 0 1px rgba(24,32,77,.35), 0 0 1.2vmin .2vmin rgba(242,181,28,.6); } }
+
+  /* "new drop." gets selected like IM text (inline highlight, so line-wrapping stays identical), then deselects */
+  h1 b { background: linear-gradient(#C3CDF6, #C3CDF6) no-repeat 0 60% / 0% 78%; animation: select 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes select { 0%, 12% { background-size: 0% 78%; } 26%, 40% { background-size: 100% 78%; } 41%, 100% { background-size: 0% 78%; } }
+
+  .bud.aw i { animation: online 6s steps(1, end) infinite; }
+  @keyframes online { 0%, 53% { background: #F2B51C; } 54%, 89% { background: #2DB36B; } 90%, 100% { background: #F2B51C; } }
+  .list { animation: nudge 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes nudge { 0%, 53%, 63%, 100% { transform: translate(0, 0); } 55% { transform: translate(0, -.8vmin); } 58% { transform: translate(0, .2vmin); } 60.5% { transform: translate(0, -.25vmin); } }
+  .bud.sel { animation: sel 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sel { 0%, 100% { background: #DDE3FA; } 50% { background: #CBD4F7; } }
+
+  .offer .pct { transform-origin: 0 80%; animation: pop 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pop { 0%, 64%, 78%, 100% { transform: scale(1); color: #18204D; } 68% { transform: scale(1.07); color: #2B45C8; } 72% { transform: scale(.99); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="away">
+    <div class="auto"><i></i>Auto-response from studio_oro <span>(10:42 PM)</span></div>
+    <h1>Out shopping the <b>new drop.</b> Back Sunday.</h1>
+    <div class="typing"><em><i></i><i></i><i></i></em>studio_oro is typing…</div>
+  </div>
+  <div class="offer">
+    <div class="pct">30%<small>off</small></div>
+    <p>Everything in the new season, until Sunday 23:59.</p>
+    <div class="cta">Send IM · shop →</div>
+  </div>
+  <div class="list">
+    <div class="lh"><span>Buddy List</span><span>studio_oro</span></div>
+    <div class="grp">▾ The Drop (3/4)</div>
+    <div class="bud sel"><i></i>new_arrivals<small>online</small></div>
+    <div class="bud idle"><i></i>sale_30off<small>idle 2m</small></div>
+    <div class="bud aw"><i></i>free_shipping<small>away</small></div>
+    <div class="bud off"><i></i>last_season<small>signed off</small></div>
+    <div class="lf">IM code <b>BRB30</b><span> · ends Sun</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Hex Spec — the colour of the season as a technical data sheet: one solid fuchsia slab with the hex value set huge,
+     a spec table (RGB, CMYK, offer, code) on hairlines, and a five-step tint bar where photo meets slab.
+     tall → photo on top, tint bar, slab below; square/wide → photo left, vertical tint bar, slab right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D1127A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #D1127A; color: #FFF2F8; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 52%; object-fit: cover; object-position: 50% 18%; }
+
+  .bar { position: absolute; left: 0; right: 0; top: 52%; height: 3.6vmin; display: flex; }
+  .bar i { flex: 1; display: flex; align-items: center; justify-content: flex-start; padding-left: 1.2vmin; font-family: "Space Mono", Menlo, monospace; font-style: normal; font-size: 1.6vmin; letter-spacing: .04em; }
+  .bar i:nth-child(1) { background: #FDE6F1; color: #7D0A48; }
+  .bar i:nth-child(2) { background: #F7B6D5; color: #7D0A48; }
+  .bar i:nth-child(3) { background: #EA62A6; color: #4F062D; }
+  .bar i:nth-child(4) { background: #D1127A; color: #FFF2F8; box-shadow: inset 0 0 0 1px rgba(255,242,248,.5); }
+  .bar i:nth-child(5) { background: #7D0A48; color: #FFF2F8; }
+
+  .slab { position: absolute; left: 0; right: 0; top: calc(52% + 3.6vmin); bottom: 0; box-sizing: border-box; padding: 4.4vmin 6vmin 5.4vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .row { display: flex; justify-content: space-between; font-family: "Space Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .hex { font-weight: 700; font-size: 15.4vmin; line-height: .82; letter-spacing: -.05em; color: #FFE0EE; white-space: nowrap; }
+  .hex span { opacity: .55; }
+  .spec { margin: 0; font-family: "Space Mono", Menlo, monospace; font-size: 1.9vmin; }
+  .spec div { display: flex; justify-content: space-between; gap: 2vmin; padding: 1.1vmin 0; border-top: 1px solid rgba(255,226,239,.45); white-space: nowrap; }
+  .spec div:last-child { border-bottom: 1px solid rgba(255,226,239,.45); }
+  .spec dt { color: #FFD0E5; letter-spacing: .1em; }
+  .spec dd { margin: 0; font-weight: 700; }
+  .foot { display: flex; justify-content: space-between; align-items: center; gap: 2vmin; }
+  .name { font-weight: 700; font-size: 4.4vmin; line-height: 1; letter-spacing: -.03em; }
+  .cta { font-family: "Space Mono", Menlo, monospace; font-weight: 700; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; padding: 1.3vmin 2vmin; background: #FFF2F8; color: #7D0A48; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 50%; }
+    .bar { top: 50%; }
+    .slab { top: calc(50% + 3.6vmin); padding: 3.6vmin 6vmin 4.4vmin; }
+    .hex { font-size: 13vmin; }
+    .spec div { padding: .8vmin 0; }
+    .spec div:nth-child(2) { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 22%; }
+    .bar { left: 46%; right: auto; top: 0; bottom: 0; width: 3.6vmin; height: auto; flex-direction: column; }
+    .bar i { padding: 0; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); }
+    .bar i:nth-child(4) { box-shadow: inset 0 0 0 1px rgba(255,242,248,.5); }
+    .slab { left: calc(46% + 3.6vmin); top: 0; padding: 5vmin 5vmin 5vmin; }
+    .hex { font-size: 8.6vmin; }
+    .spec { font-size: 1.7vmin; }
+    .spec div { padding: .9vmin 0; }
+    .spec div:nth-child(2) { display: flex; }
+    .name { font-size: 3.6vmin; }
+    .cta { font-size: 1.6vmin; padding: 1.1vmin 1.4vmin; }
+    .row span + span { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .bar { left: 44%; }
+    .slab { left: calc(44% + 3.6vmin); padding: 6vmin 6vmin 6vmin; }
+    .hex { font-size: 12.6vmin; }
+    .spec { font-size: 1.9vmin; }
+    .name { font-size: 4.4vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.3vmin 2vmin; }
+    .row span + span { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="bar"><i>10</i><i>30</i><i>60</i><i>100</i><i>+K</i></div>
+  <div class="slab">
+    <div class="row"><span>Colour spec — Nº 07</span><span>Season 27</span></div>
+    <div class="hex"><span>#</span>D1127A</div>
+    <dl class="spec">
+      <div><dt>RGB</dt><dd>209 · 18 · 122</dd></div>
+      <div><dt>CMYK</dt><dd>0 · 91 · 42 · 18</dd></div>
+      <div><dt>OFFER</dt><dd>30% off the pink edit</dd></div>
+      <div><dt>CODE</dt><dd>PINK30</dd></div>
+    </dl>
+    <div class="foot"><div class="name">Hot fuchsia.</div><div class="cta">Shop pink →</div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* Red Pen Memo — the merchandiser's markdown instruction behind every outlet: a typed form, old prices struck in red marker, new ones scrawled beside them, "final" circled */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FAF9F5; }
+  .banner { --panel: 84vmin; position: fixed; inset: 0; overflow: hidden; background: #FAF9F5; color: #1C1C1A; font-family: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .clip { position: absolute; right: 8vmin; top: calc(100% - var(--panel) - 5vmin); width: 4.2vmin; height: 11vmin; overflow: visible; z-index: 2; }
+
+  .memo { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; top: calc(100% - var(--panel) + 5vmin); display: flex; flex-direction: column; }
+  .hd { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: .5vmin solid #1C1C1A; padding-bottom: 1.4vmin; }
+  h1 { margin: 0; font-weight: 800; font-size: 10.4vmin; line-height: .84; letter-spacing: -.01em; text-transform: uppercase; }
+  .form { text-align: right; font-size: 1.9vmin; font-weight: 500; line-height: 1.35; letter-spacing: .06em; text-transform: uppercase; }
+  .form b { font-weight: 800; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid #1C1C1A; }
+  .fields div { padding: 1.2vmin 0 1vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6B6A64; }
+  .fields div + div { padding-left: 2vmin; border-left: 1px solid #C9C7BF; }
+  .fields span { display: block; margin-top: .3vmin; font-family: "Caveat", "Bradley Hand", cursive; font-size: 3.4vmin; font-weight: 700; letter-spacing: 0; text-transform: none; color: #1F3F9E; line-height: 1; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 1.6vmin; }
+  th { text-align: left; font-size: 1.6vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #6B6A64; padding: 0 0 .8vmin; border-bottom: 1px solid #1C1C1A; }
+  td { font-size: 3vmin; font-weight: 500; padding: 1.7vmin 0 1.3vmin; border-bottom: 1px solid #DAD8D0; white-space: nowrap; vertical-align: middle; }
+  td.ref { font-weight: 600; color: #6B6A64; font-size: 2.3vmin; letter-spacing: .06em; width: 18%; }
+  .was { position: relative; display: inline-block; }
+  .was svg { position: absolute; left: -.8vmin; top: 10%; width: calc(100% + 1.6vmin); height: 80%; overflow: visible; }
+  td.now { font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 5vmin; line-height: .8; color: #CF2A1F; text-align: right; }
+  th:last-child { text-align: right; }
+
+  .bottom { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .note { position: relative; margin-left: 3.4vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 15vmin; line-height: .8; color: #CF2A1F; transform: rotate(-5deg); transform-origin: 0 100%; padding: 1vmin 1vmin 0; white-space: nowrap; }
+  .note small { display: block; font-size: .3em; line-height: 1; margin: 0 0 2.6vmin 0; }
+  .note .n { position: relative; display: inline-block; padding: 0 1vmin; }
+  .note svg { position: absolute; left: -3.4vmin; top: -2.6vmin; width: calc(100% + 6.8vmin); height: calc(100% + 4.6vmin); overflow: visible; }
+  .cta { flex: none; font-weight: 800; font-size: 2.6vmin; letter-spacing: .12em; text-transform: uppercase; background: #1C1C1A; color: #FAF9F5; padding: 1.4vmin 2.8vmin 1.2vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .memo { top: calc(100% - var(--panel) + 4vmin); bottom: 4.4vmin; }
+    h1 { font-size: 9vmin; }
+    .fields span { font-size: 3vmin; }
+    table { margin-top: 1vmin; }
+    td { font-size: 2.7vmin; padding: .7vmin 0 .5vmin; }
+    td.now { font-size: 4.4vmin; }
+    .note { font-size: 13vmin; }
+  }
+  /* square / wide — the look clipped on the left, the memo on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .clip { right: auto; left: calc(48% - 7vmin); top: -1.6vmin; }
+    .memo { left: calc(48% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    .hd { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .form { text-align: left; font-size: 1.7vmin; }
+    h1 { font-size: 7.4vmin; }
+    .fields { grid-template-columns: 1fr 1fr; }
+    .fields div:nth-child(3) { display: none; }
+    .fields span { font-size: 2.8vmin; }
+    td { font-size: 2.4vmin; padding: .8vmin 0 .5vmin; }
+    td.ref { font-size: 1.9vmin; }
+    td.now { font-size: 4vmin; }
+    .bottom { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .note { font-size: 12vmin; }
+    .cta { font-size: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 64% 25%; }
+    .clip { left: calc(44% - 7vmin); }
+    .memo { left: calc(44% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .hd { flex-direction: row; align-items: flex-end; }
+    .form { text-align: right; }
+    h1 { font-size: 9vmin; }
+    .fields { grid-template-columns: 1fr 1fr 1fr; }
+    .fields div:nth-child(3) { display: block; }
+    td { font-size: 2.7vmin; }
+    td.now { font-size: 4.4vmin; }
+    .bottom { flex-direction: row; align-items: flex-end; }
+    .note { font-size: 14vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     the merchandiser re-marks the memo every loop: 0.7s the red ink lifts off the form,
+     1.2s → 3.4s each old price is struck through and the new one scrawled beside it, row by row,
+     3.7s "−70%" is written in, 4.1s it gets circled; a full-ink hold of ~2s spans the loop point */
+  .was path, .note path.ring { stroke-dasharray: 100 110; stroke-dashoffset: 0; }
+  .was .s1 { animation: s1 6s linear infinite; }
+  .was .s2 { animation: s2 6s linear infinite; }
+  .was .s3 { animation: s3 6s linear infinite; }
+  .note path.ring { animation: ring 6s linear infinite; }
+  td.now .w { display: inline-block; }
+  .note .wn { font-weight: inherit; }
+  .w { clip-path: inset(-40% -12% -40% -12%); }
+  .w1 { animation: w1 6s linear infinite; }
+  .w2 { animation: w2 6s linear infinite; }
+  .w3 { animation: w3 6s linear infinite; }
+  .wn { display: inline-block; animation: wn 6s linear infinite; }
+  @keyframes s1 {
+    0%, 12% { opacity: 1; stroke-dashoffset: 0; animation-timing-function: ease-in; }
+    16% { opacity: 0; stroke-dashoffset: 0; animation-timing-function: steps(1, end); }
+    17%, 20% { opacity: 1; stroke-dashoffset: 104; animation-timing-function: cubic-bezier(.5,.1,.3,1); }
+    25%, 100% { opacity: 1; stroke-dashoffset: 0; }
+  }
+  @keyframes w1 {
+    0%, 12% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); animation-timing-function: ease-in; }
+    16% { opacity: 0; clip-path: inset(-40% -12% -40% -12%); animation-timing-function: steps(1, end); }
+    17%, 25.5% { opacity: 1; clip-path: inset(-40% 112% -40% -12%); animation-timing-function: cubic-bezier(.4,.2,.4,1); }
+    31%, 100% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); }
+  }
+  @keyframes s2 {
+    0%, 12% { opacity: 1; stroke-dashoffset: 0; animation-timing-function: ease-in; }
+    16% { opacity: 0; stroke-dashoffset: 0; animation-timing-function: steps(1, end); }
+    17%, 33% { opacity: 1; stroke-dashoffset: 104; animation-timing-function: cubic-bezier(.5,.1,.3,1); }
+    38%, 100% { opacity: 1; stroke-dashoffset: 0; }
+  }
+  @keyframes w2 {
+    0%, 12% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); animation-timing-function: ease-in; }
+    16% { opacity: 0; clip-path: inset(-40% -12% -40% -12%); animation-timing-function: steps(1, end); }
+    17%, 38.5% { opacity: 1; clip-path: inset(-40% 112% -40% -12%); animation-timing-function: cubic-bezier(.4,.2,.4,1); }
+    44%, 100% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); }
+  }
+  @keyframes s3 {
+    0%, 12% { opacity: 1; stroke-dashoffset: 0; animation-timing-function: ease-in; }
+    16% { opacity: 0; stroke-dashoffset: 0; animation-timing-function: steps(1, end); }
+    17%, 46% { opacity: 1; stroke-dashoffset: 104; animation-timing-function: cubic-bezier(.5,.1,.3,1); }
+    51%, 100% { opacity: 1; stroke-dashoffset: 0; }
+  }
+  @keyframes w3 {
+    0%, 12% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); animation-timing-function: ease-in; }
+    16% { opacity: 0; clip-path: inset(-40% -12% -40% -12%); animation-timing-function: steps(1, end); }
+    17%, 51.5% { opacity: 1; clip-path: inset(-40% 112% -40% -12%); animation-timing-function: cubic-bezier(.4,.2,.4,1); }
+    57%, 100% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); }
+  }
+  @keyframes wn {
+    0%, 12% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); animation-timing-function: ease-in; }
+    16% { opacity: 0; clip-path: inset(-40% -12% -40% -12%); animation-timing-function: steps(1, end); }
+    17%, 60% { opacity: 1; clip-path: inset(-40% 112% -40% -12%); animation-timing-function: cubic-bezier(.4,.2,.4,1); }
+    67%, 100% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); }
+  }
+  @keyframes ring {
+    0%, 12% { opacity: 1; stroke-dashoffset: 0; animation-timing-function: ease-in; }
+    16% { opacity: 0; stroke-dashoffset: 0; animation-timing-function: steps(1, end); }
+    17%, 68% { opacity: 1; stroke-dashoffset: 104; animation-timing-function: cubic-bezier(.5,.1,.3,1); }
+    78%, 100% { opacity: 1; stroke-dashoffset: 0; }
+  }
+  .cta { animation: settle 6s linear infinite; }
+  @keyframes settle { 0%, 79% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+                      81.5% { transform: translateY(-.6vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+                      85%, 100% { transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <svg class="clip" viewBox="0 0 12 32"><path d="M3 30 V6 a3 3 0 0 1 6 0 V26 a1.8 1.8 0 0 1 -3.6 0 V9" fill="none" stroke="#8D8C87" stroke-width="1.3" stroke-linecap="round"/></svg>
+  <div class="memo">
+    <div class="hd"><h1>Final<br>markdown</h1><div class="form">Memo <b>Nº 39</b><br>All stores · Online</div></div>
+    <div class="fields">
+      <div>Effective<span>Mon 29.09</span></div>
+      <div>Reason<span>End of season</span></div>
+      <div>Approved<span>A. Nord ✓</span></div>
+    </div>
+    <table>
+      <tr><th>Ref</th><th>Line</th><th>Was</th><th>Now</th></tr>
+      <tr><td class="ref">0142</td><td>Look 01</td><td><span class="was">€240<svg viewBox="0 0 100 20" preserveAspectRatio="none"><path class="s1" pathLength="100" d="M0 14 C30 9 70 7 100 4" stroke="#CF2A1F" stroke-width="3" fill="none" stroke-linecap="round"/></svg></span></td><td class="now"><span class="w w1">€120</span></td></tr>
+      <tr><td class="ref">0157</td><td>Look 02</td><td><span class="was">€180<svg viewBox="0 0 100 20" preserveAspectRatio="none"><path class="s2" pathLength="100" d="M0 12 C35 10 65 8 100 6" stroke="#CF2A1F" stroke-width="3" fill="none" stroke-linecap="round"/></svg></span></td><td class="now"><span class="w w2">€72</span></td></tr>
+      <tr><td class="ref">0163</td><td>Look 03</td><td><span class="was">€150<svg viewBox="0 0 100 20" preserveAspectRatio="none"><path class="s3" pathLength="100" d="M0 13 C30 11 70 6 100 5" stroke="#CF2A1F" stroke-width="3" fill="none" stroke-linecap="round"/></svg></span></td><td class="now"><span class="w w3">€45</span></td></tr>
+    </table>
+    <div class="bottom">
+      <div class="note"><small>final — up to</small><span class="n"><b class="w wn">−70%</b><svg viewBox="0 0 100 40" preserveAspectRatio="none"><path class="ring" pathLength="100" d="M8 30 C2 14 30 3 58 4 C88 5 99 16 95 27 C90 38 55 40 30 37 C14 35 4 30 12 20" fill="none" stroke="#CF2A1F" stroke-width="1.8" stroke-linecap="round"/></svg></span></div>
+      <div class="cta">Shop the markdowns</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

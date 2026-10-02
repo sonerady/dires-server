@@ -8,6 +8,7 @@ test('localized copy uses requested locale, region fallback, then original',()=>
  const row={language:'tr',title:'Başlık',brief:'Açıklama',translations:{tr:{title:'Türkçe'},en:{title:'English',description:'Description'},fr:{title:'Français'}}};
  assert.equal(publicTool(row,'en-US').title,'English');assert.equal(publicTool(row,'fr').title,'Français');assert.equal(publicTool(row,'ko').title,'Türkçe');assert.equal(publicTool(row,'ko').description,'Açıklama');
 });
-test('assigned hue survives renaming and jewelry receives an amber default',()=>{
- assert.equal(toolHue({title:'Jewelry Retouch'}),38);assert.equal(toolHue({title:'changed',button_hue:38}),38);
+// 24 Eyl 2026 (kullanıcı kararı): bütün özel araçlar tek renkte (gök mavisi, hue 199) — kayıtlı button_hue yok sayılır
+test('every custom tool uses the shared sky-blue hue',()=>{
+ assert.equal(toolHue({title:'Jewelry Retouch'}),199);assert.equal(toolHue({title:'changed',button_hue:38}),199);assert.equal(toolHue({}),199);
 });

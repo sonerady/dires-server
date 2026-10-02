@@ -131,7 +131,8 @@ function buildEditInput(model, input) {
       || (['auto', 'original', undefined, null, ''].includes(input.aspect_ratio) && input.source_size ? gpt25ImageSizeFromDims(input.source_size.width, input.source_size.height) : gpt25ImageSize(input.aspect_ratio)),
     quality: normalizeQuality(input.quality) || getGpt25Quality(),
     num_images: input.num_images || 1,
-    output_format: input.output_format || 'png',
+    output_format: input.background === 'transparent' ? 'png' : input.output_format || 'png',
+    ...(['auto', 'opaque', 'transparent'].includes(input.background) ? { background: input.background } : {}),
     ...(input.mask_url ? {mask_url: input.mask_url} : {}),
   };
 }

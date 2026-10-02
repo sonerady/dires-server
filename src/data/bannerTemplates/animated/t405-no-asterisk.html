@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,500;0,62..125,700;0,62..125,900;1,62..125,900&display=swap" rel="stylesheet">
+<style>
+  /* No Asterisk — a sportswear launch poster where the size range IS the headline: "XS–4XL" in expanded
+     black, a lit eight-stop range bar underneath (every stop filled, none greyed out), and the promise
+     "Every size. No asterisk." with the tiny asterisk itself struck out.
+     tall → photo melts into the black panel · square / wide → black panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E0E0D; }
+  .banner { --panel: max(70vmin, 42%); --lime: #D8FF3D; position: fixed; inset: 0; overflow: hidden; background: #0E0E0D; color: #F4F4EF; font-family: "Archivo", "Arial Narrow", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel) + 12vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .melt { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel) - 6vmin); height: 18vmin;
+    background: linear-gradient(to top, rgba(14,14,13,1) 0%, rgba(14,14,13,.985) 7.7%, rgba(14,14,13,.943) 15.4%, rgba(14,14,13,.874) 23.1%, rgba(14,14,13,.784) 30.8%, rgba(14,14,13,.677) 38.5%, rgba(14,14,13,.56) 46.2%, rgba(14,14,13,.44) 53.8%, rgba(14,14,13,.323) 61.5%, rgba(14,14,13,.216) 69.2%, rgba(14,14,13,.126) 76.9%, rgba(14,14,13,.057) 84.6%, rgba(14,14,13,.015) 92.3%, rgba(14,14,13,0) 100%); }
+  .drop { position: absolute; left: 5vmin; top: 5vmin; background: var(--lime); color: #0E0E0D; padding: 1.2vmin 2vmin; font-weight: 900; font-stretch: 100%; font-size: 2.2vmin; letter-spacing: .08em; text-transform: uppercase; }
+
+  .panel { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: calc(var(--panel) - 8vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-weight: 700; font-stretch: 100%; font-size: 1.9vmin; letter-spacing: .16em; text-transform: uppercase; color: #A9A9A2; }
+  .range { margin: 1.6vmin 0 0 -.4vmin; font-weight: 900; font-stretch: 125%; font-size: 18.2vmin; line-height: .82; letter-spacing: -.035em; white-space: nowrap; color: var(--lime); }
+  .bar { display: flex; gap: .6vmin; margin-top: 3vmin; }
+  .bar span { flex: 1; padding-top: 1.8vmin; border-top: 1.4vmin solid var(--lime); text-align: center; font-weight: 700; font-stretch: 100%; font-size: 2.2vmin; }
+  h1 { margin: 3.4vmin 0 0; font-weight: 900; font-style: italic; font-stretch: 75%; font-size: 9.4vmin; line-height: .9; letter-spacing: -.01em; text-transform: uppercase; }
+  h1 s { position: relative; display: inline-block; text-decoration: none; font-style: normal; font-size: .7em; line-height: 1; vertical-align: .45em; margin-left: .08em; color: #8B8B84; }
+  h1 s::after { content: ""; position: absolute; left: -30%; right: -30%; top: 38%; height: .8vmin; background: var(--lime); transform: rotate(-24deg); }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-weight: 500; font-stretch: 100%; font-size: 2.1vmin; line-height: 1.35; color: #C9C9C2; }
+  .foot p b { color: #F4F4EF; font-weight: 700; }
+  .cta { flex: none; display: flex; align-items: center; gap: 1.4vmin; background: #F4F4EF; color: #0E0E0D; padding: 2vmin 3vmin; font-weight: 900; font-stretch: 100%; font-size: 2.4vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 70vmin; }
+    .panel { bottom: 4.4vmin; height: calc(var(--panel) - 7vmin); }
+    .range { font-size: 18vmin; }
+    .bar { margin-top: 2.4vmin; }
+    h1 { margin-top: 2.6vmin; font-size: 8.4vmin; }
+  }
+  /* square → panel left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; }
+    .melt { top: 0; bottom: 0; left: calc(50% - .2vmin); right: auto; width: 14vmin; height: auto;
+      background: linear-gradient(to right, rgba(14,14,13,1) 0%, rgba(14,14,13,.985) 7.7%, rgba(14,14,13,.943) 15.4%, rgba(14,14,13,.874) 23.1%, rgba(14,14,13,.784) 30.8%, rgba(14,14,13,.677) 38.5%, rgba(14,14,13,.56) 46.2%, rgba(14,14,13,.44) 53.8%, rgba(14,14,13,.323) 61.5%, rgba(14,14,13,.216) 69.2%, rgba(14,14,13,.126) 76.9%, rgba(14,14,13,.057) 84.6%, rgba(14,14,13,.015) 92.3%, rgba(14,14,13,0) 100%); }
+    .drop { left: auto; right: 4vmin; top: 4vmin; }
+    .panel { left: 5vmin; right: 54%; top: 5vmin; bottom: 5vmin; height: auto; }
+    .kick { flex-direction: column; gap: .8vmin; font-size: 1.7vmin; }
+    .range { margin-top: 5vmin; font-size: 13.4vmin; line-height: .84; white-space: normal; }
+    .bar { flex-wrap: wrap; row-gap: 1.6vmin; }
+    .bar span { flex: 0 0 calc(25% - .45vmin); padding-top: 1.2vmin; border-top-width: 1.1vmin; font-size: 2vmin; }
+    h1 { margin-top: 3.6vmin; font-size: 7.6vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .foot p { font-size: 1.9vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 28%; }
+    .melt { left: 56%; }
+    .panel { left: 6vmin; right: 48%; top: 6vmin; bottom: 6vmin; }
+    .kick { flex-direction: row; font-size: 1.8vmin; }
+    .range { margin-top: 4vmin; font-size: 17.4vmin; white-space: nowrap; }
+    .bar { flex-wrap: nowrap; margin-top: 3vmin; }
+    .bar span { flex: 1; border-top-width: 1.3vmin; font-size: 2.1vmin; }
+    h1 { margin-top: 5vmin; font-size: 10.4vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static poster) ─────────
+     constant: the photo pushes in very slowly (anchored at the panel edge) ·
+     1.1s a white charge runs along the range bar XS → 4XL, every stop flaring in turn ·
+     2.4s a gloss streak races across the giant "XS–4XL" · 3.5s the asterisk is struck out again with a fast slash ·
+     4.4s the DROP tag punches · 5.1s light sweep across the CTA */
+  .photo { transform-origin: 50% 100%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @media (min-aspect-ratio: 9/10) { .photo { transform-origin: 100% 50%; } }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .bar span { animation: charge 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .bar span:nth-child(1) { animation-delay: -.7s; }
+  .bar span:nth-child(2) { animation-delay: -.6s; }
+  .bar span:nth-child(3) { animation-delay: -.5s; }
+  .bar span:nth-child(4) { animation-delay: -.4s; }
+  .bar span:nth-child(5) { animation-delay: -.3s; }
+  .bar span:nth-child(6) { animation-delay: -.2s; }
+  .bar span:nth-child(7) { animation-delay: -.1s; }
+  .bar span:nth-child(8) { animation-delay: 0s; }
+  @keyframes charge {
+    0%, 29% { border-top-color: #D8FF3D; color: #F4F4EF; }
+    30.5% { border-top-color: #FFFFFF; color: #D8FF3D; }
+    36%, 100% { border-top-color: #D8FF3D; color: #F4F4EF; }
+  }
+
+  .range { background: linear-gradient(100deg, #D8FF3D 0 40%, #FFFFF0 47%, #FFFFFF 50%, #FFFFF0 53%, #D8FF3D 60% 100%) no-repeat;
+    background-size: 300% 100%; background-position: 100% 0; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: gloss 6s cubic-bezier(.55,0,.35,1) infinite; }
+  @keyframes gloss { 0%, 39% { background-position: 100% 0; } 52%, 100% { background-position: 0% 0; } }
+
+  h1 s::after { transform-origin: 0 50%; animation: slash 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes slash {
+    0%, 57% { transform: rotate(-24deg) scaleX(1); opacity: 1; }
+    59% { transform: rotate(-24deg) scaleX(1); opacity: 0; }
+    60% { transform: rotate(-24deg) scaleX(0); opacity: 1; }
+    64%, 100% { transform: rotate(-24deg) scaleX(1); opacity: 1; }
+  }
+  h1 s { animation: star 6s linear infinite; }
+  @keyframes star { 0%, 58%, 65%, 100% { color: #8B8B84; } 59.5%, 62% { color: #F4F4EF; } }
+
+  .drop { transform-origin: 0 0; animation: punch 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @media (min-aspect-ratio: 9/10) { .drop { transform-origin: 100% 0; } }
+  @keyframes punch { 0%, 72% { transform: scale(1) rotate(0); } 75% { transform: scale(1.14) rotate(-2deg); } 78.5% { transform: scale(.97) rotate(.6deg); } 82%, 100% { transform: scale(1) rotate(0); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(216,255,61,.7) 50%, transparent 65%) no-repeat;
+    background-size: 250% 100%; background-position: 120% 0; animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 84% { background-position: 120% 0; } 97%, 100% { background-position: -20% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="melt"></div>
+  <div class="drop">Drop 03 · Out now</div>
+  <div class="panel">
+    <div class="kick"><span>Atelier Nord</span><span>The full range</span></div>
+    <div class="range">XS–4XL</div>
+    <div class="bar"><span>XS</span><span>S</span><span>M</span><span>L</span><span>XL</span><span>2XL</span><span>3XL</span><span>4XL</span></div>
+    <h1>Every size.<br>No asterisk<s>*</s></h1>
+    <div class="foot"><p><b>All sizes in stock</b> on launch day.<br>From €79 · free returns</p><span class="cta">Shop the drop →</span></div>
+  </div>
+</div>
+</body>
+</html>

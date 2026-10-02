@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,700;1,9..144,900&family=Rubik+Mono+One&display=swap" rel="stylesheet">
+<style>
+  /* Hand Stamp — the re-entry stamp inked on your wrist at the gate: a scalloped UV-violet rubber stamp (roughened with an
+     SVG turbulence filter, ring text on a circle, the offer in the middle) plus two fainter repeat stamps, on a warm apricot field.
+     tall → photo above, stamp + copy below · square → photo left, stamp above copy · wide → photo left, copy + stamp side by side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6D2B8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6D2B8; color: #2A1640; font-family: "Fraunces", Georgia, serif; }
+  .mono { font-family: "Rubik Mono One", "Arial Black", sans-serif; font-weight: 400; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 56%; object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; top: 56%; bottom: 0; }
+
+  .stamps { position: absolute; right: 2vmin; top: 5vmin; width: 50vmin; height: 50vmin; }
+  .stamps svg { position: absolute; }
+  .s1 { left: 0; top: 0; width: 100%; height: 100%; transform: rotate(-14deg); mix-blend-mode: multiply; }
+  .s2 { right: -4vmin; top: 30vmin; width: 22vmin; height: 22vmin; transform: rotate(18deg); opacity: .32; mix-blend-mode: multiply; }
+  .s3 { left: -6vmin; top: -3vmin; width: 18vmin; height: 18vmin; transform: rotate(-32deg); opacity: .22; mix-blend-mode: multiply; }
+
+  .copy { position: absolute; left: 6vmin; width: 50vmin; top: 5vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; letter-spacing: .06em; color: #5B2BD6; line-height: 1.5; }
+  h1 { margin: 2vmin 0 0; font-size: 11.6vmin; font-weight: 900; font-style: italic; line-height: .9; letter-spacing: -.02em; font-variation-settings: "opsz" 144; }
+  .sub { margin: 2.6vmin 0 0; font-size: 2.8vmin; line-height: 1.35; max-width: 42vmin; }
+  .foot { margin-top: auto; display: flex; align-items: center; gap: 2.4vmin; }
+  .code { padding: 1.4vmin 1.8vmin; border: .35vmin dashed #5B2BD6; color: #5B2BD6; font-size: 1.9vmin; letter-spacing: .04em; white-space: nowrap; }
+  .cta { font-size: 2.6vmin; font-weight: 700; font-style: italic; white-space: nowrap; border-bottom: .35vmin solid #2A1640; padding-bottom: .3vmin; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .stamps { width: 44vmin; height: 44vmin; top: 4vmin; }
+    h1 { font-size: 10.4vmin; }
+    .sub { font-size: 2.5vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 50%; }
+    .panel { top: 50%; }
+    .stamps { width: 40vmin; height: 40vmin; top: 3.4vmin; }
+    .s2 { top: 25vmin; width: 19vmin; height: 19vmin; }
+    .copy { top: 4vmin; bottom: 4vmin; width: 54vmin; }
+    h1 { font-size: 9vmin; }
+    .sub { font-size: 2.3vmin; margin-top: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { top: 0; left: 50%; }
+    .stamps { right: auto; left: 7vmin; top: 4vmin; width: 36vmin; height: 36vmin; }
+    .s2 { right: -12vmin; top: 6vmin; width: 16vmin; height: 16vmin; }
+    .s3 { left: -5vmin; top: 22vmin; }
+    .copy { left: 5vmin; right: 5vmin; width: auto; top: 44vmin; bottom: 5vmin; }
+    .kick { display: none; }
+    h1 { margin-top: 0; font-size: 7.6vmin; }
+    .sub { font-size: 2.1vmin; margin-top: 1.6vmin; }
+    .foot { flex-wrap: wrap; gap: 1.6vmin 2.4vmin; }
+    .code { font-size: 1.7vmin; }
+    .cta { font-size: 2.3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 30%; }
+    .panel { left: 44%; }
+    .stamps { left: auto; right: 4vmin; top: 50%; margin-top: -22vmin; width: 44vmin; height: 44vmin; }
+    .s2 { right: -6vmin; top: 32vmin; width: 20vmin; height: 20vmin; }
+    .s3 { left: -8vmin; top: -6vmin; }
+    .copy { left: 6vmin; right: auto; width: 36vmin; top: 7vmin; bottom: 7vmin; }
+    .sub { max-width: 32vmin; }
+    .kick { display: block; }
+    h1 { margin-top: 2vmin; font-size: 9vmin; }
+    .sub { font-size: 2.3vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .code { font-size: 1.8vmin; }
+    .cta { font-size: 2.6vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     calm first 2.1s · 2.2s the big stamp lifts off the wrist and fades · 2.6s a fresh impression slams down (overshoot, settle),
+     the two ghost stamps jolt with the knock · 3.3s the INK40 code gets inked (fills violet) and releases ·
+     4.9s CTA arrow nudges · constant: photo breathes (≤1.03) */
+  .photo { transform-origin: 50% 20%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .s1 { animation: restamp 6s linear infinite; }
+  @keyframes restamp {
+    0%, 36% { opacity: 1; transform: rotate(-14deg) scale(1); animation-timing-function: cubic-bezier(.5,0,.8,.6); }
+    40% { opacity: 0; transform: rotate(-12deg) scale(1.1); animation-timing-function: steps(1, end); }
+    42.5% { opacity: 0; transform: rotate(-20deg) scale(1.22); animation-timing-function: cubic-bezier(.7,0,.9,.6); }
+    45% { opacity: 1; transform: rotate(-14deg) scale(.955); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    48% { opacity: 1; transform: rotate(-14deg) scale(1.015); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    51%, 100% { opacity: 1; transform: rotate(-14deg) scale(1); }
+  }
+  .s2 { animation: jolt2 6s linear infinite; }
+  @keyframes jolt2 {
+    0%, 44.8% { transform: rotate(18deg) translate(0, 0); }
+    46% { transform: rotate(20deg) translate(.5vmin, .4vmin); }
+    47.5% { transform: rotate(17deg) translate(-.3vmin, -.2vmin); }
+    49%, 100% { transform: rotate(18deg) translate(0, 0); }
+  }
+  .s3 { animation: jolt3 6s linear infinite; }
+  @keyframes jolt3 {
+    0%, 44.8% { transform: rotate(-32deg) translate(0, 0); }
+    46% { transform: rotate(-35deg) translate(-.5vmin, .3vmin); }
+    47.5% { transform: rotate(-31deg) translate(.3vmin, -.2vmin); }
+    49%, 100% { transform: rotate(-32deg) translate(0, 0); }
+  }
+
+  .code { animation: inked 6s linear infinite; }
+  @keyframes inked {
+    0%, 54% { background-color: rgba(91,43,214,0); color: #5B2BD6; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    56%, 66% { background-color: rgba(91,43,214,1); color: #F6D2B8; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    72%, 100% { background-color: rgba(91,43,214,0); color: #5B2BD6; }
+  }
+
+  .cta .ar { font-style: normal; display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 80% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    83% { transform: translateX(1.1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    86% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    89% { transform: translateX(1.1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    92%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="stamps" aria-hidden="true">
+      <svg width="0" height="0" style="position:absolute">
+        <defs>
+          <filter id="ink" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="1.3" xChannelSelector="R" yChannelSelector="G" result="d"/>
+            <feTurbulence type="fractalNoise" baseFrequency="2.4" numOctaves="1" seed="3" result="g"/>
+            <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.75" result="m"/>
+            <feComposite in="d" in2="m" operator="in"/>
+          </filter>
+          <path id="ring" d="M50 50 m-33 0 a33 33 0 1 1 66 0 a33 33 0 1 1 -66 0"/>
+        </defs>
+      </svg>
+      <svg class="s3" viewBox="0 0 100 100"><g filter="url(#ink)" fill="none" stroke="#5B2BD6" stroke-width="4"><path d="M50 6 L61 38 L95 38 L67 58 L78 92 L50 71 L22 92 L33 58 L5 38 L39 38 Z"/></g></svg>
+      <svg class="s2" viewBox="0 0 100 100"><g filter="url(#ink)"><circle cx="50" cy="50" r="44" fill="none" stroke="#5B2BD6" stroke-width="5"/><text x="50" y="60" text-anchor="middle" font-family="Rubik Mono One, sans-serif" font-size="26" fill="#5B2BD6">FRI</text></g></svg>
+      <svg class="s1" viewBox="0 0 100 100">
+        <g filter="url(#ink)" fill="#5B2BD6">
+          <path fill="none" stroke="#5B2BD6" stroke-width="2.4" d="M93.50 50.00Q99.88 55.62 92.41 59.68Q97.38 66.58 89.19 68.87Q92.51 76.71 84.01 77.12Q85.50 85.50 77.12 84.01Q76.71 92.51 68.87 89.19Q66.58 97.38 59.68 92.41Q55.62 99.88 50.00 93.50Q44.38 99.88 40.32 92.41Q33.42 97.38 31.13 89.19Q23.29 92.51 22.88 84.01Q14.50 85.50 15.99 77.12Q7.49 76.71 10.81 68.87Q2.62 66.58 7.59 59.68Q0.12 55.62 6.50 50.00Q0.12 44.38 7.59 40.32Q2.62 33.42 10.81 31.13Q7.49 23.29 15.99 22.88Q14.50 14.50 22.88 15.99Q23.29 7.49 31.13 10.81Q33.42 2.62 40.32 7.59Q44.38 0.12 50.00 6.50Q55.62 0.12 59.68 7.59Q66.58 2.62 68.87 10.81Q76.71 7.49 77.12 15.99Q85.50 14.50 84.01 22.88Q92.51 23.29 89.19 31.13Q97.38 33.42 92.41 40.32Q99.88 44.38 93.50 50.00Z"/>
+          <circle cx="50" cy="50" r="27" fill="none" stroke="#5B2BD6" stroke-width="1.2"/>
+          <text font-family="Rubik Mono One, sans-serif" font-size="6.2" letter-spacing=".6"><textPath href="#ring" startOffset="0">RE-ENTRY ✶ ORO FIELDS ✶ SAT 04 ✶ </textPath></text>
+          <text x="50" y="55" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-weight="900" font-size="21">40%</text>
+          <text x="50" y="66" text-anchor="middle" font-family="Rubik Mono One, sans-serif" font-size="7.4" letter-spacing="1">OFF</text>
+          <path d="M50 28.5 l1.3 2.7 3 .4 -2.2 2 .6 3 -2.7 -1.5 -2.7 1.5 .6 -3 -2.2 -2 3 -.4 z"/>
+        </g>
+      </svg>
+    </div>
+    <div class="copy">
+      <div class="kick mono">Studio Oro · Gate B</div>
+      <h1>Out &amp;<br>back in.</h1>
+      <div class="sub">Get stamped for the weekend: 40% off the whole festival edit.</div>
+      <div class="foot"><span class="code mono">INK40</span><span class="cta">Shop the edit <i class="ar">→</i></span>
+</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

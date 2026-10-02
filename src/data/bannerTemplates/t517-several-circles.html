@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Several Circles — Kandinsky's 1926 cosmos: translucent glowing circles drift and overlap on a deep night ground,
+     two hairlines cross behind the photo, the copy is set in quiet light type. Circles live only in the margins.
+     tall & 3:4: photo centred high, copy below-left · square & wide: photo right, circles orbit the copy on the left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #12131C; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #EDE6D8; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(90% 60% at 30% 20%, #232538 0%, #161724 55%, #0E0F16 100%); }
+  .o { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); mix-blend-mode: screen; }
+  .o1 { left: 4vmin; top: 28vmin; width: 30vmin; height: 30vmin; background: radial-gradient(circle at 40% 38%, #3F6FD0 0%, #2A4C9C 62%, rgba(42,76,156,0) 72%); box-shadow: 0 0 6vmin rgba(63,111,208,.35); }
+  .o2 { left: 88vmin; top: 8vmin; width: 16vmin; height: 16vmin; background: #0E0F16; box-shadow: 0 0 0 .9vmin #E9B949, 0 0 5vmin 1vmin rgba(233,185,73,.55); mix-blend-mode: normal; }
+  .o3 { left: 80vmin; top: 17vmin; width: 13vmin; height: 13vmin; background: radial-gradient(circle, #E0544A 0 55%, rgba(224,84,74,.0) 72%); }
+  .o4 { left: 5vmin; top: 44vmin; width: 9vmin; height: 9vmin; background: radial-gradient(circle, #E98AA6 0 58%, rgba(233,138,166,0) 72%); }
+  .o5 { left: 84vmin; top: calc(100% - 20vmin); width: 34vmin; height: 34vmin; background: radial-gradient(circle at 42% 40%, #9A58B4 0%, #6D3A8C 60%, rgba(109,58,140,0) 72%); box-shadow: 0 0 7vmin rgba(154,88,180,.3); }
+  .o6 { left: 76vmin; top: calc(100% - 34vmin); width: 11vmin; height: 11vmin; background: radial-gradient(circle, #4FB095 0 56%, rgba(79,176,149,0) 72%); }
+  .o7 { left: 91vmin; top: calc(100% - 44vmin); width: 7vmin; height: 7vmin; background: #E9B949; mix-blend-mode: normal; box-shadow: 0 0 3vmin rgba(233,185,73,.6); }
+  .ln { position: absolute; left: -10%; width: 120%; height: .3vmin; background: rgba(237,230,216,.35); transform-origin: center; }
+  .ln1 { top: 22vmin; transform: rotate(-24deg); }
+  .ln2 { top: 36vmin; transform: rotate(14deg); }
+  .photo { position: absolute; left: 11vmin; top: 17vmin; width: calc(100% - 22vmin); height: calc(100% - 17vmin - 60vmin); object-fit: cover; object-position: 50% 22%; display: block;
+    box-shadow: 0 2vmin 6vmin rgba(0,0,0,.45); }
+  .kick { position: absolute; left: 11vmin; top: 6vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: #BFB6A5; white-space: nowrap; }
+  .copy { position: absolute; left: 11vmin; top: calc(100% - 60vmin + 6vmin); bottom: 6vmin; width: 56vmin; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Italiana", Georgia, serif; font-weight: 400; font-size: 11.4vmin; line-height: .92; letter-spacing: .01em; }
+  .sub { margin-top: 2.6vmin; font-size: 2.1vmin; line-height: 1.45; color: #C9C1B2; max-width: 48vmin; }
+  .foot { margin-top: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+  .offer { font-size: 1.9vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; color: #E9B949; }
+  .offer b { font-family: "Italiana", serif; font-weight: 400; font-size: 5.4vmin; letter-spacing: 0; color: #EDE6D8; margin-right: 1.2vmin; }
+  .cta { padding: 1.6vmin 3vmin; border-radius: 99vmin; border: 1px solid rgba(237,230,216,.7); font-size: 2vmin; font-weight: 500; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .kick { top: 4.6vmin; }
+    .photo { top: 12vmin; height: calc(100% - 12vmin - 48vmin); }
+    .o1 { top: 24vmin; width: 24vmin; height: 24vmin; }
+    .o2 { top: 6vmin; width: 11vmin; height: 11vmin; }
+    .o3 { top: 13vmin; left: 82vmin; width: 10vmin; height: 10vmin; }
+    .o4 { top: 34vmin; }
+    .o5 { top: calc(100% - 16vmin); width: 28vmin; height: 28vmin; }
+    .o6 { top: calc(100% - 30vmin); }
+    .o7 { top: calc(100% - 38vmin); }
+    .copy { top: calc(100% - 48vmin + 4.6vmin); bottom: 4.6vmin; width: 62vmin; }
+    h1 { font-size: 9vmin; }
+    .sub { margin-top: 1.8vmin; font-size: 1.9vmin; max-width: 56vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 3vmin; }
+    .offer b { font-size: 4.6vmin; }
+  }
+  /* square & wide: photo right, the circles orbit the copy on the left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 6vmin; top: 6vmin; width: 48%; height: calc(100% - 12vmin); }
+    .kick { left: 6vmin; top: 6vmin; }
+    .copy { left: 6vmin; top: 36vmin; bottom: 6vmin; width: calc(52% - 14vmin); }
+    .o1 { left: 12vmin; top: 22vmin; width: 22vmin; height: 22vmin; }
+    .o2 { left: 34vmin; top: 17vmin; width: 10vmin; height: 10vmin; }
+    .o3 { left: 25vmin; top: 26vmin; width: 9vmin; height: 9vmin; }
+    .o4 { left: 42vmin; top: 29vmin; width: 5vmin; height: 5vmin; }
+    .o5 { left: 3vmin; top: 100%; width: 30vmin; height: 30vmin; }
+    .o6 { left: 40vmin; top: calc(100% - 3vmin); width: 8vmin; height: 8vmin; }
+    .o7 { left: 44vmin; top: 12vmin; width: 4vmin; height: 4vmin; }
+    .ln { left: 0; width: 56vmin; }
+    .ln1 { top: 20vmin; } .ln2 { top: 27vmin; }
+    h1 { font-size: 8.4vmin; }
+    .sub { font-size: 1.8vmin; margin-top: 2vmin; max-width: 40vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .offer b { font-size: 4.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { right: 7vmin; top: 7vmin; width: 46%; height: calc(100% - 14vmin); }
+    .kick { left: 8vmin; top: 7vmin; }
+    .copy { left: 8vmin; top: 38vmin; bottom: 7vmin; width: calc(54% - 20vmin); }
+    .o1 { left: 20vmin; top: 22vmin; width: 26vmin; height: 26vmin; }
+    .o2 { left: 46vmin; top: 16vmin; width: 12vmin; height: 12vmin; }
+    .o3 { left: 34vmin; top: 27vmin; width: 10vmin; height: 10vmin; }
+    .o4 { left: 58vmin; top: 28vmin; width: 6vmin; height: 6vmin; }
+    .o5 { left: calc(54% + 2vmin); top: calc(100% - 10vmin); width: 30vmin; height: 30vmin; }
+    .ln { width: 72vmin; }
+    .o6 { left: 44vmin; top: calc(100% + 1vmin); }
+    .o7 { left: 62vmin; top: 10vmin; }
+    h1 { font-size: 10vmin; }
+    .sub { font-size: 2vmin; max-width: 50vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <i class="ln ln1"></i><i class="ln ln2"></i>
+  <i class="o o1"></i><i class="o o3"></i><i class="o o2"></i><i class="o o4"></i><i class="o o5"></i><i class="o o6"></i><i class="o o7"></i>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="kick">Atelier Kreis · Composition 8</div>
+  <div class="copy">
+    <h1>Several<br>circles.</h1>
+    <div class="sub">Night pieces in deep colour, cut to move with you. The evening edit is here.</div>
+    <div class="foot">
+      <div class="offer"><b>−25%</b>After dark</div>
+      <div class="cta">Shop the evening edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

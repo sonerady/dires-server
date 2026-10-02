@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Render Still — a soft 3D still life in a warm sand cyclorama: the photo is printed on a thick standing slab
+     (oblique top and side faces, contact shadow on the floor), and in front of it sit rendered props — a terracotta
+     cylinder carrying the price, a sage sphere, a butter bead and a lying torus — each with its own soft shadow.
+     The CTA is a clay capsule resting on the floor; render metadata in mono sits in the corner.
+     tall → headline above, slab, props + capsule below · 3:4 & square → slab one side, copy and props on the other · wide → copy, slab, props */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E8D9C7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3A2A20; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #EFE3D4 0%, #E8D8C5 45%, #E0CBB4 70%, #D6BEA3 100%); }
+  .mono { font-family: "Martian Mono", monospace; }
+  .glow { position: absolute; left: 10%; top: 5%; width: 80%; height: 60%; background: radial-gradient(50% 50% at 50% 50%, rgba(255,247,236,.7), rgba(255,247,236,0) 100%); }
+
+  .slab { position: absolute; left: 12vmin; right: 18vmin; top: 37vmin; height: calc(100% - 37vmin - 47vmin); }
+  .slab img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .slab::before { content: ""; position: absolute; left: 0; bottom: 100%; width: 100%; height: 2.2vmin; transform-origin: 0 100%; transform: skewX(-50deg); background: linear-gradient(90deg, #F6ECDF, #EADBC8); }
+  .slab::after { content: ""; position: absolute; left: 100%; top: 0; width: 2.6vmin; height: 100%; transform-origin: 0 0; transform: skewY(-40deg); background: linear-gradient(180deg, #C9B196, #B39A7E); }
+  .cast { position: absolute; left: 10vmin; right: 12vmin; bottom: calc(47vmin - 3vmin); height: 6vmin; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(90,60,35,.38), rgba(90,60,35,0) 100%); filter: blur(.6vmin); }
+
+  .set { position: absolute; left: 6vmin; bottom: 5vmin; width: 34vmin; height: 30vmin; transform: scale(1.25); transform-origin: 0 100%; }
+  .shd { position: absolute; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(90,55,30,.42), rgba(90,55,30,0) 100%); }
+  .cyl { position: absolute; left: 0; bottom: 2.2vmin; width: 15vmin; height: 18vmin; border-radius: 0 0 7.5vmin 7.5vmin / 0 0 2.2vmin 2.2vmin;
+    background: linear-gradient(90deg, #A9503D 0%, #D2735C 22%, #F0A188 44%, #DE8166 64%, #B55A45 88%, #9A4634 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; color: #FFF4EC; padding-top: 2vmin; box-sizing: border-box; }
+  .cyl::before { content: ""; position: absolute; left: 0; top: -2.2vmin; width: 100%; height: 4.4vmin; border-radius: 50%; background: radial-gradient(60% 70% at 40% 40%, #FAC3AE, #E99A80); }
+  .cyl b { position: relative; font-weight: 800; font-stretch: 112%; font-size: 3.8vmin; letter-spacing: -.02em; line-height: 1; white-space: nowrap; }
+  .cyl small { position: relative; margin-top: .6vmin; font-family: "Martian Mono", monospace; font-size: 1.6vmin; letter-spacing: .06em; white-space: nowrap; }
+  .s0 { left: -1vmin; bottom: .6vmin; width: 19vmin; height: 4.6vmin; }
+  .s1 { left: 15vmin; bottom: .4vmin; width: 16vmin; height: 4vmin; }
+  .s2 { left: 26vmin; bottom: .2vmin; width: 8vmin; height: 2.4vmin; }
+  .sph { position: absolute; border-radius: 50%; }
+  .sage { left: 16.4vmin; bottom: 1.6vmin; width: 13vmin; height: 13vmin; background: radial-gradient(circle at 34% 30%, #EEF3E6 0%, #BCCCAB 26%, #8FA57E 58%, #647A55 86%, #7B9068 100%); }
+  .butter { left: 27.6vmin; bottom: 1vmin; width: 5.6vmin; height: 5.6vmin; background: radial-gradient(circle at 34% 30%, #FFF6D6 0%, #F7DB86 34%, #E0B14A 76%, #EBC467 100%); }
+  .torus { position: absolute; left: 17vmin; bottom: 17vmin; width: 14vmin; height: 5.6vmin; border-radius: 50%;
+    background: radial-gradient(50% 50% at 50% 50%, transparent 38%, #6A6F9C 42%, #9FA5D6 58%, #C9CDF0 70%, #7D83B8 88%, transparent 92%); }
+
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; }
+  .kick { font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #8A6F59; white-space: nowrap; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 800; font-stretch: 125%; font-size: 8.4vmin; line-height: .92; letter-spacing: -.03em; text-transform: uppercase; }
+  .sub { margin-top: 1.8vmin; font-size: 2.1vmin; line-height: 1.45; font-stretch: 100%; color: #5E4839; max-width: 56vmin; }
+  .meta { position: absolute; right: 7vmin; top: 29.4vmin; text-align: right; font-size: 1.6vmin; line-height: 1.6; color: #8A6F59; white-space: nowrap; }
+  .buy { position: absolute; right: 6vmin; bottom: 6vmin; display: flex; flex-direction: column; align-items: flex-end; gap: 1.6vmin; }
+  .cta { padding: 2.2vmin 3.6vmin; border-radius: 99vmin; font-size: 2.1vmin; font-weight: 700; color: #FFF6EE; white-space: nowrap;
+    background: linear-gradient(180deg, #5A4131 0%, #3A2A20 60%, #2E2119 100%);
+    box-shadow: inset 0 .6vmin .8vmin rgba(255,255,255,.22), inset 0 -.8vmin 1vmin rgba(0,0,0,.3), 0 1.6vmin 2.4vmin rgba(70,45,25,.35); }
+  .fine { font-size: 1.6vmin; color: #6E5646; white-space: nowrap; }
+
+  /* ── 3:4 — slab left full height, copy + props right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .slab { left: 7vmin; right: auto; width: 46vmin; top: 9vmin; height: calc(100% - 22vmin); }
+    .cast { left: 5vmin; right: auto; width: 54vmin; bottom: 10vmin; }
+    .head { left: 61vmin; right: 4vmin; top: 7vmin; }
+    .kick { white-space: normal; line-height: 1.6; }
+    h1 { font-size: 4.6vmin; }
+    .sub { font-size: 1.8vmin; }
+    .meta { display: none; }
+    .set { left: 59vmin; bottom: 7vmin; transform: scale(.95); }
+    .buy { left: 61vmin; right: auto; bottom: auto; top: calc(100% - 52vmin); align-items: flex-start; }
+    .cta { padding: 1.8vmin 2.6vmin; font-size: 1.9vmin; }
+  }
+  /* ── square — copy + props left, slab right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .slab { left: auto; right: 9vmin; width: 46%; top: 8vmin; height: calc(100% - 20vmin); }
+    .cast { left: auto; right: 5vmin; width: calc(46% + 6vmin); bottom: 9vmin; }
+    .head { left: 6vmin; right: auto; width: calc(54% - 17vmin); top: 6vmin; }
+    h1 { font-size: 4.8vmin; }
+    .set { left: 5vmin; bottom: 6vmin; transform: scale(1); }
+    .buy { left: 6vmin; top: calc(100% - 56vmin); }
+  }
+  /* ── wide — more room: bigger headline, metadata back, larger props ── */
+  @media (min-aspect-ratio: 6/5) {
+    .slab { right: 10vmin; width: 42%; top: 9vmin; height: calc(100% - 21vmin); }
+    .cast { right: 6vmin; width: calc(42% + 8vmin); bottom: 9vmin; }
+    .head { left: 7vmin; width: calc(58% - 24vmin); top: 7vmin; }
+    .kick { white-space: nowrap; }
+    h1 { font-size: min(7vmin, calc((58vw - 24vmin) / 6.2)); }
+    .sub { font-size: 2vmin; }
+    .set { left: 6vmin; bottom: 6vmin; transform: scale(1.05); }
+    .buy { left: 7vmin; top: auto; bottom: 43vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <i class="glow"></i>
+  <i class="cast"></i>
+  <div class="slab"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="head">
+    <div class="kick mono">Forma Objects · Still 04</div>
+    <h1>Object of<br>desire.</h1>
+    <div class="sub">Rendered to the last seam, made to be kept. Now in store and online.</div>
+  </div>
+  <div class="meta mono">2048 spp · f/2.8<br>85 mm · soft key</div>
+  <div class="set">
+    <i class="shd s0"></i><i class="shd s1"></i><i class="shd s2"></i>
+    <div class="cyl"><b>€148</b><small>new in</small></div>
+    <i class="sph sage"></i><i class="sph butter"></i><i class="torus"></i>
+  </div>
+  <div class="buy">
+    <div class="cta">Shop the still life →</div>
+    <div class="fine">Free delivery · Gift-ready box</div>
+  </div>
+</div>
+</body>
+</html>

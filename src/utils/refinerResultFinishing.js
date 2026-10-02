@@ -23,13 +23,14 @@ function shouldFinishRefinerMain(request = {}) {
 // Called only after the main Refiner GPT result, never by variation routes.
 // The included 4 MP pass has no extra credit fee. Explicit >4 MP selections
 // still run through the existing paid upscale flow after this base finish.
-async function finishRefinerMainResult({ request, imageUrl, upscaleMp = 4, userId, generationId, ensureBaseCharge }) {
+async function finishRefinerMainResult({ request, imageUrl, upscaleMp = 4, userId, generationId, ensureBaseCharge, transformResult }) {
   let finished = { imageUrl, appliedMp: null, preUpscaleUrl: null, creditsCharged: 0 };
   if (imageUrl && shouldFinishRefinerMain(request)) {
     try {
       await markGenerationStage(generationId, userId, "upscaling");
-      const sharpened = await upscaleResultImage(imageUrl, 4);
+      let sharpened = await upscaleResultImage(imageUrl, 4);
       if (!sharpened) throw new Error("REFINER_4MP_EMPTY_RESULT");
+      if (transformResult) sharpened = await transformResult(sharpened);
       finished = { imageUrl: sharpened, appliedMp: 4, preUpscaleUrl: imageUrl, creditsCharged: 0 };
       logger.log("✅ [REFINER MAIN] Pruna 4 MP finish completed");
     } catch (error) {
@@ -44,7 +45,7 @@ async function finishRefinerMainResult({ request, imageUrl, upscaleMp = 4, userI
 
   const selectedUpscale = await applyResultUpscale({
     imageUrl: finished.imageUrl, upscaleMp, userId, generationId, ensureBaseCharge,
-    logTag: "REFINER UPSCALE",
+    logTag: "REFINER UPSCALE", transformResult,
   });
   return selectedUpscale.appliedMp ? selectedUpscale : finished;
 }

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,300;1,400&family=Jost:wght@400&display=swap" rel="stylesheet">
+<style>
+  /* Whisper — perfume-campaign restraint: a misted field made from the photo itself,
+     one sharp window of the product and a single whispered line.
+     tall → window centred, line beneath; square/wide → window left, words right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E9E5DF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E9E5DF; color: #3A332C; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .ghost { position: absolute; left: -10%; top: -10%; width: 120%; height: 120%; object-fit: cover; object-position: 50% 30%; filter: blur(6vmin) saturate(.7); opacity: .55; }
+  .fog { position: absolute; inset: 0; background: rgba(236,232,226,.62); }
+  .win { position: absolute; top: 15%; left: 17%; width: 66%; height: 60%; object-fit: cover; object-position: 50% 22%; box-shadow: 0 3vmin 6vmin rgba(60,48,36,.18); }
+  .brand { position: absolute; top: 5.4vmin; left: 0; right: 0; text-align: center; font-family: "Cormorant Garamond", Garamond, "Times New Roman", serif; font-weight: 500; font-size: 4.2vmin; letter-spacing: .55em; padding-left: .55em; text-transform: uppercase; }
+  .brand small { display: block; margin-top: 1vmin; font-family: "Jost", sans-serif; font-size: 1.7vmin; letter-spacing: .5em; color: #6E6358; }
+  .side { position: absolute; top: 15%; left: 85.5%; transform-origin: 0 0; transform: rotate(90deg) translateY(-100%); white-space: nowrap; font-size: 1.7vmin; letter-spacing: .42em; text-transform: uppercase; color: #6E6358; }
+  .copy { position: absolute; left: 8vmin; right: 8vmin; top: 75%; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .line { font-family: "Cormorant Garamond", Garamond, serif; font-style: italic; font-weight: 300; font-size: 7.4vmin; line-height: 1.05; letter-spacing: -.005em; }
+  .foot { margin-top: 3vmin; display: flex; align-items: center; gap: 2.4vmin; font-size: 1.8vmin; letter-spacing: .42em; margin-right: -.42em; text-transform: uppercase; color: #5A5046; }
+  .foot i { width: 6vmin; height: 1px; background: #8A7E72; }
+  @media (min-aspect-ratio: 7/10) {
+    .win { top: 15.5%; left: 22%; width: 56%; height: 59%; }
+    .side { left: 80.5%; top: 15.5%; }
+    .copy { top: 74.5%; }
+    .line { font-size: 6.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .win { top: 9%; left: 8%; width: 46%; height: 82%; }
+    .side { left: 56%; top: 9%; }
+    .brand { top: 9%; left: 58%; right: 4%; white-space: nowrap; font-size: 3.2vmin; letter-spacing: .34em; padding-left: .34em; }
+    .copy { top: 20%; bottom: 9%; left: 58%; right: 4%; }
+    .line { font-size: 6.6vmin; }
+    .foot { margin-top: auto; }
+    .copy::before { content: ""; margin-top: auto; }
+    .foot i { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .win { top: 9%; left: 9%; width: 36%; height: 82%; }
+    .side { left: 47.2%; top: 9%; }
+    .brand { left: 52%; right: 5%; font-size: 4vmin; }
+    .copy { left: 52%; right: 5%; }
+    .line { font-size: 7.4vmin; }
+    .foot i { display: block; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="ghost" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="fog"></div>
+  <img class="win" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="brand">Maison Vère<small>Paris</small></div>
+  <div class="side">The new collection · 2026</div>
+  <div class="copy">
+    <div class="line">wear it<br>like a secret.</div>
+    <div class="foot"><i></i>Now at maisonvere.com<i></i></div>
+  </div>
+</div>
+</body>
+</html>

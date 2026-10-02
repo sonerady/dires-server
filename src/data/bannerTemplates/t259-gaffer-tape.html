@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Mansalva&display=swap" rel="stylesheet">
+<style>
+  /* Gaffer Tape — the runway floor before doors: every word is marker on torn strips of white gaffer and
+     fluoro spike tape, with a T-mark and an X where the model stops. tall → photo above, the floor below ·
+     square & wide → the floor left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1E1E1F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #141414; font-family: "Oswald", "Arial Narrow", Impact, sans-serif;
+    background: radial-gradient(ellipse 90% 70% at 50% 80%, #2A2A2B 0%, #1C1C1D 70%, #151516 100%); }
+  .banner::before { content: ""; position: absolute; inset: 0; opacity: .6;
+    background: repeating-radial-gradient(circle at 70% 60%, rgba(255,255,255,.02) 0 .15vmin, transparent .15vmin .45vmin); }
+  .mk { font-family: "Mansalva", "Marker Felt", "Comic Sans MS", cursive; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 56%; object-fit: cover; object-position: 50% 20%; }
+
+  .floor { position: absolute; left: 0; right: 0; top: 56%; bottom: 0; }
+  .tp { position: absolute; display: inline-block; white-space: nowrap; line-height: 1; box-shadow: 0 .4vmin .8vmin rgba(0,0,0,.35);
+    clip-path: polygon(0 4%, 3% 0, 6% 6%, 9% 1%, 12% 4%, 88% 3%, 91% 0, 94% 5%, 97% 1%, 100% 4%, 99% 30%, 100% 55%, 98% 78%, 100% 97%, 96% 100%, 93% 95%, 90% 100%, 87% 96%, 13% 98%, 10% 94%, 7% 100%, 4% 95%, 0 99%, 1% 70%, 0 45%, 2% 22%); }
+  .w { background: linear-gradient(180deg, #F3F1EB, #E7E4DC); }
+  .pk { background: linear-gradient(180deg, #FF4FB0, #F2349F); }
+  .yl { background: linear-gradient(180deg, #EEFF4A, #DDF22E); }
+
+  .t1 { left: 5vmin; top: 7vmin; padding: 1.6vmin 3.4vmin 1.4vmin; font-size: 5.6vmin; transform: rotate(-3deg); }
+  .t2 { left: 7vmin; top: 17.6vmin; padding: 1.8vmin 4vmin 1.4vmin; font-weight: 700; font-size: 17vmin; letter-spacing: -.01em; text-transform: uppercase; transform: rotate(1.5deg); }
+  .t3 { left: 5vmin; top: 42vmin; padding: 1.3vmin 3vmin 1.1vmin; font-size: 3.6vmin; transform: rotate(-1.5deg); }
+  .t4 { right: 6vmin; top: 50vmin; padding: 1.2vmin 3vmin 1vmin; font-weight: 700; font-size: 3vmin; letter-spacing: .12em; text-transform: uppercase; transform: rotate(4deg); }
+  .t5 { left: 5vmin; bottom: 5vmin; padding: 1vmin 2.4vmin .8vmin; font-weight: 500; font-size: 1.8vmin; letter-spacing: .18em; text-transform: uppercase; transform: rotate(-1deg); }
+
+  /* spike marks */
+  .mark { position: absolute; }
+  .mark i { position: absolute; display: block; }
+  .tm { right: 8vmin; top: 8vmin; width: 18vmin; height: 16vmin; transform: rotate(-6deg); }
+  .tm i:nth-child(1) { left: 0; top: 0; width: 100%; height: 3.2vmin; background: #EEFF4A; }
+  .tm i:nth-child(2) { left: 50%; top: 2.8vmin; width: 3.2vmin; margin-left: -1.6vmin; height: 13vmin; background: #DDF22E; }
+  .tm b { position: absolute; white-space: nowrap; left: calc(50% + 3vmin); top: 5vmin; font-family: "Mansalva", cursive; font-weight: 400; font-size: 4.6vmin; color: #EEFF4A; }
+  .xm { right: 12vmin; bottom: 7vmin; width: 13vmin; height: 13vmin; }
+  .xm i { left: -1vmin; top: 50%; width: calc(100% + 2vmin); height: 2.8vmin; margin-top: -1.4vmin; background: #FF4FB0; }
+  .xm i:nth-child(1) { transform: rotate(45deg); }
+  .xm i:nth-child(2) { transform: rotate(-45deg); background: #F2349F; }
+  .edge { position: absolute; left: -2vmin; right: -2vmin; top: 0; height: 2.6vmin; background: #F3F1EB; opacity: .92; transform: translateY(-50%); }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .photo { height: 52%; }
+    .floor { top: 52%; }
+    .t1 { top: 6vmin; font-size: 5vmin; }
+    .t2 { top: 15vmin; font-size: 15vmin; }
+    .t3 { top: 37vmin; }
+    .t4 { top: 45vmin; }
+    .tm { top: 6vmin; width: 15vmin; height: 13vmin; }
+    .tm i:nth-child(2) { height: 10vmin; }
+    .xm { width: 10vmin; height: 10vmin; bottom: 5vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 50%; }
+    .floor { top: 50%; }
+    .t1 { top: 5.4vmin; font-size: 4.4vmin; }
+    .t2 { top: 14vmin; font-size: 12.4vmin; }
+    .t3 { top: 32.4vmin; font-size: 3.2vmin; }
+    .t4 { top: auto; bottom: 5vmin; }
+    .t5 { display: none; }
+    .xm { display: none; }
+  }
+  /* square — floor left, photo right with a white tape seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 24%; }
+    .floor { top: 0; right: 50%; }
+    .edge { left: auto; right: 0; top: -2vmin; bottom: -2vmin; width: 2.6vmin; height: auto; transform: translateX(50%); }
+    .t1 { top: 9vmin; font-size: 4.6vmin; }
+    .t2 { top: 22vmin; left: 4vmin; font-size: 9.4vmin; padding: 1.6vmin 3vmin 1.2vmin; }
+    .t3 { top: 42vmin; font-size: 3vmin; }
+    .t4 { top: auto; right: auto; left: 7vmin; bottom: 22vmin; }
+    .t5 { display: inline-block; bottom: 6vmin; }
+    .tm { right: 5vmin; top: 60vmin; width: 13vmin; height: 12vmin; }
+    .tm i:nth-child(1) { height: 2.6vmin; }
+    .tm i:nth-child(2) { width: 2.6vmin; margin-left: -1.3vmin; height: 9.4vmin; top: 2.4vmin; }
+    .tm b { font-size: 3.6vmin; top: 4vmin; left: calc(50% + 2.4vmin); }
+    .xm { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .floor { right: 42%; }
+    .t1 { left: 7vmin; top: 10vmin; font-size: 5.2vmin; }
+    .t2 { left: 8vmin; top: 24vmin; font-size: 17vmin; }
+    .t3 { left: 7vmin; top: 54vmin; font-size: 3.6vmin; }
+    .t4 { left: 9vmin; bottom: 17vmin; }
+    .tm { right: 34vmin; top: 64vmin; width: 16vmin; height: 15vmin; }
+    .tm i:nth-child(1) { height: 3vmin; }
+    .tm i:nth-child(2) { width: 3vmin; margin-left: -1.5vmin; height: 12vmin; top: 2.8vmin; }
+    .tm b { font-size: 4.4vmin; top: 5vmin; }
+    .xm { display: block; right: 10vmin; bottom: 10vmin; width: 12vmin; height: 12vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="floor">
+    <i class="edge"></i>
+    <div class="mark tm"><i></i><i></i><b>Nº 3</b></div>
+    <div class="mark xm"><i></i><i></i></div>
+    <span class="tp w t1 mk">Hit your mark —</span>
+    <span class="tp pk t2">40% off</span>
+    <span class="tp w t3 mk">the whole show, Fri — Sun</span>
+    <span class="tp yl t4">Code MARK40</span>
+    <span class="tp w t5">Studio Oro · SS27 runway</span>
+  </div>
+</div>
+</body>
+</html>

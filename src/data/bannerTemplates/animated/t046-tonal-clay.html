@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Tonal — one hue (clay), three values only: light ground, mid offset block, deep ink. A colour-story card.
+     The photo keeps its true colour; the mid block sits behind it like a tonal shadow. */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F0E4DE; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F0E4DE; color: #5A3830; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .tone { position: absolute; left: 0; top: 0; width: 76%; height: calc(100% - 59vmin); background: #C99F92; }
+  .photo { position: absolute; left: 12%; top: 7vmin; width: 80%; height: calc(100% - 60vmin); object-fit: cover; object-position: 50% 16%; }
+  .k { position: absolute; left: 6vmin; top: 3.2vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; }
+  .copy { position: absolute; left: 6vmin; bottom: 7vmin; width: 52vmin; }
+  h1 { margin: 0; font-family: "Bodoni Moda", Didot, Georgia, serif; font-style: italic; font-weight: 400; font-size: 17vmin; line-height: .85; letter-spacing: -.02em; }
+  .d { margin-top: 2.6vmin; font-size: 2.5vmin; line-height: 1.5; }
+  .cta { margin-top: 2.6vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; display: inline-block; padding-bottom: .6vmin; border-bottom: 1px solid #5A3830; }
+  /* the three values as paint chips */
+  .chips { position: absolute; right: 6vmin; bottom: 7vmin; display: flex; gap: 1.6vmin; }
+  .chip { width: 9vmin; }
+  .chip i { display: block; height: 12vmin; }
+  .chip span { display: block; margin-top: 1.2vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .06em; }
+  .chip span em { display: block; font-style: normal; font-weight: 400; letter-spacing: .04em; margin-top: .3vmin; }
+  .c1 i { background: #F0E4DE; box-shadow: inset 0 0 0 1px rgba(90,56,48,.35); }
+  .c2 i { background: #C99F92; }
+  .c3 i { background: #5A3830; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .tone { height: calc(100% - 51vmin); }
+    .photo { height: calc(100% - 52vmin); left: 14%; width: 76%; }
+    h1 { font-size: 13vmin; }
+    .d { font-size: 2.2vmin; }
+    .copy { bottom: 6vmin; }
+    .chips { bottom: 6vmin; }
+    .chip i { height: 10vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .tone { left: auto; right: 0; top: 0; width: 50%; height: calc(100% - 7vmin); }
+    .photo { left: auto; right: 7vmin; top: 7vmin; width: calc(50% - 1vmin); height: calc(100% - 7vmin); object-position: 50% 22%; }
+    .k { left: 7vmin; top: 7vmin; }
+    .copy { left: 7vmin; bottom: auto; top: 20vmin; width: calc(50% - 16vmin); }
+    h1 { font-size: 12vmin; }
+    .d { font-size: 2vmin; }
+    .chips { left: 7vmin; right: auto; bottom: 7vmin; }
+    .chip { width: 8vmin; }
+    .chip i { height: 8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .tone { width: 54%; }
+    .photo { width: calc(54% - 1vmin); right: 8vmin; object-position: 60% 25%; }
+    .copy { width: calc(46% - 18vmin); top: 19vmin; }
+    h1 { font-size: 13vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design — calm, tonal, one colour story told in three beats ───────── */
+  /* 1 · the mid-tone block drifts like a shadow as the light moves (always off-frame on the edge it touches) */
+  .tone { --dx: -1.6vmin; animation: shade 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes shade { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(var(--dx), -1.6vmin); } }
+  /* 2 · the chips are lifted one by one, like swatches being picked off the card */
+  .chip i { animation: lift 6s linear infinite; }
+  .c2 i { animation-delay: -5.82s; }
+  .c3 i { animation-delay: -5.64s; }
+  @keyframes lift {
+    0%, 6% { transform: translateY(0); box-shadow: 0 0 0 rgba(90,56,48,0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    13% { transform: translateY(-1.6vmin); box-shadow: 0 1.4vmin 1.8vmin rgba(90,56,48,.22); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    25%, 100% { transform: translateY(0); box-shadow: 0 0 0 rgba(90,56,48,0); }
+  }
+  .c1 i { animation-name: lift1; }
+  @keyframes lift1 {
+    0%, 6% { transform: translateY(0); box-shadow: inset 0 0 0 1px rgba(90,56,48,.35), 0 0 0 rgba(90,56,48,0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    13% { transform: translateY(-1.6vmin); box-shadow: inset 0 0 0 1px rgba(90,56,48,.35), 0 1.4vmin 1.8vmin rgba(90,56,48,.22); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    25%, 100% { transform: translateY(0); box-shadow: inset 0 0 0 1px rgba(90,56,48,.35), 0 0 0 rgba(90,56,48,0); }
+  }
+  /* 3 · the name of the colour sinks and rises back, soft as clay */
+  h1 { transform-origin: 0 100%; animation: sink 6s linear infinite; }
+  @keyframes sink {
+    0%, 38% { transform: none; opacity: 1; filter: none; animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    45% { transform: translateY(2.4vmin) scaleY(.94); opacity: 0; filter: blur(.5vmin); animation-timing-function: cubic-bezier(.15,.7,.25,1); }
+    60%, 100% { transform: none; opacity: 1; filter: none; }
+  }
+  /* the underline is redrawn: it leaves to the right and comes back from the left */
+  .cta { position: relative; border-bottom-color: transparent; }
+  .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #5A3830; transform-origin: 100% 50%; animation: rule 6s linear infinite; }
+  @keyframes rule {
+    0%, 62% { transform: scaleX(1); transform-origin: 100% 50%; animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    72% { transform: scaleX(0); transform-origin: 100% 50%; }
+    72.1% { transform: scaleX(0); transform-origin: 0 50%; animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    84%, 100% { transform: scaleX(1); transform-origin: 0 50%; }
+  }
+  /* photo: the gentlest push-in */
+  .photo { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+  @media (min-aspect-ratio: 9/10) { .tone { --dx: 1.6vmin; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="tone"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="k">Colour story Nº 3</div>
+  <div class="copy">
+    <h1>Clay.</h1>
+    <div class="d">One colour, worn head to toe. The new tonal collection.</div>
+    <div class="cta">Shop the colour</div>
+  </div>
+  <div class="chips">
+    <div class="chip c1"><i></i><span>01<em>Chalk</em></span></div>
+    <div class="chip c2"><i></i><span>02<em>Clay</em></span></div>
+    <div class="chip c3"><i></i><span>03<em>Umber</em></span></div>
+  </div>
+</div>
+</body>
+</html>

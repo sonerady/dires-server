@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Manrope:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Private Sale — members-only, on heavy grey stock with debossed headline type.
+     tall → stock above, photo below; square/wide → stock left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D8D1C5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #D8D1C5; color: #2A2622; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .stock { position: absolute; left: 0; top: 0; width: 100%; height: 42%; overflow: hidden; background: #D8D1C5; }
+  .stock svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; mix-blend-mode: multiply; }
+  .photo { position: absolute; left: 0; top: 42%; width: 100%; height: 58%; object-fit: cover; object-position: 50% 20%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; height: calc(42% - 10vmin); display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(42,38,34,.35); font-size: 1.8vmin; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; }
+  .top span:last-child { letter-spacing: .16em; font-weight: 500; }
+  .h { margin: auto 0; padding: 2vmin 0; font-family: "Playfair Display", Didot, "Times New Roman", serif; font-weight: 400; font-size: 16vmin; line-height: .9; letter-spacing: -.02em; color: #7A7062;
+    text-shadow: 0 .28vmin .12vmin rgba(255,255,255,.7), 0 -.16vmin .1vmin rgba(58,48,38,.4); }
+  .h em { font-style: italic; }
+  .h span { display: block; padding-left: 16vmin; }
+  .info { display: flex; border-top: 1px solid rgba(42,38,34,.35); }
+  .info div { flex: 1; padding-top: 1.6vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: #5A5249; }
+  .info div + div { padding-left: 2.4vmin; border-left: 1px solid rgba(42,38,34,.25); }
+  .info b { display: block; margin-top: .6vmin; font-size: 2.8vmin; font-weight: 700; letter-spacing: .04em; color: #2A2622; }
+  @media (min-aspect-ratio: 7/10) {
+    .stock { height: 44%; }
+    .photo { top: 44%; height: 56%; }
+    .copy { height: calc(44% - 9vmin); top: 4.5vmin; }
+    .h { font-size: 13.5vmin; padding: 1vmin 0; }
+    .h span { padding-left: 13vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .stock { width: 46%; height: 100%; }
+    .photo { left: 46%; top: 0; width: 54%; height: 100%; object-position: 50% 25%; }
+    .copy { left: 5vmin; right: auto; width: calc(46% - 10vmin); top: 6vmin; height: calc(100% - 12vmin); }
+    .top { flex-direction: column; gap: .8vmin; }
+    .h { font-size: 12.5vmin; }
+    .h span { padding-left: 6vmin; }
+    .info { flex-direction: column; }
+    .info div { display: flex; justify-content: space-between; align-items: baseline; padding: 1vmin 0; border-bottom: 1px solid rgba(42,38,34,.2); font-size: 1.7vmin; }
+    .info div + div { padding-left: 0; border-left: 0; }
+    .info b { margin-top: 0; font-size: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .stock { width: 44%; }
+    .photo { left: 44%; width: 56%; }
+    .copy { left: 6vmin; width: calc(44% - 12vmin); top: 6vmin; height: calc(100% - 12vmin); }
+    .top { flex-direction: row; }
+    .h { font-size: 15vmin; }
+    .h span { padding-left: 12vmin; }
+    .info { flex-direction: row; }
+    .info div { display: block; padding: 1.6vmin 0 0; border-bottom: 0; font-size: 1.8vmin; }
+    .info div + div { padding-left: 2.4vmin; border-left: 1px solid rgba(42,38,34,.25); }
+    .info b { margin-top: .6vmin; font-size: 2.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="stock">
+    <svg aria-hidden="true"><filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#grain)"/></svg>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="top"><span>By invitation</span><span>Member N° 0417</span></div>
+    <div class="h"><em>Private</em><span>Sale</span></div>
+    <div class="info">
+      <div>Up to<b>40% off</b></div>
+      <div>Dates<b>2–5 Oct</b></div>
+      <div>Code<b>PRIVE40</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Show Schedule — a fashion-week running order turned into the launch calendar (dates, times, places) + RSVP stamp.
+     tall → header / photo / schedule · square & wide → schedule left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F4F1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4F4F1; color: #111; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .mono { font-family: "JetBrains Mono", "Courier New", monospace; }
+
+  .head { position: absolute; left: 5vmin; right: 5vmin; top: 4vmin; display: flex; justify-content: space-between; align-items: flex-start; }
+  .season { font-weight: 900; font-stretch: 125%; font-size: 15.5vmin; line-height: .78; letter-spacing: -.03em; }
+  .season sup { font-size: .26em; font-weight: 700; letter-spacing: 0; vertical-align: top; margin-left: 1vmin; position: relative; top: .5vmin; color: #2437F0; }
+  .title { text-align: right; font-weight: 800; font-stretch: 62%; font-size: 5.6vmin; line-height: .9; text-transform: uppercase; letter-spacing: .01em; padding-top: .4vmin; }
+  .title small { display: block; margin-top: 1.4vmin; font-family: "JetBrains Mono", monospace; font-size: 1.8vmin; font-weight: 700; letter-spacing: .06em; color: #2437F0; }
+  .sub { position: absolute; left: 5vmin; right: 5vmin; top: 23vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .04em; text-transform: uppercase; border-top: .5vmin solid #111; padding-top: 1.2vmin; }
+
+  .photo { position: absolute; left: 0; top: 29vmin; width: 100%; height: calc(100% - 29vmin - 56vmin); object-fit: cover; object-position: 50% 22%; }
+  .stamp { position: absolute; right: 4vmin; top: 28vmin; width: 17vmin; height: 17vmin; transform: rotate(-12deg); }
+  .stamp svg { display: block; width: 100%; height: 100%; }
+
+  .sched { position: absolute; left: 5vmin; right: 5vmin; bottom: 4vmin; height: 49vmin; display: grid; grid-template-rows: auto repeat(4, 1fr); }
+  .r { display: grid; grid-template-columns: 19vmin 12vmin 1fr 17vmin; align-items: center; column-gap: 1.6vmin; border-bottom: 1px solid rgba(17,17,17,.3); }
+  .r.th { font-family: "JetBrains Mono", monospace; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; color: #6B6B66; padding-bottom: 1.2vmin; border-bottom: 1px solid #111; }
+  .r .d, .r .h, .r .w { font-family: "JetBrains Mono", monospace; font-size: 2.1vmin; letter-spacing: .02em; }
+  .r .w { text-align: right; }
+  .r .e { font-weight: 800; font-stretch: 75%; font-size: 4.4vmin; line-height: 1; text-transform: uppercase; letter-spacing: -.005em; white-space: nowrap; }
+  .r.on { background: #2437F0; color: #fff; border-bottom-color: #2437F0; margin: 0 -2vmin; padding: 0 2vmin; }
+  .r.on .w { font-weight: 700; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .season { font-size: 14vmin; }
+    .title { font-size: 4.6vmin; }
+    .sub { top: 19vmin; }
+    .photo { top: 24.5vmin; height: calc(100% - 24.5vmin - 45vmin); }
+    .stamp { top: 23.4vmin; width: 15vmin; height: 15vmin; }
+    .sched { height: 39vmin; bottom: 3.6vmin; }
+    .r .e { font-size: 3.8vmin; }
+    .r .d, .r .h, .r .w { font-size: 1.9vmin; }
+  }
+  /* square — the running order on the left, the look on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { top: 0; left: auto; right: 0; width: 44%; height: 100%; object-position: 50% 25%; }
+    .head, .sub, .sched { left: 4.5vmin; right: calc(44% + 4.5vmin); }
+    .head { top: 4.5vmin; flex-direction: column; gap: 2vmin; }
+    .title { text-align: left; font-size: 4.4vmin; }
+    .title br { display: none; }
+    .season { font-size: 11vmin; }
+    .sub { top: 31vmin; }
+    .stamp { right: calc(44% - 7vmin); top: auto; bottom: 6vmin; width: 14vmin; height: 14vmin; display: none; }
+    .sched { top: 40vmin; bottom: 4.5vmin; height: auto; }
+    .r { grid-template-columns: 11vmin 8vmin 1fr; column-gap: 1.2vmin; }
+    .r .w { display: none; }
+    .r .e { font-size: 3.3vmin; }
+    .r .d, .r .h { font-size: 1.7vmin; }
+    .r.th { font-size: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; }
+    .head, .sub, .sched { left: 5vmin; right: calc(40% + 5vmin); }
+    .head { flex-direction: row; align-items: flex-end; }
+    .title { text-align: right; font-size: 4.6vmin; }
+    .title br { display: inline; }
+    .season { font-size: 15vmin; }
+    .sub { top: 23vmin; }
+    .sched { top: 30vmin; bottom: 5vmin; }
+    .r { grid-template-columns: 16vmin 10vmin 1fr 16vmin; column-gap: 1.6vmin; }
+    .r .w { display: block; }
+    .r .e { font-size: 4.2vmin; }
+    .r .d, .r .h, .r .w { font-size: 1.9vmin; }
+    .stamp { display: block; right: calc(40% - 21vmin); top: 4vmin; bottom: auto; width: 17vmin; height: 17vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* running-order cursor: the blue bar leaves "Last call", scans down the schedule like a departures board, and lands back */
+  .r:not(.th) { margin: 0 -2vmin; padding: 0 2vmin; }
+  .r:nth-child(2) { animation: lit1 6s linear infinite; }
+  .r:nth-child(3) { animation: lit2 6s linear infinite; }
+  .r:nth-child(4) { animation: lit3 6s linear infinite; }
+  .r.on { animation: liton 6s linear infinite; }
+  @keyframes lit1 {
+    0%, 13% { background-color: rgba(36,55,240,0); color: #111; }
+    15%, 25% { background-color: rgba(36,55,240,1); color: #fff; }
+    27%, 100% { background-color: rgba(36,55,240,0); color: #111; }
+  }
+  @keyframes lit2 {
+    0%, 25% { background-color: rgba(36,55,240,0); color: #111; }
+    27%, 37% { background-color: rgba(36,55,240,1); color: #fff; }
+    39%, 100% { background-color: rgba(36,55,240,0); color: #111; }
+  }
+  @keyframes lit3 {
+    0%, 37% { background-color: rgba(36,55,240,0); color: #111; }
+    39%, 49% { background-color: rgba(36,55,240,1); color: #fff; }
+    51%, 100% { background-color: rgba(36,55,240,0); color: #111; }
+  }
+  @keyframes liton {
+    0%, 11% { background-color: rgba(36,55,240,1); color: #fff; }
+    13%, 49% { background-color: rgba(36,55,240,0); color: #111; }
+    51%, 100% { background-color: rgba(36,55,240,1); color: #fff; }
+  }
+  /* the landing row gets a small punch; its clock colon keeps ticking */
+  .r.on .e { display: inline-block; transform-origin: 0 50%; animation: land 6s linear infinite; }
+  @keyframes land {
+    0%, 50% { transform: translateX(0); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    53% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    60%, 100% { transform: translateX(0); }
+  }
+  .r .h i { font-style: normal; animation: colon 1s steps(1, end) infinite; }
+  @keyframes colon { 0%, 49% { opacity: 1; } 50%, 99% { opacity: 0; } 100% { opacity: 1; } }
+  /* RSVP stamp: the ring text circles; the stamp lifts and slams back down on the beat */
+  .stamp .ring { transform-box: view-box; transform-origin: 50% 50%; animation: spin 6s linear infinite; }
+  @keyframes spin { from { transform: rotate(0); } to { transform: rotate(-360deg); } }
+  .stamp svg { animation: slam 6s linear infinite; }
+  @keyframes slam {
+    0%, 52% { transform: scale(1) rotate(0); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    57% { transform: scale(1.35) rotate(8deg); opacity: 0; animation-timing-function: steps(1, end); }
+    58% { transform: scale(1.35) rotate(8deg); opacity: 0; animation-timing-function: cubic-bezier(.6,0,.9,.6); }
+    62% { transform: scale(.94) rotate(-1deg); opacity: 1; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    66% { transform: scale(1.02) rotate(0); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    70%, 100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+  /* photo: a slow push-in */
+  .photo { animation: push 6s linear infinite; }
+  @keyframes push {
+    0% { transform: scale(1); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: scale(1.03); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    100% { transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div class="season">AW26<sup>/08</sup></div>
+    <div class="title">Show<br> Schedule<small>08—12.10</small></div>
+  </div>
+  <div class="sub mono"><span>Studio Oro</span><span>Launch week</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="stamp"><svg viewBox="0 0 100 100" aria-hidden="true">
+    <defs><path id="c" d="M50,50 m-37,0 a37,37 0 1,1 74,0 a37,37 0 1,1 -74,0"/></defs>
+    <circle cx="50" cy="50" r="48" fill="#2437F0"/>
+    <circle cx="50" cy="50" r="44" fill="none" stroke="#F4F4F1" stroke-width=".8"/>
+    <circle cx="50" cy="50" r="27" fill="none" stroke="#F4F4F1" stroke-width=".8"/>
+    <g class="ring"><text font-family="JetBrains Mono, monospace" font-size="8.4" font-weight="700" letter-spacing="1.2" fill="#F4F4F1"><textPath href="#c">ADMIT ONE · ADMIT ONE · ADMIT ONE ·</textPath></text></g>
+    <text x="50" y="57" text-anchor="middle" font-family="Archivo, Arial, sans-serif" font-weight="900" font-size="19" fill="#F4F4F1">RSVP</text>
+  </svg></div>
+  <div class="sched">
+    <div class="r th"><span>Date</span><span>Time</span><span>Event</span><span class="w">Where</span></div>
+    <div class="r"><span class="d">Wed 08.10</span><span class="h">09:00</span><span class="e">Early access</span><span class="w">Members</span></div>
+    <div class="r"><span class="d">Fri 10.10</span><span class="h">10:00</span><span class="e">Online launch</span><span class="w">Worldwide</span></div>
+    <div class="r"><span class="d">Sat 11.10</span><span class="h">11:00</span><span class="e">Store opening</span><span class="w">Paris</span></div>
+    <div class="r on"><span class="d">Sun 12.10</span><span class="h">20<i>:</i>00</span><span class="e">Last call</span><span class="w">−30% all</span></div>
+  </div>
+</div>
+</body>
+</html>

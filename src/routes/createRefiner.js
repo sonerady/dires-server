@@ -1,3 +1,6 @@
+const { refinerBackgroundMode, refinerBackgroundInput } = require("../utils/refinerBackground");
+const { prepareRefinerResultImage } = require("../utils/refinerResultImage");
+const { setGenerationProgress, getGenerationProgress, clearGenerationProgress } = require("../services/generationProgress");
 const { recordRefundCharge } = require("../services/refundChargeEvidence");
 const { REFINER_GHOST_MANNEQUIN_DIRECTIVE } = require("../utils/refinerGhostMannequinPrompt");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
@@ -20,7 +23,7 @@ const {
   buildStyleProfileGrid,
 } = require("../utils/styleReferenceImage");
 // 🔍 Sonuç netleştirme — model üretimiyle (referenceBrowserV7) ortak yardımcı
-const { finishRefinerMainResult } = require("../utils/refinerResultFinishing");
+const { finishRefinerMainResult, shouldFinishRefinerMain } = require("../utils/refinerResultFinishing");
 // 🎭 Trial'ın İLK çeşitlendirme partisi backend'de, completion anında başlar
 // (CreateModelPhotoScreen akışının aynısı — 27 Ağu 2026 kullanıcı isteği).
 // Refiner kaynağında varyasyon ÜRÜN modunda üretilir; variationRoutes bunu
@@ -348,6 +351,8 @@ async function callFalAiGptImageEditForRefiner(
   imageUrlOrUrls,
   aspectRatio = DEFAULT_REFINER_RATIO,
   maxRetries = 3,
+  progressGenerationId = null, // 🧭 yalnız bellekteki aşama yazısı için
+  backgroundMode = "opaque",
 ) {
   // Tek URL de dizi de kabul edilir (18 Ağu 2026): renk dizisinin renk
   // kareleri + dizilim örneği artık GPT'ye de çoklu görsel olarak gidiyor.
@@ -356,9 +361,12 @@ async function callFalAiGptImageEditForRefiner(
   ).filter(Boolean);
   const modelEndpoint = GPT25_EDIT_MODEL;
   const modelLabel = "GPT Image 2.5";
-  const input = buildEditInput(modelEndpoint, {prompt, image_urls: imageUrls, aspect_ratio: normalizeRefinerRatio(aspectRatio), output_format: "jpeg"});
+  const input = buildEditInput(modelEndpoint, {...refinerBackgroundInput(prompt, backgroundMode), image_urls: imageUrls, aspect_ratio: normalizeRefinerRatio(aspectRatio)});
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    if (attempt > 1 && progressGenerationId) {
+      setGenerationProgress(progressGenerationId, "retrying");
+    }
     try {
       logger.log(
         `🎨 [FAL_AI_GPT_REFINER] ${modelLabel} attempt ${attempt}/${maxRetries}`,
@@ -580,7 +588,7 @@ async function checkUserProStatus(userId) {
 }
 
 // Result image'ı user-specific bucket'e kaydetme fonksiyonu
-async function saveResultImageToUserBucket(resultImageUrl, userId) {
+async function saveResultImageToUserBucket(resultImageUrl, userId, alphaSourceUrl = null) {
   try {
     logger.log("📤 Result image user bucket'ine kaydediliyor...");
     logger.log("🖼️ Result image URL:", resultImageUrl);
@@ -590,17 +598,22 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
       throw new Error("Result image URL ve User ID gereklidir");
     }
 
+    if (!alphaSourceUrl && resultImageUrl.startsWith(`${supabaseUrl}/storage/v1/object/public/user_image_results/${userId}/`)) return resultImageUrl;
+
     // Result image'ı indir
     const imageResponse = await axios.get(resultImageUrl, {
       responseType: "arraybuffer",
       timeout: 30000, // 30 saniye timeout
     });
-    const imageBuffer = Buffer.from(imageResponse.data);
+    const alphaResponse = alphaSourceUrl ? await axios.get(alphaSourceUrl, { responseType: "arraybuffer", timeout: 30000 }) : null;
+    const { buffer: imageBuffer, extension, contentType } = await prepareRefinerResultImage(
+      Buffer.from(imageResponse.data), alphaResponse ? Buffer.from(alphaResponse.data) : null,
+    );
 
     // User klasörü için dosya adı oluştur
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `${userId}/${timestamp}_result_${randomId}.jpg`;
+    const fileName = `${userId}/${timestamp}_result_${randomId}.${extension}`;
 
     logger.log("📁 User bucket dosya adı:", fileName);
 
@@ -608,7 +621,7 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
     const { data, error } = await supabase.storage
       .from("user_image_results")
       .upload(fileName, imageBuffer, {
-        contentType: "image/jpeg",
+        contentType,
         cacheControl: "3600",
         upsert: false,
       });
@@ -631,6 +644,7 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
   } catch (error) {
     console.error("❌ Result image user bucket'e kaydedilemedi:", error);
     // Hata durumunda orijinal URL'yi döndür
+    if (alphaSourceUrl) throw error; // The caller keeps the original alpha result and does not charge for failed finishing.
     return resultImageUrl;
   }
 }
@@ -647,17 +661,17 @@ async function saveThumbnailToUserBucket(sourceUrl, userId) {
       maxContentLength: 250 * 1024 * 1024,
       maxBodyLength: 250 * 1024 * 1024,
     });
-    const thumb = await sharp(Buffer.from(resp.data))
+    const hasAlpha = (await sharp(Buffer.from(resp.data)).metadata()).hasAlpha;
+    const thumbPipeline = sharp(Buffer.from(resp.data))
       .rotate()
-      .resize(900, 900, { fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 82 })
-      .toBuffer();
+      .resize(900, 900, { fit: "inside", withoutEnlargement: true });
+    const thumb = await (hasAlpha ? thumbPipeline.png() : thumbPipeline.jpeg({ quality: 82 })).toBuffer();
 
-    const fileName = `${userId}/${Date.now()}_thumb_${uuidv4().substring(0, 8)}.jpg`;
+    const fileName = `${userId}/${Date.now()}_thumb_${uuidv4().substring(0, 8)}.${hasAlpha ? "png" : "jpg"}`;
     const { error } = await supabase.storage
       .from("user_image_results")
       .upload(fileName, thumb, {
-        contentType: "image/jpeg",
+        contentType: hasAlpha ? "image/png" : "image/jpeg",
         cacheControl: "3600",
         upsert: true,
       });
@@ -5057,6 +5071,8 @@ ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
     stopHeartbeat = startGenerationHeartbeat(supabase, finalGenerationId, userId);
+    // 🧭 Results kartındaki kullanıcı dostu aşama yazısı (services/generationProgress)
+    setGenerationProgress(finalGenerationId, "preparing");
 
     // 📊 Refiner modunda refiner_generations tablosuna da kaydet
     if (isRefinerMode) {
@@ -5100,6 +5116,8 @@ ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of 
     }
 
     let finalImage;
+    // 📐 Açı modunda ilk kare dışındaki açıların URL'leri (yalnız tek-resim dalında dolar)
+    let refinerAngleExtraUrls = [];
 
     // Çoklu resim varsa her birini ayrı ayrı upload et, canvas birleştirme yapma
     if (isMultipleImages && referenceImages.length > 1) {
@@ -5199,6 +5217,19 @@ ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of 
 
       // Zaten upload edilmiş URL'yi kullan - tekrar upload YOK!
       finalImage = sanitizeImageUrl(referenceImageUrls[0]);
+      // 📐 ÇOKLU AÇI (2 Eki 2026, kullanıcı şikâyeti "farklı açılar çalışmıyor"): istemciler açı modunda
+      // isMultipleImages:false gönderiyor → bu dal; eskiden yalnız ilk kare (finalImage) GPT 2.5'e gidiyordu,
+      // diğer açılar yüklenip hiç kullanılmıyordu. Ek açılar ayrı tutulur ve refinerInputs'a ürün karesinin
+      // hemen ardından eklenir.
+      if (anglesModeActive && referenceImageUrls.length > 1) {
+        refinerAngleExtraUrls = referenceImageUrls
+          .slice(1, anglesCount)
+          .map((u) => sanitizeImageUrl(u))
+          .filter(Boolean);
+        logger.log(
+          `📐 [REFINER MULTIPLE ANGLES] ${1 + refinerAngleExtraUrls.length} açı karesi modele gidecek`,
+        );
+      }
       logger.log(
         "🚀 [OPTIMIZE] Tek resim için önceden upload edilen URL kullanıldı (çift upload önlendi)",
       );
@@ -5449,6 +5480,7 @@ ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of 
       isStagedCategory &&
       [1, 2, 3].includes(stagingStyleValue)
     ) {
+      setGenerationProgress(finalGenerationId, "scene");
       try {
         if (!global.__refinerStagingRefCache) global.__refinerStagingRefCache = {};
         // ⚠️ Oran anahtarın PARÇASI: aynı kare farklı tuvale dolgulanınca
@@ -5551,6 +5583,8 @@ ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of 
       }
     }
 
+    // 🧭 Ürün fotoğrafı Gemini ile inceleniyor / prompt kuruluyor
+    setGenerationProgress(finalGenerationId, "product");
     if (isColorChange || isPoseChange || isRefinerMode) {
       // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
       if (isColorChange) {
@@ -5618,7 +5652,7 @@ ABSOLUTELY NO ADDED TEXT: The finished photograph must contain no added text of 
         if (anglesModeActive) {
           enhancedPrompt += `
 
-MULTIPLE-ANGLE PRODUCT REFERENCE: The composite grid contains ${anglesCount} views of the same single product. Use every cell only to reconstruct that one product faithfully from all visible sides — its exact colors, prints, stitching, trims, hardware, texture and proportions. The final photograph shows ONE instance of the product, never multiple items, duplicates or a collage.`;
+MULTIPLE-ANGLE PRODUCT REFERENCE: The first ${1 + refinerAngleExtraUrls.length} attached images are ${1 + refinerAngleExtraUrls.length} different photographs of the SAME single product, taken from different angles. Use all of them together only to reconstruct that one product faithfully from every visible side — its exact colors, prints, stitching, trims, hardware, texture and proportions. Show the product from the main (first) photo's viewpoint unless another instruction sets the angle. The final photograph shows ONE instance of the product, never multiple items, duplicates or a collage.`;
           logger.log(
             `📐 [REFINER MULTIPLE ANGLES] ${anglesCount} açılık tek ürün direktifi eklendi`,
           );
@@ -5917,6 +5951,7 @@ MULTIPLE-ANGLE PRODUCT REFERENCE: The composite grid contains ${anglesCount} vie
         // sıra o yüzden korunur.
         let refinerInputs = [
           finalImage,
+          ...refinerAngleExtraUrls,
           ...(refinerStyleRefUrl ? [refinerStyleRefUrl] : []),
           ...lineupColorRefUrls,
           ...(lineupLayoutRefUrl ? [lineupLayoutRefUrl] : []),
@@ -5937,7 +5972,7 @@ MULTIPLE-ANGLE PRODUCT REFERENCE: The composite grid contains ${anglesCount} vie
           stagingExampleRefUrl &&
           [1, 2, 3].includes(stagingStyleValue)
         ) {
-          refinerInputs = [stagingExampleRefUrl, finalImage];
+          refinerInputs = [stagingExampleRefUrl, finalImage, ...refinerAngleExtraUrls];
           const swapNoun = isShoesStaging
             ? "shoe"
             : isEarringsStaging
@@ -6099,7 +6134,11 @@ The FIRST attached image (carrying a black "STAGING · REFERENCE" code plate) is
               : ""
           } and soft studio lighting. Do not change the composition in any way.${stagingBackgroundOverride}
 
-The SECOND attached image shows the user's product. REPLACE ${swapRefNoun} in the base scene with the user's product: every ${swapNoun} in the output is the user's product, carrying ${swapIdentity} with complete fidelity. No part of the reference product's design may survive in the output — it only lends its pose and composition.${swapPairRule}${swapCountRule}
+The SECOND attached image shows the user's product.${
+            refinerAngleExtraUrls.length
+              ? ` The next ${refinerAngleExtraUrls.length} attached image${refinerAngleExtraUrls.length > 1 ? "s show" : " shows"} the SAME product from other angles — use them only to read its design from every side; they are not extra products.`
+              : ""
+          } REPLACE ${swapRefNoun} in the base scene with the user's product: every ${swapNoun} in the output is the user's product, carrying ${swapIdentity} with complete fidelity. No part of the reference product's design may survive in the output — it only lends its pose and composition.${swapPairRule}${swapCountRule}
 
 CANVAS MAPPING: both the base scene and your output share the same ${refinerOutputRatio} canvas — place the product at the SAME position, scale and angle within the frame as in the base scene. ${swapForbidden}${
             stagingOrientationLock
@@ -6119,15 +6158,22 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
           );
         }
 
+        setGenerationProgress(finalGenerationId, "generating");
         const gptImageResult = await callFalAiGptImageEditForRefiner(
           refinerFinalPrompt, refinerInputs, refinerOutputRatio,
+          undefined, finalGenerationId, refinerBackgroundMode(req.body),
         );
 
         // Non-garment main results get an included Pruna 4 MP pass first.
         // Explicit higher MP selections retain the existing paid flow.
+        if (shouldFinishRefinerMain(req.body) || Number(upscaleMp) > 4) {
+          setGenerationProgress(finalGenerationId, "upscaling");
+        }
         const upscaleOutcome = await finishRefinerMainResult({
           request: req.body,
           imageUrl: gptImageResult,
+          transformResult: refinerBackgroundMode(req.body) === "transparent"
+            ? url => saveResultImageToUserBucket(url, userId, gptImageResult) : undefined,
           upscaleMp,
           userId,
           generationId: finalGenerationId,
@@ -6135,6 +6181,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         });
 
         // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
+        setGenerationProgress(finalGenerationId, "finishing");
         const refinerUpdated = await updateGenerationStatus(
           finalGenerationId,
           userId,
@@ -6182,6 +6229,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         }
 
         // Response döndür (imageUrl eklendi - RefinerScreen için)
+        clearGenerationProgress(finalGenerationId, "tamamlandı");
         return res.json({
           success: true,
           result: {
@@ -6221,6 +6269,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         );
 
         // Generation'ı failed olarak güncelle
+        clearGenerationProgress(finalGenerationId, "hata");
         await updateGenerationStatus(finalGenerationId, userId, "failed");
 
         // Kredi iade et
@@ -6266,7 +6315,9 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
     let retryReasons = [];
 
     const falModel = GPT25_EDIT_MODEL;
+    setGenerationProgress(finalGenerationId, "generating");
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      if (attempt > 1) setGenerationProgress(finalGenerationId, "retrying");
       try {
         logger.log(
           `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`,
@@ -6568,6 +6619,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
 
     if (!initialResult.id) {
       console.error("Replicate prediction ID alınamadı:", initialResult);
+      clearGenerationProgress(finalGenerationId, "hata");
 
       // 🗑️ Prediction ID hatası durumunda geçici dosyaları temizle
       logger.log(
@@ -6640,6 +6692,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         console.error("❌ Polling hatası:", pollingError.message);
 
         // Polling hatası durumunda status'u failed'e güncelle
+        clearGenerationProgress(finalGenerationId, "hata");
         await updateGenerationStatus(finalGenerationId, userId, "failed", {
           processing_time_seconds: Math.round((Date.now() - startTime) / 1000),
         });
@@ -6677,6 +6730,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
         logger.log(
           `🔄 Failed status retry attempt ${retryAttempt}/${maxPollingRetries}`,
         );
+        setGenerationProgress(finalGenerationId, "retrying");
 
         try {
           // 2 saniye bekle, sonra yeni prediction başlat
@@ -6851,6 +6905,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
       const resultImageUrl = Array.isArray(finalResult.output)
         ? finalResult.output[0]
         : finalResult.output;
+      setGenerationProgress(finalGenerationId, "finishing");
       const updatedGeneration = await updateGenerationStatus(
         finalGenerationId,
         userId,
@@ -6917,11 +6972,13 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
       logger.log("🧹 Başarılı işlem sonrası geçici dosyalar temizleniyor...");
       await cleanupTemporaryFiles(temporaryFiles);
 
+      clearGenerationProgress(finalGenerationId, "tamamlandı");
       return res.status(200).json(responseData);
     } else {
       console.error("Replicate API başarısız:", finalResult);
 
       // ❌ Status'u failed'e güncelle
+      clearGenerationProgress(finalGenerationId, "hata");
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
         // error_message kolonu yok, bu yüzden genel field kullan
         processing_time_seconds: Math.round((Date.now() - startTime) / 1000),
@@ -6971,6 +7028,7 @@ Finish quality: flawless professional e-commerce catalog photo — sharp focus e
 
     // ❌ Status'u failed'e güncelle (genel hata durumu)
     if (finalGenerationId) {
+      clearGenerationProgress(finalGenerationId, "hata");
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
         // error_message kolonu yok, bu yüzden genel field kullan
         processing_time_seconds: 0,
@@ -7647,6 +7705,12 @@ router.get("/generation-status/:generationId", async (req, res) => {
         // 🔍 Netleştirme bilgisi — SimpleImageModal zoom sürgüsü bunlara bakıyor
         upscaledMp: generation.upscaled_mp || null,
         preUpscaleImageUrl: generation.pre_upscale_image_url || null,
+        // ⏳ Ara aşama — Results kartındaki kullanıcı dostu durum yazısı.
+        // Bellekteki canlı aşama öncelikli (services/generationProgress); yoksa eski
+        // settings.stage ("upscaling"). Tamamlanınca aşama taşınmaz.
+        stage: finalStatus === "processing" || finalStatus === "pending"
+          ? getGenerationProgress(generation.generation_id) || generation.settings?.stage || null
+          : null,
         errorMessage: shouldUpdateStatus ? "İşlem zaman aşımına uğradı" : null,
         processingTimeSeconds: generation.processing_time_seconds,
         createdAt: generation.created_at,

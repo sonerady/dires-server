@@ -21,7 +21,9 @@ test("preview needs explicit local development opt-in and cannot run in producti
     true,
   );
 });
-test("every preview reruns vision and resets eligibility without persisted credits or claims", async () => {
+// 24 Eyl 2026 (kullanıcı isteği): onay ya da ret alan fotoğraf bir daha analiz edilmez —
+// önizleme kararı bellekte tutar (kayıt/kredi yine yok), status onu `existing` döndürür.
+test("preview decides a photo once, remembers it without persisted credits or claims", async () => {
   let calls = 0;
   const preview = createPreview({
     loadGeneration: async (user, id) =>
@@ -34,20 +36,21 @@ test("every preview reruns vision and resets eligibility without persisted credi
           }
         : null,
     imageData: async (url) => url,
-    vision: async () => {
+    // ⚖️ 25 Eyl 2026: önizleme de Opus hakemini kullanır — sahte hakem yanıtı
+    judge: async () => {
       calls++;
       return {
+        model: "test",
         raw: JSON.stringify({
-          product_match: 95,
-          render_quality: 95,
-          confidence: 0.99,
-          severe_failure: false,
-          failure_type: "none",
-          evidence:
-            "Product silhouette and all defining features match the original image.",
-          reason_addressed: false,
-          verdict: "no_refund",
-          defects: [],
+          product_type: "dress",
+          attributes: [
+            { name: "category", original: "dress", result: "dress", status: "same", intended: false },
+            { name: "length", original: "knee", result: "knee", status: "same", intended: false },
+          ],
+          anatomy: [],
+          render: { severity: "none", issue: "" },
+          decision: "no_refund",
+          decisive_finding: "Product silhouette and all defining features match the original image.",
           summary: "No severe defect.",
         }),
       };
@@ -55,11 +58,13 @@ test("every preview reruns vision and resets eligibility without persisted credi
   });
   const first = await preview.analyze("owner", "gen", "en");
   const second = await preview.analyze("owner", "gen", "en");
-  assert.notEqual(first.id, second.id);
-  assert.equal(calls, 2);
+  assert.equal(first.id, second.id);
+  assert.equal(calls, 1);
   assert.equal(first.devPreview, true);
   assert.equal(first.status, "rejected");
-  assert.deepEqual((await preview.status("owner", "gen")).existing, null);
+  const status = await preview.status("owner", "gen");
+  assert.equal(status.eligible, false);
+  assert.equal(status.existing.status, "rejected");
   assert.throws(
     () =>
       preview.appeal("other", first.id, "This is a long enough written appeal"),
@@ -79,7 +84,9 @@ test("every preview reruns vision and resets eligibility without persisted credi
       preview.appeal("owner", first.id, "This is a long enough written appeal"),
     /appeal_unavailable/,
   );
-  assert.equal((await preview.status("owner", "gen")).eligible, true);
+  const afterAppeal = await preview.status("owner", "gen");
+  assert.equal(afterAppeal.eligible, false);
+  assert.equal(afterAppeal.existing.status, "appeal_pending");
   await assert.rejects(
     preview.analyze("other", "gen", "en"),
     /no_product_photo/,

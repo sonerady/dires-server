@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Condition Grade — the honest resale scale: three giant Didone letters A · B · C, each with its
+     wear note and price, and a red felt-tip ring drawn around the grade of this piece.
+     tall → photo above, grading sheet below; 3:4 same with a shorter sheet; square / wide → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EFE6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EFE6; color: #17213A; font-family: "IBM Plex Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; box-sizing: border-box; padding: 5vmin 6vmin 0; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; color: #4A5264; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-weight: 500; font-size: 8.6vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 i { font-weight: 400; }
+
+  .grades { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; margin-top: 2vmin; border-top: .35vmin solid #17213A; }
+  .g { position: relative; padding: 2.4vmin 0 0 2.4vmin; border-left: 1px solid rgba(23,33,58,.3); height: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
+  .g:first-child { border-left: 0; padding-left: 0; }
+  .g .l { position: relative; font-family: "Bodoni Moda", Didot, serif; font-weight: 800; font-size: 20vmin; line-height: .9; width: max-content; }
+  .g.dim .l { color: transparent; -webkit-text-stroke: .25vmin #17213A; }
+  .g .l svg { position: absolute; left: -4.4vmin; top: -2.8vmin; width: calc(100% + 9vmin); height: calc(100% + 5vmin); overflow: visible; }
+  .g b { display: block; margin-top: 1.6vmin; font-family: "Bodoni Moda", serif; font-style: italic; font-weight: 500; font-size: 3vmin; }
+  .g span { display: block; margin-top: .8vmin; font-size: 1.7vmin; letter-spacing: .06em; color: #4A5264; }
+  .g em { display: block; margin-top: 1.4vmin; font-style: normal; font-weight: 500; font-size: 2.2vmin; }
+  .g.on em { color: #D2301F; }
+
+  .foot { flex: none; height: 10vmin; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(23,33,58,.3); font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .foot .cta { font-weight: 500; font-size: 1.9vmin; border-bottom: .3vmin solid #D2301F; padding-bottom: .3vmin; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 72vmin); }
+    .sheet { height: 72vmin; padding-top: 4vmin; }
+    h1 { font-size: 7.2vmin; margin-top: 1.8vmin; }
+    .g .l { font-size: 15vmin; }
+    .g .l svg { left: -3.4vmin; top: -2.2vmin; width: calc(100% + 7vmin); height: calc(100% + 4vmin); }
+    .g b { font-size: 2.6vmin; margin-top: 1.2vmin; }
+    .foot { height: 8.6vmin; }
+  }
+  /* square → sheet right of the photo; grades become three rows */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 25%; }
+    .sheet { left: 46%; top: 0; height: auto; padding: 5vmin 4.6vmin 0; }
+    .kick span + span { display: none; }
+    h1 { font-size: 6.4vmin; }
+    .grades { margin-top: 3vmin; grid-template-columns: 1fr; grid-template-rows: repeat(3, 1fr); align-items: stretch; }
+    .g, .g:first-child { display: grid; grid-template-columns: 15vmin 1fr; grid-template-rows: auto auto auto; align-content: center; column-gap: 2vmin;
+         padding: 0 0 0 2vmin; border-left: 0; border-top: 1px solid rgba(23,33,58,.3); }
+    .g:first-child { border-top: 0; }
+    .g .l { grid-row: 1 / 4; align-self: center; font-size: 12vmin; }
+    .g .l svg { left: -2.6vmin; top: -1.8vmin; width: calc(100% + 5.2vmin); height: calc(100% + 3.4vmin); }
+    .g b { margin-top: 0; font-size: 2.8vmin; }
+    .g span { font-size: 1.7vmin; letter-spacing: .04em; }
+    .g em { margin-top: 1vmin; font-size: 2.1vmin; }
+    .foot { height: 8vmin; }
+    .foot > span:first-child { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 30%; }
+    .sheet { left: 44%; padding: 5.4vmin 5.4vmin 0; }
+    .kick span + span { display: inline; }
+    h1 { font-size: 7vmin; }
+    .g, .g:first-child { grid-template-columns: 16vmin 1fr; padding-left: 3vmin; }
+    .g .l { font-size: 13vmin; }
+    .g b { font-size: 3vmin; }
+    .foot > span:first-child { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sheet">
+    <div class="kick"><span>Studio Oro · Resale</span><span>Graded by hand</span></div>
+    <h1>Every piece, <i>graded honestly.</i></h1>
+    <div class="grades">
+      <div class="g on">
+        <div class="l">A<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M58 6C30 3 8 20 7 48c-1 28 20 46 46 45 27-1 42-20 41-45C93 22 74 7 49 9 38 10 28 14 22 20" fill="none" stroke="#D2301F" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke" style="stroke-width:.45vmin"/></svg></div>
+        <b>Like new</b><span>No signs of wear</span><em>from €45</em>
+      </div>
+      <div class="g dim">
+        <div class="l">B</div>
+        <b>Gently worn</b><span>Light traces of life</span><em>from €30</em>
+      </div>
+      <div class="g dim">
+        <div class="l">C</div>
+        <b>Well loved</b><span>Visible, honest wear</span><em>from €15</em>
+      </div>
+    </div>
+    <div class="foot"><span>Checked in 12 points</span><span class="cta">Shop grade A →</span></div>
+  </div>
+</div>
+</body>
+</html>

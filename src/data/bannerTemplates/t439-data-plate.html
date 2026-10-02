@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@600;800;900&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Data Plate — the riveted nameplate on an old industrial sewing machine: brushed aluminium, black-filled engraving,
+     a spec table where the rating reads 30% off in red enamel, four domed rivets, all fixed to a blue-grey hammertone
+     casting — with a green START and a red STOP mushroom button below for the CTA and the deadline.
+     tall / 3:4 → photo above the casting; square / wide → photo left, casting right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #4C5F69; }
+  .banner { --P: 86vmin; --p: 1vmin; position: fixed; inset: 0; overflow: hidden; color: #EEF1F2; font-family: "Chakra Petch", "Arial Narrow", Arial, sans-serif;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.06) 0 .3vmin, rgba(0,0,0,0) .5vmin) 0 0 / 2.3vmin 2.1vmin,
+      radial-gradient(circle at 70% 60%, rgba(0,0,0,.10) 0 .35vmin, rgba(0,0,0,0) .6vmin) 0 0 / 1.7vmin 1.9vmin,
+      radial-gradient(120% 80% at 30% 30%, #5A6E78 0%, #4C5F69 55%, #3E4F58 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--P)); object-fit: cover; object-position: 50% 22%; display: block; }
+  /* machined casting edge */
+  .edge { position: absolute; left: 0; right: 0; top: calc(100% - var(--P)); height: 2.4vmin; z-index: 2; background: linear-gradient(180deg, #8C9CA4 0%, #5B6D76 40%, #3A4A52 100%); box-shadow: 0 .5vmin 1.2vmin rgba(0,0,0,.4); }
+
+  .cast { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--P) - 2.4vmin); box-sizing: border-box; padding: 5vmin 6vmin 4.4vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7vmin; }
+
+  /* the plate */
+  .plate { position: relative; width: calc(var(--p) * 88); box-sizing: border-box; padding: calc(var(--p) * 4.4) calc(var(--p) * 6) calc(var(--p) * 3.6); color: #1D2124;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.22) 0 1px, rgba(0,0,0,.035) 1px .35vmin),
+      linear-gradient(115deg, #C9CFD2 0%, #EEF1F2 28%, #B7BEC2 52%, #E3E7E9 74%, #AEB5B9 100%);
+    clip-path: polygon(calc(var(--p) * 2) 0, calc(100% - var(--p) * 2) 0, 100% calc(var(--p) * 2), 100% calc(100% - var(--p) * 2), calc(100% - var(--p) * 2) 100%, calc(var(--p) * 2) 100%, 0 calc(100% - var(--p) * 2), 0 calc(var(--p) * 2)); }
+  .plate::before { content: ""; position: absolute; inset: calc(var(--p) * 1.6); border: calc(var(--p) * .3) solid rgba(29,33,36,.75); pointer-events: none; }
+  .rv { position: absolute; width: calc(var(--p) * 2.4); height: calc(var(--p) * 2.4); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFFFFF 0%, #B9C0C4 45%, #6F787D 100%); box-shadow: 0 calc(var(--p) * .2) calc(var(--p) * .3) rgba(0,0,0,.45); }
+  .v1 { left: calc(var(--p) * 2.6); top: calc(var(--p) * 2.6); } .v2 { right: calc(var(--p) * 2.6); top: calc(var(--p) * 2.6); }
+  .v3 { left: calc(var(--p) * 2.6); bottom: calc(var(--p) * 2.6); } .v4 { right: calc(var(--p) * 2.6); bottom: calc(var(--p) * 2.6); }
+  .bar { display: flex; justify-content: space-between; align-items: center; background: #1D2124; color: #DCE1E3; padding: calc(var(--p) * .9) calc(var(--p) * 1.6); font-weight: 600;
+    font-size: max(1.6vmin, calc(var(--p) * 1.9)); letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .plate h1 { margin: calc(var(--p) * 2) 0 0; font-family: "Sofia Sans Extra Condensed", "Arial Narrow", sans-serif; font-weight: 900; font-size: calc(var(--p) * 15); line-height: .86; letter-spacing: .01em; text-transform: uppercase;
+    color: #1D2124; text-shadow: 0 1px 0 rgba(255,255,255,.7), 0 -1px 0 rgba(0,0,0,.25); white-space: nowrap; }
+  .spec { margin-top: calc(var(--p) * 2.2); display: grid; grid-template-columns: 1fr 1fr; column-gap: calc(var(--p) * 3.6); border-top: calc(var(--p) * .35) solid #1D2124; }
+  .kv { display: flex; justify-content: space-between; align-items: baseline; gap: calc(var(--p) * 1.4); padding: calc(var(--p) * 1.1) 0 calc(var(--p) * .9); border-bottom: 1px solid rgba(29,33,36,.45); white-space: nowrap; }
+  .kv span { font-size: max(1.6vmin, calc(var(--p) * 1.7)); font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #3C4449; }
+  .kv b { font-family: "Sofia Sans Extra Condensed", "Arial Narrow", sans-serif; font-weight: 800; font-size: calc(var(--p) * 3.4); line-height: 1; letter-spacing: .04em; text-transform: uppercase; }
+  .kv.red b { color: #C6262B; text-shadow: 0 1px 0 rgba(255,255,255,.5); }
+  .fine { margin-top: calc(var(--p) * 1.6); display: flex; justify-content: space-between; font-size: max(1.6vmin, calc(var(--p) * 1.6)); letter-spacing: .1em; text-transform: uppercase; color: #3C4449; white-space: nowrap; }
+
+  /* start / stop station */
+  .station { width: calc(var(--p) * 88); display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .btn { display: flex; align-items: center; gap: 2vmin; white-space: nowrap; }
+  .mush { position: relative; flex: none; width: 8.4vmin; height: 8.4vmin; border-radius: 50%; background: radial-gradient(circle at 50% 50%, #2A3238 0 58%, #1B2126 60% 100%); box-shadow: 0 .5vmin 1vmin rgba(0,0,0,.45); }
+  .mush::after { content: ""; position: absolute; inset: 1.1vmin; border-radius: 50%; background: radial-gradient(circle at 38% 30%, var(--a) 0%, var(--b) 55%, var(--c) 100%); box-shadow: 0 .4vmin .6vmin rgba(0,0,0,.5), inset 0 -.4vmin .6vmin rgba(0,0,0,.3); }
+  .go .mush { --a: #9BE3A8; --b: #2E9A4A; --c: #125D26; }
+  .stop .mush { --a: #FF9C8E; --b: #D2322C; --c: #7C1411; }
+  .btn .lb { display: flex; flex-direction: column; gap: .6vmin; }
+  .btn .lb b { font-family: "Sofia Sans Extra Condensed", "Arial Narrow", sans-serif; font-weight: 800; font-size: 4.2vmin; line-height: 1; letter-spacing: .06em; text-transform: uppercase; }
+  .btn .lb small { font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #CBD5DA; }
+  .stop { flex-direction: row-reverse; text-align: right; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --P: 72vmin; --p: .78vmin; }
+    .cast { padding: 4vmin 6vmin 3.6vmin; gap: 5vmin; }
+    .station { width: calc(var(--p) * 100); }
+    .mush { width: 7vmin; height: 7vmin; }
+    .btn .lb b { font-size: 3.6vmin; }
+    .btn .lb small { font-size: 1.7vmin; }
+  }
+  /* square → photo left, casting right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --p: .48vmin; }
+    .photo { width: 46%; height: 100%; object-position: 50% 24%; }
+    .edge { top: 0; bottom: 0; left: 46%; right: auto; width: 2.4vmin; height: auto; background: linear-gradient(90deg, #8C9CA4 0%, #5B6D76 40%, #3A4A52 100%); }
+    .cast { left: calc(46% + 2.4vmin); top: 0; height: auto; padding: 6vmin 4.4vmin 5vmin; justify-content: center; gap: 6vmin; }
+    .spec { grid-template-columns: 1fr; }
+    .fine span:last-child { display: none; }
+    .plate h1 { font-size: calc(var(--p) * 16); }
+    .station { width: calc(var(--p) * 88); flex-direction: column; align-items: flex-start; gap: 3.4vmin; }
+    .stop { flex-direction: row; text-align: left; }
+    .mush { width: 8vmin; height: 8vmin; }
+    .mush::after { inset: 1.05vmin; }
+    .btn .lb b { font-size: 3.8vmin; }
+    .btn .lb small { font-size: 1.7vmin; }
+  }
+  /* wide → plate left, station stacked on the right */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --p: .56vmin; }
+    .photo { width: 42%; object-position: 50% 30%; }
+    .edge { left: 42%; }
+    .cast { left: calc(42% + 2.4vmin); padding: 6vmin 5vmin; flex-direction: row; justify-content: center; gap: 4.4vmin; }
+    .spec { grid-template-columns: 1fr 1fr; }
+    .plate h1 { font-size: calc(var(--p) * 16); }
+    .station { width: auto; flex-direction: column; align-items: flex-start; gap: 5vmin; }
+    .mush { width: 7vmin; height: 7vmin; }
+    .btn .lb b { font-size: 3.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="edge"></div>
+  <div class="cast">
+    <div class="plate">
+      <i class="rv v1"></i><i class="rv v2"></i><i class="rv v3"></i><i class="rv v4"></i>
+      <div class="bar"><span>Atelier Nord Works</span><span>Est. 1926</span></div>
+      <h1>Built to run.</h1>
+      <div class="spec">
+        <div class="kv"><span>Model</span><b>Work Edit 26</b></div>
+        <div class="kv"><span>Serial</span><b>0026431</b></div>
+        <div class="kv red"><span>Rating</span><b>30% off</b></div>
+        <div class="kv"><span>Code</span><b>PLATE30</b></div>
+        <div class="kv"><span>Duty</span><b>Continuous</b></div>
+        <div class="kv"><span>Mfd.</span><b>09 · 2026</b></div>
+      </div>
+      <div class="fine"><span>Made to be repaired</span><span>Do not remove this plate</span></div>
+    </div>
+    <div class="station">
+      <div class="btn go"><i class="mush"></i><span class="lb"><b>Start</b><small>Shop the edit</small></span></div>
+      <div class="btn stop"><i class="mush"></i><span class="lb"><b>Stop</b><small>Sunday, 23:59</small></span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,3 +1,13 @@
+// 🔔 Admin itirazı onaylayınca kullanıcıya push (25 Eyl 2026): metin kullanıcının UYGULAMA dilinde
+// (talep anındaki language_code; 70 dil — data/refundNotificationCopy.json). OneSignal cihaz diline göre
+// seçtiği için metin `en` anahtarına da yazılır (cihaz dili ≠ uygulama dili olabilir). Tıklanınca istemci
+// CreditRefundResultScreen'i açar (data.type = credit_refund). Ret kararına bildirim GİTMEZ (status kontrolü).
+const REFUND_COPY = require("../data/refundNotificationCopy.json");
+function refundCopy(languageCode, credits) {
+  const code = String(languageCode || "en").toLowerCase();
+  const copy = REFUND_COPY[code] || REFUND_COPY[code.split("-")[0]] || REFUND_COPY.en;
+  return { title: copy.title, body: copy.body.replace(/\{\{\s*credits\s*\}\}/g, String(credits)) };
+}
 async function sendRefundNotification(
   db,
   row,
@@ -12,7 +22,7 @@ async function sendRefundNotification(
   try {
     if (!env.ONESIGNAL_APP_ID || !env.ONESIGNAL_REST_API_KEY)
       throw new Error("OneSignal not configured");
-    const tr = String(row.language_code).startsWith("tr");
+    const copy = refundCopy(row.language_code, row.refunded_credits);
     const response = await fetchImpl(
       "https://api.onesignal.com/notifications",
       {
@@ -27,18 +37,13 @@ async function sendRefundNotification(
           include_aliases: { external_id: [row.user_id] },
           target_channel: "push",
           idempotency_key: row.id,
-          headings: {
-            en: tr ? "İadeniz onaylandı" : "Your refund is approved",
-          },
-          contents: {
-            en: tr
-              ? `${row.refunded_credits} kredi hesabınıza iade edildi.`
-              : `${row.refunded_credits} credits have been returned to your account.`,
-          },
+          headings: { en: copy.title },
+          contents: { en: copy.body },
           data: {
             type: "credit_refund",
             requestId: row.id,
             generationId: row.generation_id,
+            screen: "CreditRefundResultScreen",
           },
           ttl: 86400,
         }),
@@ -112,4 +117,4 @@ function startRefundReviewWorker(db) {
   timer.unref();
   return () => clearInterval(timer);
 }
-module.exports = { sendRefundNotification, startRefundReviewWorker };
+module.exports = { sendRefundNotification, startRefundReviewWorker, refundCopy };

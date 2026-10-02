@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Gift Card — the banner is the voucher: photo above a perforated tear line, a bottle-green stub with value, serial and seal */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #183A2C; }
+  .banner { --stub: 64vmin; position: fixed; inset: 0; overflow: hidden; background: #183A2C; color: #EFE7D6; font-family: "Space Mono", "SF Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--stub)); object-fit: cover; object-position: 50% 22%; }
+  /* tear line + notches */
+  .perf { position: absolute; left: 4vmin; right: 4vmin; top: calc(100% - var(--stub) - .6vmin); height: 1.2vmin; background: radial-gradient(circle, #EFE7D6 0 .45vmin, transparent .5vmin) 0 50% / 2.4vmin 1.2vmin repeat-x; }
+  .notch { position: absolute; width: 7vmin; height: 7vmin; border-radius: 50%; background: #0C2018; top: calc(100% - var(--stub) - 3.5vmin); }
+  .notch.l { left: -3.5vmin; } .notch.r { right: -3.5vmin; }
+  .stub { position: absolute; left: 7vmin; right: 7vmin; bottom: 6vmin; height: calc(var(--stub) - 13vmin); display: flex; flex-direction: column; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.7vmin; letter-spacing: .18em; text-transform: uppercase; }
+  .brand { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 3.2vmin; letter-spacing: .34em; }
+  .val { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 2.4vmin; }
+  .val h1 { margin: 0; font-variant-numeric: lining-nums; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; font-size: 25vmin; line-height: .78; letter-spacing: -.02em; }
+  .val h1 small { font-size: .42em; vertical-align: .9em; margin-right: .06em; }
+  .seal { flex: none; width: 16vmin; height: 16vmin; margin-bottom: 1vmin; }
+  .line { margin: 2.6vmin 0 0; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 4.2vmin; line-height: 1.1; }
+  .foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; padding-top: 2vmin; border-top: 1px solid rgba(239,231,214,.4); }
+  .foot p { margin: 0; font-size: 1.7vmin; line-height: 1.6; letter-spacing: .06em; color: rgba(239,231,214,.8); }
+  .code { flex: none; border: .25vmin dashed rgba(239,231,214,.8); padding: 1.2vmin 1.8vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .14em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --stub: 56vmin; }
+    .stub { bottom: 5vmin; height: calc(var(--stub) - 11vmin); }
+    .val { margin-top: 1.8vmin; }
+    .val h1 { font-size: 21vmin; }
+    .seal { width: 14vmin; height: 14vmin; }
+    .line { font-size: 3.6vmin; margin-top: 2vmin; }
+  }
+  /* square / wide — photo left, the tear line runs top to bottom */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 54%; height: 100%; }
+    .perf { left: calc(54% - .6vmin); top: 4vmin; bottom: 4vmin; right: auto; width: 1.2vmin; height: auto; background: radial-gradient(circle, #EFE7D6 0 .45vmin, transparent .5vmin) 50% 0 / 1.2vmin 2.4vmin repeat-y; }
+    .notch { top: auto; left: calc(54% - 3.5vmin); }
+    .notch.l { top: -3.5vmin; left: calc(54% - 3.5vmin); }
+    .notch.r { bottom: -3.5vmin; right: auto; }
+    .stub { left: calc(54% + 6vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; height: auto; }
+    .row { flex-direction: column; gap: 1vmin; }
+    .brand { font-size: 2.8vmin; }
+    .val { margin-top: auto; flex-direction: column-reverse; align-items: flex-start; gap: 3vmin; }
+    .val h1 { font-size: 18vmin; }
+    .seal { width: 12vmin; height: 12vmin; }
+    .line { font-size: 3.2vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .foot p { font-size: 1.6vmin; }
+    .code { font-size: 1.8vmin; }
+    .line { margin-bottom: auto; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 52%; }
+    .perf { left: calc(52% - .6vmin); }
+    .notch, .notch.l { left: calc(52% - 3.5vmin); }
+    .stub { left: calc(52% + 8vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; }
+    .row { flex-direction: row; }
+    .val { flex-direction: row; align-items: flex-end; gap: 2vmin; }
+    .val h1 { font-size: 22vmin; }
+    .seal { width: 12vmin; height: 12vmin; }
+    .line { font-size: 3.8vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design (slow, restrained — a luxury voucher) ───────── */
+  /* tear line: the perforation creeps one hole per 4s, like it is being cut */
+  .perf { animation: perfx 4s linear infinite; }
+  @keyframes perfx { from { background-position: 0 50%; } to { background-position: 2.4vmin 50%; } }
+  @keyframes perfy { from { background-position: 50% 0; } to { background-position: 50% 2.4vmin; } }
+  @media (min-aspect-ratio: 9/10) { .perf { animation-name: perfy; } }
+  /* seal: the lettered ring turns once per loop, the monogram stays */
+  .seal .ring { transform-box: view-box; transform-origin: 50% 50%; animation: sealspin 8s linear infinite; }
+  @keyframes sealspin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  /* the value: a warm gold-foil glint crosses the numerals */
+  .val h1 { background: linear-gradient(104deg, #EFE7D6 0 41%, #FFF8E8 46.5%, #D6BD84 50%, #FFF8E8 53.5%, #EFE7D6 59% 100%) 0 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; color: transparent; animation: foil 8s linear infinite; }
+  @keyframes foil {
+    0%, 12% { background-position: 0% 0; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    34% { background-position: 100% 0; animation-timing-function: steps(1, end); }
+    34.5%, 100% { background-position: 0% 0; }
+  }
+  /* the italic line: wipes away and is written back in */
+  .line { animation: linewipe 8s linear infinite; }
+  @keyframes linewipe {
+    0%, 50% { clip-path: inset(-25% -4% -25% -4%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    58% { clip-path: inset(-25% -4% -25% 104%); animation-timing-function: steps(1, end); }
+    58.5% { clip-path: inset(-25% 104% -25% -4%); animation-timing-function: cubic-bezier(.55,0,.2,1); }
+    72%, 100% { clip-path: inset(-25% -4% -25% -4%); }
+  }
+  /* the code: a faint light passes behind it once */
+  .code { position: relative; overflow: hidden; }
+  .code::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, rgba(239,231,214,0), rgba(239,231,214,.22), rgba(239,231,214,0));
+    transform: translateX(-120%) skewX(-18deg); animation: codesheen 8s linear infinite; }
+  @keyframes codesheen {
+    0%, 78% { transform: translateX(-120%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    92%, 100% { transform: translateX(300%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="perf"></div>
+  <div class="notch l"></div><div class="notch r"></div>
+  <div class="stub">
+    <div class="row"><span class="brand">STUDIO ORO</span><span>Gift card · Nº 0048 1275</span></div>
+    <div class="val">
+      <h1><small>€</small>100</h1>
+      <svg class="seal" viewBox="0 0 100 100">
+        <defs><path id="sr" d="M50 50 m-38 0 a38 38 0 1 1 76 0 a38 38 0 1 1 -76 0"/></defs>
+        <circle cx="50" cy="50" r="48" fill="none" stroke="#EFE7D6" stroke-width="1.4"/>
+        <circle cx="50" cy="50" r="29" fill="none" stroke="#EFE7D6" stroke-width=".8"/>
+        <g class="ring"><text font-family="Space Mono, monospace" font-size="8.4" letter-spacing="3.2" fill="#EFE7D6"><textPath href="#sr">A GIFT · TO BE WORN · A GIFT ·</textPath></text></g>
+        <text x="50" y="59" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-weight="500" font-size="27" fill="#EFE7D6">SO</text>
+      </svg>
+    </div>
+    <p class="line">For whatever they have their eye on.</p>
+    <div class="foot"><p>Valid 12 months<br>Online &amp; in store</p><div class="code">GIFT-7K2Q-94XD</div></div>
+  </div>
+</div>
+</body>
+</html>

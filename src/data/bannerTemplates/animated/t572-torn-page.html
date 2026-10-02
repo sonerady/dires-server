@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&family=Space+Mono:wght@400;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Torn Page — a college-ruled sheet ripped out of a spiral notebook (frayed holes down its edge, red margin
+     line, blue rules), written in ballpoint and clipped with a paper clip, lying on a slate desk next to the photo.
+     Every line of the note sits on a rule. tall → photo on top, sheet below · 3:4 & square → photo left, sheet right ·
+     wide → photo left, a wider sheet on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #33404F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; font-family: "Space Mono", ui-monospace, monospace; color: #1F3F8C;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, transparent 1px .5vmin),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.03) 0 1px, transparent 1px .6vmin),
+      radial-gradient(ellipse at 40% 30%, #43536A 0%, #34414F 60%, #29333F 100%); }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 76vmin); object-fit: cover; object-position: 50% 28%; display: block; }
+
+  /* the sheet — ragged spiral edge on the left, rules + margin in the background */
+  .sheet { --rule: 4.4vmin; --top: 9vmin; position: absolute; left: 6vmin; right: 5vmin; bottom: 4vmin; height: 67vmin;
+    filter: drop-shadow(0 .8vmin 1.4vmin rgba(0,0,0,.35)); }
+  .paper { position: absolute; inset: 0; background:
+      linear-gradient(90deg, transparent 0 8.6vmin, rgba(214,74,74,.7) 8.6vmin calc(8.6vmin + 1px), transparent calc(8.6vmin + 1px)),
+      linear-gradient(180deg, #FCFBF6 0 var(--top), transparent var(--top)),
+      repeating-linear-gradient(180deg, transparent 0 calc(var(--rule) - 1px), rgba(98,140,196,.55) calc(var(--rule) - 1px) var(--rule)),
+      #FCFBF6;
+    background-position: 0 0, 0 0, 0 calc(var(--top) + 1px), 0 0;
+    clip-path: polygon(2.4% 0, 100% 0, 100% 100%, 2.4% 100%, 1.1% 97%, 2.6% 94%, .6% 91%, 2.2% 88%, 1% 85%, 2.8% 82%, .4% 79%, 2.2% 76%, 1.2% 73%, 2.6% 70%, .8% 67%, 2% 64%, .4% 61%, 2.6% 58%, 1% 55%, 2.4% 52%, .6% 49%, 2.2% 46%, 1.2% 43%, 2.8% 40%, .6% 37%, 2% 34%, 1% 31%, 2.6% 28%, .4% 25%, 2.2% 22%, 1.2% 19%, 2.6% 16%, .8% 13%, 2.2% 10%, .6% 7%, 2.4% 4%); }
+  .clip { position: absolute; right: 42%; top: -3.4vmin; width: 3.6vmin; height: 11vmin; border: .5vmin solid #A9B0B8; border-radius: 2vmin; box-sizing: border-box; transform: rotate(6deg); }
+  .clip::after { content: ""; position: absolute; left: .5vmin; right: .5vmin; top: 2.2vmin; bottom: -.6vmin; border: .5vmin solid #C4CAD1; border-top: 0; border-radius: 0 0 1.6vmin 1.6vmin; }
+
+  .note { position: absolute; left: 11vmin; right: 5vmin; top: 0; bottom: 0; }
+  .meta { position: absolute; left: 0; right: 0; top: 3.2vmin; display: flex; justify-content: space-between; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #8C94A6; white-space: nowrap; }
+  .lines { position: absolute; left: 0; right: 0; top: var(--top); font-family: "Nanum Pen Script", "Comic Sans MS", cursive; color: #1F3F8C; }
+  .ln { line-height: var(--rule); font-size: 4.2vmin; transform: translateY(-.5vmin); }
+  .gap { margin-top: var(--rule); }
+  h1 { margin: 0; line-height: calc(var(--rule) * 3); font-weight: 400; font-size: 12vmin; letter-spacing: -.01em; color: #17307A; transform: translateY(-.9vmin); }
+  .ln s { color: #6A7894; text-decoration-color: #C84A3E; text-decoration-thickness: .3vmin; }
+  .ln b { font-weight: 400; color: #C23C2F; }
+  .ln u { text-decoration: none; padding: 0 .6vmin; border: .3vmin solid #C23C2F; border-radius: 45% 55% 50% 50% / 60% 45% 55% 40%; }
+  .cta { font-family: "Space Mono", ui-monospace, monospace; font-size: 1.9vmin; font-weight: 700; letter-spacing: .06em; color: #FCFBF6; background: #17307A; padding: .5vmin 1.6vmin; border-radius: .4vmin; }
+  .fine { position: absolute; left: 0; right: 0; bottom: 1.6vmin; font-size: 1.6vmin; color: #8C94A6; white-space: nowrap; }
+
+  /* ── 3:4 & square: photo left, sheet right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; }
+    .sheet { --rule: 5vmin; --top: 8vmin; left: calc(50% - 3vmin); right: 3vmin; top: 7vmin; bottom: 7vmin; height: auto; }
+    .paper { background-position: 0 0, 0 0, 0 calc(var(--top) + 1px), 0 0; }
+    .note { left: 10.6vmin; right: 3vmin; }
+    .meta { flex-direction: column; gap: .6vmin; top: 1.6vmin; font-size: 1.6vmin; letter-spacing: .06em; }
+    .meta span:last-child { display: none; }
+    .ln { font-size: 4.3vmin; }
+    h1 { font-size: 9.4vmin; line-height: calc(var(--rule) * 2); transform: translateY(-.8vmin); }
+    .clip { right: 5vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .sheet { --rule: 4.6vmin; top: 5vmin; bottom: 5vmin; }
+    .ln { font-size: 4vmin; }
+    h1 { font-size: 8.8vmin; }
+  }
+  /* ── wide: photo left, wider sheet right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .sheet { --rule: 4.6vmin; --top: 9vmin; left: calc(48% + 3vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; }
+    .note { left: 12vmin; right: 5vmin; }
+    .meta { flex-direction: row; top: 3.2vmin; letter-spacing: .12em; }
+    .meta span:last-child { display: inline; }
+    .ln { font-size: 4.2vmin; }
+    h1 { font-size: 12vmin; line-height: calc(var(--rule) * 3); transform: translateY(-.9vmin); }
+    .clip { right: 44%; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     a note on a desk, gently alive: the photo takes a slow push-in ·
+     0.8s the ballpoint ring around "$96" is re-drawn left → right · 2.4s a draft lifts the sheet — it rocks on the clip,
+     its shadow deepens, the clip wobbles · 3.9s the red code NOTE20 gets an ink "tap" · 4.8s the CTA label nudges forward */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .ln u { position: relative; animation: ring 6s linear infinite; }
+  .ln u::after { content: ""; position: absolute; inset: -.3vmin; border: .3vmin solid #C23C2F; border-radius: 45% 55% 50% 50% / 60% 45% 55% 40%;
+    opacity: 0; clip-path: inset(-20% 110% -20% -10%); animation: ringDraw 6s linear infinite; }
+  @keyframes ring { 0%, 12.9%, 29%, 100% { border-color: #C23C2F; } 13%, 28.9% { border-color: rgba(194,60,47,0); } }
+  @keyframes ringDraw {
+    0%, 12.9% { opacity: 0; clip-path: inset(-20% 110% -20% -10%); }
+    13%, 15% { opacity: 1; clip-path: inset(-20% 110% -20% -10%); animation-timing-function: cubic-bezier(.45,.05,.25,1); }
+    25%, 28.9% { opacity: 1; clip-path: inset(-20% -10% -20% -10%); }
+    29%, 100% { opacity: 0; clip-path: inset(-20% -10% -20% -10%); } }
+
+  .sheet { transform-origin: 55% 0; animation: draft 6s cubic-bezier(.4,0,.4,1) infinite; }
+  @keyframes draft {
+    0%, 38%, 64%, 100% { transform: rotate(0deg) translateY(0); filter: drop-shadow(0 .8vmin 1.4vmin rgba(0,0,0,.35)); }
+    44% { transform: rotate(-.9deg) translateY(-.5vmin); filter: drop-shadow(0 1.8vmin 2.4vmin rgba(0,0,0,.4)); }
+    51% { transform: rotate(.5deg) translateY(-.2vmin); filter: drop-shadow(0 1.2vmin 1.8vmin rgba(0,0,0,.37)); }
+    57% { transform: rotate(-.2deg) translateY(0); filter: drop-shadow(0 .9vmin 1.5vmin rgba(0,0,0,.35)); } }
+  .clip { animation: wob 6s cubic-bezier(.4,0,.4,1) infinite; }
+  @keyframes wob { 0%, 38%, 62%, 100% { transform: rotate(6deg); } 44% { transform: rotate(10deg); } 51% { transform: rotate(3.5deg); } 56% { transform: rotate(7deg); } }
+
+  .ln b { display: inline-block; animation: tap 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes tap { 0%, 64%, 76%, 100% { transform: scale(1) rotate(0deg); } 68% { transform: scale(1.18) rotate(-4deg); } 72% { transform: scale(.97) rotate(1deg); } }
+
+  .cta { position: relative; left: 0; animation: nudge 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes nudge { 0%, 79%, 92%, 100% { left: 0; } 83% { left: 1vmin; } 87% { left: .2vmin; } 89% { left: .6vmin; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sheet">
+    <div class="paper"></div>
+    <i class="clip"></i>
+    <div class="note">
+      <div class="meta"><span>Isla Row · Note Nº 14</span><span>Thu 25 Sept</span></div>
+      <div class="lines">
+        <div class="ln">ok so — it's finally back in stock.</div>
+        <h1>Don't wait<br>this time.</h1>
+        <div class="ln gap">was <s>$120</s> &nbsp;now <u>$96</u></div>
+        <div class="ln">code <b>NOTE20</b> at checkout</div>
+        <div class="ln gap"><span class="cta">Shop the restock →</span></div>
+      </div>
+      <div class="fine">Offer ends Sunday · while sizes last</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

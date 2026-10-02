@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Sunrise Session — a dawn sky: the sun half-risen behind the photo's top edge (the photo is the horizon),
+     faint halo rings, a sunrise time mark and an early-riser offer.
+     tall → sky above, photo below · 3:4 and wider → sky + calm water on the left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4CDB4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2D2530; font-family: "Outfit", "Helvetica Neue", Arial, sans-serif; background: #F4CDB4; }
+  .sky { position: absolute; left: 0; right: 0; top: 0; height: 76vmin; overflow: hidden;
+    background: linear-gradient(180deg, #CBD3EA 0%, #DCD6E8 22%, #EFD6D6 48%, #F7CDB2 74%, #F8B78E 100%); }
+  .sun { position: absolute; left: 68%; bottom: 0; width: 44vmin; height: 44vmin; transform: translate(-50%, 50%); border-radius: 50%;
+    background: radial-gradient(circle, #FFF3DC 0%, #FFE2B4 42%, #FBC086 78%, #F4A374 100%);
+    box-shadow: 0 0 6vmin 2vmin rgba(255,214,160,.6), 0 0 18vmin 8vmin rgba(255,200,150,.35); }
+  .ring { position: absolute; left: 68%; bottom: 0; border-radius: 50%; border: 1px solid rgba(123,70,60,.28); transform: translate(-50%, 50%); }
+  .r1 { width: 58vmin; height: 58vmin; } .r2 { width: 72vmin; height: 72vmin; border-style: dashed; border-color: rgba(123,70,60,.2); }
+  .mark { position: absolute; left: calc(68% + 26vmin); bottom: 2.4vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #6B3A2E; white-space: nowrap; transform: translateX(-100%); }
+  .mark b { display: block; font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 3vmin; letter-spacing: 0; text-transform: none; }
+
+  .copy { position: absolute; left: 6vmin; top: 5vmin; width: 64vmin; height: calc(76vmin - 9.4vmin); display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #5A4556; white-space: nowrap; }
+  h1 { margin: 2.2vmin 0 0; font-family: "Newsreader", Georgia, serif; font-weight: 300; font-size: 14vmin; line-height: .84; letter-spacing: -.035em; }
+  h1 i { font-weight: 400; }
+  .info { margin-top: 3vmin; font-size: 2vmin; line-height: 1.45; color: #4A3A45; }
+  .info b { font-weight: 600; color: #2D2530; }
+  .buy { margin-top: auto; max-width: 42vmin; display: flex; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+  .offer { font-size: 1.8vmin; font-weight: 500; letter-spacing: .06em; color: #4A3A45; white-space: nowrap; }
+  .offer b { font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400; font-size: 4.2vmin; letter-spacing: -.01em; color: #2D2530; margin-right: .8vmin; }
+  .cta { padding: 1.8vmin 3.2vmin; border-radius: 99vmin; background: #2D2530; color: #FBE9DC; font-size: 2vmin; font-weight: 500; white-space: nowrap; }
+
+  .water { display: none; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - 76vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .sky { height: 68vmin; }
+    .copy { height: calc(68vmin - 9vmin); top: 4.6vmin; }
+    .photo { height: calc(100% - 68vmin); }
+    h1 { font-size: 12.4vmin; }
+    .info { margin-top: 2.4vmin; }
+    .sun { width: 38vmin; height: 38vmin; }
+    .r1 { width: 50vmin; height: 50vmin; } .r2 { width: 62vmin; height: 62vmin; }
+    .mark { left: calc(68% + 23vmin); }
+  }
+  /* ── 3:4 and wider: sky + water left, photo right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { left: auto; right: 0; top: 0; width: 48%; height: 100%; object-position: 50% 22%; }
+    .sky { right: 48%; height: 74%; }
+    .water { display: block; position: absolute; left: 0; right: 48%; bottom: 0; height: 26%;
+      background:
+        repeating-linear-gradient(180deg, rgba(255,236,214,.5) 0 .3vmin, transparent .3vmin 2.2vmin),
+        linear-gradient(180deg, #E9A987 0%, #D99C8E 40%, #B894A4 100%); }
+    .water::before { content: ""; position: absolute; left: 60%; top: 0; width: 26vmin; height: 70%; transform: translateX(-50%);
+      background: repeating-linear-gradient(180deg, rgba(255,236,200,.85) 0 .5vmin, transparent .5vmin 1.8vmin);
+      -webkit-mask-image: linear-gradient(180deg, #000, transparent); mask-image: linear-gradient(180deg, #000, transparent); }
+    .sun { left: 60%; width: 30vmin; height: 30vmin; }
+    .ring { left: 60%; }
+    .r1 { width: 40vmin; height: 40vmin; } .r2 { width: 50vmin; height: 50vmin; }
+    .mark { left: calc(60% + 18vmin); }
+    .copy { top: 6vmin; left: 5.4vmin; width: calc(52% - 10vmin); height: auto; bottom: 5vmin; }
+    h1 { font-size: 11.6vmin; }
+    .offer { color: #2D2530; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .sky { right: 46%; height: 72%; }
+    .water { right: 46%; height: 28%; }
+    .copy { top: 5vmin; left: 5vmin; width: calc(54% - 9vmin); }
+    h1 { font-size: 10.4vmin; margin-top: 1.8vmin; }
+    .info { font-size: 1.8vmin; margin-top: 2vmin; }
+    .sun { width: 24vmin; height: 24vmin; left: 66%; }
+    .ring { left: 66%; }
+    .r1 { width: 32vmin; height: 32vmin; } .r2 { width: 40vmin; height: 40vmin; }
+    .mark { left: calc(66% + 16vmin); bottom: 1.6vmin; }
+    .water::before { left: 66%; width: 20vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 70% 30%; }
+    .copy { top: 6vmin; left: 6vmin; width: calc(54% - 12vmin); }
+    h1 { font-size: 12.4vmin; }
+    .info { font-size: 2vmin; }
+    .sun { width: 30vmin; height: 30vmin; left: 68%; }
+    .ring { left: 68%; }
+    .r1 { width: 40vmin; height: 40vmin; } .r2 { width: 52vmin; height: 52vmin; }
+    .mark { left: calc(68% + 21vmin); bottom: 2vmin; }
+    .water::before { left: 68%; width: 24vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sky">
+    <i class="ring r2"></i><i class="ring r1"></i><i class="sun"></i>
+    <div class="mark"><b>06:12</b>Sunrise</div>
+  </div>
+  <div class="water"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="kick">Studio Oro · Dawn edit</div>
+    <h1>Rise<br><i>&amp; move.</i></h1>
+    <div class="info">Rooftop session, <b>Sat 06:30</b><br>New layers for early light.</div>
+    <div class="buy">
+      <div class="offer"><b>−20%</b>before 9 am · code SUNRISE</div>
+      <div class="cta">Shop the dawn edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

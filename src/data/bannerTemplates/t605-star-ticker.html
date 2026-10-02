@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter+Tight:ital,wght@0,400;0,500;0,700;1,500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Star Ticker — the review as a headline: two full-bleed ticker bands of five-star snippets top and bottom,
+     a big 4.9 score, one customer quote in tall condensed caps, and the bestseller CTA.
+     tall / 3:4 → ticker · score + quote · photo · CTA · ticker · square / wide → tickers span the width, quote left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5EFE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F5EFE2; color: #16120F; box-sizing: border-box;
+    font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column; }
+
+  .tick { flex: none; height: 6.4vmin; overflow: hidden; display: flex; align-items: center; background: #16120F; color: #F5EFE2; }
+  .tick p { margin: 0; white-space: nowrap; font-family: "Anton", Impact, sans-serif; font-size: 2.6vmin; letter-spacing: .06em; text-transform: uppercase; transform: translateX(-6vmin); }
+  .tick p b { font-weight: 400; color: #E5432B; letter-spacing: .12em; margin: 0 1.4vmin 0 3vmin; }
+  .tick.t2 { background: #E5432B; color: #16120F; }
+  .tick.t2 p { transform: translateX(-22vmin); }
+  .tick.t2 p b { color: #F5EFE2; }
+
+  .main { flex: none; padding: 4.6vmin 6vmin 0; }
+  .score { display: flex; align-items: center; gap: 2.6vmin; }
+  .num { font-family: "Anton", Impact, sans-serif; font-size: 14vmin; line-height: .9; letter-spacing: -.01em; }
+  .stars { font-size: 3.4vmin; letter-spacing: .14em; color: #E5432B; line-height: 1; }
+  .score small { display: block; margin-top: 1vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .04em; color: #5E554C; white-space: nowrap; }
+  .quote { margin: 3vmin 0 0; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 8.6vmin; line-height: .98; letter-spacing: .005em; text-transform: uppercase; }
+  .quote em { display: inline-block; font-style: normal; color: #E5432B; }
+  .who { margin-top: 2vmin; font-size: 1.9vmin; font-weight: 500; color: #5E554C; }
+  .who b { color: #16120F; font-weight: 700; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin: 3.6vmin 6vmin 0; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .foot { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding: 3vmin 6vmin 3.4vmin; }
+  .foot .txt { font-size: 1.9vmin; line-height: 1.35; color: #5E554C; }
+  .foot .txt b { display: block; font-size: 2.4vmin; font-weight: 700; color: #16120F; }
+  .cta { flex: none; padding: 1.9vmin 3.2vmin; background: #16120F; color: #F5EFE2; font-size: 2vmin; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .tick { height: 5.6vmin; }
+    .main { padding-top: 3.6vmin; }
+    .num { font-size: 11vmin; }
+    .quote { font-size: 7vmin; margin-top: 2.2vmin; }
+    .who { margin-top: 1.4vmin; }
+    .photo { margin-top: 3vmin; }
+    .foot { padding: 2.4vmin 6vmin 2.6vmin; }
+  }
+  /* ── square / wide: tickers run full width, quote left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: grid; grid-template-columns: 1fr 44%; grid-template-rows: auto 1fr auto auto;
+      grid-template-areas: "t1 t1" "main photo" "foot photo" "t2 t2"; }
+    .tick { grid-area: t1; height: 6vmin; }
+    .tick.t2 { grid-area: t2; }
+    .main { grid-area: main; align-self: center; padding: 4vmin 4vmin 0 6vmin; }
+    .num { font-size: 11vmin; }
+    .quote { font-size: 6.8vmin; }
+    .photo { grid-area: photo; margin: 0; }
+    .foot { grid-area: foot; padding: 3vmin 4vmin 4vmin 6vmin; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: 1fr 42%; }
+    .tick { height: 6.6vmin; }
+    .tick p { font-size: 2.8vmin; }
+    .main { padding: 5vmin 6vmin 0 7vmin; }
+    .num { font-size: 13vmin; }
+    .quote { font-size: 8vmin; }
+    .who { margin-top: 3vmin; }
+    .foot { padding: 3vmin 6vmin 5vmin 7vmin; flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="tick"><p><b>★★★★★</b>“Fits like it was made for me”<b>★★★★★</b>“Bought it in two colours”<b>★★★★★</b>“Worth every penny”<b>★★★★★</b>“Softer than it looks”<b>★★★★★</b>“My new everyday”<b>★★★★★</b>“Already ordered another”</p></div>
+  <div class="main">
+    <div class="score"><div class="num">4.9</div><div><div class="stars">★★★★★</div><small>from 3,812 verified reviews</small></div></div>
+    <p class="quote">“I get stopped <em>every time</em> I wear it.”</p>
+    <div class="who"><b>Dana O.</b> · verified buyer · reviewed 12 Sep</div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="foot">
+    <div class="txt"><b>Halden’s most-loved piece</b>Free returns · ships in 24 h</div>
+    <div class="cta">Read the reviews →</div>
+  </div>
+  <div class="tick t2"><p><b>★★★★★</b>“Compliments all day”<b>★★★★★</b>“The quality surprised me”<b>★★★★★</b>“True to size”<b>★★★★★</b>“Gift-worthy packaging”<b>★★★★★</b>“Five stars, easily”<b>★★★★★</b>“Looks even better in person”</p></div>
+</div>
+</body>
+</html>

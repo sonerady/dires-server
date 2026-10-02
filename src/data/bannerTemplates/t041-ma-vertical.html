@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Ma (間) — Japanese restraint: a vertical title, one photo set off-centre, and a lot of deliberate empty space.
+     tall → photo hangs top-right, title runs down the empty left column; square/wide → photo flush right, full height */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3F1EC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3F1EC; color: #1F1D1A; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; top: 10%; right: 0; width: 68%; height: 62%; object-fit: cover; object-position: 50% 18%; }
+  /* the vertical title — Latin set sideways, read top to bottom */
+  h1 { position: absolute; left: 9vmin; top: 10%; margin: 0; writing-mode: vertical-rl; font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif; font-weight: 400; font-size: 8.4vmin; line-height: 1.18; letter-spacing: .06em; white-space: nowrap; }
+  .folio { position: absolute; top: 4.2%; right: 6vmin; display: flex; gap: 2.4vmin; align-items: baseline; font-size: 1.7vmin; font-weight: 500; letter-spacing: .32em; text-transform: uppercase; color: #6E675E; }
+  .folio b { font-family: "Shippori Mincho", Georgia, serif; font-weight: 400; font-size: 2.2vmin; letter-spacing: .1em; color: #1F1D1A; }
+  /* bottom block, sits in the calm space under the photo */
+  .copy { position: absolute; left: 32%; right: 6vmin; bottom: 8vmin; }
+  .rule { width: 7vmin; height: 1px; background: #1F1D1A; margin-bottom: 3vmin; }
+  .t { font-family: "Shippori Mincho", Georgia, serif; font-size: 5.2vmin; line-height: 1.15; }
+  .d { margin-top: 1.8vmin; font-size: 2.6vmin; line-height: 1.55; color: #57514A; max-width: 44vmin; }
+  .cta { margin-top: 3.2vmin; display: inline-flex; align-items: center; gap: 2vmin; font-size: 1.9vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; }
+  .cta i { display: block; width: 6vmin; height: 1px; background: #1F1D1A; }
+  /* the single red mark: a small vermilion seal with 間 (ma — the space between) */
+  .seal { position: absolute; left: 9vmin; bottom: 8vmin; width: 7vmin; height: 7vmin; background: #BF3A22; color: #F3F1EC; display: flex; align-items: center; justify-content: center; font-family: "Shippori Mincho", "Hiragino Mincho ProN", serif; font-size: 4.4vmin; line-height: 1; }
+  .gloss { position: absolute; left: 18.5vmin; bottom: 8vmin; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 1.6vmin; letter-spacing: .28em; text-transform: uppercase; color: #6E675E; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { top: 9%; width: 64%; height: 60%; }
+    h1 { top: 9%; font-size: 7.6vmin; }
+    .copy { left: 36%; bottom: 6vmin; }
+    .t { font-size: 4vmin; }
+    .d { font-size: 2.1vmin; margin-top: 1.4vmin; }
+    .cta { margin-top: 2.4vmin; }
+    .rule { margin-bottom: 2.2vmin; }
+    .seal { bottom: 6vmin; }
+    .gloss { bottom: 6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { top: 0; right: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    h1 { left: 8vmin; top: 8vmin; font-size: 7.4vmin; }
+    .folio { top: 8vmin; right: auto; left: calc(50% - 30vmin); width: 24vmin; justify-content: flex-end; }
+    .copy { left: 24vmin; right: auto; width: calc(50% - 32vmin); bottom: 8vmin; }
+    .t { font-size: 3.6vmin; }
+    .d { font-size: 1.9vmin; }
+    .cta { font-size: 1.7vmin; }
+    .seal { left: 8vmin; bottom: 8vmin; width: 6vmin; height: 6vmin; font-size: 3.8vmin; }
+    .gloss { left: 16.4vmin; bottom: 8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; object-position: 55% 25%; }
+    h1 { left: 10vmin; top: 9vmin; font-size: 8vmin; }
+    .folio { left: calc(46% - 34vmin); width: 26vmin; top: 9vmin; }
+    .copy { left: 28vmin; width: calc(46% - 36vmin); bottom: 9vmin; }
+    .t { font-size: 4vmin; }
+    .seal { left: 10vmin; bottom: 9vmin; }
+    .gloss { left: 18.4vmin; bottom: 9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="folio"><span>Chapter</span><b>02</b></div>
+  <h1>Space to<br>breathe.</h1>
+  <div class="seal">間</div>
+  <div class="gloss">Ma — the pause</div>
+  <div class="copy">
+    <div class="rule"></div>
+    <div class="t">The Quiet Edit</div>
+    <div class="d">Fewer pieces, cut slowly and made to stay.</div>
+    <div class="cta">Discover <i></i></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Vanity Mirror — the dressing-room mirror ringed with bare bulbs: the look is the reflection, a strip of white
+     tape with the model's look number on the frame, and the offer written in red lipstick on the make-up counter.
+     tall → mirror above, counter below · square & wide → mirror left, counter panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2A1B19; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2A1B19; font-family: "Josefin Sans", "Futura", "Century Gothic", sans-serif;
+    background: repeating-linear-gradient(90deg, #2E1D1B 0 3.2vmin, #2A1A18 3.2vmin 6.4vmin); }
+  .lip { font-family: "Kaushan Script", "Brush Script MT", cursive; }
+
+  /* mirror frame + bulbs */
+  .frame { position: absolute; left: 4vmin; right: 4vmin; top: 4vmin; height: 60%; background: #17100F; box-shadow: 0 2vmin 4vmin rgba(0,0,0,.55); }
+  .bulbs { position: absolute; }
+  .bulbs.l, .bulbs.r { top: 7vmin; bottom: 5vmin; width: 7vmin; background-image: radial-gradient(circle at 50% 50%, #FFFFFF 0 1.4vmin, #FFE7B0 1.8vmin, rgba(255,200,110,.5) 2.4vmin, rgba(255,190,100,0) 3.4vmin); background-size: 7vmin 10vmin; background-repeat: repeat-y; background-position: 50% 0; }
+  .bulbs.l { left: 0; }
+  .bulbs.r { right: 0; }
+  .bulbs.t { top: 0; left: 0; right: 0; height: 7vmin; background-image: radial-gradient(circle at 50% 50%, #FFFFFF 0 1.4vmin, #FFE7B0 1.8vmin, rgba(255,200,110,.5) 2.4vmin, rgba(255,190,100,0) 3.4vmin); background-size: 11.5vmin 7vmin; background-repeat: space no-repeat; }
+  .glow { position: absolute; inset: -3vmin; background: radial-gradient(ellipse 60% 55% at 50% 40%, rgba(255,210,140,.18), rgba(255,210,140,0) 70%); pointer-events: none; }
+  .photo { position: absolute; left: 7vmin; right: 7vmin; top: 7vmin; width: calc(100% - 14vmin); height: calc(100% - 12vmin); object-fit: cover; object-position: 50% 20%; }
+  .shine { position: absolute; left: 7vmin; right: 7vmin; top: 7vmin; bottom: 5vmin; background: linear-gradient(115deg, rgba(255,255,255,0) 58%, rgba(255,255,255,.1) 64%, rgba(255,255,255,0) 72%); pointer-events: none; }
+  .tape { position: absolute; left: 50%; bottom: .5vmin; transform: translateX(-50%) rotate(-2deg); background: #F4F1EA; padding: 1vmin 2.6vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.35);
+    clip-path: polygon(1% 6%, 5% 0, 10% 5%, 90% 2%, 96% 0, 100% 6%, 98% 50%, 100% 96%, 94% 100%, 88% 95%, 12% 98%, 6% 100%, 0 94%, 2% 50%); }
+
+  /* counter */
+  .counter { position: absolute; left: 0; right: 0; top: calc(4vmin + 60% + 4.6vmin); bottom: 0; background: linear-gradient(180deg, #EFE6DB 0%, #E8DDD0 100%); box-shadow: inset 0 1.2vmin 1.6vmin -1vmin rgba(0,0,0,.25); padding: 4.6vmin 6vmin 4.6vmin; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; }
+  .counter::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .6vmin; background: #C9B8A4; }
+  .row1 { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .row1 span:last-child { color: #B8142C; }
+  .scrawl { color: #B8142C; line-height: .9; transform: rotate(-4deg); transform-origin: 0 50%; text-shadow: .15vmin .15vmin 0 rgba(184,20,44,.25); }
+  .scrawl .a { display: block; font-size: 7.6vmin; }
+  .scrawl .b { display: block; font-size: 19vmin; margin-top: 1.4vmin; white-space: nowrap; }
+  .row2 { display: flex; justify-content: space-between; align-items: center; gap: 3vmin; font-size: 1.9vmin; letter-spacing: .08em; }
+  .row2 b { font-weight: 700; letter-spacing: .2em; border: .3vmin solid #2A1B19; padding: .8vmin 1.4vmin .5vmin; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .frame { height: 58%; }
+    .counter { top: calc(4vmin + 58% + 4.6vmin); padding: 3.6vmin 6vmin 3.8vmin; }
+    .scrawl .a { font-size: 6vmin; }
+    .scrawl .b { font-size: 14vmin; margin-top: 1vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .frame { left: 10vmin; right: 10vmin; height: 56%; }
+    .counter { top: calc(4vmin + 56% + 4.4vmin); padding: 3vmin 7vmin 3.2vmin; }
+    .scrawl .a { font-size: 5.2vmin; }
+    .scrawl .b { font-size: 11.6vmin; margin-top: .8vmin; }
+  }
+  /* square — mirror left, counter becomes a right-hand panel */
+  @media (min-aspect-ratio: 9/10) {
+    .frame { left: 4vmin; right: auto; width: 50vmin; top: 4vmin; height: calc(100% - 8vmin); }
+    .counter { left: auto; right: 0; top: 0; bottom: 0; width: calc(100% - 58vmin); padding: 5vmin 4.6vmin 5vmin 5vmin; box-shadow: inset 1.2vmin 0 1.6vmin -1vmin rgba(0,0,0,.25); }
+    .counter::before { right: auto; bottom: 0; width: .6vmin; height: auto; }
+    .row1 { flex-direction: column; gap: 1vmin; }
+    .scrawl .a { font-size: 5vmin; }
+    .scrawl .b { font-size: 10vmin; margin-top: .8vmin; }
+    .row2 { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .frame { left: 6vmin; width: 60vmin; }
+    .counter { width: calc(100% - 74vmin); padding: 6vmin; }
+    .row1 { flex-direction: row; }
+    .scrawl .a { font-size: 6.4vmin; }
+    .scrawl .b { font-size: 15vmin; margin-top: 1.2vmin; }
+    .row2 { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="frame">
+    <div class="glow"></div>
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="shine"></div>
+    <i class="bulbs t"></i><i class="bulbs l"></i><i class="bulbs r"></i>
+    <div class="tape">Look 07 · Mirror 3</div>
+  </div>
+  <div class="counter">
+    <div class="row1"><span>Dressing room 3</span><span>Call 19:30</span></div>
+    <div class="scrawl lip"><span class="a">last looks, darling —</span><span class="b">30% off</span></div>
+    <div class="row2"><span>Studio Oro · this weekend only</span><b>LOOKS30</b></div>
+  </div>
+</div>
+</body>
+</html>

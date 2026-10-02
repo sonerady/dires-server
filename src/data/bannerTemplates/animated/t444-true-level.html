@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* True Level — alignment as the graphic: a plumb line with a brass bob hangs in a ruled gutter beside the photo,
+     and a spirit level sits dead centre (0.0°) under the headline — balance, measured.
+     tall → photo + plumb gutter above, level panel below · 3:4 and wider → photo | plumb | panel */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEEAE3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EEEAE3; color: #1E1E1C; font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: calc(100% - 14vmin); height: calc(100% - 72vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  /* plumb gutter */
+  .plumb { position: absolute; right: 0; top: 0; overflow: hidden; width: 14vmin; height: calc(100% - 72vmin); }
+  .ruler { position: absolute; left: 0; top: 0; bottom: 0; width: 3vmin;
+    background:
+      repeating-linear-gradient(180deg, #1E1E1C 0 1px, transparent 1px 10vmin) 0 0 / 3vmin 100% no-repeat,
+      repeating-linear-gradient(180deg, rgba(30,30,28,.55) 0 1px, transparent 1px 5vmin) 0 0 / 2vmin 100% no-repeat,
+      repeating-linear-gradient(180deg, rgba(30,30,28,.3) 0 1px, transparent 1px 1vmin) 0 0 / 1vmin 100% no-repeat; }
+  .string { position: absolute; left: 50%; top: 0; bottom: 13vmin; width: 1px; margin-left: 1vmin; background: #1E1E1C; }
+  .bob { position: absolute; left: 50%; bottom: 3.4vmin; width: 5vmin; height: 9.6vmin; margin-left: -1.5vmin; }
+  .vlabel { position: absolute; left: 50%; top: 26%; transform: translate(-50%, 0) rotate(90deg); transform-origin: 50% 50%; margin-left: 4.2vmin; font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; color: #55534D; }
+  .nums { position: absolute; left: 3.4vmin; top: 0; bottom: 0; font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; color: #55534D; }
+  .nums span { position: absolute; left: 0; transform: translateY(-50%); }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 72vmin; box-sizing: border-box; padding: 4.6vmin 6vmin 5.4vmin; display: flex; flex-direction: column; border-top: .5vmin solid #1E1E1C; }
+  .head { display: flex; justify-content: space-between; gap: 2vmin; font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .head b { font-weight: 500; color: #D8522A; }
+  h1 { margin: 2.6vmin 0 0; font-weight: 800; font-size: 11.6vmin; line-height: .88; letter-spacing: -.055em; }
+  h1 i { font-weight: 500; font-style: italic; letter-spacing: -.04em; }
+
+  /* spirit level */
+  .levelwrap { margin-top: auto; }
+  .read { display: flex; justify-content: center; align-items: baseline; gap: 1.4vmin; margin-bottom: 1.4vmin; font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; color: #55534D; }
+  .read b { font-weight: 500; font-size: 3.4vmin; letter-spacing: 0; color: #D8522A; }
+  .level { position: relative; height: 9vmin; border-radius: 1.2vmin; background: linear-gradient(180deg, #F7F6F2 0%, #D6D4CE 18%, #BEBCB5 55%, #A9A7A0 82%, #8F8D86 100%); box-shadow: 0 1.4vmin 2.4vmin rgba(40,36,30,.18), inset 0 -.4vmin 0 rgba(0,0,0,.12); }
+  .level::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(255,255,255,.55); }
+  .vial { position: absolute; left: 50%; top: 50%; width: 30%; height: 4.4vmin; transform: translate(-50%, -50%); border-radius: 99vmin; background: linear-gradient(180deg, #F1F5C5 0%, #D5E06A 45%, #B6C44B 100%); box-shadow: inset 0 .3vmin .6vmin rgba(0,0,0,.25), 0 0 0 .5vmin #1E1E1C; overflow: hidden; }
+  .vial::before, .vial::after { content: ""; position: absolute; top: 0; bottom: 0; width: .4vmin; background: #1E1E1C; }
+  .vial::before { left: calc(50% - 5.4vmin); } .vial::after { left: calc(50% + 5vmin); }
+  .bubble { position: absolute; left: 50%; top: 50%; width: 8vmin; height: 2.8vmin; transform: translate(-50%, -62%); border-radius: 50%; background: radial-gradient(ellipse at 40% 30%, #FFFFFF 0%, rgba(255,255,255,.85) 40%, rgba(240,246,196,.6) 100%); }
+  .endv { position: absolute; top: 50%; width: 4.4vmin; height: 4.4vmin; transform: translateY(-50%); border-radius: 50%; background: radial-gradient(circle at 50% 40%, #EEF3BE, #BBC84F); box-shadow: inset 0 .2vmin .4vmin rgba(0,0,0,.3), 0 0 0 .4vmin #1E1E1C; }
+  .endv.l { left: 4vmin; } .endv.r { right: 4vmin; }
+  .scale { display: flex; justify-content: space-between; margin-top: 1.4vmin; font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; color: #55534D; }
+
+  .foot { margin-top: 3.4vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 2vmin; line-height: 1.4; }
+  .offer b { font-weight: 800; }
+  .offer span { font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .08em; color: #55534D; }
+  .cta { flex: none; padding: 1.9vmin 3.2vmin; background: #D8522A; color: #FFF8F2; font-size: 2vmin; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo, .plumb { height: calc(100% - 66vmin); }
+    .panel { height: 66vmin; padding-top: 4vmin; padding-bottom: 4.6vmin; }
+    h1 { font-size: 10.4vmin; margin-top: 2.2vmin; }
+    .string { bottom: 11vmin; }
+    .bob { height: 8vmin; width: 4.2vmin; bottom: 2.6vmin; }
+    .vlabel { top: 18%; }
+  }
+  /* ── 3:4 and wider: photo | plumb gutter | panel ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 22%; }
+    .plumb { left: 46%; right: auto; width: 12vmin; height: 100%; }
+    .string { bottom: 14vmin; }
+    .bob { height: 9.6vmin; width: 5vmin; bottom: 4vmin; }
+    .vlabel { top: 30%; }
+    .panel { left: calc(46% + 12vmin); top: 0; height: auto; border-top: 0; border-left: .5vmin solid #1E1E1C; padding: 6vmin 5vmin 5.4vmin 4.6vmin; }
+    .head span:last-child { display: none; }
+    h1 { font-size: 8.6vmin; margin-top: 3.4vmin; }
+    .level { height: 7vmin; }
+    .vial { width: 44%; height: 3.6vmin; }
+    .bubble { width: 6.4vmin; height: 2.2vmin; }
+    .endv { width: 3.4vmin; height: 3.4vmin; }
+    .endv.l { left: 2.4vmin; } .endv.r { right: 2.4vmin; }
+    .vial::before { left: calc(50% - 4.4vmin); } .vial::after { left: calc(50% + 4vmin); }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 44%; }
+    .plumb { left: 44%; width: 11vmin; }
+    .panel { left: calc(44% + 11vmin); padding: 5vmin 5vmin 5vmin 4.6vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 2.8vmin; }
+    .foot { margin-top: 3vmin; gap: 2vmin; }
+    .offer { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 70% 30%; }
+    .plumb { left: 42%; width: 12vmin; }
+    .panel { left: calc(42% + 12vmin); padding: 6vmin 6vmin 6vmin 5.6vmin; }
+    .head span:last-child { display: inline; }
+    h1 { font-size: 10.4vmin; margin-top: 3vmin; }
+    .level { height: 8.4vmin; }
+    .vial { width: 32%; height: 4.2vmin; }
+    .bubble { width: 7.4vmin; height: 2.6vmin; }
+    .endv { width: 4.2vmin; height: 4.2vmin; }
+    .endv.l { left: 3.4vmin; } .endv.r { right: 3.4vmin; }
+    .foot { flex-direction: row; align-items: center; margin-top: 3.4vmin; }
+    .offer { font-size: 2vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) — knocked off true, then settling back to it ─────────
+     0.6 s the spirit level tips (+1.2°), the bubble runs uphill, then it rocks back and settles dead level by 3.2 s;
+     in the gutter the plumb bob takes the same knock and swings in a damped arc back to true vertical ·
+     3.3 s the 0.0° reading pulses (found centre) and the ● indicator blinks · 4.4 s "centre." wipes out & back ·
+     5.2 s a glint crosses the CTA */
+  .pend { position: absolute; inset: 0; transform-origin: calc(50% + 1vmin) 0; animation: swing 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes swing {
+    0%, 10%, 72%, 100% { transform: rotate(0deg); }
+    17% { transform: rotate(-2deg); }
+    28% { transform: rotate(1.5deg); }
+    39% { transform: rotate(-1deg); }
+    49% { transform: rotate(.6deg); }
+    58% { transform: rotate(-.25deg); }
+    65% { transform: rotate(.08deg); }
+  }
+
+  .level { animation: tilt 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes tilt {
+    0%, 10%, 54%, 100% { transform: rotate(0deg); }
+    18% { transform: rotate(1.2deg); }
+    32% { transform: rotate(-.7deg); }
+    44% { transform: rotate(.25deg); }
+  }
+  .bubble { animation: bub 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bub {
+    0%, 11%, 57%, 100% { transform: translate(-50%, -62%); }
+    20% { transform: translate(-50%, -62%) translateX(-4.4vmin) scaleX(1.06); }
+    34% { transform: translate(-50%, -62%) translateX(2.6vmin) scaleX(1.04); }
+    46% { transform: translate(-50%, -62%) translateX(-.8vmin); }
+    52% { transform: translate(-50%, -62%) translateX(.2vmin); }
+  }
+
+  .read b { display: inline-block; animation: found 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes found { 0%, 54%, 68%, 100% { transform: scale(1); text-shadow: 0 0 0 rgba(216,82,42,0); } 58% { transform: scale(1.18); text-shadow: 0 0 1.6vmin rgba(216,82,42,.45); } 62% { transform: scale(.98); } }
+  .head b { animation: blink 6s linear infinite; }
+  @keyframes blink { 0%, 55%, 58%, 61%, 64%, 100% { opacity: 1; } 56.5%, 62.5% { opacity: .15; } }
+
+  h1 i { display: inline-block; animation: wipe 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes wipe {
+    0%, 72%, 100% { clip-path: inset(-12% -8% -20% 0); transform: translateX(0); }
+    77% { clip-path: inset(-12% 108% -20% 0); transform: translateX(0); }
+    78% { clip-path: inset(-12% -8% -20% 100%); transform: translateX(-1.4vmin); }
+    86% { clip-path: inset(-12% -8% -20% 0); transform: translateX(0); }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; pointer-events: none;
+    background: linear-gradient(100deg, transparent 20%, rgba(255,248,242,.4) 50%, transparent 80%);
+    transform: translateX(-120%); animation: glint 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes glint { 0%, 86%, 100% { transform: translateX(-120%); } 98% { transform: translateX(330%); } 98.1% { transform: translateX(-120%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="plumb">
+    <div class="ruler"></div>
+    <div class="nums"><span style="top:20vmin">20</span><span style="top:40vmin">40</span><span style="top:60vmin">60</span><span style="top:80vmin">80</span></div>
+    <div class="pend">
+    <div class="string"></div>
+    <svg class="bob" viewBox="0 0 20 38" aria-hidden="true">
+      <defs><linearGradient id="br" x1="0" x2="1"><stop offset="0" stop-color="#8A6A2E"/><stop offset=".35" stop-color="#E8C877"/><stop offset=".6" stop-color="#C39A45"/><stop offset="1" stop-color="#7A5A22"/></linearGradient></defs>
+      <rect x="7" y="0" width="6" height="5" rx="1" fill="#2A2A28"/>
+      <path d="M3 6 H17 L17 13 L10 38 L3 13 Z" fill="url(#br)"/>
+    </svg>
+    </div>
+    <div class="vlabel">Plumb · true vertical</div>
+  </div>
+  <div class="panel">
+    <div class="head"><span>Alignment Nº 03</span><span>Reading <b>●</b> level</span></div>
+    <h1>Find your<br><i>centre.</i></h1>
+    <div class="levelwrap">
+      <div class="read"><span>Balance</span><b>0.0°</b><span>Dead centre</span></div>
+      <div class="level"><i class="endv l"></i><div class="vial"><i class="bubble"></i></div><i class="endv r"></i></div>
+      <div class="scale"><span>−3°</span><span>−2°</span><span>−1°</span><span>0</span><span>+1°</span><span>+2°</span><span>+3°</span></div>
+    </div>
+    <div class="foot">
+      <div class="offer"><b>−30%</b> on balanced essentials<br><span>Code LEVEL30 · ends Sun</span></div>
+      <div class="cta">Shop the balance →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

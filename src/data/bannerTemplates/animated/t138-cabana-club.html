@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Josefin+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Cabana Club — an old Riviera beach club: a faded green-and-ecru striped awning with a scalloped valance
+     (each stripe ends in its own scallop), a painted cabana number hanging from it on a cord, copy on sand.
+     tall → awning, copy, then the look below; square/wide → look left, awning + copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F0E8D8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F0E8D8; color: #1F3F36; font-family: "Josefin Sans", "Futura", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - 68vmin); object-fit: cover; object-position: 50% 20%; }
+
+  .side { position: absolute; left: 0; right: 0; top: 0; height: 68vmin; }
+  .awning { position: absolute; left: 0; right: 0; top: 0; height: 12vmin;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.18) 0%, rgba(0,0,0,0) 40%, rgba(255,255,255,.08) 80%, rgba(0,0,0,.06) 100%),
+      repeating-linear-gradient(90deg, #2F6B5A 0 6vmin, #F4EEE1 6vmin 12vmin); }
+  .val { position: absolute; left: 0; right: 0; top: 12vmin; height: 3.2vmin; filter: drop-shadow(0 .9vmin .7vmin rgba(40,50,40,.22)); }
+  .val::before { content: ""; position: absolute; inset: 0;
+    background: repeating-linear-gradient(90deg, #2B6352 0 6vmin, #ECE5D6 6vmin 12vmin);
+    -webkit-mask: radial-gradient(circle at 50% 0, #000 2.95vmin, transparent 3.05vmin) 0 0 / 6vmin 100% repeat-x;
+            mask: radial-gradient(circle at 50% 0, #000 2.95vmin, transparent 3.05vmin) 0 0 / 6vmin 100% repeat-x; }
+  .val::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .5vmin; background: rgba(0,0,0,.12); }
+
+  .num { position: absolute; right: 9vmin; top: 12vmin; width: 13vmin; display: flex; flex-direction: column; align-items: center; z-index: 2; }
+  .num::before { content: ""; width: 1px; height: 7vmin; background: #1F3F36; }
+  .num b { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 13vmin; height: 13vmin; border-radius: 50%; box-sizing: border-box;
+    background: #F7F2E7; border: .6vmin solid #2F6B5A; box-shadow: inset 0 0 0 .5vmin #F7F2E7, inset 0 0 0 .7vmin #2F6B5A, 0 .8vmin 1.2vmin rgba(40,50,40,.25);
+    font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 5.4vmin; line-height: .9; color: #1F3F36; }
+  .num b small { font-family: "Josefin Sans", sans-serif; font-weight: 600; font-size: 1.6vmin; letter-spacing: .2em; margin-right: -.2em; }
+
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 22vmin; bottom: 5vmin; display: flex; flex-direction: column; justify-content: flex-end; }
+  .k { align-self: flex-start; font-size: 1.9vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #2F6B5A; }
+  h1 { margin: 2vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: .98; letter-spacing: -.01em; }
+  h1 i { color: #2F6B5A; }
+  .sub { margin-top: 2vmin; font-size: 2.5vmin; line-height: 1.4; color: #3E5A51; }
+  .foot { margin-top: 2.6vmin; display: flex; align-items: center; gap: 3vmin; white-space: nowrap; font-size: 1.9vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; }
+  .foot .code { padding: 1vmin 1.8vmin .7vmin 2.1vmin; border: 1px dashed #1F3F36; }
+  .foot .cta { border-bottom: .3vmin solid #1F3F36; padding-bottom: .3vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 60vmin); }
+    .side { height: 60vmin; }
+    .awning { height: 10vmin; }
+    .val { top: 10vmin; }
+    .num { top: 10vmin; right: 8vmin; width: 11vmin; }
+    .num::before { height: 5vmin; }
+    .num b { width: 11vmin; height: 11vmin; font-size: 4.6vmin; }
+    .copy { top: 18vmin; bottom: 4.4vmin; }
+    h1 { font-size: 8.6vmin; }
+    .sub { font-size: 2.3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { top: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .side { left: 50%; top: 0; bottom: 0; height: auto; }
+    .awning { height: 14vmin; }
+    .val { top: 14vmin; }
+    .num { top: 14vmin; right: 6vmin; width: 12vmin; }
+    .num::before { height: 8vmin; }
+    .num b { width: 12vmin; height: 12vmin; font-size: 5vmin; }
+    .copy { left: 6vmin; right: 5vmin; top: 40vmin; bottom: 7vmin; }
+    .k { font-size: 1.7vmin; letter-spacing: .2em; white-space: nowrap; }
+    h1 { font-size: 6.6vmin; white-space: nowrap; }
+    .sub { font-size: 2.2vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.2vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 40% 25%; }
+    .side { left: 48%; }
+    .num { right: 8vmin; width: 14vmin; }
+    .num::before { height: 9vmin; }
+    .num b { width: 14vmin; height: 14vmin; font-size: 6vmin; }
+    .copy { left: 8vmin; right: 8vmin; top: 42vmin; bottom: 8vmin; }
+    .k { font-size: 1.9vmin; letter-spacing: .3em; }
+    h1 { font-size: 9.4vmin; }
+    .sub { font-size: 2.5vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 3vmin; font-size: 1.9vmin; }
+  }
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+     constant: sun dapples slowly across the awning; the look in a slow push-in
+     beats: 0.9s a sea breeze lifts the scalloped valance and sets the cabana number swinging on its cord (settles by 4s) ·
+            3.3s "late swim." glints like water · 4.8s the CTA underline is redrawn */
+  .photo { animation: look 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes look { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.456%); } }
+
+  .awning::after { content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light;
+    background: linear-gradient(100deg, rgba(255,250,230,0) 30%, rgba(255,250,230,.55) 45%, rgba(255,250,230,.2) 52%, rgba(255,250,230,0) 65%) 0 0 / 200% 100% repeat-x;
+    animation: dapple 6s linear infinite; }
+  @keyframes dapple { from { background-position: 0 0; } to { background-position: 200% 0; } }
+
+  .val { transform-origin: 50% 0; animation: breeze 6s linear infinite; }
+  @keyframes breeze {
+    0%, 14% { transform: scaleY(1) skewX(0deg); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    21% { transform: scaleY(1.22) skewX(-3deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    30% { transform: scaleY(.94) skewX(1.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    39% { transform: scaleY(1.08) skewX(-.8deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50%, 100% { transform: scaleY(1) skewX(0deg); }
+  }
+  .num { transform-origin: 50% 0; animation: swing 6s linear infinite; }
+  @keyframes swing {
+    0%, 15% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    24% { transform: rotate(6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    35% { transform: rotate(-4.2deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    46% { transform: rotate(2.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    56% { transform: rotate(-1.3deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    65% { transform: rotate(.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    72%, 100% { transform: rotate(0deg); }
+  }
+
+  h1 i { background: linear-gradient(100deg, #2F6B5A 0 40%, #7FC0AC 47%, #D8F0E6 50%, #7FC0AC 53%, #2F6B5A 60% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 52% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.35,1); }
+    70% { background-position: 0% 0; animation-timing-function: steps(1, end); }
+    70.5%, 100% { background-position: 100% 0; }
+  }
+
+  .foot .cta { position: relative; border-bottom-color: transparent; }
+  .foot .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.3vmin; height: .3vmin; background: #1F3F36; transform-origin: 100% 50%; animation: redraw 6s linear infinite; }
+  @keyframes redraw {
+    0%, 78% { transform: scaleX(1); transform-origin: 100% 50%; animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    84% { transform: scaleX(0); transform-origin: 100% 50%; animation-timing-function: steps(1, end); }
+    84.5% { transform: scaleX(0); transform-origin: 0 50%; animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    94%, 100% { transform: scaleX(1); transform-origin: 0 50%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="side">
+    <div class="awning"></div>
+    <div class="val"></div>
+    <div class="num"><b><small>Nº</small>12</b></div>
+    <div class="copy">
+      <div class="k">The Beach Club · Est. 1952</div>
+      <h1>Long lunch,<br><i>late swim.</i></h1>
+      <div class="sub">The resort collection, 20% off through Sunday.</div>
+      <div class="foot"><span class="code">CABANA20</span><span class="cta">Shop resort</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

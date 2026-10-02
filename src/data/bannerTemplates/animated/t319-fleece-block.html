@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Fleece Block — a 90s colour-block pullover laid flat: teal yoke cut on the diagonal, mustard piping, plum
+     body, a snap-flap chest pocket, top-stitched seams and a bar-tacked woven label, all with a brushed-fleece
+     nap. Chunky friendly grotesk for the headline. tall → photo above, fleece below · square/wide → photo left, fleece right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #57213F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #57213F; color: #F6EBD6; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; --teal: #1E8784; --mus: #E6A731; --plum: #57213F; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 20%; }
+  .fleece { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; overflow: hidden; background: var(--plum); --y: 32vmin; --d: 13vmin; }
+  .nap { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; mix-blend-mode: soft-light; opacity: .8; }
+  .side { position: absolute; right: 0; top: 0; bottom: 0; width: 28vmin; background: #22305C; box-shadow: -.5vmin 0 0 rgba(0,0,0,.14); }
+  .side::before { content: ""; position: absolute; left: 1.3vmin; top: 0; bottom: 0; border-left: .3vmin dashed rgba(246,235,214,.5); }
+  .piping, .yoke { position: absolute; left: 0; right: 0; top: 0; }
+  .piping { height: calc(var(--y) + 3.2vmin); background: var(--mus); clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--d)), 0 100%); }
+  .yoke { height: var(--y); background: var(--teal); clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--d)), 0 100%); }
+  /* top-stitching just inside the yoke edge */
+  .stitch { position: absolute; left: 0; right: 0; top: 0; height: calc(var(--y) - 1.6vmin); clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--d)), 0 100%); z-index: 1;
+    background: linear-gradient(to top right, transparent calc(50% - 1px), transparent 0); }
+  .stitch svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .kick { position: absolute; left: 6vmin; top: 4.6vmin; z-index: 2; display: flex; flex-direction: column; gap: .8vmin; font-family: "DM Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #E9F4F1; }
+  .kick b { font-weight: 500; color: #FFD27A; }
+  .pocket { position: absolute; right: 7vmin; top: 5vmin; width: 18vmin; height: 15vmin; z-index: 2; background: #176C69; box-shadow: .4vmin .6vmin 0 rgba(0,0,0,.18); }
+  .pocket::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6vmin; background: #1A7875; border-bottom: .5vmin solid #135955; }
+  .pocket::after { content: ""; position: absolute; inset: .9vmin; border: .25vmin dashed rgba(246,235,214,.55); }
+  .snap { position: absolute; left: calc(50% - 1.6vmin); top: 2.2vmin; width: 3.2vmin; height: 3.2vmin; border-radius: 50%; z-index: 1; background: radial-gradient(circle at 38% 34%, #FFF3D6, #C9B089 45%, #7E6A4C); box-shadow: 0 .2vmin .3vmin rgba(0,0,0,.35); }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: calc(var(--y) + 7vmin); bottom: 5vmin; z-index: 2; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-weight: 800; font-size: 17vmin; line-height: .84; letter-spacing: -.045em; }
+  h1 span { color: var(--mus); }
+  .offer { margin-top: 3vmin; max-width: 60vmin; font-weight: 500; font-size: 3.4vmin; line-height: 1.15; }
+  .offer b { font-weight: 800; color: var(--mus); }
+  .row { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .label { position: relative; padding: 1.4vmin 3.6vmin; background: #F4ECDD; color: #57213F; display: flex; flex-direction: column; align-items: center; gap: .3vmin; box-shadow: .3vmin .5vmin 0 rgba(0,0,0,.25); }
+  .label::before, .label::after { content: ""; position: absolute; top: 20%; bottom: 20%; width: 1vmin; background: repeating-linear-gradient(180deg, #57213F 0 .3vmin, transparent .3vmin .6vmin); }
+  .label::before { left: 1.1vmin; } .label::after { right: 1.1vmin; }
+  .label b { font-weight: 800; font-size: 2.6vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .label small { font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .go { display: flex; flex-direction: column; align-items: flex-end; gap: 1vmin; }
+  .go small { font-family: "DM Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .go b { padding: 1.6vmin 2.6vmin; background: var(--mus); color: #2D1022; font-weight: 800; font-size: 2.6vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 80vmin); }
+    .fleece { height: 80vmin; --y: 28vmin; --d: 11vmin; }
+    .pocket { top: 4.4vmin; width: 16vmin; height: 13vmin; }
+    .copy { top: calc(var(--y) + 5.4vmin); bottom: 4.4vmin; }
+    h1 { font-size: 15vmin; }
+    .offer { margin-top: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .fleece { height: 64vmin; --y: 20vmin; --d: 8vmin; }
+    .kick { top: 3.6vmin; }
+    .pocket { top: 3.2vmin; width: 13vmin; height: 10vmin; }
+    .pocket::before { height: 4.2vmin; }
+    .snap { top: 1.2vmin; width: 2.6vmin; height: 2.6vmin; left: calc(50% - 1.3vmin); }
+    .copy { top: calc(var(--y) + 3vmin); bottom: 3.6vmin; }
+    h1 { font-size: 12vmin; }
+    h1 br { display: none; }
+    .offer { margin-top: 1.8vmin; font-size: 3vmin; }
+    .side { width: 26vmin; }
+    .label { padding: 1.1vmin 3.2vmin; }
+    .label b { font-size: 2.2vmin; }
+    .go b { padding: 1.3vmin 2.2vmin; font-size: 2.2vmin; }
+  }
+  /* square / wide → photo left, fleece right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .fleece { left: 50%; top: 0; height: auto; --y: 26vmin; --d: 10vmin; }
+    .kick { left: 4.6vmin; top: 4.6vmin; font-size: 1.6vmin; letter-spacing: .1em; }
+    .pocket { right: 4.6vmin; top: 4.4vmin; width: 11vmin; height: 10vmin; }
+    .pocket::before { height: 4vmin; }
+    .snap { top: 1.1vmin; width: 2.4vmin; height: 2.4vmin; left: calc(50% - 1.2vmin); }
+    .copy { left: 4.6vmin; right: 4.6vmin; top: calc(var(--y) + 5vmin); bottom: 4.6vmin; }
+    h1 { font-size: 11.4vmin; }
+    h1 br { display: inline; }
+    .offer { margin-top: 2.4vmin; font-size: 2.5vmin; max-width: 30vmin; }
+    .side { display: none; }
+    .row { flex-direction: column; align-items: stretch; gap: 2.4vmin; }
+    .label { align-self: flex-start; padding: 1vmin 3vmin; }
+    .label b { font-size: 2vmin; }
+    .label small { font-size: 1.6vmin; letter-spacing: .08em; }
+    .go { flex-direction: row; justify-content: space-between; align-items: center; }
+    .go small { font-size: 1.6vmin; letter-spacing: .06em; }
+    .go b { padding: 1.3vmin 2vmin; font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .fleece { left: 48%; --y: 30vmin; --d: 12vmin; }
+    .kick { left: 6vmin; top: 5.4vmin; font-size: 1.8vmin; letter-spacing: .14em; }
+    .pocket { right: 7vmin; top: 5vmin; width: 16vmin; height: 14vmin; }
+    .pocket::before { height: 5.6vmin; }
+    .snap { top: 2vmin; width: 3vmin; height: 3vmin; left: calc(50% - 1.5vmin); }
+    .copy { left: 6vmin; right: 6vmin; top: calc(var(--y) + 5vmin); bottom: 5.4vmin; }
+    h1 { font-size: 15vmin; }
+    h1 br { display: none; }
+    .offer { font-size: 3.2vmin; margin-top: 2.6vmin; max-width: 46vmin; }
+    .side { display: block; width: 24vmin; }
+    .row { flex-direction: row; align-items: flex-end; gap: 3vmin; }
+    .label { align-self: auto; padding: 1.4vmin 3.6vmin; }
+    .label b { font-size: 2.5vmin; }
+    .label small { font-size: 1.6vmin; letter-spacing: .14em; }
+    .go { flex-direction: column; align-items: flex-end; }
+    .go small { font-size: 1.8vmin; letter-spacing: .12em; }
+    .go b { padding: 1.6vmin 2.6vmin; font-size: 2.5vmin; }
+  }
+
+  /* ───────── motion (6s loop, cosy), t=0 = static design ─────────
+     constant: the yoke top-stitch runs like a sewing machine (one stitch per .75s)
+     1.0s the pocket flap lifts and the snap pops shut again · 2.8s "up." bounces with a soft squash ·
+     4.0s the woven label sways on its bar tacks · 4.9s CTA gets a warm sheen */
+  .stitch path { animation: sew .75s linear infinite; }
+  @keyframes sew { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -2.4vmin; } }
+  .pocket::before { transform-origin: 50% 0; animation: flap 6s linear infinite; }
+  @keyframes flap {
+    0%, 15% { transform: perspective(40vmin) rotateX(0deg); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    22%, 27% { transform: perspective(40vmin) rotateX(-60deg); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    30.5% { transform: perspective(40vmin) rotateX(4deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    34%, 100% { transform: perspective(40vmin) rotateX(0deg); }
+  }
+  .snap { animation: snap 6s linear infinite; }
+  @keyframes snap {
+    0%, 15% { transform: translateY(0) scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    22%, 27% { transform: translateY(-1.2vmin) scale(1.06); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    30.5% { transform: translateY(0) scale(.8); animation-timing-function: cubic-bezier(.2,.9,.3,1.4); }
+    35%, 100% { transform: translateY(0) scale(1); }
+  }
+  h1 span { display: inline-block; transform-origin: 50% 100%; animation: bounce 6s linear infinite; }
+  @keyframes bounce {
+    0%, 44% { transform: translateY(0) scale(1,1); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    46% { transform: translateY(0) scale(1.08,.9); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    51% { transform: translateY(-2.4vmin) scale(.96,1.05); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    55.5% { transform: translateY(0) scale(1.06,.93); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    60%, 100% { transform: translateY(0) scale(1,1); }
+  }
+  .label { transform-origin: 50% 0; animation: sway 6s linear infinite; }
+  @keyframes sway {
+    0%, 64% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    67.5% { transform: rotate(-3deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    71.5% { transform: rotate(2deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    75% { transform: rotate(-.8deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    78%, 100% { transform: rotate(0deg); }
+  }
+  .go b { position: relative; overflow: hidden; }
+  .go b::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 35%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,245,215,0), rgba(255,245,215,.6), rgba(255,245,215,0)); transform: translateX(-130%) skewX(-18deg);
+    animation: sheen 6s linear infinite; }
+  @keyframes sheen { 0%, 80% { transform: translateX(-130%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 94%, 100% { transform: translateX(380%) skewX(-18deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="fleece">
+    <i class="side"></i>
+    <i class="piping"></i>
+    <i class="yoke"></i>
+    <div class="stitch"><svg preserveAspectRatio="none" viewBox="0 0 100 100" aria-hidden="true"><path d="M0 99.4 L100 57" fill="none" stroke="#F6EBD6" stroke-opacity=".55" stroke-width=".35vmin" stroke-dasharray="1.4vmin 1vmin" vector-effect="non-scaling-stroke"/></svg></div>
+    <div class="kick"><span>Fall / Winter 26</span><b>The layering issue</b></div>
+    <div class="pocket"><i class="snap"></i></div>
+    <div class="copy">
+      <h1>Layer <br><span>up.</span></h1>
+      <div class="offer">The warm edit, <b>30% off</b> with code LAYER30</div>
+      <div class="row">
+        <div class="label"><b>Kettle Peak</b><small>Outdoor co. · est. 1994</small></div>
+        <div class="go"><small>Until 12.10</small><b>Bundle up →</b></div>
+      </div>
+    </div>
+    <svg class="nap" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true"><filter id="nap"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" seed="2"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="0" intercept=".55"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(#nap)"/></svg>
+  </div>
+</div>
+</body>
+</html>

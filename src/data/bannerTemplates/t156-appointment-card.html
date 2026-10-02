@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Appointment Card — personal shopping, booked: an engraved appointment card filled in by hand in blue ink
+     (stylist, date, time, ticked services) and stamped CONFIRMED in red, on a deep teal ground.
+     tall → photo above, teal panel below; square/wide → teal panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #173432; }
+  .banner { --panel: 84vmin; position: fixed; inset: 0; overflow: hidden; background: #173432; color: #F4EEDF; font-family: "EB Garamond", Garamond, "Times New Roman", serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; justify-content: flex-end; gap: 5vmin; }
+  h1 { margin: 0; font-weight: 400; font-size: 8.6vmin; line-height: 1; letter-spacing: -.01em; }
+  h1 em { font-style: italic; color: #E7C98F; }
+  h1 br { display: none; }
+  .head br.sq { display: none; }
+
+  .card { position: relative; background: #F7F2E6; color: #22302E; padding: 4vmin 5vmin 3.6vmin; transform: rotate(-1.5deg); box-shadow: 0 2.6vmin 4.4vmin rgba(0,0,0,.4), 0 .4vmin .8vmin rgba(0,0,0,.2); }
+  .head { text-align: left; padding-bottom: 2vmin; border-bottom: 1px solid rgba(34,48,46,.45); }
+  .head small { display: table; font-size: 1.7vmin; font-weight: 500; letter-spacing: .4em; text-transform: uppercase; }
+  .head b { display: table; margin-top: .8vmin; font-weight: 400; font-style: italic; font-size: 5.4vmin; line-height: 1; }
+  .head span { display: table; margin-top: .8vmin; font-size: 1.7vmin; letter-spacing: .26em; text-transform: uppercase; color: #5B6A66; }
+  .f { display: flex; align-items: flex-end; gap: 2vmin; margin-top: 2vmin; }
+  .f label { flex: none; width: 9vmin; padding-bottom: .5vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #5B6A66; }
+  .f .ln { flex: 1; min-width: 0; border-bottom: 1px solid rgba(34,48,46,.5); font-family: "Caveat", "Bradley Hand", cursive; font-weight: 500; font-size: 4.4vmin; line-height: 1; padding: 0 0 .2vmin 1vmin; color: #1F3A8A; white-space: nowrap; }
+  .svc { display: flex; flex-wrap: wrap; gap: 1.4vmin 3.4vmin; margin-top: 2.8vmin; font-size: 2.2vmin; }
+  .svc span { display: inline-flex; align-items: center; gap: 1.2vmin; white-space: nowrap; }
+  .box { position: relative; width: 2.2vmin; height: 2.2vmin; box-sizing: border-box; border: .22vmin solid #22302E; }
+  .box.on::after { content: ""; position: absolute; left: .4vmin; top: -1.4vmin; width: 1.2vmin; height: 2.8vmin; border-right: .45vmin solid #1F3A8A; border-bottom: .45vmin solid #1F3A8A; transform: rotate(38deg); border-radius: 0 0 .4vmin 0; }
+  .note { margin-top: 2.6vmin; padding-top: 1.6vmin; border-top: 1px solid rgba(34,48,46,.3); display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; letter-spacing: .06em; color: #5B6A66; }
+  .note b { font-weight: 600; color: #22302E; letter-spacing: .02em; }
+  .stamp { position: absolute; right: 4vmin; top: 3.4vmin; padding: 1vmin 1.8vmin; border: .45vmin solid #C2332B; border-radius: .8vmin; box-shadow: inset 0 0 0 .3vmin #F7F2E6, inset 0 0 0 .55vmin #C2332B; color: #C2332B; font-weight: 600; font-size: 2.4vmin; letter-spacing: .2em; text-transform: uppercase; transform: rotate(12deg); opacity: .86; mix-blend-mode: multiply; text-align: center; line-height: 1.1; }
+  .stamp small { display: block; font-size: 1.6vmin; letter-spacing: .12em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 78vmin; }
+    .copy { bottom: 4.5vmin; height: calc(var(--panel) - 9vmin); }
+    h1 { font-size: 7.4vmin; }
+    .card { padding: 3.2vmin 5vmin 3vmin; }
+    .head b { font-size: 4.8vmin; }
+    .f { margin-top: 1.4vmin; }
+    .f .ln { font-size: 4vmin; }
+    .svc { margin-top: 2.2vmin; }
+    .note { margin-top: 2vmin; padding-top: 1.2vmin; }
+  }
+  /* square — teal panel left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 50%; width: 50%; height: 100%; }
+    .photo { left: 54%; width: 46%; }
+    .copy { left: 5vmin; right: auto; width: calc(54% - 9vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    h1 { font-size: 7vmin; }
+    h1 br { display: inline; }
+    .card { padding: 3vmin 3.4vmin 2.6vmin; }
+    .head small { font-size: 1.6vmin; letter-spacing: .3em; margin-right: -.3em; }
+    .copy { justify-content: space-between; gap: 0; }
+    .head { text-align: left; }
+    .head b { font-size: 3.8vmin; }
+    .head br.sq { display: inline; }
+    .head span { font-size: 1.6vmin; letter-spacing: .16em; margin-right: -.16em; }
+    .f { margin-top: 1.2vmin; gap: 1.4vmin; }
+    .f label { width: 7vmin; font-size: 1.6vmin; letter-spacing: .12em; }
+    .f .ln { font-size: 3.4vmin; }
+    .svc { gap: 1vmin 2.4vmin; margin-top: 2vmin; font-size: 1.9vmin; }
+    .note { flex-direction: column; gap: .4vmin; margin-top: 1.8vmin; padding-top: 1.2vmin; font-size: 1.6vmin; }
+    .stamp { right: 2.4vmin; top: 2.4vmin; font-size: 1.9vmin; padding: .8vmin 1.2vmin; }
+    .stamp small { font-size: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 50%; width: 50%; }
+    .head b { font-size: 4.6vmin; }
+    .head br.sq { display: none; }
+    .copy { left: 6vmin; width: calc(50% - 11vmin); top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 7.4vmin; }
+    h1 br { display: none; }
+    .card { padding: 3vmin 4.4vmin 2.6vmin; }
+    .f .ln { font-size: 3.8vmin; }
+    .note { flex-direction: row; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <h1>Your hour, <br><em>booked.</em></h1>
+    <div class="card">
+      <div class="head"><small>Atelier Nord</small><b>Personal <br class="sq">Shopping</b><span>Appointment card</span></div>
+      <div class="f"><label>With</label><div class="ln">Clara, your stylist</div></div>
+      <div class="f"><label>Date</label><div class="ln">Thursday 14 Nov</div></div>
+      <div class="f"><label>Time</label><div class="ln">18:30 — Suite 2</div></div>
+      <div class="svc"><span><i class="box on"></i>Styling</span><span><i class="box on"></i>Alterations</span><span><i class="box on"></i>Champagne</span></div>
+      <div class="note"><span>Complimentary for members</span><b>15% off on the day</b></div>
+      <div class="stamp">Confirmed<small>Nº 1147</small></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

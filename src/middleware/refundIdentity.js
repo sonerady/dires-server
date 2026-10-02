@@ -6,6 +6,7 @@ const equal = (a, b) =>
   a.length === b.length &&
   timingSafeEqual(Buffer.from(a), Buffer.from(b));
 // Native anonymous accounts keep their existing device identity; email login is not required.
+const tokenCache = new Map();
 function refundIdentity(db) {
   return async (req, res, next) => {
     try {
@@ -24,9 +25,18 @@ function refundIdentity(db) {
       );
       let verified = false;
       if (token.includes(".")) {
-        const { data, error: authError } = await db.auth.getUser(token);
-        verified =
-          !authError && !!data?.user && user?.supabase_user_id === data.user.id;
+        // ⚡ Doğrulanmış oturum 5 dk önbellekte (her /status'ta Supabase Auth ağ turu yapılıyordu)
+        const cached = tokenCache.get(token);
+        let authUserId = cached && cached.until > Date.now() ? cached.authUserId : null;
+        if (!authUserId) {
+          const { data, error: authError } = await db.auth.getUser(token);
+          if (!authError && data?.user) {
+            authUserId = data.user.id;
+            if (tokenCache.size > 2000) tokenCache.delete(tokenCache.keys().next().value);
+            tokenCache.set(token, { authUserId, until: Date.now() + 5 * 60000 });
+          }
+        }
+        verified = !!authUserId && user?.supabase_user_id === authUserId;
       } else if (/^[a-f0-9]{64}$/i.test(token)) {
         const { data } = await db
           .from("acquisition_push_enrollments")

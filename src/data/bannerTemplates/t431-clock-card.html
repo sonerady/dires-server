@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Clock Card — the time office of an old garment works: a steel card rack along the seam with one pocket empty
+     (Nº 0431 is out), and that manila time card lying on the green-painted wall, every shift punched in violet
+     clock ink, the late punch in red, a rubber "early shift" stamp for the offer.
+     tall / 3:4 → photo above the wall; square / wide → photo left, rack runs down the seam */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2E4436; }
+  .banner { --P: 80vmin; --u: 1vmin; position: fixed; inset: 0; overflow: hidden; color: #EFE7D4; font-family: "Archivo", "Arial Narrow", Arial, sans-serif;
+    background:
+      radial-gradient(140% 90% at 20% 100%, rgba(255,255,255,.05) 0%, rgba(0,0,0,0) 60%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.035) 0 .2vmin, rgba(0,0,0,0) .2vmin .9vmin),
+      #2E4436; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--P)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  /* steel card rack */
+  .rack { position: absolute; left: 0; right: 0; top: calc(100% - var(--P)); height: 6.4vmin; overflow: hidden; display: flex; gap: .8vmin; padding: 0 1vmin; box-sizing: border-box; z-index: 2;
+    background: linear-gradient(180deg, #B9BDB8 0%, #D9DCD6 22%, #9FA39E 60%, #7E827D 100%); box-shadow: 0 .6vmin 1.4vmin rgba(0,0,0,.4); }
+  .pk { flex: none; width: 11.4vmin; height: 100%; position: relative; background: linear-gradient(180deg, #2A2C2A 0 22%, #6E726D 22% 26%, #C7CAC4 26% 100%); box-shadow: inset .25vmin 0 0 rgba(0,0,0,.25), inset -.25vmin 0 0 rgba(255,255,255,.35); }
+  .pk i { position: absolute; left: 1.4vmin; right: 1.4vmin; top: 0; height: 22%; background: #E6D59F; }
+  .pk b { position: absolute; left: 0; right: 0; bottom: .7vmin; text-align: center; font-family: "Courier Prime", "Courier New", monospace; font-size: 1.7vmin; font-weight: 700; color: #2B2D2B; letter-spacing: .06em; }
+  .pk.out i { display: none; }
+  .pk.out b { color: #B8321F; }
+
+  .wall { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--P) - 6.4vmin); box-sizing: border-box; padding: 4.4vmin 5.5vmin 5vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; font-family: "Courier Prime", "Courier New", monospace; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; color: #BFC9B9; white-space: nowrap; }
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-content: center; column-gap: 4vmin; }
+  .copy { grid-column: 1; grid-row: 1; align-self: end; min-width: 0; }
+  .low { display: contents; }
+  .act { grid-column: 1; grid-row: 2; align-self: start; }
+  .card { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+  h1 { margin: 0; font-weight: 900; font-stretch: 62%; font-size: 17vmin; line-height: .84; letter-spacing: -.01em; text-transform: uppercase; }
+  h1 em { font-style: normal; color: #E3B04B; }
+  .lede { margin: 3vmin 0 0; font-size: 2.6vmin; line-height: 1.38; font-stretch: 92%; color: #D9DDCF; max-width: 44vmin; }
+  .lede b { color: #EFE7D4; font-weight: 700; }
+  .act { margin-top: 3.4vmin; display: flex; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+  .cta { display: inline-block; background: #E3B04B; color: #1F2A22; font-weight: 800; font-stretch: 85%; font-size: 2.6vmin; letter-spacing: .08em; text-transform: uppercase; padding: 1.5vmin 2.4vmin; white-space: nowrap; }
+  .code { font-family: "Courier Prime", "Courier New", monospace; font-size: 1.9vmin; letter-spacing: .08em; text-transform: uppercase; color: #BFC9B9; white-space: nowrap; }
+  .code b { color: #EFE7D4; }
+
+  /* the time card */
+  .card { flex: none; position: relative; width: calc(var(--u) * 38); height: calc(var(--u) * 58); box-sizing: border-box; padding: calc(var(--u) * 3.6) calc(var(--u) * 2.8) calc(var(--u) * 2.6);
+    background: linear-gradient(170deg, #F1E3B4 0%, #E9D7A2 60%, #E0CB91 100%); color: #2A2620; transform: rotate(2.5deg); box-shadow: 0 1.2vmin 2.6vmin rgba(0,0,0,.42), 0 .2vmin .4vmin rgba(0,0,0,.3); }
+  .card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: calc(var(--u) * 1.4); background: #B8321F; }
+  .card::after { content: ""; position: absolute; left: 50%; top: calc(var(--u) * -.1); width: calc(var(--u) * 5); height: calc(var(--u) * 2.6); margin-left: calc(var(--u) * -2.5); border-radius: 0 0 50% 50% / 0 0 100% 100%; background: #2E4436; }
+  .ch { display: flex; justify-content: space-between; align-items: baseline; }
+  .ch h2 { margin: 0; font-weight: 900; font-stretch: 70%; font-size: calc(var(--u) * 4.4); letter-spacing: .02em; line-height: 1; text-transform: uppercase; }
+  .ch span { font-family: "Courier Prime", "Courier New", monospace; font-weight: 700; font-size: calc(var(--u) * 2.4); color: #B8321F; }
+  .fld { margin-top: calc(var(--u) * 1.6); display: flex; gap: calc(var(--u) * 1.2); align-items: baseline; border-bottom: 1px solid rgba(42,38,32,.55); padding-bottom: calc(var(--u) * .5);
+    font-size: max(1.6vmin, calc(var(--u) * 1.7)); font-weight: 700; font-stretch: 80%; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .fld em { font-style: normal; font-family: "Courier Prime", "Courier New", monospace; font-size: calc(var(--u) * 2.3); letter-spacing: .02em; color: #3E2F86; }
+  .grid { margin-top: calc(var(--u) * 2); border-top: calc(var(--u) * .3) solid #2A2620; }
+  .r { display: grid; grid-template-columns: 22% 39% 39%; height: calc(var(--u) * 3.9); align-items: center; border-bottom: 1px solid rgba(42,38,32,.4);
+    background: linear-gradient(90deg, rgba(0,0,0,0) calc(22% - 1px), rgba(42,38,32,.4) calc(22% - 1px) 22%, rgba(0,0,0,0) 22% calc(61% - 1px), rgba(42,38,32,.4) calc(61% - 1px) 61%, rgba(0,0,0,0) 61%); }
+  .r > * { padding-left: calc(var(--u) * .8); line-height: 1; }
+  .r.hd { height: calc(var(--u) * 3); font-size: max(1.6vmin, calc(var(--u) * 1.6)); font-weight: 800; font-stretch: 80%; letter-spacing: .14em; }
+  .r .d { font-weight: 800; font-stretch: 80%; font-size: max(1.6vmin, calc(var(--u) * 1.9)); letter-spacing: .08em; }
+  .p { font-family: "Courier Prime", "Courier New", monospace; font-weight: 700; font-size: calc(var(--u) * 2.4); color: #3E2F86; letter-spacing: .02em; text-shadow: 0 0 .15vmin rgba(62,47,134,.45); }
+  .p.t1 { transform: translate(.2vmin, -.15vmin) rotate(-1deg); } .p.t2 { transform: translate(-.2vmin, .2vmin); opacity: .85; } .p.t3 { transform: rotate(1deg); }
+  .p.late { color: #B8321F; text-shadow: 0 0 .15vmin rgba(184,50,31,.45); }
+  .tot { margin-top: calc(var(--u) * 1.8); display: flex; justify-content: flex-start; font-size: max(1.6vmin, calc(var(--u) * 1.7)); font-weight: 800; font-stretch: 80%; letter-spacing: .14em; text-transform: uppercase; }
+  /* rubber stamp */
+  .stamp { position: absolute; right: calc(var(--u) * 2.2); bottom: calc(var(--u) * 2.2); transform: rotate(-8deg); border: calc(var(--u) * .5) solid rgba(184,50,31,.88); padding: calc(var(--u) * .6) calc(var(--u) * 1.4); color: rgba(184,50,31,.9); text-align: center;
+    font-weight: 900; font-stretch: 70%; text-transform: uppercase; line-height: 1; mix-blend-mode: multiply; }
+  .stamp small { display: block; font-size: max(1.6vmin, calc(var(--u) * 1.7)); letter-spacing: .2em; margin-bottom: calc(var(--u) * 1.5); }
+  .stamp b { display: block; font-size: calc(var(--u) * 5.6); letter-spacing: .01em; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --P: 66vmin; --u: .8vmin; }
+    .wall { padding: 3.6vmin 5.5vmin 4vmin; }
+    h1 { font-size: 14vmin; }
+    .lede { margin-top: 2.2vmin; font-size: 2.2vmin; max-width: 50vmin; }
+    .act { margin-top: 2.4vmin; flex-direction: row; align-items: center; gap: 2.4vmin; }
+    .cta { font-size: 2.2vmin; padding: 1.2vmin 2vmin; }
+    .code { font-size: 1.8vmin; }
+  }
+  /* square → photo left, rack down the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --u: .74vmin; }
+    .photo { width: 44%; height: 100%; object-position: 50% 24%; }
+    .rack { top: 0; bottom: 0; left: 44%; right: auto; width: 7.4vmin; height: auto; flex-direction: column; padding: 1vmin 0; }
+    .pk { width: 100%; height: 10vmin; background: linear-gradient(90deg, #2A2C2A 0 20%, #6E726D 20% 24%, #C7CAC4 24% 100%); }
+    .pk i { left: 0; top: 1.2vmin; bottom: 1.2vmin; right: auto; width: 20%; height: auto; }
+    .pk b { left: 24%; bottom: auto; top: 50%; transform: translateY(-50%); font-size: 1.6vmin; letter-spacing: 0; }
+    .wall { left: calc(44% + 7.4vmin); top: 0; height: auto; padding: 5vmin 4.4vmin 4.6vmin; }
+    .meta span + span { display: none; }
+    h1 { margin-top: 2.6vmin; font-size: 12.4vmin; }
+    .lede { font-size: 2.05vmin; margin-top: 2vmin; }
+    .body { display: flex; flex-direction: column; align-items: stretch; justify-content: space-between; gap: 0; }
+    .copy { flex: none; }
+    .low { display: contents; }
+    .act { margin: 2.4vmin 0 0; flex-direction: row; align-items: center; gap: 2vmin; }
+    .card { align-self: flex-end; margin-right: 1vmin; }
+    .cta { font-size: 2vmin; padding: 1.2vmin 1.8vmin; }
+    .code { font-size: 1.7vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --u: .84vmin; }
+    .photo { width: 46%; object-position: 50% 30%; }
+    .rack { left: 46%; }
+    .wall { left: calc(46% + 7.4vmin); padding: 6vmin 5.5vmin 5.5vmin; }
+    .meta span + span { display: inline; }
+    h1 { margin-top: 0; font-size: 12vmin; }
+    .lede { font-size: 2.2vmin; max-width: 34vmin; }
+    .card { align-self: center; margin-right: 0; }
+    .body { display: grid; column-gap: 3vmin; }
+    .low { display: contents; }
+    .act { margin-top: 3vmin; flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="rack" aria-hidden="true">
+    <div class="pk"><i></i><b>0427</b></div><div class="pk"><i></i><b>0428</b></div><div class="pk"><i></i><b>0429</b></div><div class="pk"><i></i><b>0430</b></div><div class="pk out"><i></i><b>0431</b></div><div class="pk"><i></i><b>0432</b></div><div class="pk"><i></i><b>0433</b></div><div class="pk"><i></i><b>0434</b></div><div class="pk"><i></i><b>0435</b></div><div class="pk"><i></i><b>0436</b></div>
+  </div>
+  <div class="wall">
+    <div class="meta"><span>Atelier Nord Works · Time Office</span><span>Week 40</span></div>
+    <div class="body">
+      <div class="copy">
+        <h1>Clock<br><em>in.</em></h1>
+        <p class="lede">The work edit is on the floor. <b>Early shift: 30% off</b> for the first 48 hours.</p>
+      </div>
+      <div class="low">
+        <div class="act"><span class="code">Code <b>SHIFT30</b></span><span class="cta">Start shift →</span></div>
+        <div class="card">
+          <div class="ch"><h2>Time Card</h2><span>Nº 0431</span></div>
+          <div class="fld">Name <em>The Work Edit</em></div>
+          <div class="fld">Wk ending <em>04·10·26</em></div>
+          <div class="grid">
+            <div class="r hd"><span>Day</span><span>In</span><span>Out</span></div>
+            <div class="r"><span class="d">Mo</span><span class="p t1">07:58</span><span class="p t2">17:02</span></div>
+            <div class="r"><span class="d">Tu</span><span class="p t3">07:59</span><span class="p t1">17:00</span></div>
+            <div class="r"><span class="d">We</span><span class="p late t2">08:06</span><span class="p t3">17:05</span></div>
+            <div class="r"><span class="d">Th</span><span class="p t1">07:57</span><span class="p t2">16:58</span></div>
+            <div class="r"><span class="d">Fr</span><span class="p late t3">06:00</span><span class="p t1">—</span></div>
+          </div>
+          <div class="tot"><span>Hrs 40</span></div>
+          <div class="stamp"><small>Early shift</small><b>−30%</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -45,7 +45,9 @@ router.get("/test", (req, res) => {
 });
 
 router.post("/download", async (req, res) => {
-    const { imageUrl, format, pngType, colorSpace, userId, lang } = req.body;
+    const { imageUrl, colorSpace, userId, lang, backgroundMode } = req.body;
+    const format = backgroundMode === "transparent" && req.body.format !== "pdf" ? "png" : req.body.format;
+    const pngType = backgroundMode === "transparent" ? "rgba" : req.body.pngType;
 
     console.log("📥 [REFINER-DL] Request received:", {
         imageUrl,
@@ -239,7 +241,7 @@ router.post("/download", async (req, res) => {
         // Not: PDF color space conversion in canvas is complex, we skip for PDF for now or assume input was converted?
         // Actually, if format is PDF, we put the image AS IS or as RGB.
         // If format is standard image (jpg/png) AND colorSpace is CMYK:
-        if (colorSpace === "cmyk" && format !== "pdf") {
+        if (colorSpace === "cmyk" && format !== "pdf" && format !== "png") {
             console.log("🎨 [REFINER-DL] Converting to CMYK...");
             try {
                 // Sharp ile CMYK dönüşümü (basit dönüşüm)

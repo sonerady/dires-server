@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Surf Wax — the offer as a bar of surf wax: a scalloped round label with curved lettering and a Shrikhand
+     "Sale" in the middle, the pack's water-temperature grades (cold → tropical) become the discount ladder with
+     the tropical box ticked, and the tri-stripe of the wrapper runs along the seam.
+     tall → photo above, label + grades below · square → photo left, label over grade grid · wide → photo left, label beside grades */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFF1DA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FFF1DA; color: #1C2A5A; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; }
+  .stripe { position: absolute; left: 0; right: 0; top: 0; height: 2.4vmin; background: linear-gradient(180deg, #EE5A87 0 33.3%, #FFF1DA 33.3% 44%, #F6B53C 44% 66.6%, #FFF1DA 66.6% 77%, #2E9CC4 77%); }
+  .label { position: absolute; left: 4vmin; top: 7vmin; width: 56vmin; height: 56vmin; transform: rotate(-8deg); filter: drop-shadow(0 .8vmin 1vmin rgba(28,42,90,.22)); }
+  .label svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .label text { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; }
+  .label .script { font-family: "Shrikhand", Georgia, serif; font-weight: 400; }
+
+  .grades { position: absolute; left: 63vmin; right: 5vmin; top: 7vmin; }
+  .grades h3 { margin: 0 0 1.4vmin; font-size: 2.2vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .grades ul { margin: 0; padding: 0; list-style: none; }
+  .grades li { display: grid; grid-template-columns: 3vmin 1fr auto; align-items: center; column-gap: 1.6vmin; padding: 1.3vmin 0; border-top: .3vmin solid #1C2A5A; }
+  .grades li:last-child { border-bottom: .3vmin solid #1C2A5A; }
+  .grades i { width: 3vmin; height: 3vmin; border: .3vmin solid #1C2A5A; box-sizing: border-box; position: relative; }
+  .grades li.on i::after { content: ""; position: absolute; left: .5vmin; top: -.9vmin; width: 1.2vmin; height: 2.4vmin; border: solid #EE5A87; border-width: 0 .6vmin .6vmin 0; transform: rotate(40deg); }
+  .grades .n { display: flex; flex-direction: column; line-height: 1; }
+  .grades .n b { font-size: 3vmin; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .grades .n small { font-size: 1.7vmin; font-weight: 500; letter-spacing: .08em; margin-top: .4vmin; opacity: .8; white-space: nowrap; }
+  .grades .p { font-size: 3.6vmin; font-weight: 700; }
+  .grades li.on .p { color: #EE5A87; }
+  .c1 b { color: #2E9CC4; } .c2 b { color: #3E9E6B; } .c3 b { color: #E08A1E; } .c4 b { color: #EE5A87; }
+
+  .foot { position: absolute; left: 6vmin; right: 5vmin; bottom: 5vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot .tag { font-family: "Shrikhand", Georgia, serif; font-size: 4.4vmin; line-height: 1; white-space: nowrap; }
+  .foot .cta { display: flex; align-items: center; gap: 1.6vmin; padding: 1.6vmin 3vmin; background: #1C2A5A; color: #FFF1DA; border-radius: 99vmin; font-size: 2.5vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .foot .cta span { color: #F6B53C; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 72vmin); }
+    .panel { height: 72vmin; }
+    .label { top: 5.5vmin; width: 50vmin; height: 50vmin; left: 5vmin; }
+    .grades { left: 60vmin; top: 5.5vmin; }
+    .grades li { padding: 1vmin 0; }
+    .foot { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 62vmin); }
+    .panel { height: 62vmin; }
+    .label { top: 4.5vmin; width: 42vmin; height: 42vmin; left: 6vmin; }
+    .grades { left: 55vmin; top: 4.5vmin; }
+    .grades h3 { font-size: 1.9vmin; margin-bottom: 1vmin; }
+    .grades li { padding: .7vmin 0; }
+    .grades .n b { font-size: 2.6vmin; }
+    .grades .p { font-size: 3vmin; }
+    .foot { bottom: 3.5vmin; }
+    .foot .tag { font-size: 3.8vmin; }
+    .foot .cta { padding: 1.3vmin 2.6vmin; font-size: 2.2vmin; }
+  }
+  /* square → photo left, label over a 2×2 grade grid */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 50%; top: 0; height: auto; }
+    .stripe { top: 0; bottom: 0; left: 0; right: auto; width: 2vmin; height: auto; background: linear-gradient(90deg, #EE5A87 0 33.3%, #FFF1DA 33.3% 44%, #F6B53C 44% 66.6%, #FFF1DA 66.6% 77%, #2E9CC4 77%); }
+    .label { left: 50%; top: 5vmin; width: 40vmin; height: 40vmin; margin-left: -19vmin; }
+    .grades { left: 6vmin; right: 4vmin; top: 50vmin; }
+    .grades h3 { display: none; }
+    .grades li { padding: .8vmin 0; column-gap: 1.4vmin; grid-template-columns: 2.6vmin 1fr auto; }
+    .grades i { width: 2.6vmin; height: 2.6vmin; }
+    .grades .n b { font-size: 2.4vmin; }
+    .grades .n small { font-size: 1.6vmin; }
+    .grades .p { font-size: 2.8vmin; }
+    .foot { left: 6vmin; right: 4vmin; bottom: 5vmin; }
+    .foot .tag { font-size: 3.4vmin; }
+    .foot .cta { padding: 1.2vmin 2.2vmin; font-size: 1.9vmin; }
+  }
+  /* wide → photo left, label beside the grade list */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { left: 46%; }
+    .label { left: 5vmin; top: 10vmin; width: 45vmin; height: 45vmin; margin-left: 0; }
+    .grades { left: 54vmin; right: 5vmin; top: 10vmin; }
+    .grades h3 { display: block; font-size: 1.9vmin; }
+    .grades li { padding: 1.1vmin 0; }
+    .foot { left: 8vmin; right: 6vmin; bottom: 7vmin; }
+    .foot .tag { font-size: 4.6vmin; }
+    .foot .cta { padding: 1.6vmin 3vmin; font-size: 2.3vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the wax label is "rubbed in" — small circular strokes with a gentle rock (3s) ·
+     beats: 1.8s the water grades heat up one by one (cold → tropical, discounts pop) → 3.0s the tropical tick is re-drawn ·
+     4.2s a gloss runs along the wrapper stripe · 5.0s the CTA arrow paddles twice */
+  .label { animation: rub 3s linear infinite; }
+  @keyframes rub {
+    0%, 100% { transform: rotate(-8deg) translate(0, 0); }
+    25% { transform: rotate(-6.5deg) translate(.7vmin, -.5vmin); }
+    50% { transform: rotate(-8deg) translate(0, -1vmin); }
+    75% { transform: rotate(-9.5deg) translate(-.7vmin, -.5vmin); }
+  }
+  .grades li .p { display: inline-block; transform-origin: 100% 60%; animation: heat 6s linear infinite; }
+  .grades li.c1 .p { animation-delay: -.75s; }
+  .grades li.c2 .p { animation-delay: -.5s; }
+  .grades li.c3 .p { animation-delay: -.25s; }
+  .grades li.c4 .p { animation-delay: 0s; }
+  @keyframes heat {
+    0%, 42% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    46% { transform: scale(1.22) rotate(-4deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    52%, 100% { transform: scale(1) rotate(0); }
+  }
+  .grades li.on i::after { animation: tick 6s linear infinite; }
+  @keyframes tick {
+    0%, 52% { clip-path: inset(-20% -20% -20% -20%); animation-timing-function: steps(1, end); }
+    53% { clip-path: inset(-20% 120% -20% -20%); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    61%, 100% { clip-path: inset(-20% -20% -20% -20%); }
+  }
+  .grades li.on i { animation: box 6s linear infinite; }
+  @keyframes box { 0%, 52% { transform: scale(1); } 54% { transform: scale(.85); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); } 60%, 100% { transform: scale(1); } }
+
+  .stripe { overflow: hidden; }
+  .stripe::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.7) 50%, rgba(255,255,255,0));
+    transform: translateX(-110%); animation: gloss 6s linear infinite; }
+  @keyframes gloss { 0%, 70% { transform: translateX(-110%); animation-timing-function: cubic-bezier(.45,0,.3,1); } 86%, 100% { transform: translateX(360%); } }
+  .foot .cta span { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge { 0%, 83% { transform: translateX(0); } 85.5% { transform: translateX(.9vmin); } 88% { transform: translateX(0); } 90.5% { transform: translateX(.9vmin); } 93%, 100% { transform: translateX(0); } }
+
+  @media (min-aspect-ratio: 9/10) {
+    .stripe::after { left: 0; right: 0; top: 0; bottom: auto; width: auto; height: 30%; background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.7) 50%, rgba(255,255,255,0)); transform: translateY(-110%); animation-name: glossV; }
+    @keyframes glossV { 0%, 70% { transform: translateY(-110%); animation-timing-function: cubic-bezier(.45,0,.3,1); } 86%, 100% { transform: translateY(360%); } }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="stripe"></div>
+    <div class="label">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <path id="arcTop" d="M 36 100 A 64 64 0 0 1 164 100"/>
+          <path id="arcBot" d="M 30 100 A 70 70 0 0 0 170 100"/>
+        </defs>
+        <path d="M100.0 1.8 L102.5 2.8 L105.0 5.1 L107.3 7.5 L109.6 8.7 L112.1 8.1 L114.9 6.2 L117.7 4.4 L120.4 3.9 L122.7 5.4 L124.6 8.2 L126.3 11.1 L128.4 12.7 L131.0 12.6 L134.0 11.3 L137.2 10.1 L139.9 10.3 L141.9 12.2 L143.1 15.4 L144.3 18.5 L145.9 20.5 L148.5 20.9 L151.7 20.3 L155.1 19.8 L157.7 20.6 L159.2 22.8 L159.8 26.2 L160.2 29.5 L161.4 31.8 L163.8 32.7 L167.2 32.8 L170.6 33.0 L173.0 34.3 L174.0 36.8 L173.8 40.2 L173.6 43.5 L174.3 46.0 L176.4 47.5 L179.7 48.3 L182.9 49.2 L185.0 50.9 L185.5 53.6 L184.6 56.9 L183.7 60.1 L183.9 62.7 L185.7 64.5 L188.7 66.0 L191.7 67.5 L193.4 69.7 L193.3 72.4 L191.8 75.4 L190.2 78.4 L189.8 80.9 L191.2 83.1 L193.8 85.1 L196.4 87.3 L197.7 89.7 L197.0 92.4 L194.9 95.0 L192.7 97.6 L191.8 100.0 L192.7 102.4 L194.9 105.0 L197.0 107.6 L197.7 110.3 L196.4 112.7 L193.8 114.9 L191.2 116.9 L189.8 119.1 L190.2 121.6 L191.8 124.6 L193.3 127.6 L193.4 130.3 L191.7 132.5 L188.7 134.0 L185.7 135.5 L183.9 137.3 L183.7 139.9 L184.6 143.1 L185.5 146.4 L185.0 149.1 L182.9 150.8 L179.7 151.7 L176.4 152.5 L174.3 154.0 L173.6 156.5 L173.8 159.8 L174.0 163.2 L173.0 165.7 L170.6 167.0 L167.2 167.2 L163.8 167.3 L161.4 168.2 L160.2 170.5 L159.8 173.8 L159.2 177.2 L157.7 179.4 L155.1 180.2 L151.7 179.7 L148.5 179.1 L145.9 179.5 L144.3 181.5 L143.1 184.6 L141.9 187.8 L139.9 189.7 L137.2 189.9 L134.0 188.7 L131.0 187.4 L128.4 187.3 L126.3 188.9 L124.6 191.8 L122.7 194.6 L120.4 196.1 L117.7 195.6 L114.9 193.8 L112.1 191.9 L109.6 191.3 L107.3 192.5 L105.0 194.9 L102.5 197.2 L100.0 198.2 L97.5 197.2 L95.0 194.9 L92.7 192.5 L90.4 191.3 L87.9 191.9 L85.1 193.8 L82.3 195.6 L79.6 196.1 L77.3 194.6 L75.4 191.8 L73.7 188.9 L71.6 187.3 L69.0 187.4 L66.0 188.7 L62.8 189.9 L60.1 189.7 L58.1 187.8 L56.9 184.6 L55.7 181.5 L54.1 179.5 L51.5 179.1 L48.3 179.7 L44.9 180.2 L42.3 179.4 L40.8 177.2 L40.2 173.8 L39.8 170.5 L38.6 168.2 L36.2 167.3 L32.8 167.2 L29.4 167.0 L27.0 165.7 L26.0 163.2 L26.2 159.8 L26.4 156.5 L25.7 154.0 L23.6 152.5 L20.3 151.7 L17.1 150.8 L15.0 149.1 L14.5 146.4 L15.4 143.1 L16.3 139.9 L16.1 137.3 L14.3 135.5 L11.3 134.0 L8.3 132.5 L6.6 130.3 L6.7 127.6 L8.2 124.6 L9.8 121.6 L10.2 119.1 L8.8 116.9 L6.2 114.9 L3.6 112.7 L2.3 110.3 L3.0 107.6 L5.1 105.0 L7.3 102.4 L8.2 100.0 L7.3 97.6 L5.1 95.0 L3.0 92.4 L2.3 89.7 L3.6 87.3 L6.2 85.1 L8.8 83.1 L10.2 80.9 L9.8 78.4 L8.2 75.4 L6.7 72.4 L6.6 69.7 L8.3 67.5 L11.3 66.0 L14.3 64.5 L16.1 62.7 L16.3 60.1 L15.4 56.9 L14.5 53.6 L15.0 50.9 L17.1 49.2 L20.3 48.3 L23.6 47.5 L25.7 46.0 L26.4 43.5 L26.2 40.2 L26.0 36.8 L27.0 34.3 L29.4 33.0 L32.8 32.8 L36.2 32.7 L38.6 31.8 L39.8 29.5 L40.2 26.2 L40.8 22.8 L42.3 20.6 L44.9 19.8 L48.3 20.3 L51.5 20.9 L54.1 20.5 L55.7 18.5 L56.9 15.4 L58.1 12.2 L60.1 10.3 L62.8 10.1 L66.0 11.3 L69.0 12.6 L71.6 12.7 L73.7 11.1 L75.4 8.2 L77.3 5.4 L79.6 3.9 L82.3 4.4 L85.1 6.2 L87.9 8.1 L90.4 8.7 L92.7 7.5 L95.0 5.1 L97.5 2.8Z" fill="#EE5A87"/>
+        <circle cx="100" cy="100" r="84" fill="none" stroke="#FFF1DA" stroke-width="1.6" stroke-dasharray="3 3"/>
+        <circle cx="100" cy="100" r="77" fill="#FFF1DA"/>
+        <circle cx="100" cy="100" r="77" fill="none" stroke="#1C2A5A" stroke-width="2.4"/>
+        <text font-size="15" letter-spacing="2.6" fill="#1C2A5A"><textPath href="#arcTop" startOffset="50%" text-anchor="middle">STICKY TIDE</textPath></text>
+        <text font-size="10.5" letter-spacing="2.4" fill="#1C2A5A"><textPath href="#arcBot" startOffset="50%" text-anchor="middle">SURF WAX · EST. 1994</textPath></text>
+        <g fill="#F6B53C"><path d="M22 100 l3 -3 l3 3 l-3 3z"/><path d="M172 100 l3 -3 l3 3 l-3 3z"/></g>
+        <text class="script" x="100" y="103" font-size="35" text-anchor="middle" fill="#EE5A87" transform="rotate(-6 100 100)">Sale</text>
+        <rect x="55" y="112" width="90" height="17" fill="#1C2A5A"/>
+        <text x="100" y="124.6" font-size="11" letter-spacing="1.2" text-anchor="middle" fill="#FFF1DA">UP TO 50% OFF</text>
+        <text x="100" y="67" font-size="7.5" letter-spacing="1.6" text-anchor="middle" fill="#1C2A5A">NET WT. 1 SUMMER</text>
+      </svg>
+    </div>
+    <div class="grades">
+      <h3>Pick your water</h3>
+      <ul>
+        <li class="c1"><i></i><span class="n"><b>Cold</b><small>New arrivals</small></span><span class="p">−20%</span></li>
+        <li class="c2"><i></i><span class="n"><b>Cool</b><small>Best sellers</small></span><span class="p">−30%</span></li>
+        <li class="c3"><i></i><span class="n"><b>Warm</b><small>Summer edit</small></span><span class="p">−40%</span></li>
+        <li class="c4 on"><i></i><span class="n"><b>Tropical</b><small>Last sizes</small></span><span class="p">−50%</span></li>
+      </ul>
+    </div>
+    <div class="foot"><span class="tag">Rub it in.</span><span class="cta">Code WAX50 <span>→</span></span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Capsule Math — the capsule wardrobe as a maths worksheet on squared paper: a giant sum
+     (4 × 3 × 2 = 24) with a label under each factor, the answer ringed in red pen, and the working
+     shown as a 24-cell grid of combinations, the pictured look inked in. tall / 3:4 → photo above,
+     the worksheet below; square / wide → photo left, worksheet right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3F1EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #121212; font-family: "JetBrains Mono", "Courier New", monospace;
+    background-color: #F3F1EA;
+    background-image: linear-gradient(rgba(70,110,150,.13) 1px, transparent 1px), linear-gradient(90deg, rgba(70,110,150,.13) 1px, transparent 1px);
+    background-size: 4vmin 4vmin; background-position: -1px -1px;
+    display: flex; flex-direction: column; padding: 5vmin; box-sizing: border-box; }
+  .top { flex: none; display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
+  .top b { font-weight: 700; }
+  .top span:last-child { color: #D9432B; }
+  .ph { flex: 1 1 auto; min-height: 0; position: relative; margin-top: 2.6vmin; overflow: hidden; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .sum { flex: none; display: flex; align-items: flex-start; justify-content: space-between; margin-top: 3.4vmin; }
+  .n { display: flex; flex-direction: column; align-items: center; }
+  .n b { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 17vmin; line-height: .82; }
+  .n small { margin-top: 1.2vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+  .o { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 600; font-size: 9vmin; line-height: 1.5; color: #6A675F; }
+  .ans { position: relative; color: #D9432B; }
+  .ans svg { position: absolute; left: 50%; top: -2.2vmin; width: 150%; height: calc(100% + 1vmin); transform: translateX(-50%); overflow: visible; }
+
+  .work { flex: none; margin-top: 3.4vmin; display: grid; grid-template-columns: repeat(8, 1fr); gap: .8vmin; }
+  .work i { height: 4.6vmin; border: 1px solid #121212; background: rgba(243,241,234,.8); display: flex; align-items: center; justify-content: center; font-style: normal; font-size: 1.7vmin; font-weight: 500; color: #121212; }
+  .work i.on { background: #121212; color: #F3F1EA; font-weight: 700; }
+  .work i.tk { background: #D9432B; border-color: #D9432B; color: #fff; font-weight: 700; }
+
+  .foot { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; margin-top: 3.4vmin; }
+  .foot p { margin: 0; font-size: 1.9vmin; line-height: 1.45; }
+  .foot p b { font-weight: 700; color: #D9432B; }
+  .cta { flex: none; background: #121212; color: #F3F1EA; padding: 1.8vmin 2.8vmin; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 800; font-size: 3vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 5vmin; }
+    .n b { font-size: 13vmin; }
+    .o { font-size: 7vmin; }
+    .sum, .work, .foot { margin-top: 2.6vmin; }
+    .work i { height: 3.8vmin; }
+  }
+  /* square / wide — photo bleeds left, worksheet on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: grid; grid-template-columns: 45% 1fr; grid-template-rows: auto auto 1fr auto; column-gap: 5vmin; padding: 0 5vmin 0 0; }
+    .ph { grid-column: 1; grid-row: 1 / -1; margin: 0; }
+    .top { grid-column: 2; grid-row: 1; margin-top: 5vmin; flex-direction: column; gap: .8vmin; }
+    .sum { grid-column: 2; grid-row: 2; margin-top: 5vmin; }
+    .n b { font-size: 11vmin; }
+    .n small { font-size: 1.6vmin; letter-spacing: .02em; }
+    .o { font-size: 6vmin; }
+    .work { grid-column: 2; grid-row: 3; align-self: center; margin: 0; grid-template-columns: repeat(6, 1fr); }
+    .work i { height: 5vmin; }
+    .foot { grid-column: 2; grid-row: 4; margin: 0 0 5vmin; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .foot p { font-size: 1.7vmin; }
+    .cta { font-size: 2.6vmin; padding: 1.5vmin 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: 40% 1fr; column-gap: 6vmin; padding-right: 6vmin; }
+    .top { flex-direction: row; margin-top: 6vmin; }
+    .sum { margin-top: 5vmin; }
+    .n b { font-size: 16vmin; }
+    .n small { font-size: 1.7vmin; letter-spacing: .08em; }
+    .o { font-size: 8.4vmin; }
+    .work { grid-template-columns: repeat(8, 1fr); }
+    .work i { height: 4.8vmin; }
+    .foot { flex-direction: row; align-items: center; margin-bottom: 6vmin; }
+    .foot p { font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     doing the sum: 0.3 s the factors 4 · 3 · 2 bob in turn like they're being read out ·
+     0.9 s the working is counted — a pen-mark runs through the 24 cells, 01 → 24, the pictured look (07) winks red ·
+     3.6 s the red ring round "24" is wiped and re-drawn in one pen stroke · the photo drifts in very slowly */
+  .n:not(.ans) b { display: inline-block; animation: bob 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .sum .n:nth-child(3) b { animation-delay: -5.75s; }
+  .sum .n:nth-child(5) b { animation-delay: -5.5s; }
+  @keyframes bob { 0%, 4%, 14%, 100% { transform: translateY(0); } 8% { transform: translateY(-1.4vmin); } 11% { transform: translateY(.2vmin); } }
+
+  .work i { animation: tick 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes tick { 0%, 100% { background-color: rgba(243,241,234,.8); color: #121212; } 1.5% { background-color: #121212; color: #F3F1EA; } 7% { background-color: rgba(243,241,234,.8); color: #121212; } }
+  .work i.tk { animation-name: tickr; }
+  @keyframes tickr { 0%, 100% { transform: scale(1); } 2% { transform: scale(1.18); } 6% { transform: scale(1); } }
+  .work i.on { animation-name: tickon; }
+  @keyframes tickon { 0%, 100% { transform: scale(1); background-color: #121212; } 2% { transform: scale(1.18); background-color: #D9432B; } 8% { transform: scale(1); background-color: #121212; } }
+  .work i:nth-child(1) { animation-delay: -5.10s; }
+  .work i:nth-child(2) { animation-delay: -5.00s; }
+  .work i:nth-child(3) { animation-delay: -4.90s; }
+  .work i:nth-child(4) { animation-delay: -4.80s; }
+  .work i:nth-child(5) { animation-delay: -4.70s; }
+  .work i:nth-child(6) { animation-delay: -4.60s; }
+  .work i:nth-child(7) { animation-delay: -4.50s; }
+  .work i:nth-child(8) { animation-delay: -4.40s; }
+  .work i:nth-child(9) { animation-delay: -4.30s; }
+  .work i:nth-child(10) { animation-delay: -4.20s; }
+  .work i:nth-child(11) { animation-delay: -4.10s; }
+  .work i:nth-child(12) { animation-delay: -4.00s; }
+  .work i:nth-child(13) { animation-delay: -3.90s; }
+  .work i:nth-child(14) { animation-delay: -3.80s; }
+  .work i:nth-child(15) { animation-delay: -3.70s; }
+  .work i:nth-child(16) { animation-delay: -3.60s; }
+  .work i:nth-child(17) { animation-delay: -3.50s; }
+  .work i:nth-child(18) { animation-delay: -3.40s; }
+  .work i:nth-child(19) { animation-delay: -3.30s; }
+  .work i:nth-child(20) { animation-delay: -3.20s; }
+  .work i:nth-child(21) { animation-delay: -3.10s; }
+  .work i:nth-child(22) { animation-delay: -3.00s; }
+  .work i:nth-child(23) { animation-delay: -2.90s; }
+  .work i:nth-child(24) { animation-delay: -2.80s; }
+
+  .ans path { stroke-dasharray: 1 1; stroke-dashoffset: 0; animation: ring 6s cubic-bezier(.55,0,.35,1) infinite; }
+  @keyframes ring { 0%, 58% { stroke-dashoffset: 0; } 64% { stroke-dashoffset: -1; } 64.01% { stroke-dashoffset: 1; } 80%, 100% { stroke-dashoffset: 0; } }
+  .ans b { display: inline-block; animation: ans 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes ans { 0%, 78%, 90%, 100% { transform: scale(1); } 83% { transform: scale(1.1); } 87% { transform: scale(.98); } }
+
+  .ph img { transform-origin: 50% 30%; animation: drift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes drift { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><span><b>Capsule math</b> · worksheet 03</span><span>Show your working</span></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="sum">
+    <div class="n"><b>4</b><small>bases</small></div>
+    <div class="o">×</div>
+    <div class="n"><b>3</b><small>layers</small></div>
+    <div class="o">×</div>
+    <div class="n"><b>2</b><small>finishes</small></div>
+    <div class="o">=</div>
+    <div class="n ans"><svg viewBox="0 0 120 100" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M92 10 C60 -2 12 6 8 44 C4 82 50 98 84 90 C114 82 122 46 104 22 C96 12 80 8 64 9" fill="none" stroke="#D9432B" stroke-width="2.6" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg><b>24</b><small>looks</small></div>
+  </div>
+  <div class="work">
+    <i>01</i><i>02</i><i>03</i><i>04</i><i>05</i><i>06</i><i class="tk">07</i><i>08</i>
+    <i>09</i><i>10</i><i>11</i><i>12</i><i>13</i><i>14</i><i>15</i><i>16</i>
+    <i>17</i><i>18</i><i>19</i><i>20</i><i>21</i><i>22</i><i>23</i><i class="on">24</i>
+  </div>
+  <div class="foot">
+    <p>Look 07 is pictured. Take 3+ pieces,<br>save 20% · code <b>CAPSULE20</b></p>
+    <div class="cta">Do the math</div>
+  </div>
+</div>
+</body>
+</html>

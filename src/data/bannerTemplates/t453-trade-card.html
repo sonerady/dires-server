@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+  /* Victorian Trade Card — a chromolithographed shop card mounted in a scrap album with black photo corners:
+     "Compliments of" ribbon, woodtype house name, gilt-framed vignette, script title and a scalloped price medal.
+     tall → vignette in the middle of the card · square & wide → vignette left, card copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #22352D; }
+  .banner { --red: #9A2F24; --teal: #255A55; --gold: #C49A4A; --ink: #2B211C; --card: #F4E8CC;
+    position: fixed; inset: 0; overflow: hidden; font-family: "Old Standard TT", "Baskerville", Georgia, serif; color: var(--ink);
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.025) 0 1px, transparent 1px .9vmin),
+      repeating-linear-gradient(-45deg, rgba(0,0,0,.06) 0 1px, transparent 1px .9vmin),
+      radial-gradient(120% 90% at 50% 40%, #2C4539 0%, #22352D 60%, #182721 100%); }
+  .card { position: absolute; inset: 6vmin 5.5vmin; transform: rotate(-1.2deg); background:
+      radial-gradient(60% 40% at 30% 20%, rgba(255,255,255,.35), rgba(255,255,255,0)),
+      linear-gradient(165deg, #F7EDD5 0%, #F1E3C3 60%, #E9D7B1 100%);
+    box-shadow: 0 1.6vmin 3.4vmin rgba(0,0,0,.45), 0 .3vmin .6vmin rgba(0,0,0,.3); }
+  /* gilt + red keylines, printed on the card */
+  .card::before { content: ""; position: absolute; inset: 1.6vmin; border: .7vmin solid var(--gold); box-shadow: inset 0 0 0 .5vmin var(--card), inset 0 0 0 .75vmin var(--red); }
+  /* album photo corners */
+  .pc { position: absolute; width: 7vmin; height: 7vmin; background: linear-gradient(135deg, #141414 0%, #141414 50%, transparent 50%); z-index: 3; }
+  .pc::after { content: ""; position: absolute; left: 0; top: 0; width: 141%; height: 1px; background: rgba(196,154,74,.6); transform-origin: 0 0; transform: translate(0, 7vmin) rotate(-45deg); }
+  .pc.tl { left: -1.4vmin; top: -1.4vmin; }
+  .pc.tr { right: -1.4vmin; top: -1.4vmin; transform: rotate(90deg); }
+  .pc.br { right: -1.4vmin; bottom: -1.4vmin; transform: rotate(180deg); }
+  .pc.bl { left: -1.4vmin; bottom: -1.4vmin; transform: rotate(270deg); }
+
+  .in { position: absolute; inset: 4.4vmin 4.6vmin; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .rib { position: relative; width: 56vmin; height: 7.4vmin; flex: none; display: flex; align-items: center; justify-content: center; }
+  .rib svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .rib span { position: relative; font-family: "Great Vibes", "Snell Roundhand", cursive; font-size: 4.4vmin; line-height: 1; color: #FBF0D8; margin-top: -.6vmin; white-space: nowrap; }
+  .house { margin-top: 1.4vmin; font-family: "Rye", "Rockwell", Georgia, serif; font-size: 7.2vmin; line-height: 1; color: var(--red); white-space: nowrap; text-shadow: .35vmin .35vmin 0 rgba(196,154,74,.55); }
+  .trade { margin-top: .9vmin; font-style: italic; font-size: 2.3vmin; color: var(--teal); white-space: nowrap; }
+  .trade b { white-space: nowrap; font-style: normal; font-weight: 700; font-size: 1.8vmin; letter-spacing: .24em; text-transform: uppercase; }
+
+  .vig { position: relative; flex: 1; width: 100%; margin-top: 2.6vmin; min-height: 0; }
+  .vig::before { content: ""; position: absolute; inset: -1.1vmin; border: 1px solid var(--ink); box-shadow: inset 0 0 0 .45vmin var(--gold); }
+  .vig img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+  .fl { position: absolute; width: 5vmin; height: 5vmin; z-index: 2; }
+  .fl path { fill: var(--red); }
+  .fl.tl { left: -3.4vmin; top: -3.4vmin; } .fl.tr { right: -3.4vmin; top: -3.4vmin; transform: scaleX(-1); }
+  .fl.bl { left: -3.4vmin; bottom: -3.4vmin; transform: scaleY(-1); } .fl.br { right: -3.4vmin; bottom: -3.4vmin; transform: scale(-1); }
+
+  .low { width: 100%; margin-top: 3vmin; display: flex; align-items: center; justify-content: center; gap: 3.6vmin; }
+  .txt { text-align: center; }
+  .script { font-family: "Great Vibes", cursive; font-size: 8.6vmin; line-height: .9; color: var(--teal); }
+  .pres { margin-top: 1.2vmin; font-size: 2.2vmin; line-height: 1.4; }
+  .pres b { font-weight: 700; letter-spacing: .14em; color: var(--red); }
+  .addr { margin-top: 1vmin; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; text-wrap: balance; }
+  .medal { position: relative; width: 19vmin; height: 19vmin; flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .medal svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .medal b { position: relative; font-family: "Rye", Georgia, serif; font-weight: 400; font-size: 4.9vmin; line-height: 1; color: #FBF0D8; }
+  .medal span { position: relative; margin-top: .4vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .26em; margin-right: -.26em; color: #FBF0D8; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .card { inset: 5vmin 7vmin; }
+    .rib { width: 46vmin; height: 6.4vmin; }
+    .rib span { font-size: 3.8vmin; }
+    .house { font-size: 6vmin; }
+    .script { font-size: 7vmin; }
+    .medal { width: 16vmin; height: 16vmin; }
+    .medal b { font-size: 4vmin; }
+    .low { margin-top: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .card { inset: 6vmin 6vmin; transform: rotate(-1deg); }
+    .in { display: grid; grid-template-columns: 46% 1fr; grid-template-rows: 1fr auto auto auto auto 1fr; column-gap: 4vmin; inset: 5.4vmin 5.4vmin; align-items: center; }
+    .vig { grid-column: 1; grid-row: 1 / 7; align-self: stretch; height: auto; margin: 1.2vmin 0 1.2vmin 1.2vmin; }
+    .rib { grid-column: 2; grid-row: 2; justify-self: center; width: 32vmin; height: 5.6vmin; }
+    .house { grid-row: 3; } .trade { grid-row: 4; }
+    .co { display: block; font-size: .62em; margin-top: .6vmin; }
+    .rib span { font-size: 3.1vmin; }
+    .house, .trade { grid-column: 2; }
+    .house { font-size: 5.2vmin; white-space: normal; }
+    .trade { font-size: 2vmin; white-space: normal; }
+    .low { grid-column: 2; grid-row: 5; flex-direction: column; gap: 1.6vmin; margin-top: 3vmin; }
+    .script { font-size: 6.4vmin; }
+    .pres { font-size: 2vmin; margin-top: .4vmin; }
+    .medal { width: 15vmin; height: 15vmin; order: 2; }
+    .medal b { font-size: 3.9vmin; }
+    .medal span { font-size: 1.6vmin; }
+    .addr { font-size: 1.6vmin; letter-spacing: .12em; white-space: normal; max-width: 32vmin; margin-left: auto; margin-right: auto; line-height: 1.5; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .in { grid-template-columns: 48% 1fr; column-gap: 6vmin; }
+    .rib { width: 44vmin; height: 6.4vmin; }
+    .rib span { font-size: 3.6vmin; }
+    .house { font-size: 5.5vmin; white-space: nowrap; }
+    .co { display: inline; font-size: 1em; }
+    .trade { font-size: 2.2vmin; white-space: nowrap; }
+    .low { flex-direction: row; gap: 3vmin; }
+    .medal { order: 0; width: 17vmin; height: 17vmin; }
+    .medal b { font-size: 4.4vmin; }
+    .script { font-size: 7.4vmin; }
+    .addr { white-space: nowrap; max-width: none; letter-spacing: .14em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="card">
+    <i class="pc tl"></i><i class="pc tr"></i><i class="pc br"></i><i class="pc bl"></i>
+    <div class="in">
+      <div class="rib">
+        <svg viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 10 H 34 V 38 H 0 L 12 24 Z" fill="#6E1F18"/>
+          <path d="M300 10 H 266 V 38 H 300 L 288 24 Z" fill="#6E1F18"/>
+          <path d="M22 32 L 34 38 V 32 Z M278 32 L 266 38 V 32 Z" fill="#3F100B"/>
+          <path d="M22 2 H 278 V 32 H 22 Z" fill="#9A2F24"/>
+          <path d="M26 5 H 274 M26 29 H 274" stroke="#C49A4A" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        </svg>
+        <span>Compliments of</span>
+      </div>
+      <div class="house">Atelier Nord <span class="co">&amp; Co.</span></div>
+      <div class="trade">Purveyors of fine seasonal goods · <b>Est. 1889</b></div>
+      <div class="vig">
+        <img src="{{PRODUCT_IMAGE}}" alt="">
+        <svg class="fl tl" viewBox="0 0 50 50" aria-hidden="true"><path d="M0 0 H 22 C 22 8, 14 10, 10 6 C 12 12, 8 18, 0 16 Z M4 4 C 16 4, 26 12, 24 22 C 20 16, 12 12, 4 4 Z M4 4 C 4 16, 12 26, 22 24 C 16 20, 12 12, 4 4 Z"/></svg>
+        <svg class="fl tr" viewBox="0 0 50 50" aria-hidden="true"><path d="M0 0 H 22 C 22 8, 14 10, 10 6 C 12 12, 8 18, 0 16 Z M4 4 C 16 4, 26 12, 24 22 C 20 16, 12 12, 4 4 Z M4 4 C 4 16, 12 26, 22 24 C 16 20, 12 12, 4 4 Z"/></svg>
+        <svg class="fl bl" viewBox="0 0 50 50" aria-hidden="true"><path d="M0 0 H 22 C 22 8, 14 10, 10 6 C 12 12, 8 18, 0 16 Z M4 4 C 16 4, 26 12, 24 22 C 20 16, 12 12, 4 4 Z M4 4 C 4 16, 12 26, 22 24 C 16 20, 12 12, 4 4 Z"/></svg>
+        <svg class="fl br" viewBox="0 0 50 50" aria-hidden="true"><path d="M0 0 H 22 C 22 8, 14 10, 10 6 C 12 12, 8 18, 0 16 Z M4 4 C 16 4, 26 12, 24 22 C 20 16, 12 12, 4 4 Z M4 4 C 4 16, 12 26, 22 24 C 16 20, 12 12, 4 4 Z"/></svg>
+      </div>
+      <div class="low">
+        <div class="medal">
+          <svg viewBox="-50 -50 100 100" aria-hidden="true">
+            <circle r="43" fill="#9A2F24"/>
+            <circle r="44.5" fill="none" stroke="#9A2F24" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 9.32"/>
+            <circle r="37" fill="none" stroke="#C49A4A" stroke-width="1.6"/>
+            <circle r="33.5" fill="none" stroke="#C49A4A" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="0 4.4"/>
+          </svg>
+          <b>30%</b><span>off</span>
+        </div>
+        <div class="txt">
+          <div class="script">The Autumn Assortment</div>
+          <div class="pres">Present this card at checkout · <b>CARD30</b></div>
+          <div class="addr">Nº 12 High Street · Open till eight</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@1,9..144,400&display=swap" rel="stylesheet">
+<style>
+  /* Spatial Window — the shop as a spatial-computing scene: the photo melted into a dim, blurred room, and floating
+     in it a frosted-glass window (bright rim, soft depth shadow) holding the sharp photo, with the window grabber and
+     close dot beneath, a view-switcher ornament (Front · Back · Detail · 360°) and a vertical tab ornament. A second,
+     smaller glass panel angles toward you in 3D with the pitch, sizes, price and a glass "Add to bag" pill.
+     tall → window above, ornaments, flat panel below · 3:4 & square → window left, angled panel right · wide → tab ornament, window, angled panel */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1A1820; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #FFFFFF; font-family: "Onest", "Helvetica Neue", Arial, sans-serif; background: #1A1820; }
+  .room { position: absolute; left: -15%; top: -15%; width: 130%; height: 130%; object-fit: cover; filter: blur(5vmin) brightness(.55) saturate(1.15); display: block; }
+  .shade { position: absolute; inset: 0; background: radial-gradient(120% 80% at 50% 40%, rgba(20,18,26,0) 0%, rgba(20,18,26,.55) 100%); }
+  .glass { background: linear-gradient(160deg, rgba(255,255,255,.22), rgba(255,255,255,.1)); -webkit-backdrop-filter: blur(3vmin) saturate(1.5); backdrop-filter: blur(3vmin) saturate(1.5);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 0 1px rgba(255,255,255,.22), 0 3vmin 7vmin rgba(0,0,0,.35); }
+
+  .win { position: absolute; left: 8vmin; right: 8vmin; top: 6vmin; height: calc(100% - 84vmin); border-radius: 4.4vmin; box-sizing: border-box; padding: 2vmin; display: flex; flex-direction: column; gap: 1.6vmin; }
+  .bar { display: flex; align-items: center; justify-content: space-between; padding: 0 1.4vmin; gap: 2vmin; }
+  .bar b { font-weight: 600; font-size: 2.1vmin; white-space: nowrap; }
+  .bar span { font-size: 1.6vmin; color: rgba(255,255,255,.7); white-space: nowrap; }
+  .pic { position: relative; flex: 1; min-height: 0; }
+  .pic img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .grab { position: absolute; left: 50%; top: calc(100% - 78vmin + 1.2vmin); transform: translateX(-50%); display: flex; align-items: center; gap: 1.4vmin; }
+  .grab i { display: block; width: 12vmin; height: 1vmin; border-radius: 99vmin; background: rgba(255,255,255,.7); }
+  .grab em { display: block; width: 2.2vmin; height: 2.2vmin; border-radius: 50%; background: rgba(255,255,255,.28); box-shadow: inset 0 0 0 1px rgba(255,255,255,.3); }
+  .orn { position: absolute; left: 50%; top: calc(100% - 78vmin + 4.4vmin); transform: translateX(-50%); border-radius: 99vmin; padding: .8vmin; display: flex; gap: .4vmin; }
+  .orn span { padding: 1.2vmin 2.4vmin; border-radius: 99vmin; font-size: 1.8vmin; font-weight: 500; white-space: nowrap; color: rgba(255,255,255,.8); }
+  .orn span.on { background: rgba(255,255,255,.9); color: #1A1820; }
+  .tabs { display: none; position: absolute; border-radius: 99vmin; padding: 1.2vmin; flex-direction: column; gap: 1.2vmin; }
+  .tabs i { display: block; width: 4.6vmin; height: 4.6vmin; border-radius: 50%; position: relative; }
+  .tabs i.on { background: rgba(255,255,255,.25); }
+  .tabs i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 1.8vmin; height: 1.8vmin; transform: translate(-50%, -50%); border: .2vmin solid rgba(255,255,255,.85); box-sizing: border-box; }
+  .tabs i:nth-child(1)::after { border-radius: 50%; } .tabs i:nth-child(2)::after { border-radius: .3vmin; } .tabs i:nth-child(3)::after { border-radius: 50% 50% 0 0; } .tabs i:nth-child(4)::after { border-radius: 50%; width: .9vmin; height: .9vmin; background: #fff; }
+
+  .stage { position: absolute; left: 8vmin; right: 8vmin; bottom: 6vmin; height: 56vmin; perspective: 120vmin; }
+  .panel { position: absolute; inset: 0; border-radius: 4vmin; box-sizing: border-box; padding: 4vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.7); white-space: nowrap; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 700; font-size: 7.4vmin; line-height: .98; letter-spacing: -.035em; }
+  h1 i { font-family: "Fraunces", Georgia, serif; font-weight: 400; letter-spacing: -.02em; }
+  .sub { margin-top: 1.8vmin; font-size: 2vmin; line-height: 1.45; color: rgba(255,255,255,.78); }
+  .row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .sizes { display: flex; gap: .8vmin; }
+  .sizes span { width: 4.8vmin; height: 4.8vmin; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.7vmin; font-weight: 600; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .sizes span.on { background: #FFFFFF; color: #1A1820; }
+  .price { font-size: 5vmin; font-weight: 700; letter-spacing: -.03em; white-space: nowrap; }
+  .cta { margin-top: 2.4vmin; display: flex; align-items: center; justify-content: center; padding: 2vmin 3vmin; border-radius: 99vmin; background: rgba(255,255,255,.9); color: #1A1820; font-size: 2.1vmin; font-weight: 600; white-space: nowrap; }
+  .fine { margin-top: 1.6vmin; text-align: center; font-size: 1.6vmin; color: rgba(255,255,255,.6); white-space: nowrap; }
+
+  /* ── 3:4 — window left, angled panel right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .win { left: 5vmin; right: auto; width: 58vmin; top: 5vmin; height: calc(100% - 19vmin); }
+    .grab { left: 34vmin; top: calc(100% - 12.6vmin); }
+    .orn { display: none; }
+    .stage { left: auto; right: 4vmin; width: 32vmin; top: 10vmin; bottom: 10vmin; height: auto; }
+    .panel { transform: rotateY(-18deg); transform-origin: 0 50%; padding: 3.4vmin 3vmin; border-radius: 3.4vmin; }
+    .kick { white-space: normal; line-height: 1.5; }
+    h1 { font-size: 5.2vmin; margin-top: 3vmin; }
+    .sub { font-size: 1.8vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .sizes span { width: 4.2vmin; height: 4.2vmin; }
+    .price { font-size: 4.6vmin; }
+    .cta { padding: 1.8vmin 2vmin; font-size: 1.9vmin; }
+    .fine { white-space: normal; margin-top: 3vmin; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .win { width: 54%; height: calc(100% - 17vmin); }
+    .grab { left: calc(5vmin + 27%); top: calc(100% - 10.6vmin); }
+    .stage { width: calc(46% - 14vmin); top: 7vmin; bottom: 7vmin; right: 5vmin; }
+    h1 { font-size: 5vmin; }
+  }
+  /* ── wide — tab ornament, window, angled panel ── */
+  @media (min-aspect-ratio: 6/5) {
+    .tabs { display: flex; left: 5vmin; top: 50%; transform: translateY(-50%); }
+    .win { left: 14vmin; width: 50%; top: 5vmin; height: calc(100% - 22vmin); }
+    .grab { left: calc(14vmin + 25%); top: calc(100% - 15.6vmin); }
+    .orn { display: flex; left: calc(14vmin + 25%); top: calc(100% - 12vmin); }
+    .stage { right: 6vmin; width: calc(50% - 26vmin); max-width: 56vmin; top: 9vmin; bottom: 9vmin; }
+    .panel { transform: rotateY(-16deg); padding: 4vmin 3.6vmin; }
+    h1 { font-size: 6.4vmin; }
+    .sub { font-size: 2vmin; }
+    .row { flex-direction: row; flex-wrap: wrap; align-items: center; }
+    .fine { white-space: nowrap; margin-top: 3vmin; }
+    h1 { margin-top: 3.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="room" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="shade"></div>
+  <div class="tabs glass"><i class="on"></i><i></i><i></i><i></i></div>
+  <div class="win glass">
+    <div class="bar"><b>Look 03</b><span>Halo Studio · New season</span></div>
+    <div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  </div>
+  <div class="grab"><em></em><i></i></div>
+  <div class="orn glass"><span class="on">Front</span><span>Back</span><span>Detail</span><span>360°</span></div>
+  <div class="stage">
+    <div class="panel glass">
+      <div class="kick">Halo Studio · Spatial edit</div>
+      <h1>See it in <i>your</i> space.</h1>
+      <div class="sub">Walk around it, zoom into the weave, then have it delivered for real.</div>
+      <div class="row">
+        <div class="sizes"><span>S</span><span class="on">M</span><span>L</span></div>
+        <div class="price">€135</div>
+      </div>
+      <div class="cta">Add to bag</div>
+      <div class="fine">Free delivery · 30-day returns</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

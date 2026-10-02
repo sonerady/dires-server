@@ -314,4 +314,4 @@ async function main() {
 
 if (require.main === module) main().catch((error) => { console.error("❌", error.message); process.exit(1); });
 
-module.exports = { indexJson, upsertText, upsertJson };
+module.exports = { indexJson, upsertText, upsertJson, translate, NAMES };

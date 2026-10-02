@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@200;300;400;600&display=swap" rel="stylesheet">
+<style>
+  /* Hourly Outlook — a rainy-afternoon weather screen: a whisper-thin giant temperature, conditions and an
+     hourly strip where the rain chance drains away and, in the 16:00 slot, the sun comes out with −30%.
+     Dusk-slate gradient, frosted cards. tall → photo above · square → photo left, stacked · wide → photo left, two columns */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #4F667D; }
+  .banner { --panel: 94vmin; position: fixed; inset: 0; overflow: hidden; color: #FFFFFF; font-family: "Sora", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(170deg, #3E5369 0%, #5A738B 45%, #8FA3B3 100%); }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .app { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 4.6vmin 6vmin 5vmin;
+    display: grid; grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; row-gap: 3vmin; grid-template-areas: "now" "hours" "." "deal"; }
+
+  .now { grid-area: now; display: grid; grid-template-columns: auto 1fr; align-items: end; column-gap: 4vmin; }
+  .loc { grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: 2vmin; font-weight: 400; letter-spacing: .02em; opacity: .92; margin-bottom: 1vmin; }
+  .loc b { font-weight: 600; }
+  .loc b::after { content: ""; display: inline-block; width: 1vmin; height: 1vmin; margin-left: 1.2vmin; border-top: .3vmin solid; border-right: .3vmin solid; transform: rotate(45deg) translateY(-.3vmin); }
+  .deg { font-weight: 200; font-size: 30vmin; line-height: .8; letter-spacing: -.07em; margin-left: -1.6vmin; }
+  .cond { padding-bottom: 1.4vmin; }
+  .cond .c { font-weight: 400; font-size: 4.2vmin; line-height: 1.1; letter-spacing: -.02em; }
+  .cond .hl { margin-top: .8vmin; font-size: 2.2vmin; opacity: .85; }
+  .cond .fl { margin-top: 1.6vmin; font-size: 2vmin; line-height: 1.35; opacity: .95; }
+  .cond .fl b { font-weight: 600; }
+
+  .hours { grid-area: hours; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.26); border-radius: 2.4vmin; padding: 2.2vmin 2.4vmin 2.4vmin; }
+  .hours .t { display: flex; align-items: center; gap: 1.2vmin; padding-bottom: 1.6vmin; border-bottom: 1px solid rgba(255,255,255,.26); font-size: 1.8vmin; letter-spacing: .06em; text-transform: uppercase; opacity: .9; }
+  .hours .t svg { width: 2.4vmin; height: 2.4vmin; }
+  .row { display: grid; grid-template-columns: repeat(6, 1fr); margin-top: 1.8vmin; gap: .8vmin; }
+  .h { display: flex; flex-direction: column; align-items: center; gap: .8vmin; padding: 1.2vmin 0 1.4vmin; border-radius: 1.6vmin; min-width: 0; }
+  .h small { font-size: 1.8vmin; font-weight: 600; }
+  .h svg { width: 6vmin; height: 6vmin; }
+  .h .p { font-size: 1.7vmin; font-weight: 600; color: #BFE3FF; min-height: 2.2vmin; }
+  .h b { font-weight: 300; font-size: 3.4vmin; letter-spacing: -.03em; }
+  .h.sun { background: #FFFFFF; color: #2E4257; }
+  .h.sun .p { color: #fff; background: #E4572E; padding: .2vmin .8vmin; border-radius: .6vmin; }
+
+  .deal { grid-area: deal; display: flex; align-items: center; gap: 3vmin; }
+  .deal .pc { font-weight: 600; font-size: 12vmin; line-height: .8; letter-spacing: -.06em; }
+  .deal p { flex: 1; margin: 0; font-size: 2.1vmin; line-height: 1.4; opacity: .95; }
+  .deal p b { font-weight: 600; letter-spacing: .08em; }
+  .cta { flex: none; padding: 1.9vmin 3.2vmin; border-radius: 10vmin; background: #FFFFFF; color: #2E4257; font-weight: 600; font-size: 2.1vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --panel: 86vmin; }
+    .app { padding: 4vmin 6vmin 4.4vmin; row-gap: 2.6vmin; }
+    .deg { font-size: 26vmin; }
+    .h svg { width: 5.4vmin; height: 5.4vmin; }
+    .deal .pc { font-size: 10.6vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .app { padding: 3.4vmin 5.4vmin 3.8vmin; row-gap: 2.2vmin; }
+    .deg { font-size: 20vmin; }
+    .cond .c { font-size: 3.6vmin; }
+    .cond .fl { display: none; }
+    .hours { padding: 1.6vmin 2vmin 1.8vmin; }
+    .hours .t { padding-bottom: 1.2vmin; }
+    .row { margin-top: 1.2vmin; }
+    .h { gap: .5vmin; padding: .9vmin 0 1vmin; }
+    .h svg { width: 4.6vmin; height: 4.6vmin; }
+    .h b { font-size: 2.9vmin; }
+    .deal .pc { font-size: 9vmin; }
+    .cta { padding: 1.6vmin 2.6vmin; }
+  }
+  /* square → photo left, screen stacked on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 22%; }
+    .app { left: 46%; top: 0; height: auto; padding: 5vmin 4.4vmin 4.6vmin; row-gap: 2.6vmin; }
+    .now { grid-template-columns: 1fr; }
+    .loc span { display: none; }
+    .deg { font-size: 20vmin; }
+    .cond { padding: 1.4vmin 0 0; }
+    .cond .c { font-size: 3.4vmin; }
+    .cond .fl { display: none; }
+    .hours { padding: 1.6vmin 1.4vmin 1.8vmin; border-radius: 2vmin; }
+    .row { grid-template-columns: repeat(4, 1fr); gap: .5vmin; }
+    .h:nth-child(2), .h:nth-child(6) { display: none; }
+    .h svg { width: 4.8vmin; height: 4.8vmin; }
+    .h b { font-size: 2.8vmin; }
+    .deal { flex-wrap: wrap; gap: 1.6vmin 2.4vmin; }
+    .deal .pc { font-size: 9vmin; }
+    .deal p { font-size: 1.8vmin; min-width: 20vmin; }
+    .cta { width: 100%; text-align: center; box-sizing: border-box; font-size: 1.9vmin; padding: 1.6vmin 2vmin; }
+  }
+  /* wide → photo left, screen in two columns */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; object-position: 50% 28%; }
+    .app { left: 40%; padding: 5.4vmin 5.6vmin 5.4vmin; column-gap: 4.6vmin; row-gap: 3vmin;
+      grid-template-columns: 34vmin 1fr; grid-template-rows: 1fr auto; grid-template-areas: "now hours" "deal deal"; }
+    .now { align-self: start; }
+    .loc span { display: inline; }
+    .loc { flex-direction: column; gap: .4vmin; }
+    .deg { font-size: 22vmin; }
+    .cond .c { font-size: 3.6vmin; }
+    .cond .fl { display: block; font-size: 1.9vmin; }
+    .hours { align-self: center; padding: 2.6vmin 2.2vmin 2.6vmin; }
+    .hours .t { font-size: 1.9vmin; }
+    .row { grid-template-columns: repeat(5, 1fr); gap: .8vmin; margin-top: 2.2vmin; }
+    .h:nth-child(2) { display: flex; }
+    .h { gap: 1.4vmin; padding: 1.8vmin 0 2vmin; }
+    .h small { font-size: 2vmin; }
+    .h svg { width: 7vmin; height: 7vmin; }
+    .h .p { font-size: 1.8vmin; }
+    .h b { font-size: 3.8vmin; }
+    .deal { flex-wrap: nowrap; gap: 3vmin; padding-top: 2.6vmin; border-top: 1px solid rgba(255,255,255,.3); }
+    .deal .pc { font-size: 10vmin; }
+    .deal p { font-size: 2vmin; }
+    .cta { width: auto; font-size: 2vmin; padding: 1.8vmin 3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="app">
+    <div class="now">
+      <div class="loc"><b>Atelier Nord</b><span>Updated 13:52</span></div>
+      <div class="deg">12°</div>
+      <div class="cond">
+        <div class="c">Light rain</div>
+        <div class="hl">H 14° · L 9°</div>
+        <div class="fl">Feels like: <b>a new season</b>.</div>
+      </div>
+    </div>
+
+    <div class="hours">
+      <div class="t"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M12 6.5V12l3.6 2.2" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>Rain clears around 16:00</div>
+      <div class="row">
+        <div class="h"><small>Now</small>
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 30h21a8 8 0 0 0 0-16 11 11 0 0 0-20.5 3A6.5 6.5 0 0 0 14 30z" fill="#fff"/><g stroke="#BFE3FF" stroke-width="2.4" stroke-linecap="round"><path d="M17 35l-2 5M25 35l-2 5M33 35l-2 5"/></g></svg>
+          <span class="p">90%</span><b>12°</b></div>
+        <div class="h"><small>14</small>
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 30h21a8 8 0 0 0 0-16 11 11 0 0 0-20.5 3A6.5 6.5 0 0 0 14 30z" fill="#fff"/><g stroke="#BFE3FF" stroke-width="2.4" stroke-linecap="round"><path d="M19 35l-2 5M29 35l-2 5"/></g></svg>
+          <span class="p">70%</span><b>12°</b></div>
+        <div class="h"><small>15</small>
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 30h21a8 8 0 0 0 0-16 11 11 0 0 0-20.5 3A6.5 6.5 0 0 0 14 30z" fill="#fff"/><path d="M24 35l-2 5" stroke="#BFE3FF" stroke-width="2.4" stroke-linecap="round"/></svg>
+          <span class="p">40%</span><b>13°</b></div>
+        <div class="h sun"><small>16</small>
+          <svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#F2A93B" stroke-width="2.6" stroke-linecap="round"><path d="M20 5v4M8 17H4M11.5 8.5l2.8 2.8M28.5 8.5l-2.8 2.8M8 26l2.8-2"/></g><circle cx="20" cy="18" r="7" fill="#F2A93B"/><path d="M17 36h19a7 7 0 0 0 0-14 9.5 9.5 0 0 0-17.6 2.6A5.7 5.7 0 0 0 17 36z" fill="#D6DEE6"/></svg>
+          <span class="p">−30%</span><b>13°</b></div>
+        <div class="h"><small>17</small>
+          <svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#FFD27A" stroke-width="2.6" stroke-linecap="round"><path d="M24 6v5M24 37v5M6 24h5M37 24h5M11.3 11.3l3.5 3.5M33.2 33.2l3.5 3.5M36.7 11.3l-3.5 3.5M14.8 33.2l-3.5 3.5"/></g><circle cx="24" cy="24" r="8" fill="#FFD27A"/></svg>
+          <span class="p"></span><b>14°</b></div>
+        <div class="h"><small>18</small>
+          <svg viewBox="0 0 48 48" aria-hidden="true"><g stroke="#FFD27A" stroke-width="2.6" stroke-linecap="round"><path d="M24 6v5M24 37v5M6 24h5M37 24h5M11.3 11.3l3.5 3.5M33.2 33.2l3.5 3.5M36.7 11.3l-3.5 3.5M14.8 33.2l-3.5 3.5"/></g><circle cx="24" cy="24" r="8" fill="#FFD27A"/></svg>
+          <span class="p"></span><b>13°</b></div>
+      </div>
+    </div>
+
+    <div class="deal">
+      <div class="pc">−30%</div>
+      <p>The season-change edit, from 16:00.<br>Code <b>DRIZZLE</b></p>
+      <div class="cta">Shop the edit</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

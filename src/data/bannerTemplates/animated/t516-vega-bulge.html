@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Vega Bulge — Vasarely op-art: a two-gradient checkerboard whose squares swell into a sphere,
+     the offer sits on the sphere's calm core; copy on a flat ink slab. tall & 3:4: photo above, slab + sphere below ·
+     square & wide: photo left, sphere and slab share the patterned right side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #221C5C; }
+  .banner { --ck: 6vmin; --ink: #120F2C; --paper: #F6EFE2;
+    position: fixed; inset: 0; overflow: hidden; color: var(--paper); font-family: "Sora", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(160deg, #1D2366 0%, #4A2A8C 45%, #B03B86 100%); }
+  .field, .orb i::after { position: absolute; inset: 0; background: linear-gradient(200deg, #FFD463 0%, #F7925A 50%, #E9467A 100%);
+    -webkit-mask-image: conic-gradient(#000 0 25%, transparent 0 50%, #000 0 75%, transparent 0); mask-image: conic-gradient(#000 0 25%, transparent 0 50%, #000 0 75%, transparent 0);
+    -webkit-mask-size: var(--ck) var(--ck); mask-size: var(--ck) var(--ck); }
+  .field { content: ""; }
+  .orb { position: absolute; left: 78vmin; top: calc(100% - 38vmin); width: 50vmin; height: 50vmin; transform: translate(-50%, -50%); }
+  .orb i { position: absolute; left: 50%; top: 50%; border-radius: 50%; overflow: hidden; transform: translate(-50%, -50%);
+    background: linear-gradient(160deg, #1D2366 0%, #4A2A8C 45%, #B03B86 100%); }
+  .orb i::after { content: ""; -webkit-mask-position: center; mask-position: center; }
+  .orb i:nth-child(1) { width: 100%; height: 100%; --ck: 7.6vmin; }
+  .orb i:nth-child(2) { width: 74%; height: 74%; --ck: 9.6vmin; }
+  .orb i:nth-child(3) { width: 48%; height: 48%; --ck: 12vmin; }
+  .orb::after { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle at 36% 30%, rgba(255,255,255,.32) 0%, rgba(255,255,255,0) 38%, rgba(10,6,40,0) 62%, rgba(10,6,40,.45) 100%); }
+  .core { position: absolute; left: 50%; top: 50%; z-index: 1; width: 42%; height: 42%; transform: translate(-50%, -50%); border-radius: 50%;
+    background: var(--paper); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    box-shadow: 0 0 0 .8vmin var(--ink); }
+  .core b { font-family: "Syncopate", sans-serif; font-weight: 700; font-size: 4.8vmin; line-height: 1; letter-spacing: -.04em; }
+  .core small { margin-top: .6vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 72vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .slab { position: absolute; left: 0; bottom: 0; width: 54vmin; height: 72vmin; box-sizing: border-box; background: var(--ink);
+    padding: 5vmin 4.6vmin 5vmin 6vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #FFC45C; white-space: nowrap; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Syncopate", sans-serif; font-weight: 700; font-size: 7vmin; line-height: 1.02; letter-spacing: -.02em; text-transform: uppercase; }
+  .sub { margin-top: 2.6vmin; font-size: 2.2vmin; line-height: 1.45; color: #D8D2EC; }
+  .foot { margin-top: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+  .cta { padding: 1.6vmin 2.8vmin; background: var(--paper); color: var(--ink); font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+  .fine { font-size: 1.6vmin; color: #A9A2C8; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 56vmin); }
+    .slab { width: 56vmin; height: 56vmin; padding: 4vmin 4vmin 4vmin 5vmin; }
+    h1 { font-size: 5.4vmin; margin-top: 1.8vmin; }
+    .sub { margin-top: 1.8vmin; font-size: 1.8vmin; }
+    .orb { left: 78vmin; top: calc(100% - 28vmin); width: 40vmin; height: 40vmin; }
+    .core b { font-size: 4vmin; }
+  }
+  /* square & wide: photo left; sphere floats top-right, slab anchors bottom-right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; }
+    .slab { left: auto; right: 0; width: 50%; height: 58vmin; padding: 4vmin 4vmin 4vmin 4.6vmin; }
+    .orb { left: 75%; top: 21vmin; width: 36vmin; height: 36vmin; }
+    .core b { font-size: 3.6vmin; }
+    .core small { font-size: 1.6vmin; letter-spacing: .08em; }
+    h1 { font-size: 6vmin; }
+    .sub { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 60% 30%; }
+    .slab { width: 54%; height: 52vmin; padding: 4.4vmin 5vmin 4.4vmin 5.4vmin; }
+    h1 { font-size: 7vmin; }
+    .sub { max-width: 60vmin; font-size: 1.9vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 3vmin; }
+    .orb { left: 73%; top: 24vmin; width: 44vmin; height: 44vmin; }
+    .core b { font-size: 4.2vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     op-art kinetics: the background checkerboard creeps diagonally by exactly one tile per loop, while the sphere's
+     three rings slide their checks against each other (outer →, middle ←, inner ↓) so the bulge seems to rotate;
+     the whole sphere breathes (≤4 %) · beats: 1.8s CTA sheen · 4.2s the −35% core pulses */
+  .field { animation: creep 6s linear infinite; }
+  @keyframes creep { from { -webkit-mask-position: 0 0; mask-position: 0 0; } to { -webkit-mask-position: var(--ck) var(--ck); mask-position: var(--ck) var(--ck); } }
+  .orb i:nth-child(1)::after { animation: slideR 6s linear infinite; }
+  .orb i:nth-child(2)::after { animation: slideL 3s linear infinite; }
+  .orb i:nth-child(3)::after { animation: slideD 6s linear infinite; }
+  @keyframes slideR { from { -webkit-mask-position: 50% 50%; mask-position: 50% 50%; } to { -webkit-mask-position: calc(50% + var(--ck)) 50%; mask-position: calc(50% + var(--ck)) 50%; } }
+  @keyframes slideL { from { -webkit-mask-position: 50% 50%; mask-position: 50% 50%; } to { -webkit-mask-position: calc(50% - var(--ck)) 50%; mask-position: calc(50% - var(--ck)) 50%; } }
+  @keyframes slideD { from { -webkit-mask-position: 50% 50%; mask-position: 50% 50%; } to { -webkit-mask-position: 50% calc(50% + var(--ck)); mask-position: 50% calc(50% + var(--ck)); } }
+  .orb { animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.04); } }
+  .core { animation: pulse 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pulse { 0%, 68%, 82%, 100% { transform: translate(-50%, -50%) scale(1); } 73% { transform: translate(-50%, -50%) scale(1.12); } 77% { transform: translate(-50%, -50%) scale(.97); } }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(233,70,122,.35) 50%, transparent 65%) -150% 0 / 200% 100% no-repeat;
+    animation: sheen 6s cubic-bezier(.5,0,.4,1) infinite; }
+  @keyframes sheen { 0%, 28% { background-position: -150% 0; } 45%, 100% { background-position: 250% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="field"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="orb"><i></i><i></i><i></i><div class="core"><b>−35%</b><small>Optic week</small></div></div>
+  <div class="slab">
+    <div class="kick">Studio Vega · Op edit</div>
+    <h1>Optic <br>season</h1>
+    <div class="sub">Sharp contrast, soft fabric. Pieces that play tricks on the eye.</div>
+    <div class="foot">
+      <div class="cta">Shop the illusion →</div>
+      <div class="fine">Code OPTIC35 · 3 days only</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

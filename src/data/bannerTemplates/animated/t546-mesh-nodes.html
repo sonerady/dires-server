@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Mesh Nodes — a gradient mesh caught mid-edit in a design tool: acid lime, violet, tangerine and cobalt fields
+     melt into each other under a warped white lattice with square anchor nodes and two bezier handles pulled out.
+     The photo is the selected layer (hairline selection box, eight handles, a blue size tag), the details sit in a
+     frosted properties panel (fill, blend, opacity, price) and the headline is a big editorial serif.
+     tall → headline, selected photo, panel + CTA · 3:4 → photo left, column right · square & wide → copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE9E1; }
+  .banner { --sel: #1E7BFF; position: fixed; inset: 0; overflow: hidden; color: #15121C; font-family: "Geist", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(60% 45% at 18% 18%, rgba(200,255,64,.95) 0%, rgba(200,255,64,0) 70%),
+      radial-gradient(55% 50% at 88% 22%, rgba(124,92,255,.9) 0%, rgba(124,92,255,0) 70%),
+      radial-gradient(60% 50% at 72% 88%, rgba(255,122,46,.95) 0%, rgba(255,122,46,0) 70%),
+      radial-gradient(50% 45% at 8% 92%, rgba(46,107,255,.85) 0%, rgba(46,107,255,0) 70%),
+      radial-gradient(40% 35% at 45% 55%, rgba(255,160,220,.7) 0%, rgba(255,160,220,0) 70%),
+      #EFE9E1; }
+  .mono { font-family: "Geist Mono", monospace; }
+
+  .mesh { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .mesh path { fill: none; stroke: rgba(255,255,255,.75); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .mesh .hd { stroke: #15121C; stroke-width: 1; }
+  .node { position: absolute; width: 1.3vmin; height: 1.3vmin; transform: translate(-50%, -50%); background: #FFFFFF; border: 1px solid #15121C; box-sizing: border-box; }
+  .hdot { position: absolute; width: 1.2vmin; height: 1.2vmin; transform: translate(-50%, -50%); border-radius: 50%; background: #15121C; }
+
+  .sel { position: absolute; left: 10vmin; right: 10vmin; top: 37vmin; height: calc(100% - 37vmin - 45vmin); }
+  .sel img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; box-shadow: 0 2vmin 5vmin rgba(40,20,60,.25); }
+  .sel::after { content: ""; position: absolute; inset: 0; box-shadow: 0 0 0 1px var(--sel); }
+  .h { position: absolute; width: 1.2vmin; height: 1.2vmin; background: #FFFFFF; border: 1px solid var(--sel); box-sizing: border-box; transform: translate(-50%, -50%); z-index: 1; }
+  .h1 { left: 0; top: 0; } .h2 { left: 50%; top: 0; } .h3 { left: 100%; top: 0; } .h4 { left: 100%; top: 50%; }
+  .h5 { left: 100%; top: 100%; } .h6 { left: 50%; top: 100%; } .h7 { left: 0; top: 100%; } .h8 { left: 0; top: 50%; }
+  .tag { position: absolute; left: 50%; top: calc(100% + 1.8vmin); transform: translateX(-50%); padding: .6vmin 1.4vmin; border-radius: .6vmin; background: var(--sel); color: #FFFFFF; font-size: 1.6vmin; white-space: nowrap; }
+  .lyr { position: absolute; left: 0; bottom: calc(100% + 1.4vmin); font-size: 1.6vmin; color: var(--sel); white-space: nowrap; font-weight: 500; }
+
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; }
+  .kick { font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: .6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 15vmin; line-height: .86; letter-spacing: -.035em; white-space: nowrap; }
+  h1 i { font-style: italic; display: inline-block; }
+  .sub { margin-top: 1.4vmin; font-size: 2.2vmin; line-height: 1.4; max-width: 60vmin; }
+
+  .bottom { position: absolute; left: 7vmin; right: 7vmin; bottom: 6vmin; display: flex; align-items: flex-end; gap: 4vmin; }
+  .props { flex: none; width: 40vmin; box-sizing: border-box; padding: 2vmin 2.4vmin; border-radius: 1.6vmin; background: rgba(255,255,255,.62);
+    -webkit-backdrop-filter: blur(2.4vmin) saturate(1.3); backdrop-filter: blur(2.4vmin) saturate(1.3); box-shadow: inset 0 0 0 1px rgba(255,255,255,.8), 0 1.4vmin 3vmin rgba(40,20,60,.14); }
+  .props .t { font-size: 1.6vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #6A6475; margin-bottom: 1.2vmin; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 2vmin; padding: .9vmin 0; border-top: 1px solid rgba(21,18,28,.1); font-size: 1.8vmin; white-space: nowrap; }
+  .row span { color: #6A6475; }
+  .row b { font-weight: 500; display: flex; align-items: center; gap: .8vmin; }
+  .chip { width: 2vmin; height: 2vmin; border-radius: .4vmin; background: conic-gradient(from 90deg, #C8FF40, #7C5CFF, #FF7A2E, #2E6BFF, #C8FF40); }
+  .row.price b { font-family: "Instrument Serif", Georgia, serif; font-size: 4.2vmin; line-height: 1; }
+  .act { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+  .cta { padding: 2vmin 3.4vmin; border-radius: 99vmin; background: #15121C; color: #F7F3EE; font-size: 2.1vmin; font-weight: 500; white-space: nowrap; }
+  .fine { font-size: 1.6vmin; color: #2A2533; white-space: nowrap; }
+
+  /* ── 3:4 — selected photo left, a copy column right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .sel { left: 7vmin; right: auto; width: 54vmin; top: 10vmin; height: calc(100% - 22vmin); }
+    .head { left: 68vmin; right: 5vmin; top: 8vmin; }
+    .kick { white-space: normal; line-height: 1.5; }
+    h1 { font-size: 10vmin; white-space: normal; }
+    .sub { font-size: 1.9vmin; }
+    .bottom { left: 68vmin; right: 5vmin; bottom: 7vmin; flex-direction: column; align-items: stretch; gap: 3vmin; }
+    .props { width: auto; padding: 1.6vmin 1.8vmin; }
+    .row { font-size: 1.7vmin; }
+    .cta { padding: 1.8vmin 2.6vmin; font-size: 1.9vmin; }
+    .fine { white-space: normal; }
+  }
+  /* ── square — copy left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .sel { left: auto; right: 7vmin; width: 48%; top: 9vmin; height: calc(100% - 20vmin); }
+    .head { left: 6vmin; right: auto; width: calc(52% - 17vmin); top: 7vmin; }
+    .kick { white-space: nowrap; }
+    h1 { font-size: 11vmin; white-space: normal; }
+    .sub { font-size: 2vmin; }
+    .bottom { left: 6vmin; right: auto; width: calc(52% - 17vmin); bottom: 6vmin; }
+  }
+  /* ── wide — headline left, panel + CTA side by side under it ── */
+  @media (min-aspect-ratio: 6/5) {
+    .sel { width: 44%; right: 8vmin; top: 10vmin; height: calc(100% - 22vmin); }
+    .head { left: 7vmin; width: calc(56% - 22vmin); top: 8vmin; }
+    h1 { font-size: 14vmin; white-space: normal; }
+    .sub { font-size: 2.2vmin; }
+    .bottom { left: 7vmin; width: calc(56% - 22vmin); bottom: 7vmin; flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 2.6vmin 3.4vmin; }
+    .props { width: 34vmin; flex: none; }
+    .act { min-width: 26vmin; }
+    .fine { white-space: normal; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     "live edit" of the mesh: a colour bloom drifts through the fields and fades back ·
+     0.9s the anchor node is dragged up-right, the lattice bends with it and the bezier handles swing, then it eases home ·
+     3.0s the selected photo layer gets a gentle resize nudge (handles and all) · 4.3s "bent." bends · the fill chip cycles hue */
+  .banner::before { content: ""; position: absolute; left: -20%; top: -20%; width: 140%; height: 140%; pointer-events: none; opacity: 0;
+    background: radial-gradient(28% 22% at 40% 45%, rgba(255,120,210,.85), rgba(255,120,210,0) 70%),
+                radial-gradient(26% 20% at 62% 60%, rgba(200,255,64,.8), rgba(200,255,64,0) 70%);
+    animation: bloom 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bloom { 0%, 100% { opacity: 0; transform: translate(0,0) rotate(0deg); } 50% { opacity: .8; transform: translate(6%,-5%) rotate(8deg); } }
+
+  .mesh .r3 { animation: r3 6s cubic-bezier(.55,0,.3,1) infinite; }
+  .mesh .c2 { animation: c2 6s cubic-bezier(.55,0,.3,1) infinite; }
+  .mesh .hd1 { animation: hd1 6s cubic-bezier(.55,0,.3,1) infinite; }
+  @keyframes r3 { 0%, 12%, 46%, 100% { d: path("M0 76 L20 77 L53 80 L80 74 L100 75"); } 24%, 32% { d: path("M0 76 L20 77 L59 86 L80 74 L100 75"); } }
+  @keyframes c2 { 0%, 12%, 46%, 100% { d: path("M50 0 L51 20 L47 54 L53 80 L52 100"); } 24%, 32% { d: path("M50 0 L51 20 L47 54 L59 86 L52 100"); } }
+  @keyframes hd1 { 0%, 12%, 46%, 100% { d: path("M46 82 L60 78"); } 24%, 32% { d: path("M51 90 L67 82"); } }
+  .drag { animation: dragN 6s cubic-bezier(.55,0,.3,1) infinite; }
+  .dh1 { animation: dragA 6s cubic-bezier(.55,0,.3,1) infinite; }
+  .dh2 { animation: dragB 6s cubic-bezier(.55,0,.3,1) infinite; }
+  @keyframes dragN { 0%, 12%, 46%, 100% { transform: translate(-50%,-50%); } 24%, 32% { transform: translate(calc(-50% + 6vw), calc(-50% + 6vh)); } }
+  @keyframes dragA { 0%, 12%, 46%, 100% { transform: translate(-50%,-50%); } 24%, 32% { transform: translate(calc(-50% + 5vw), calc(-50% + 8vh)); } }
+  @keyframes dragB { 0%, 12%, 46%, 100% { transform: translate(-50%,-50%); } 24%, 32% { transform: translate(calc(-50% + 7vw), calc(-50% + 4vh)); } }
+
+  .sel { animation: resize 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes resize { 0%, 46%, 66%, 100% { transform: scale(1); } 54%, 57% { transform: scale(1.018); } }
+  .sel .h { animation: hpop 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes hpop { 0%, 46%, 66%, 100% { background: #FFFFFF; } 50%, 60% { background: var(--sel); } }
+
+  h1 i { transform-origin: 0 100%; animation: bend 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes bend { 0%, 70%, 86%, 100% { transform: skewX(0deg); } 76%, 79% { transform: skewX(-10deg); } }
+
+  .chip { animation: hue 6s linear infinite; }
+  @keyframes hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="mesh" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 25 L22 24 L51 20 L78 27 L100 24"/>
+    <path d="M0 52 L26 50 L47 54 L74 47 L100 49"/>
+    <path class="r3" d="M0 76 L20 77 L53 80 L80 74 L100 75"/>
+    <path d="M24 0 L22 24 L26 50 L20 77 L22 100"/>
+    <path class="c2" d="M50 0 L51 20 L47 54 L53 80 L52 100"/>
+    <path d="M77 0 L78 27 L74 47 L80 74 L79 100"/>
+    <path class="hd hd1" d="M46 82 L60 78"/>
+    <path class="hd" d="M74 77 L86 71"/>
+  </svg>
+  <i class="node" style="left:22%;top:24%"></i><i class="node" style="left:51%;top:20%"></i><i class="node" style="left:78%;top:27%"></i>
+  <i class="node" style="left:26%;top:50%"></i><i class="node" style="left:47%;top:54%"></i><i class="node" style="left:74%;top:47%"></i>
+  <i class="node" style="left:20%;top:77%"></i><i class="node drag" style="left:53%;top:80%"></i><i class="node" style="left:80%;top:74%"></i>
+  <i class="hdot dh1" style="left:46%;top:82%"></i><i class="hdot dh2" style="left:60%;top:78%"></i>
+
+  <i class="hdot" style="left:74%;top:77%"></i><i class="hdot" style="left:86%;top:71%"></i>
+
+  <div class="head">
+    <div class="kick mono">Tinta Studio · Gradient edit</div>
+    <h1>Colour, <i>bent.</i></h1>
+    <div class="sub">Pieces dyed in melting gradients. No two fades come out alike.</div>
+  </div>
+  <div class="sel">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <i class="h h1"></i><i class="h h2"></i><i class="h h3"></i><i class="h h4"></i><i class="h h5"></i><i class="h h6"></i><i class="h h7"></i><i class="h h8"></i>
+    <div class="lyr mono">▣ Look_03</div>
+    <div class="tag mono">1080 × 1350</div>
+  </div>
+  <div class="bottom">
+    <div class="props">
+      <div class="t">Properties</div>
+      <div class="row"><span>Fill</span><b><i class="chip"></i>Mesh 4×4</b></div>
+      <div class="row"><span>Blend</span><b>Soft light</b></div>
+      <div class="row price"><span>Price</span><b>€78</b></div>
+    </div>
+    <div class="act">
+      <div class="cta">Shop the gradient edit →</div>
+      <div class="fine mono">Hand-dyed · each fade unique</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

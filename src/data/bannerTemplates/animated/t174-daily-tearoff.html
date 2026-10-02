@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Deal of the Day — a tear-off desk calendar: black binding with ring holes, torn stubs of yesterday's pages,
+     a giant red date, today's offer printed on the sheet and a dog-eared corner hinting at tomorrow.
+     tall → photo above the pad; square / wide → photo left, pad right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FBF8F2; }
+  .banner { --panel: 80vmin; position: fixed; inset: 0; overflow: hidden; background: #FBF8F2; color: #1C1B19; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .pad { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); background: #FBF8F2; overflow: hidden; }
+  .bind { position: absolute; left: 0; right: 0; top: 0; height: 6vmin; background: linear-gradient(#2A2927, #151514); display: flex; justify-content: center; gap: 34%; align-items: center; }
+  .bind i { width: 2.6vmin; height: 2.6vmin; border-radius: 50%; background: #FBF8F2; box-shadow: inset 0 .4vmin .5vmin rgba(0,0,0,.45); }
+  .stub { position: absolute; left: 0; right: 0; top: 6vmin; height: 2.2vmin;
+    background: linear-gradient(135deg, #E9E3D8 50%, transparent 50%) 0 0 / 2.2vmin 2.2vmin repeat-x, linear-gradient(225deg, #E9E3D8 50%, transparent 50%) 0 0 / 2.2vmin 2.2vmin repeat-x; }
+  .stub::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .9vmin; background: #E9E3D8; }
+  .sheet { position: absolute; left: 6vmin; right: 6vmin; top: 11vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; font-size: 1.9vmin; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; padding-bottom: 1.4vmin; border-bottom: 1px solid #1C1B19; }
+  .meta b { color: #C8322B; font-weight: 700; }
+  .day { display: flex; align-items: flex-end; gap: 4vmin; margin-top: 2vmin; }
+  .num { font-family: "Fraunces", Georgia, serif; font-weight: 900; font-size: 34vmin; line-height: .78; letter-spacing: -.05em; color: #C8322B; font-variation-settings: "opsz" 144, "SOFT" 0; margin-left: -1vmin; }
+  .side { flex: 1; min-width: 0; padding-bottom: .6vmin; }
+  .side .wd { font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 5.4vmin; line-height: 1; }
+  .side .lab { margin-top: 2.2vmin; display: inline-block; font-size: 1.8vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #FBF8F2; background: #1C1B19; padding: .9vmin 1.4vmin; }
+  .side .off { margin-top: 1.4vmin; font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 9vmin; line-height: .95; letter-spacing: -.03em; }
+  .side .what { margin-top: .8vmin; font-size: 2.1vmin; line-height: 1.35; color: #55524C; }
+  .next { margin-top: auto; display: flex; align-items: center; gap: 1.6vmin; padding-bottom: 2.4vmin; }
+  .next small { font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #8A857B; margin-right: .6vmin; }
+  .next span { flex: 1; display: flex; align-items: baseline; justify-content: space-between; padding: 1vmin 1.2vmin; border: 1px solid rgba(28,27,25,.25); font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 3.4vmin; line-height: 1; color: #1C1B19; }
+  .next span em { font-style: italic; font-weight: 400; font-size: 2.6vmin; color: #C8322B; }
+  .foot { margin-top: 0; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 2vmin; border-top: 1px dashed rgba(28,27,25,.4); }
+  .foot p { margin: 0; font-size: 2vmin; line-height: 1.35; color: #55524C; }
+  .foot p b { color: #1C1B19; font-weight: 700; }
+  .cta { flex: none; background: #C8322B; color: #FFF7F0; padding: 2vmin 3vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; margin-right: 6vmin; }
+  .ear { position: absolute; right: 0; bottom: 0; width: 8vmin; height: 8vmin; background: linear-gradient(to top left, #ECE5D8 50%, #D3C9B6 50%, #E2D9C8 100%); box-shadow: -.6vmin -.6vmin 1.2vmin -.6vmin rgba(0,0,0,.18); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .sheet { top: 10vmin; bottom: 4.4vmin; }
+    .num { font-size: 29vmin; }
+    .side .wd { font-size: 4.8vmin; }
+    .side .off { font-size: 7.6vmin; }
+    .side .lab { margin-top: 1.6vmin; }
+    .cta { padding: 1.7vmin 2.6vmin; }
+    .next { padding-bottom: 2vmin; }
+    .next span { font-size: 3vmin; padding: .8vmin 1vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; }
+    .pad { left: 50%; top: 0; height: auto; box-shadow: -1vmin 0 2vmin rgba(0,0,0,.14); }
+    .bind { gap: 44%; }
+    .sheet { left: 5vmin; right: 5vmin; top: 11vmin; bottom: 5vmin; }
+    .day { flex-direction: column; align-items: flex-start; gap: 2.4vmin; margin-top: 2.4vmin; }
+    .num { font-size: 28vmin; }
+    .meta { font-size: 1.7vmin; letter-spacing: .1em; }
+    .next small { display: none; }
+    .next span { font-size: 2.8vmin; }
+    .side .wd { font-size: 5vmin; }
+    .side .off { font-size: 8vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .cta { margin-right: 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 65% 25%; }
+    .pad { left: 48%; }
+    .bind { gap: 40%; }
+    .sheet { left: 7vmin; right: 7vmin; top: 12vmin; bottom: 6vmin; }
+    .day { flex-direction: row; align-items: flex-end; gap: 5vmin; margin-top: 4vmin; }
+    .num { font-size: 36vmin; }
+    .meta { font-size: 1.9vmin; letter-spacing: .16em; }
+    .next small { display: inline; }
+    .side .wd { font-size: 5.6vmin; }
+    .side .off { font-size: 9vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .cta { margin-right: 6vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+     constant: photo breathes (≤1.03)
+     beats: 0.6s the dog-ear curls up (tomorrow tempting) and drops back · 1.8s the big date lifts on its hinge like a page
+            about to be torn, then falls flat · 3.0s "−40%" punches · 3.6s the three "?" hop in turn · 4.8s sheen crosses the CTA */
+  .photo { transform-origin: 50% 30%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .ear { transform-origin: 100% 100%; animation: curl 6s linear infinite; }
+  @keyframes curl {
+    0%, 8% { transform: scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    14% { transform: scale(1.35); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    18% { transform: scale(1.3); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    24% { transform: scale(.96); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    28%, 100% { transform: scale(1); }
+  }
+
+  .num { transform-origin: 50% 0; animation: lift 6s linear infinite; }
+  @keyframes lift {
+    0%, 28% { transform: perspective(80vmin) rotateX(0); animation-timing-function: cubic-bezier(.35,0,.25,1); }
+    36% { transform: perspective(80vmin) rotateX(-40deg); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    40% { transform: perspective(80vmin) rotateX(-34deg); animation-timing-function: cubic-bezier(.6,0,.5,1); }
+    46% { transform: perspective(80vmin) rotateX(5deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    50%, 100% { transform: perspective(80vmin) rotateX(0); }
+  }
+
+  .side .off { transform-origin: 0% 60%; animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 49% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    52% { transform: scale(1.12); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    56% { transform: scale(.97); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    60%, 100% { transform: scale(1); }
+  }
+
+  .next span em { display: inline-block; animation: hop 6s linear infinite; }
+  .next span:nth-of-type(2) em { animation-delay: -5.85s; }
+  .next span:nth-of-type(3) em { animation-delay: -5.7s; }
+  @keyframes hop {
+    0%, 60% { transform: translateY(0) rotate(0); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    63% { transform: translateY(-1.2vmin) rotate(-10deg); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    66% { transform: translateY(0) rotate(0); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    68% { transform: translateY(-.3vmin); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    70%, 100% { transform: translateY(0) rotate(0); }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 30%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,247,240,0), rgba(255,247,240,.34) 50%, rgba(255,247,240,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 80% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    94%, 100% { transform: translateX(400%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="pad">
+    <div class="bind"><i></i><i></i></div>
+    <div class="stub"></div>
+    <div class="sheet">
+      <div class="meta"><span>Sep 2026 · Wk 39</span><b>Deal of the day</b></div>
+      <div class="day">
+        <div class="num">25</div>
+        <div class="side">
+          <div class="wd">Thursday</div>
+          <div class="lab">Today only</div>
+          <div class="off">−40%</div>
+          <div class="what">on today's pick, until 23:59.</div>
+        </div>
+      </div>
+      <div class="next"><small>Next</small><span>26<em>?</em></span><span>27<em>?</em></span><span>28<em>?</em></span></div>
+      <div class="foot"><p>Tomorrow, a new page.<br><b>Friday's deal stays folded.</b></p><span class="cta">Shop today's deal</span></div>
+    </div>
+    <div class="ear"></div>
+  </div>
+</div>
+</body>
+</html>

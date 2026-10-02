@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Size Dividers — the thrift-store rail: a chrome bar threaded through round plastic size dividers
+     (XS red → XL blue), each slotted disc turned a little differently, then the offer below.
+     tall / 3:4 → photo above the rail; square / wide → rail and copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1EEE7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F1EEE7; color: #1C1B19; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; box-sizing: border-box; padding: 0 6vmin; display: flex; flex-direction: column; }
+  /* the rail */
+  .rail { position: relative; flex: none; height: 26vmin; margin: 0 -6vmin; display: flex; justify-content: center; align-items: center; gap: 1.6vmin; }
+  .rail::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2.4vmin; margin-top: -1.2vmin;
+                  background: linear-gradient(180deg, #8E949A 0%, #F4F6F7 28%, #B9BEC3 55%, #6E747A 100%); box-shadow: 0 .6vmin 1vmin rgba(0,0,0,.18); }
+  .disc { position: relative; flex: none; width: 17vmin; height: 17vmin; transform: rotate(var(--r)); filter: drop-shadow(0 .5vmin .6vmin rgba(0,0,0,.22)); }
+  .disc svg { display: block; width: 100%; height: 100%; }
+
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #6B665D; white-space: nowrap; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 700; font-size: 7.6vmin; line-height: 1.02; letter-spacing: -.04em; }
+  h1 span { color: #E2402F; }
+  .mid { flex: 1; min-height: 0; display: flex; justify-content: space-between; align-items: center; gap: 4vmin; }
+  .mid p { margin: 0; max-width: 46vmin; font-size: 2.4vmin; line-height: 1.45; color: #45423C; }
+  .off { flex: none; text-align: right; }
+  .off strong { display: block; font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 10vmin; line-height: .9; letter-spacing: -.05em; color: #2F5DB8; }
+  .off span { display: block; margin-top: 1vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .foot { flex: none; height: 10vmin; display: flex; justify-content: space-between; align-items: center; border-top: .3vmin solid #1C1B19; font-size: 1.8vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .foot .cta { font-family: "Unbounded", sans-serif; font-weight: 700; font-size: 2.2vmin; letter-spacing: -.01em; text-transform: none; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 70vmin); }
+    .panel { height: 70vmin; }
+    .rail { height: 20vmin; margin-top: -3vmin; }
+    .disc { width: 14vmin; height: 14vmin; }
+    h1 { font-size: 6.6vmin; margin-top: 1.8vmin; }
+    .mid p { font-size: 2.1vmin; }
+    .off strong { font-size: 8.4vmin; }
+    .foot { height: 8.6vmin; }
+  }
+  /* square → rail and copy left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .panel { top: 0; right: 46%; height: auto; padding: 0 4.6vmin; }
+    .rail { height: 22vmin; margin: 2vmin -4.6vmin 0; gap: 0; }
+    .rail::before { right: -2vmin; }
+    .disc { width: 12.6vmin; height: 12.6vmin; margin: 0 -1.2vmin; }
+    .kick span + span { display: none; }
+    h1 { font-size: 5.6vmin; }
+    .mid { flex-direction: column; align-items: flex-start; justify-content: center; gap: 3vmin; }
+    .mid p { font-size: 2vmin; max-width: 42vmin; }
+    .off { text-align: left; }
+    .off strong { font-size: 8vmin; }
+    .foot { height: 8.4vmin; }
+    .foot > span:first-child { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 50% 30%; }
+    .panel { right: 48%; padding: 0 6vmin; }
+    .rail { height: 24vmin; margin: 2.4vmin -6vmin 0; gap: .6vmin; }
+    .disc { width: 13.6vmin; height: 13.6vmin; margin: 0; }
+    .kick span + span { display: inline; }
+    h1 { font-size: 6.6vmin; }
+    .mid { flex-direction: row; align-items: center; justify-content: space-between; }
+    .mid p { max-width: 34vmin; }
+    .off { text-align: right; }
+    .off strong { font-size: 9vmin; }
+    .foot > span:first-child { display: inline; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     beat: 1.6s a hand flicks along the rail — the size discs swing on the bar one after another (XS → XL, damped pendulum) while a
+           specular glint runs down the chrome · 3.7s the −25% punches in · 4.6s "second time" gets a quick red underline swipe · CTA nudge */
+  .disc { animation: swing 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .disc:nth-child(1) { animation-delay: -.6s; }
+  .disc:nth-child(2) { animation-delay: -.45s; }
+  .disc:nth-child(3) { animation-delay: -.3s; }
+  .disc:nth-child(4) { animation-delay: -.15s; }
+  @keyframes swing {
+    0%, 36% { transform: rotate(var(--r)); }
+    40% { transform: rotate(calc(var(--r) + 20deg)); }
+    46% { transform: rotate(calc(var(--r) - 12deg)); }
+    52% { transform: rotate(calc(var(--r) + 6deg)); }
+    58% { transform: rotate(calc(var(--r) - 2.5deg)); }
+    64%, 100% { transform: rotate(var(--r)); }
+  }
+  .rail::before {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.95) 50%, transparent 100%) no-repeat,
+                linear-gradient(180deg, #8E949A 0%, #F4F6F7 28%, #B9BEC3 55%, #6E747A 100%);
+    background-size: 22% 100%, 100% 100%; background-position: -40% 0, 0 0;
+    animation: glint 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glint { 0%, 26% { background-position: -40% 0, 0 0; } 48%, 100% { background-position: 140% 0, 0 0; } }
+
+  .off strong { animation: punch 6s cubic-bezier(.3,.7,.3,1) infinite; }
+  @keyframes punch {
+    0%, 60% { transform: none; }
+    63% { transform: scale(1.14) rotate(-3deg); }
+    67% { transform: scale(.97); }
+    71%, 100% { transform: none; }
+  }
+  h1 span { background: linear-gradient(#E2402F, #E2402F) no-repeat 0 100% / 0 .5vmin; animation: under 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes under {
+    0%, 74% { background-size: 0 .5vmin; background-position: 0 100%; }
+    80%, 86% { background-size: 100% .5vmin; background-position: 0 100%; }
+    86.1% { background-size: 100% .5vmin; background-position: 100% 100%; }
+    92%, 100% { background-size: 0 .5vmin; background-position: 100% 100%; }
+  }
+  .foot .cta { display: inline-block; animation: nudge 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 70%, 90%, 100% { transform: none; } 80% { transform: translateX(.8vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <mask id="cut" maskContentUnits="objectBoundingBox">
+        <circle cx=".5" cy=".5" r=".48" fill="#fff"/>
+        <circle cx=".5" cy=".5" r=".12" fill="#000"/>
+        <rect x=".455" y="0" width=".09" height=".5" fill="#000"/>
+      </mask>
+    </defs>
+  </svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="rail" aria-hidden="true">
+      <div class="disc" style="--r:-8deg"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#E2402F" mask="url(#cut)"/><text x="50" y="84" text-anchor="middle" font-family="Unbounded, Arial Black, sans-serif" font-weight="800" font-size="19" fill="#fff">XS</text></svg></div>
+      <div class="disc" style="--r:5deg"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#F28A2A" mask="url(#cut)"/><text x="50" y="84" text-anchor="middle" font-family="Unbounded, Arial Black, sans-serif" font-weight="800" font-size="22" fill="#1C1B19">S</text></svg></div>
+      <div class="disc" style="--r:-3deg"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#F3C33A" mask="url(#cut)"/><text x="50" y="84" text-anchor="middle" font-family="Unbounded, Arial Black, sans-serif" font-weight="800" font-size="22" fill="#1C1B19">M</text></svg></div>
+      <div class="disc" style="--r:9deg"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#3E9A5B" mask="url(#cut)"/><text x="50" y="84" text-anchor="middle" font-family="Unbounded, Arial Black, sans-serif" font-weight="800" font-size="22" fill="#fff">L</text></svg></div>
+      <div class="disc" style="--r:-5deg"><svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#2F5DB8" mask="url(#cut)"/><text x="50" y="84" text-anchor="middle" font-family="Unbounded, Arial Black, sans-serif" font-weight="800" font-size="19" fill="#fff">XL</text></svg></div>
+    </div>
+    <div class="kick"><span>Pre-loved · sorted by size</span><span>Fri – Sun</span></div>
+    <h1>Every size,<br><span>second time</span> round.</h1>
+    <div class="mid">
+      <p>Hundreds of hand-picked second-hand pieces, hung by size so yours is easy to find.</p>
+      <div class="off"><strong>−25%</strong><span>All pre-loved</span></div>
+    </div>
+    <div class="foot"><span>Rerun Vintage</span><span class="cta">Find your size →</span></div>
+  </div>
+</div>
+</body>
+</html>

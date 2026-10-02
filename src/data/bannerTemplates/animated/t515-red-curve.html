@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Red Curve — a hard-edge gallery hang: the photo and a single shaped canvas (one flat red plane with one clean curve)
+     hang on a white wall; the copy is the wall label. tall & 3:4: photo above, canvas + label below ·
+     square: photo left, canvas over the label on the right · wide: triptych — photo, tall curved canvas, label */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1EFEA; }
+  .banner { --wall: #F1EFEA; --red: #D0351E; --ink: #1B1A18; --grey: #6F6B64;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(120% 70% at 50% 0%, #F8F7F3 0%, var(--wall) 60%, #E8E5DE 100%); }
+  .hang { box-shadow: 0 .6vmin 1.2vmin rgba(40,30,20,.12), 0 2.4vmin 4vmin rgba(40,30,20,.10); }
+  .kick { position: absolute; left: 7vmin; right: 7vmin; top: 4vmin; display: flex; justify-content: space-between; gap: 2vmin;
+    font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--grey); }
+  .photo { position: absolute; left: 7vmin; top: 10vmin; width: calc(100% - 14vmin); height: calc(100% - 10vmin - 66vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .canvas { position: absolute; left: 7vmin; bottom: 7vmin; width: 40vmin; height: 49vmin; background: var(--red); border-top-right-radius: 100% 100%; }
+  .copy { position: absolute; left: 54vmin; right: 7vmin; top: calc(100% - 56vmin + 1vmin); bottom: 7vmin; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 12.4vmin; line-height: .88; letter-spacing: -.02em; }
+  h1 i { color: var(--red); }
+  .label { margin-top: auto; padding-top: 1.8vmin; border-top: 1px solid rgba(27,26,24,.35); display: flex; flex-direction: column; gap: .9vmin; font-size: 1.9vmin; line-height: 1.35; }
+  .label .t { font-weight: 600; font-size: 2vmin; }
+  .label .m { color: var(--grey); }
+  .price { display: flex; align-items: baseline; gap: 1.2vmin; margin-top: .6vmin; white-space: nowrap; }
+  .price s { color: var(--grey); font-size: 1.9vmin; }
+  .price b { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 4.6vmin; line-height: 1; }
+  .cta { margin-top: 1vmin; font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+  .cta::after { content: " →"; color: var(--red); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .kick { top: 3.6vmin; }
+    .photo { top: 9vmin; height: calc(100% - 9vmin - 47vmin); }
+    .canvas { width: 36vmin; height: 34vmin; bottom: 6vmin; }
+    .copy { left: 49vmin; top: calc(100% - 47vmin + 5vmin); bottom: 6vmin; }
+    h1 { font-size: 8.4vmin; }
+    .label { gap: .6vmin; }
+    .price b { font-size: 4vmin; }
+  }
+  /* square: photo left, the canvas hangs above the label */
+  @media (min-aspect-ratio: 9/10) {
+    .kick { left: 6vmin; right: auto; top: 3.4vmin; width: calc(54% - 6vmin); white-space: nowrap; }
+    .kick span:last-child { display: none; }
+    .photo { left: 6vmin; top: 9vmin; width: 54%; height: calc(100% - 15vmin); }
+    .canvas { left: calc(54% + 12vmin); bottom: auto; top: 9vmin; width: calc(46% - 18vmin); height: 28vmin; }
+    .copy { left: calc(54% + 12vmin); right: 6vmin; top: 42vmin; bottom: 6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .label { font-size: 1.7vmin; }
+    .label .m { display: none; }
+  }
+  /* wide: a triptych — photo, a tall shaped canvas, then the label */
+  @media (min-aspect-ratio: 6/5) {
+    .kick { left: 6vmin; right: 6vmin; width: auto; top: 4vmin; }
+    .kick span:last-child { display: inline; }
+    .photo { left: 6vmin; top: 10vmin; width: 44%; height: calc(100% - 17vmin); }
+    .canvas { left: calc(44% + 11vmin); top: 10vmin; bottom: 7vmin; width: 20vmin; height: auto; border-top-right-radius: 100% 36%; }
+    .copy { left: calc(44% + 36vmin); right: 6vmin; top: 12vmin; bottom: 7vmin; }
+    h1 { font-size: 9.4vmin; }
+    .label { font-size: 1.8vmin; }
+    .label .m { display: block; }
+  }
+
+  /* ───────── motion (8s loop, gallery-quiet) ─────────
+     constant: a soft gallery spotlight drifts across the wall and back; the shaped canvas slowly flexes its one
+     curve (tighter, then home) · beats: 2.6s "curve." rises back out of its baseline mask ·
+     5.4s the sale price lifts in, 6.2s the "View the room →" arrow steps forward */
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(50vmin 40vmin at 50% 50%, rgba(255,250,238,.55), transparent 70%) 0 0 / 100% 100% no-repeat;
+    opacity: 0; animation: spot 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes spot { 0%, 100% { opacity: 0; transform: translateX(-30%); } 50% { opacity: 1; transform: translateX(30%); } }
+  .canvas { --r0: 100% 100%; --r1: 74% 86%; animation: flex 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes flex { 0%, 100% { border-top-right-radius: var(--r0); } 50% { border-top-right-radius: var(--r1); } }
+  h1 i { display: inline-block; animation: rise 8s cubic-bezier(.2,.7,.2,1) infinite; }
+  @keyframes rise { 0%, 30%, 45%, 100% { transform: translateY(0); clip-path: inset(-20% -8% -25% -4%); }
+    31% { transform: translateY(40%); clip-path: inset(-20% -8% 100% -4%); } 32.5% { transform: translateY(40%); clip-path: inset(-20% -8% 60% -4%); } }
+  .price b { display: inline-block; animation: lift 8s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes lift { 0%, 66%, 78%, 100% { transform: translateY(0); opacity: 1; } 68% { transform: translateY(1vmin); opacity: 0; } }
+  .cta::after { display: inline-block; white-space: pre; animation: step 8s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes step { 0%, 78%, 90%, 100% { transform: translateX(0); } 83% { transform: translateX(1.2vmin); } }
+  @media (min-aspect-ratio: 6/5) { .canvas { --r0: 100% 36%; --r1: 82% 26%; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="kick"><span>Galleria Nove · Room 3</span><span>New acquisitions</span></div>
+  <img class="photo hang" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="canvas hang"></div>
+  <div class="copy">
+    <h1>Red<br><i>curve.</i></h1>
+    <div class="label">
+      <span class="t">Object 04 — The Everyday Layer</span>
+      <span class="m">One clean line, one flat colour. Cut from a single panel.</span>
+      <span class="price"><s>€129</s><b>€96</b></span>
+      <span class="cta">View the room</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

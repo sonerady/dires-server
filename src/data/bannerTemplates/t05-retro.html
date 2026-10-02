@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=DM+Sans:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  /* Retro 70s — responsive: tall photo → copy on top, arch window centred below; square/wide → copy left, arch right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5E7CF; }
+  .banner { --w: 62vmin; --h: 50%; position: fixed; inset: 0; overflow: hidden; background: #F5E7CF; color: #5A2E1A; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif; }
+  /* arch + three rings on one centre line; --w = arch width, --h = arch height */
+  .stage { position: absolute; bottom: 0; top: 0; left: 50%; transform: translateX(-50%); width: calc(var(--w) + 18vmin); }
+  .ring, .arch { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); border-radius: 999vmin 999vmin 0 0; }
+  .r3 { width: calc(var(--w) + 18vmin); height: calc(var(--h) + 9vmin); background: #6B3E26; }
+  .r2 { width: calc(var(--w) + 12vmin); height: calc(var(--h) + 6vmin); background: #E0892B; }
+  .r1 { width: calc(var(--w) + 6vmin); height: calc(var(--h) + 3vmin); background: #D9512C; }
+  .arch { width: var(--w); height: var(--h); overflow: hidden; }
+  .arch img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; }
+  .k { font-size: 2.2vmin; font-weight: 900; letter-spacing: .24em; text-transform: uppercase; color: #D9512C; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Shrikhand", "Cooper Black", Georgia, serif; font-weight: 400; font-size: 10.5vmin; line-height: 1; }
+  h1 span { color: #D9512C; }
+  .deal { margin-top: 3vmin; display: flex; align-items: center; gap: 2.6vmin; }
+  .deal b { font-family: "Shrikhand", "Cooper Black", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .9; }
+  .deal span { font-size: 2.7vmin; font-weight: 900; letter-spacing: .08em; line-height: 1.15; text-transform: uppercase; }
+  .d { margin-top: 2.4vmin; font-size: 2.8vmin; font-weight: 500; line-height: 1.4; max-width: 62vmin; }
+  .cta { display: inline-block; margin-top: 3vmin; background: #5A2E1A; color: #F5E7CF; border-radius: 99vmin; padding: 2.2vmin 4.4vmin; font-size: 2.6vmin; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .sticker { position: absolute; left: calc(50% + var(--w) / 2 - 2vmin); bottom: calc(var(--h) + 1vmin); width: 15vmin; height: 15vmin; border-radius: 50%; background: #F3B53F; color: #5A2E1A; display: flex; align-items: center; justify-content: center; text-align: center; transform: rotate(14deg); font-size: 2.1vmin; font-weight: 900; line-height: 1.1; letter-spacing: .06em; text-transform: uppercase; box-shadow: 0 .8vmin 0 #5A2E1A; }
+  /* shorter portrait: a smaller arch gives the copy room */
+  @media (min-aspect-ratio: 7/10) { .banner { --h: 42%; --w: 52vmin; } h1 { font-size: 9vmin; } .deal b { font-size: 11vmin; } .d { display: none; } }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --w: 40vmin; --h: 72%; }
+    .stage { left: auto; right: 3vmin; transform: none; }
+    .copy { right: auto; width: calc(100% - 70vmin); }
+    h1 { font-size: 7.6vmin; }
+    .deal { display: block; }
+    .deal b { display: block; font-size: 10.5vmin; }
+    .deal span { display: block; margin-top: 1vmin; }
+    .deal span br { display: none; }
+    .sticker { left: auto; bottom: auto; right: 4vmin; top: 5vmin; width: 13vmin; height: 13vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) { .d { display: block; max-width: none; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="stage">
+    <div class="ring r3"></div>
+    <div class="ring r2"></div>
+    <div class="ring r1"></div>
+    <div class="arch"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  </div>
+  <div class="copy">
+    <div class="k">The vintage drop</div>
+    <h1>Groovy <span>Weekend</span></h1>
+    <div class="deal"><b>30%</b><span>off <br>everything</span></div>
+    <div class="d">Embroidered maxis, crochet and sun-faded colour with a 70s soul.</div>
+    <div class="cta">Shop the drop</div>
+  </div>
+  <div class="sticker">Sat–Sun<br>only</div>
+</div>
+</body>
+</html>

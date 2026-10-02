@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+  /* Bag Reminder — the "still in your bag" letter a luxury house sends: centred wordmark, a soft serif
+     "You left something beautiful behind.", the look set like an email hero with a round "held for you · 48 h"
+     stamp on its corner, the line item with a low-stock note, "Return to bag" and a gentle code to finish the order.
+     tall → centred letter, photo in the middle; 3:4 / square / wide → photo left, letter right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EEE8; }
+  .banner { --hd: 46vmin; --ft: 40vmin; --ac: #8C5A3C; position: fixed; inset: 0; overflow: hidden; background: #F3EEE8; color: #2B2320; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif; text-align: center; }
+
+  .wm { position: absolute; left: 7vmin; right: 7vmin; top: 0; height: 10vmin; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid rgba(43,35,32,.2); font-size: 2.3vmin; font-weight: 600; letter-spacing: .5em; padding-left: .5em; text-transform: uppercase; white-space: nowrap; }
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 10vmin; height: calc(var(--hd) - 10vmin); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .eb { font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--ac); }
+  h1 { margin: 2vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 7.6vmin; line-height: 1.02; letter-spacing: -.01em; }
+  h1 i { color: var(--ac); }
+
+  .pic { position: absolute; left: 9vmin; right: 9vmin; top: var(--hd); bottom: var(--ft); }
+  .pic img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .stamp { position: absolute; right: -4vmin; top: -4vmin; width: 15vmin; height: 15vmin; border-radius: 50%; background: var(--ac); color: #F3EEE8; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(10deg); box-shadow: 0 0 0 .6vmin #F3EEE8; }
+  .stamp::before { content: ""; position: absolute; inset: 1vmin; border-radius: 50%; border: 1px dashed rgba(243,238,232,.6); }
+  .stamp small { display: block; line-height: 1; font-size: 1.5vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  .stamp b { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 4.4vmin; line-height: .9; margin: .5vmin 0 .4vmin; }
+
+  .foot { position: absolute; left: 9vmin; right: 9vmin; bottom: 0; height: var(--ft); box-sizing: border-box; padding: 3.4vmin 0 5vmin; display: flex; flex-direction: column; }
+  .item { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; padding-bottom: 2vmin; border-bottom: 1px solid rgba(43,35,32,.2); text-align: left; white-space: nowrap; }
+  .item .nm { font-family: "DM Serif Display", Georgia, serif; font-size: 3.2vmin; }
+  .item .op { margin-left: 1.4vmin; font-size: 1.8vmin; color: #7A6E66; }
+  .item .pr { font-size: 2.4vmin; font-weight: 500; }
+  .low { margin-top: 1.8vmin; display: flex; align-items: center; justify-content: center; gap: 1.2vmin; font-size: 1.8vmin; font-weight: 500; color: var(--ac); }
+  .low i { width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: var(--ac); box-shadow: 0 0 0 .5vmin rgba(140,90,60,.2); }
+  .cta { margin-top: auto; display: flex; align-items: center; justify-content: center; height: 7vmin; background: #2B2320; color: #F3EEE8; font-size: 1.9vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .code { margin-top: 1.8vmin; font-size: 1.7vmin; color: #7A6E66; white-space: nowrap; }
+  .code b { color: #2B2320; font-weight: 600; letter-spacing: .12em; border-bottom: 1px solid #2B2320; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .pic { left: 0; right: auto; top: 0; bottom: 0; width: 46%; }
+    .stamp { right: -7vmin; top: 4vmin; width: 14vmin; height: 14vmin; }
+    .wm, .head, .foot { left: calc(46% + 5vmin); right: 5vmin; }
+    .wm { height: 9vmin; font-size: 2vmin; letter-spacing: .4em; padding-left: .4em; }
+    .head { top: 9vmin; height: auto; bottom: 46%; }
+    h1 { font-size: 6.2vmin; }
+    .foot { top: 54%; height: auto; padding: 0 0 4.5vmin; }
+    .item { flex-wrap: wrap; row-gap: .6vmin; }
+    .item .op { margin: 0; flex-basis: 100%; order: 3; }
+    .code { white-space: normal; line-height: 1.6; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .pic { width: 44%; }
+    .wm, .head, .foot { left: calc(44% + 6vmin); right: 6vmin; }
+    .head { bottom: 44%; }
+    h1 { font-size: 6vmin; }
+    .foot { top: 57%; }
+    .cta { height: 6.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .pic { width: 40%; }
+    .wm, .head, .foot { left: calc(40% + 9vmin); right: 9vmin; }
+    .head { bottom: 46%; }
+    h1 { font-size: 7vmin; }
+    .foot { top: 56%; padding-bottom: 6vmin; }
+    .item { flex-wrap: nowrap; }
+    .item .op { margin-left: 1.4vmin; flex-basis: auto; order: 0; }
+    .code { white-space: nowrap; }
+    .stamp { width: 15vmin; height: 15vmin; right: -7.5vmin; top: 5vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     restrained, letter-like: the photo breathes in very slowly · the dashed ring of the "held for you" stamp
+     turns once per loop · 1.8 s the stamp lifts and is pressed back onto the corner (a rubber-stamp thud) ·
+     the low-stock dot pings every 1.5 s · 4.2 s a soft light passes over "Return to bag" · "beautiful" glows warm on the stamp beat */
+  .pic img { transform-origin: 50% 30%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  /* the stamp overhangs .pic, so the push-in is clipped on the img itself (inset = the scaled overflow) */
+  @keyframes breathe { 0%, 100% { transform: scale(1); clip-path: inset(0 0 0 0); } 50% { transform: scale(1.035); clip-path: inset(1.01% 1.69% 2.37% 1.69%); } }
+
+  .stamp { animation: thud 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes thud {
+    0%, 27%, 44%, 100% { transform: rotate(10deg) scale(1); }
+    33% { transform: rotate(2deg) scale(1.16) translateY(-1vmin); box-shadow: 0 1.6vmin 2.4vmin rgba(43,35,32,.25), 0 0 0 .6vmin #F3EEE8; }
+    37% { transform: rotate(11deg) scale(.95); box-shadow: 0 0 0 .6vmin #F3EEE8; }
+    40.5% { transform: rotate(9.5deg) scale(1.02); }
+  }
+  .stamp::before { animation: ring 6s linear infinite; }
+  @keyframes ring { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  h1 i { animation: warm 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes warm { 0%, 30%, 60%, 100% { text-shadow: 0 0 0 rgba(140,90,60,0); } 42% { text-shadow: 0 0 2.4vmin rgba(140,90,60,.45); } }
+
+  .low i { animation: ping 1.5s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes ping { 0%, 100% { box-shadow: 0 0 0 .5vmin rgba(140,90,60,.2); } 12% { box-shadow: 0 0 0 .3vmin rgba(140,90,60,.5); } 70% { box-shadow: 0 0 0 1.4vmin rgba(140,90,60,0); } 85% { box-shadow: 0 0 0 0 rgba(140,90,60,0); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%;
+    background: linear-gradient(100deg, rgba(243,238,232,0) 0%, rgba(243,238,232,.28) 50%, rgba(243,238,232,0) 100%);
+    transform: translateX(-110%) skewX(-18deg); animation: sheen 6s cubic-bezier(.55,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 68% { transform: translateX(-110%) skewX(-18deg); } 84%, 100% { transform: translateX(300%) skewX(-18deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="wm">Studio Oro</div>
+  <div class="head">
+    <div class="eb">Still in your bag</div>
+    <h1>You left something<br><i>beautiful</i> behind.</h1>
+  </div>
+  <div class="pic"><img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="stamp"><small>Held for</small><b>48 h</b><small>you</small></div>
+  </div>
+  <div class="foot">
+    <div class="item"><span><span class="nm">The Soleil Piece</span><span class="op">Ecru · S</span></span><span class="pr">$480</span></div>
+    <div class="low"><i></i>Only 2 left in your size</div>
+    <div class="cta">Return to bag</div>
+    <div class="code">Finish today with <b>BAG10</b> — 10% off until Sunday</div>
+  </div>
+</div>
+</body>
+</html>

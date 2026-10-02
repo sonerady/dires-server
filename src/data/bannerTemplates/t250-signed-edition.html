@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@400;500&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
+<style>
+  /* Signed Edition — a fine-art print sold as a limited drop: the image carries the rough black border of a filed-out
+     negative carrier, and beneath it the printer's pencil — edition number, title, signature — then the sale set like
+     a gallery price sheet. tall → print above, pencil + copy below · square & wide → print left, copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5F3EE; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1C1B19; font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(ellipse 120vmin 100vmin at 50% 30%, #FAF9F5, #F2F0EA 80%); }
+
+  .work { position: absolute; left: 8vmin; top: 8vmin; width: calc(100% - 16vmin); height: calc(100% - 8vmin - 60vmin); display: flex; flex-direction: column; }
+  /* filed negative-carrier border */
+  .neg { position: relative; flex: 1 1 auto; min-height: 0; background: #0E0E0D;
+    clip-path: polygon(0 .5vmin, 7% .1vmin, 13% .6vmin, 22% 0, 31% .5vmin, 44% .2vmin, 52% .7vmin, 63% .1vmin, 74% .5vmin, 86% 0, 94% .6vmin, 100% .2vmin,
+      calc(100% - .5vmin) 9%, 100% 18%, calc(100% - .3vmin) 31%, calc(100% - .7vmin) 42%, 100% 55%, calc(100% - .4vmin) 67%, calc(100% - .1vmin) 80%, calc(100% - .6vmin) 91%, 100% 100%,
+      91% calc(100% - .6vmin), 80% 100%, 69% calc(100% - .4vmin), 58% calc(100% - .1vmin), 47% calc(100% - .7vmin), 35% 100%, 24% calc(100% - .5vmin), 12% calc(100% - .1vmin), 4% calc(100% - .6vmin), 0 100%,
+      .6vmin 88%, 0 76%, .4vmin 63%, .1vmin 51%, .7vmin 39%, 0 27%, .5vmin 14%); }
+  .neg img { position: absolute; left: 2vmin; top: 2vmin; width: calc(100% - 4vmin); height: calc(100% - 4vmin); object-fit: cover; object-position: 50% 20%; }
+  /* the filed inner edge: the image itself is nibbled a fraction of a vmin at irregular steps */
+  .neg img { clip-path: polygon(0 .3vmin, 9% 0, 16% .5vmin, 18% .1vmin, 33% .2vmin, 41% .6vmin, 47% 0, 60% .3vmin, 71% 0, 79% .5vmin, 88% .1vmin, 100% .4vmin,
+      calc(100% - .3vmin) 12%, 100% 24%, calc(100% - .6vmin) 36%, calc(100% - .1vmin) 49%, 100% 61%, calc(100% - .5vmin) 73%, 100% 86%, calc(100% - .2vmin) 100%,
+      86% calc(100% - .5vmin), 77% 100%, 62% calc(100% - .2vmin), 54% calc(100% - .6vmin), 43% 100%, 29% calc(100% - .4vmin), 17% 100%, 6% calc(100% - .3vmin), 0 100%,
+      .4vmin 91%, 0 79%, .5vmin 66%, .1vmin 53%, .4vmin 41%, 0 30%, .6vmin 19%, .1vmin 8%); }
+
+  /* pencil beneath the image */
+  .pencil { flex: none; display: flex; align-items: baseline; justify-content: space-between; gap: 2vmin; margin-top: 2.2vmin; color: #5F5C56; }
+  .pencil .no { font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 3.4vmin; }
+  .pencil .ti { font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 2.3vmin; text-align: center; }
+  .pencil .sig { font-family: "Mrs Saint Delafield", "Snell Roundhand", cursive; font-size: 6.4vmin; line-height: .6; color: #45423D; transform: rotate(-4deg); white-space: nowrap; }
+
+  .copy { position: absolute; left: 8vmin; right: 8vmin; bottom: 7vmin; height: 40vmin; display: flex; flex-direction: column; justify-content: flex-end; }
+  .kick { font-size: 1.7vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: #6B6862; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 400; font-size: 12vmin; line-height: .88; letter-spacing: -.02em; }
+  h1 i { font-weight: 400; }
+  .sub { margin: 2vmin 0 0; max-width: 64vmin; font-size: 2.1vmin; line-height: 1.5; color: #3C3A36; }
+  .sheet { margin-top: 3vmin; padding-top: 1.8vmin; border-top: 1px solid #1C1B19; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .sheet b { font-weight: 500; }
+  .sheet .dot { display: inline-block; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #C0392B; margin-right: 1vmin; vertical-align: -.1vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .work { left: 6vmin; top: 6vmin; width: 52%; height: calc(100% - 12vmin); }
+    .copy { left: calc(52% + 12vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; height: auto; }
+    h1 { font-size: 7.8vmin; }
+    .sub { font-size: 1.8vmin; }
+    .sheet { flex-direction: column; align-items: flex-start; gap: 1.2vmin; font-size: 1.6vmin; }
+    .pencil .no { font-size: 3vmin; }
+    .pencil .ti { display: none; }
+    .pencil .sig { font-size: 5.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .work { width: 48%; }
+    .copy { left: calc(48% + 11vmin); }
+    h1 { font-size: 7.8vmin; }
+    .sub { margin-top: 1.6vmin; }
+    .sheet { margin-top: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .work { left: 7vmin; top: 7vmin; width: 42%; height: calc(100% - 14vmin); }
+    .copy { left: calc(42% + 14vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; }
+    h1 { font-size: 11vmin; }
+    .sub { font-size: 2vmin; }
+    .sheet { flex-direction: row; align-items: center; font-size: 1.7vmin; }
+    .pencil .ti { display: block; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="work">
+    <div class="neg"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="pencil"><span class="no">3/25</span><span class="ti">Untitled (The Season), 2026</span><span class="sig">S. Oro</span></div>
+  </div>
+  <div class="copy">
+    <div class="kick">Limited edition</div>
+    <h1>An edition<br><i>of 25.</i></h1>
+    <p class="sub">Numbered pieces from the new drop, signed off by the studio. When they are gone, they are gone.</p>
+    <div class="sheet"><span><i class="dot"></i><b>3 of 25 reserved</b></span><span>Reserve yours →</span></div>
+  </div>
+</div>
+</body>
+</html>

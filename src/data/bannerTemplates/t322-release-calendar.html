@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Release Calendar — a pinned-up paper launch calendar for the month: every Saturday is a drop,
+     the last one is struck through (sold out), the next one is circled in red marker, and the
+     schedule below lists what lands when. tall → photo above the sheet; 3:4 and wider → sheet on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EFE7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F2EFE7; color: #121212; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .next { position: absolute; left: 4vmin; top: 4vmin; display: flex; align-items: stretch; background: #F2EFE7; color: #121212; box-shadow: 0 .4vmin 1.2vmin rgba(0,0,0,.18); }
+  .next b { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #E3321C; color: #fff; padding: .9vmin 1.8vmin; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 5.4vmin; line-height: .85; }
+  .next b small { font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; font-family: "Inter Tight", Arial, sans-serif; }
+  .next span { display: flex; flex-direction: column; justify-content: center; padding: 0 2vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; line-height: 1.45; }
+  .next span i { font-style: normal; color: #6B675F; font-weight: 500; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 86vmin; padding: 4.6vmin 5vmin 5vmin; box-sizing: border-box; display: flex; flex-direction: column; background: #F2EFE7; }
+  /* binder holes on the top edge of the sheet */
+  .sheet::before { content: ""; position: absolute; left: 50%; top: 1.6vmin; width: 30vmin; height: 1.4vmin; transform: translateX(-50%); background: radial-gradient(circle, #D4CFC3 0 .6vmin, transparent .65vmin) 0 50% / 5vmin 1.4vmin repeat-x; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .top em { font-style: normal; color: #E3321C; }
+  .top .y { display: none; color: inherit; }
+  .month { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 1vmin; border-bottom: .5vmin solid #121212; padding-bottom: 1.4vmin; }
+  h1 { margin: 0; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 16vmin; line-height: .8; letter-spacing: -.01em; text-transform: uppercase; white-space: nowrap; }
+  .yr { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 700; font-size: 7vmin; line-height: .8; color: transparent; -webkit-text-stroke: .25vmin #121212; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 1.2vmin; }
+  .grid > * { position: relative; height: 5.6vmin; border-top: 1px solid #CFCABF; padding: .8vmin 0 0 .8vmin; box-sizing: border-box; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 700; font-size: 3.4vmin; line-height: 1; }
+  .grid .d { height: 4.4vmin; border-top: 0; font-family: "Inter Tight", Arial, sans-serif; font-weight: 700; font-size: 1.7vmin; letter-spacing: .12em; color: #6B675F; padding-top: 1.2vmin; }
+  .grid .d:nth-child(6), .grid .d:nth-child(7) { color: #121212; }
+  .grid .we { background: #E8E4DA; }
+  .grid .gone { color: #9C978C; }
+  .grid .gone::after { content: ""; position: absolute; left: .4vmin; right: 1vmin; top: 50%; height: .35vmin; background: #121212; transform: rotate(-24deg); }
+  .grid .hot { color: #E3321C; font-weight: 900; }
+  .grid .hot svg { position: absolute; left: -.9vmin; top: -.5vmin; width: 5.8vmin; height: 5.6vmin; overflow: visible; }
+  .grid .mem::after { content: ""; position: absolute; right: 1vmin; top: 1.2vmin; width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: #E3321C; }
+  .list { margin-top: 2.4vmin; border-top: .5vmin solid #121212; }
+  .list div { display: grid; grid-template-columns: 11vmin 1fr auto; align-items: baseline; gap: 2vmin; padding: 1.3vmin 0; border-bottom: 1px solid #CFCABF; font-size: 2.1vmin; font-weight: 500; white-space: nowrap; }
+  .list b { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 3vmin; }
+  .list small { font-size: 1.7vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .list .o { color: #9C978C; }
+  .list .l { display: none; }
+  .list .o span { text-decoration: line-through; text-decoration-thickness: .25vmin; }
+  .list .n small { color: #fff; background: #E3321C; padding: .4vmin 1vmin; }
+  .cta { margin-top: auto; display: flex; justify-content: space-between; align-items: center; background: #121212; color: #F2EFE7; padding: 2.2vmin 3vmin; font-weight: 700; font-size: 2.4vmin; letter-spacing: .04em; white-space: nowrap; }
+  .cta span:last-child { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 3.2vmin; letter-spacing: .04em; color: #E3321C; }
+
+  /* 3:4 / 4:5 → photo left, calendar sheet right */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 46%; height: 100%; }
+    .sheet { left: 46%; top: 0; height: auto; padding: 5vmin 3.6vmin 3.6vmin; }
+    .sheet::before { width: 20vmin; }
+    .next { left: 3vmin; top: 3vmin; }
+    .next b { font-size: 4.6vmin; padding: .8vmin 1.4vmin; }
+    .next span { padding: 0 1.6vmin; font-size: 1.6vmin; }
+    .yr { display: none; }
+    .top .y { display: inline; }
+    .list .l { display: grid; }
+    .top { font-size: 1.6vmin; letter-spacing: .12em; }
+    h1 { font-size: 13.4vmin; }
+    .yr { font-size: 5vmin; }
+    .grid > * { height: 6.8vmin; font-size: 2.8vmin; padding: .6vmin 0 0 .6vmin; }
+    .grid .hot svg { left: -1.1vmin; width: 5.2vmin; height: 5vmin; }
+    .grid .d { height: 3.6vmin; font-size: 1.6vmin; letter-spacing: .04em; }
+    .grid .gone::after { right: .6vmin; }
+    .grid .mem::after { right: .6vmin; top: .8vmin; width: 1vmin; height: 1vmin; }
+    .list div { grid-template-columns: 7vmin 1fr; font-size: 1.9vmin; row-gap: .4vmin; }
+    .list b { font-size: 2.6vmin; }
+    .list small { grid-column: 2; font-size: 1.6vmin; }
+    .list .n small { justify-self: start; }
+    .cta { padding: 2vmin 2.2vmin; font-size: 2vmin; }
+    .cta span:last-child { font-size: 2.8vmin; }
+  }
+  /* square → 50 / 50, schedule trimmed to the next drop */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .sheet { left: 50%; padding: 4.4vmin 4vmin 4vmin; }
+    .next { flex-direction: row; }
+    .next span { padding: 0 1.8vmin; }
+    h1 { font-size: 12.4vmin; }
+    .yr { font-size: 4.6vmin; }
+    .month { padding-bottom: 1vmin; }
+    .grid > * { height: 7.4vmin; font-size: 3vmin; }
+    .grid .d { height: 3.6vmin; }
+    .list { margin-top: 1.8vmin; }
+    .list div { grid-template-columns: 7vmin 1fr auto; padding: 1.1vmin 0; }
+    .list small { grid-column: auto; }
+    .list .o, .list .l { display: grid; }
+  }
+  /* wide → sheet gets room for the full schedule */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 50% 30%; }
+    .sheet { left: 48%; padding: 4.6vmin 5vmin 4.6vmin; }
+    .sheet::before { width: 30vmin; }
+    .top { font-size: 1.8vmin; letter-spacing: .16em; }
+    h1 { font-size: 14vmin; }
+    .yr { font-size: 5.4vmin; display: block; }
+    .top .y { display: none; }
+    .grid > * { height: 6.4vmin; font-size: 2.9vmin; padding: .7vmin 0 0 .9vmin; }
+    .grid .d { height: 3.4vmin; font-size: 1.6vmin; letter-spacing: .12em; }
+    .list { margin-top: 1.6vmin; }
+    .list div { grid-template-columns: 9vmin 1fr auto; padding: .9vmin 0; font-size: 2vmin; }
+    .list b { font-size: 2.6vmin; }
+    .list .o, .list .l { display: grid; }
+    .cta { padding: 1.8vmin 3vmin; font-size: 2.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="next"><b><small>SAT</small>17</b><span>Next drop<i>10:00 CET · Online</i></span></div>
+  <div class="sheet">
+    <div class="top"><span>Release calendar<em class="y"> ’26</em></span><span>Drops <em>04</em> / 05</span></div>
+    <div class="month"><h1>October</h1><span class="yr">2026</span></div>
+    <div class="grid">
+      <span class="d">Mo</span><span class="d">Tu</span><span class="d">We</span><span class="d">Th</span><span class="d">Fr</span><span class="d">Sa</span><span class="d">Su</span>
+      <span></span><span></span><span></span><span>1</span><span>2</span><span class="we gone">3</span><span class="we">4</span>
+      <span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span class="we">10</span><span class="we">11</span>
+      <span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span class="hot">17<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M52 6 C80 4 97 22 95 50 C93 80 72 96 46 94 C18 92 4 74 6 48 C8 22 26 8 58 10 C66 11 72 13 77 17" fill="none" stroke="#E3321C" stroke-width="5" stroke-linecap="round" vector-effect="non-scaling-stroke" style="stroke-width:.55vmin"/></svg></span><span class="we">18</span>
+      <span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span class="we">24</span><span class="we">25</span>
+      <span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span class="we mem">31</span><span></span>
+    </div>
+    <div class="list">
+      <div class="o"><b>03.10</b><span>Drop 03 — Core edit</span><small>Sold out</small></div>
+      <div class="n"><b>17.10</b><span>Drop 04 — The new season</span><small>10:00</small></div>
+      <div class="l"><b>31.10</b><span>Drop 05 — Members first</span><small>TBC</small></div>
+    </div>
+    <div class="cta"><span>Get notified before it lands</span><span>→</span></div>
+  </div>
+</div>
+</body>
+</html>

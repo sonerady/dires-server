@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Checkout Summary — "complete your order": the calm checkout step of a luxury store — a lock and
+     "Secure checkout", a four-step progress line (Bag ✓ Details ✓ Delivery ● Payment), a white order card with the
+     look as its line-item thumbnail, a welcome code already applied, complimentary delivery, duties included,
+     and the total in serif. tall → photo above; 3:4 / square → photo left; wide → photo | steps + delivery | order card */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2F1ED; }
+  .banner { --panel: 96vmin; --g: #2F5D46; position: fixed; inset: 0; overflow: hidden; background: #F2F1ED; color: #121212; font-family: "Geist", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .co { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 0 5vmin 5vmin; display: grid; column-gap: 6vmin;
+    grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto 1fr auto; grid-template-areas: "hd" "steps" "h1" "card" "cta"; }
+  .hd { grid-area: hd; display: flex; align-items: center; justify-content: space-between; height: 8.5vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .hd span { display: flex; align-items: center; gap: 1.2vmin; }
+  .hd svg { width: 2.6vmin; height: 2.6vmin; }
+  .hd em { font-style: normal; color: #77746D; }
+
+  .steps { grid-area: steps; position: relative; display: grid; grid-template-columns: repeat(4, 1fr); padding-top: 1.4vmin; }
+  .steps::before { content: ""; position: absolute; left: 12.5%; right: 12.5%; top: calc(1.4vmin + 1.5vmin); height: 1px; background: rgba(18,18,18,.22); }
+  .steps::after { content: ""; position: absolute; left: 12.5%; width: 50%; top: calc(1.4vmin + 1.5vmin); height: .3vmin; margin-top: -.1vmin; background: #121212; }
+  .steps div { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 1.2vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .06em; color: #77746D; white-space: nowrap; }
+  .steps i { width: 3vmin; height: 3vmin; border-radius: 50%; box-sizing: border-box; background: #F2F1ED; border: 1px solid rgba(18,18,18,.35); display: flex; align-items: center; justify-content: center; }
+  .steps .d i { background: #121212; border-color: #121212; }
+  .steps .d i svg { width: 1.8vmin; height: 1.8vmin; }
+  .steps .d { color: #121212; }
+  .steps .a i { border: .5vmin solid #121212; background: #F2F1ED; }
+  .steps .a { color: #121212; font-weight: 600; }
+
+  h1 { grid-area: h1; margin: 4.4vmin 0 0; font-family: "Young Serif", Georgia, serif; font-weight: 400; font-size: 7.6vmin; line-height: 1; letter-spacing: -.02em; }
+
+  .opts { grid-area: opts; display: none; }
+
+  .card { grid-area: card; align-self: center; margin-top: 3.6vmin; background: #FFFFFF; padding: 3vmin 3.4vmin 3.2vmin; box-shadow: 0 .2vmin .6vmin rgba(18,18,18,.05); }
+  .item { display: grid; grid-template-columns: 11vmin minmax(0, 1fr) auto; column-gap: 2.6vmin; align-items: start; padding-bottom: 2.6vmin; border-bottom: 1px solid #ECEAE4; }
+  .th { position: relative; height: 14vmin; overflow: hidden; background: #E8E5DE; }
+  .th img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .th b { position: absolute; right: -0; top: 0; min-width: 2.6vmin; height: 2.6vmin; background: #121212; color: #fff; font-size: 1.5vmin; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+  .item .nm { font-family: "Young Serif", Georgia, serif; font-size: 2.8vmin; line-height: 1.1; }
+  .item .op { margin-top: 1vmin; font-size: 1.7vmin; line-height: 1.5; color: #77746D; }
+  .item .pr { font-size: 2.1vmin; font-weight: 500; white-space: nowrap; }
+  .code { margin-top: 2.2vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; white-space: nowrap; }
+  .code .chip { display: flex; align-items: center; gap: 1.2vmin; padding: .9vmin 1.6vmin; border: 1px dashed rgba(47,93,70,.6); background: #EEF3EF; color: var(--g); font-weight: 600; letter-spacing: .1em; }
+  .code .chip svg { width: 2vmin; height: 2vmin; }
+  .code .chip em { font-style: normal; font-weight: 500; letter-spacing: .02em; color: #4E7A63; }
+  .code b { color: var(--g); font-weight: 600; }
+  .sum { margin: 2vmin 0 0; padding: 0; list-style: none; }
+  .sum li { display: flex; justify-content: space-between; padding: .8vmin 0; font-size: 1.8vmin; color: #55524C; white-space: nowrap; }
+  .sum li b { font-weight: 500; color: #121212; }
+  .sum li b.g { color: var(--g); }
+  .sum li.t { margin-top: 1.2vmin; padding-top: 2vmin; border-top: 1px solid #121212; align-items: baseline; color: #121212; font-weight: 600; font-size: 1.9vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .sum li.t b { font-family: "Young Serif", Georgia, serif; font-weight: 400; font-size: 4.4vmin; letter-spacing: -.01em; text-transform: none; }
+  .sum li.t s { margin-right: 1.4vmin; font-family: "Geist", sans-serif; font-size: 1.9vmin; color: #9A968D; letter-spacing: 0; }
+
+  .cta { grid-area: cta; margin-top: 3vmin; }
+  .cta span { display: flex; align-items: center; justify-content: space-between; height: 7vmin; padding: 0 3vmin; background: #121212; color: #F2F1ED; font-size: 1.9vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .cta small { display: none; margin-top: 1.6vmin; text-align: center; font-size: 1.7vmin; color: #77746D; }
+
+  /* ── 3:4 / 4:5 and square: photo left, checkout right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 38%; height: 100%; }
+    .co { left: 38%; top: 0; height: auto; padding: 0 4.5vmin 4.5vmin; }
+    .hd { height: 8vmin; font-size: 1.6vmin; letter-spacing: .06em; }
+    .hd em { display: none; }
+    .steps div { font-size: 1.6vmin; letter-spacing: 0; }
+    h1 { margin-top: 3.6vmin; font-size: 6.4vmin; }
+    .card { margin-top: 3vmin; padding: 2.6vmin 2.8vmin 2.8vmin; }
+    .item { grid-template-columns: 10vmin minmax(0, 1fr); column-gap: 2.2vmin; padding-bottom: 2.2vmin; }
+    .th { height: 12.5vmin; grid-row: span 2; }
+    .item .pr { margin-top: 1vmin; }
+    .item .nm { font-size: 2.5vmin; }
+    .code .chip em { display: none; }
+    .cta small { display: block; }
+    .cta span { height: 6.4vmin; padding: 0 2.4vmin; font-size: 1.7vmin; letter-spacing: .08em; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 40%; }
+    .co { left: 40%; padding: 0 5vmin 4vmin; }
+    .hd { height: 7.5vmin; }
+    .steps { padding-top: .6vmin; }
+    .steps::before, .steps::after { top: calc(.6vmin + 1.5vmin); }
+    h1 { margin-top: 2.6vmin; font-size: 5.6vmin; }
+    .card { margin-top: 2.4vmin; padding: 2.2vmin 2.6vmin 2.2vmin; }
+    .item { padding-bottom: 1.8vmin; }
+    .th { height: 11vmin; width: 9vmin; }
+    .item { grid-template-columns: 9vmin minmax(0, 1fr); }
+    .code { margin-top: 1.6vmin; }
+    .sum { margin-top: 1.2vmin; }
+    .sum li { padding: .55vmin 0; font-size: 1.7vmin; }
+    .sum li.t { margin-top: .8vmin; padding-top: 1.4vmin; }
+    .sum li.t b { font-size: 3.6vmin; }
+    .cta { margin-top: 2.4vmin; }
+    .cta small { display: none; }
+  }
+  /* ── wide: photo | steps + delivery options | order card ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 34%; }
+    .co { left: 34%; padding: 0 6vmin 6vmin; column-gap: 6vmin;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); grid-template-rows: auto auto auto 1fr auto;
+      grid-template-areas: "hd hd" "steps card" "h1 card" "opts card" "opts cta"; }
+    .hd { height: 9vmin; font-size: 1.7vmin; letter-spacing: .1em; }
+    .hd em { display: inline; }
+    .steps { padding-top: 2vmin; }
+    .steps::before, .steps::after { top: calc(2vmin + 1.5vmin); }
+    .steps div { font-size: 1.6vmin; }
+    h1 { margin-top: 5vmin; font-size: 7vmin; }
+    .opts { display: block; align-self: end; margin: 0; padding: 0; list-style: none; }
+    .opts li { display: flex; align-items: center; gap: 1.8vmin; padding: 2vmin 2.2vmin; border: 1px solid rgba(18,18,18,.18); font-size: 1.8vmin; white-space: nowrap; }
+    .opts li + li { margin-top: 1.2vmin; }
+    .opts li i { flex: none; width: 2.6vmin; height: 2.6vmin; border-radius: 50%; box-sizing: border-box; border: 1px solid rgba(18,18,18,.4); }
+    .opts li.on { border-color: #121212; background: #FFFFFF; }
+    .opts li.on i { border: .8vmin solid #121212; }
+    .opts li span { flex: 1; }
+    .opts li span small { display: block; margin-top: .4vmin; font-size: 1.6vmin; color: #77746D; }
+    .opts li b { font-weight: 500; }
+    .opts li.on b { color: var(--g); }
+    .card { align-self: start; margin-top: 2vmin; padding: 3vmin 3.2vmin; }
+    .item { grid-template-columns: 11vmin minmax(0, 1fr) auto; column-gap: 2.4vmin; padding-bottom: 2.4vmin; }
+    .th { height: 14vmin; width: auto; grid-row: auto; }
+    .item .pr { margin-top: 0; }
+    .code { margin-top: 2vmin; }
+    .sum { margin-top: 1.6vmin; }
+    .sum li { padding: .75vmin 0; font-size: 1.8vmin; }
+    .sum li.t { margin-top: 1vmin; padding-top: 1.8vmin; }
+    .sum li.t b { font-size: 4.2vmin; }
+    .cta { margin-top: 0; }
+    .cta span { height: 7vmin; padding: 0 3vmin; font-size: 1.8vmin; letter-spacing: .12em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="co">
+    <div class="hd"><span><svg viewBox="0 0 24 24" fill="none" stroke="#121212" stroke-width="1.5"><rect x="5" y="10.5" width="14" height="10"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>Secure checkout</span><em>Maison Vere</em></div>
+    <div class="steps">
+      <div class="d"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Bag</div>
+      <div class="d"><i><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>Details</div>
+      <div class="a"><i></i>Delivery</div>
+      <div><i></i>Payment</div>
+    </div>
+    <h1>Complete your order.</h1>
+    <ul class="opts">
+      <li class="on"><i></i><span>Express<small>Tomorrow, before 1pm</small></span><b>Complimentary</b></li>
+      <li><i></i><span>Nominated day<small>Choose a date</small></span><b>$15</b></li>
+    </ul>
+    <div class="card">
+      <div class="item">
+        <div class="th"><img src="{{PRODUCT_IMAGE}}" alt=""><b>1</b></div>
+        <div><div class="nm">The Soleil Piece</div><div class="op">Ecru · Size S</div></div>
+        <div class="pr">$480</div>
+      </div>
+      <div class="code"><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="#2F5D46" stroke-width="2.4"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>WELCOME10<em>applied</em></span><b>−$48</b></div>
+      <ul class="sum">
+        <li><span>Subtotal</span><b>$480</b></li>
+        <li><span>Express delivery</span><b class="g">Complimentary</b></li>
+        <li><span>Duties &amp; taxes</span><b>Included</b></li>
+        <li class="t"><span>Total</span><b><s>$480</s>$432</b></li>
+      </ul>
+    </div>
+    <div class="cta"><span>Continue to payment<b>→</b></span><small>Free returns within 30 days</small></div>
+  </div>
+</div>
+</body>
+</html>

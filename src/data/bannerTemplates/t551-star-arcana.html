@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Star Arcana — a major-arcana tarot card (XVII · The Star) on a midnight sky: cream card stock, gold hairline
+     inner border, numeral band on top, name plate below, the photo as the card's painting and two patterned
+     card backs fanned behind it. tall → card over copy · 3:4 → card over a two-column footer
+     · square / wide → copy left, card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #111530; }
+  .banner { --cream: #F1E7D0; --gold: #B8924A; --ink: #1B1E36;
+    position: fixed; inset: 0; overflow: hidden; color: var(--cream); font-family: "Cormorant Garamond", Georgia, serif;
+    background:
+      radial-gradient(circle at 23% 17%, rgba(255,246,220,.9) 0 .18vmin, transparent .35vmin),
+      radial-gradient(circle at 71% 9%, rgba(255,246,220,.8) 0 .14vmin, transparent .3vmin),
+      radial-gradient(circle at 88% 41%, rgba(255,246,220,.7) 0 .16vmin, transparent .3vmin),
+      radial-gradient(circle at 9% 63%, rgba(255,246,220,.7) 0 .14vmin, transparent .3vmin),
+      radial-gradient(circle at 57% 84%, rgba(255,246,220,.6) 0 .12vmin, transparent .26vmin),
+      radial-gradient(ellipse 90% 60% at 50% 30%, #2A2F5C 0%, #1A1E42 45%, #111530 100%); }
+  .dust { position: absolute; inset: 0; opacity: .55;
+    background:
+      radial-gradient(circle, rgba(255,240,210,.8) 0 .1vmin, transparent .2vmin) 0 0 / 13vmin 17vmin,
+      radial-gradient(circle, rgba(255,240,210,.5) 0 .08vmin, transparent .18vmin) 6vmin 9vmin / 21vmin 19vmin; }
+
+  .deck { position: absolute; left: 18vmin; width: 64vmin; top: 7vmin; bottom: 50vmin; }
+  .back { position: absolute; inset: 0; border-radius: 1.6vmin; transform-origin: 50% 100%;
+    background:
+      repeating-linear-gradient(45deg, rgba(184,146,74,.5) 0 1px, transparent 1px 3vmin),
+      repeating-linear-gradient(-45deg, rgba(184,146,74,.5) 0 1px, transparent 1px 3vmin),
+      #232852;
+    box-shadow: inset 0 0 0 1.2vmin #1C2046, inset 0 0 0 calc(1.2vmin + 1px) var(--gold), 0 2vmin 5vmin rgba(0,0,0,.35); }
+  .b1 { transform: rotate(-9deg); }
+  .b2 { transform: rotate(8deg); }
+  .card { position: absolute; inset: 0; border-radius: 1.6vmin; background: var(--cream); padding: 2vmin; box-sizing: border-box;
+    display: flex; flex-direction: column; box-shadow: 0 3vmin 6vmin rgba(4,6,20,.55); }
+  .card::before { content: ""; position: absolute; inset: 1.1vmin; border: 1px solid var(--gold); border-radius: 1vmin; pointer-events: none; }
+  .num, .name { flex: none; height: 7.4vmin; display: flex; align-items: center; justify-content: center; gap: 2vmin; color: var(--ink);
+    font-family: "Cinzel", serif; white-space: nowrap; }
+  .num { font-size: 3.6vmin; font-weight: 500; letter-spacing: .2em; }
+  .num::before, .num::after { content: ""; width: 7vmin; height: 1px; background: var(--gold); }
+  .name { font-size: 3.2vmin; font-weight: 600; letter-spacing: .34em; padding-left: .34em; }
+  .win { position: relative; flex: 1; min-height: 0; outline: 1px solid var(--gold); outline-offset: .5vmin; }
+  .win img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; display: block; }
+
+  .copy { position: absolute; left: 7vmin; right: 7vmin; bottom: 5.4vmin; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .kick { font-family: "Cinzel", serif; font-size: 1.7vmin; font-weight: 500; letter-spacing: .32em; color: #D8C18E; white-space: nowrap; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 400; font-size: 11vmin; line-height: .95; letter-spacing: -.01em; }
+  h1 i { font-weight: 400; color: #E9CF93; }
+  .sub { margin-top: 1.8vmin; font-size: 2.8vmin; font-style: italic; color: #D9D3E6; }
+  .row { margin-top: 3vmin; display: flex; align-items: center; gap: 3vmin; }
+  .offer { font-family: "Cinzel", serif; font-size: 1.8vmin; letter-spacing: .14em; color: #D8C18E; white-space: nowrap; text-align: left; }
+  .offer b { display: block; font-family: "Cormorant Garamond", serif; font-size: 4.4vmin; font-weight: 500; letter-spacing: 0; color: var(--cream); line-height: 1; }
+  .cta { padding: 1.7vmin 3.4vmin; border: 1px solid var(--gold); border-radius: 99vmin; font-family: "Cinzel", serif; font-size: 1.8vmin; letter-spacing: .18em; white-space: nowrap; color: var(--cream); }
+  .fine { margin-top: 2.2vmin; font-size: 1.7vmin; letter-spacing: .06em; color: #9A98B8; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .deck { left: 23vmin; width: 54vmin; top: 6vmin; bottom: 36vmin; }
+    .copy { left: 7vmin; right: 7vmin; bottom: 5vmin; display: grid; grid-template-columns: 1fr auto; column-gap: 5vmin; text-align: left; align-items: end; justify-items: start; }
+    .kick { grid-column: 1 / 3; margin-bottom: .4vmin; }
+    h1 { font-size: 7.6vmin; grid-column: 1; }
+    .sub { display: none; }
+    .row { grid-column: 2; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 1.8vmin; margin: 0; }
+    .fine { grid-column: 1 / 3; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .deck { left: auto; right: 8vmin; width: 48vmin; top: 7vmin; bottom: 7vmin; }
+    .b1 { transform: rotate(-4deg); } .b2 { transform: rotate(5deg); }
+    .kick { white-space: normal; line-height: 1.6; }
+    .copy { display: flex; left: 7vmin; right: auto; width: calc(100% - 70vmin); top: 7vmin; bottom: 7vmin; text-align: left; align-items: flex-start; }
+    h1 { font-size: 7.4vmin; margin-top: 2.4vmin; }
+    .sub { display: block; font-size: 2.2vmin; margin-top: 2vmin; }
+    .row { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .fine { margin-top: 2vmin; white-space: normal; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .deck { right: 12vmin; width: 52vmin; top: 6vmin; bottom: 6vmin; }
+    .b1 { transform: rotate(-11deg); } .b2 { transform: rotate(9deg); }
+    .copy { left: 8vmin; width: calc(100% - 86vmin); top: 8vmin; bottom: 8vmin; }
+    h1 { font-size: 11vmin; }
+    h1 i::after { content: "\A"; white-space: pre; }
+    .kick { white-space: nowrap; }
+    .sub { font-size: 2.5vmin; }
+    .row { flex-direction: row; align-items: center; gap: 3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="dust"></div>
+  <div class="deck">
+    <div class="back b1"></div>
+    <div class="back b2"></div>
+    <div class="card">
+      <div class="num">XVII</div>
+      <div class="win">
+        <img src="{{PRODUCT_IMAGE}}" alt="">
+      </div>
+      <div class="name">The Star</div>
+    </div>
+  </div>
+  <div class="copy">
+    <div class="kick">Maison Vesper · Arcana</div>
+    <h1>Draw <i>your</i> card.</h1>
+    <div class="sub">Twenty-two pieces for the turning season.</div>
+    <div class="row">
+      <div class="offer">Up to<b>−30%</b></div>
+      <div class="cta">Shop the Arcana</div>
+    </div>
+    <div class="fine">A card drawn at checkout · until 31 Oct</div>
+  </div>
+</div>
+</body>
+</html>

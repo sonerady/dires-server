@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Contents Page — "In this issue": masthead row, hero photo, table of contents with page numbers.
+     tall → header / photo / list stacked · 3:4 → list in a 2×2 grid · square & wide → photo left, contents right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EFE7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EFE7; color: #1B1916; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .serif { font-family: "Instrument Serif", "Times New Roman", Georgia, serif; font-weight: 400; }
+
+  .head { position: absolute; left: 5vmin; right: 5vmin; top: 3.6vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .head h1 { margin: 0; font-size: 17vmin; line-height: .8; letter-spacing: -.035em; }
+  .head .meta { text-align: right; font-size: 1.8vmin; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; line-height: 1.7; padding-bottom: .6vmin; }
+  .head .meta b { font-weight: 700; }
+  .rule { position: absolute; left: 5vmin; right: 5vmin; top: 21.5vmin; height: 1px; background: #1B1916; }
+
+  .photo { position: absolute; left: 0; top: 23.5vmin; width: 100%; height: calc(100% - 23.5vmin - 63vmin); object-fit: cover; object-position: 50% 22%; }
+  .tag { position: absolute; left: 5vmin; bottom: 64.6vmin; background: #F3EFE7; padding: 1vmin 1.6vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .tag i { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; font-size: 2.4vmin; letter-spacing: 0; text-transform: none; margin-left: .8vmin; }
+
+  .list { position: absolute; left: 5vmin; right: 5vmin; bottom: 10vmin; height: 49vmin; display: grid; grid-template-columns: 1fr; grid-auto-rows: 1fr; }
+  .e { display: grid; grid-template-columns: 15vmin 1fr; align-items: center; border-top: 1px solid rgba(27,25,22,.28); }
+  .e:first-child { border-top: 0; }
+  .e .n { font-size: 8vmin; line-height: 1; letter-spacing: -.02em; }
+  .e .t { font-size: 2.3vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .e .d { margin-top: .6vmin; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 3vmin; line-height: 1.1; color: #4B463F; }
+  .e.hot .n { color: #C23A1E; }
+  .e.hot .t span { display: inline-block; margin-left: 1.2vmin; padding: .3vmin 1vmin; background: #C23A1E; color: #F3EFE7; letter-spacing: .08em; }
+
+  .foot { position: absolute; left: 5vmin; right: 5vmin; bottom: 3.6vmin; display: flex; justify-content: space-between; align-items: center; font-size: 1.8vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; border-top: 1px solid #1B1916; padding-top: 1.6vmin; }
+  .foot b { font-weight: 700; }
+  .foot .cta { display: flex; align-items: center; gap: 1.4vmin; font-weight: 700; }
+  .foot .cta i { display: block; width: 6vmin; height: 1px; background: #1B1916; }
+
+  /* 3:4 / 4:5 — list turns into a 2×2 grid under the photo */
+  @media (min-aspect-ratio: 7/10) {
+    .head h1 { font-size: 14vmin; }
+    .rule { top: 19vmin; }
+    .photo { top: 21vmin; height: calc(100% - 21vmin - 41vmin); }
+    .tag { bottom: 42.6vmin; }
+    .list { height: 28vmin; bottom: 9.5vmin; grid-template-columns: 1fr 1fr; column-gap: 5vmin; }
+    .e { grid-template-columns: 11vmin 1fr; }
+    .e:nth-child(2) { border-top: 0; }
+    .e .n { font-size: 6.6vmin; }
+    .e .t { font-size: 1.9vmin; }
+    .e .d { font-size: 2.5vmin; }
+  }
+  /* square — photo left, contents right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { top: 0; left: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .tag { left: 3.6vmin; bottom: 3.6vmin; }
+    .head { left: calc(50% + 4.5vmin); right: 4.5vmin; top: 4vmin; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .head h1 { font-size: 12vmin; }
+    .head .meta { text-align: left; padding: 0; line-height: 1.5; font-size: 1.7vmin; }
+    .rule { left: calc(50% + 4.5vmin); right: 4.5vmin; top: 26vmin; }
+    .list { left: calc(50% + 4.5vmin); right: 4.5vmin; top: 28vmin; bottom: 11vmin; height: auto; grid-template-columns: 1fr; }
+    .e:nth-child(2) { border-top: 1px solid rgba(27,25,22,.28); }
+    .e { grid-template-columns: 10vmin 1fr; }
+    .e .n { font-size: 6vmin; }
+    .e .t { font-size: 1.8vmin; }
+    .e .d { font-size: 2.4vmin; }
+    .foot { left: calc(50% + 4.5vmin); right: 4.5vmin; bottom: 4vmin; font-size: 1.6vmin; letter-spacing: .18em; gap: 2vmin; }
+    .foot .url { display: none; }
+    .foot .cta i { width: 4vmin; }
+  }
+  /* wide — photo takes less than half; the contents breathe */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .head { left: calc(46% + 6vmin); right: 6vmin; top: 5vmin; flex-direction: row; align-items: flex-end; }
+    .head h1 { font-size: 14vmin; }
+    .head .meta { text-align: right; }
+    .rule { left: calc(46% + 6vmin); right: 6vmin; top: 20vmin; }
+    .list { left: calc(46% + 6vmin); right: 6vmin; top: 22vmin; bottom: 12vmin; grid-template-columns: 1fr; }
+    .e { grid-template-columns: 12vmin 1fr; }
+    .foot .url { display: inline; }
+    .e .n { font-size: 7vmin; }
+    .e .t { font-size: 1.9vmin; }
+    .e .d { font-size: 2.6vmin; }
+    .foot { left: calc(46% + 6vmin); right: 6vmin; bottom: 5vmin; font-size: 1.7vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  .photo { transform-origin: 50% 50%; animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push {
+    0%, 100% { transform: scale(1); clip-path: inset(0); }
+    50% { transform: scale(1.03); clip-path: inset(1.456%); }
+  }
+  /* the contents list turns over, entry by entry */
+  .e { animation: entry 8s linear infinite; }
+  .e:nth-child(1) { animation-delay: -0.60s; }
+  .e:nth-child(2) { animation-delay: -0.42s; }
+  .e:nth-child(3) { animation-delay: -0.24s; }
+  .e:nth-child(4) { animation-delay: -0.06s; }
+  @keyframes entry {
+    0%, 12% { opacity: 1; transform: translateX(0); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    17% { opacity: 0; transform: translateX(-1.6vmin); animation-timing-function: steps(1, end); }
+    17.2% { opacity: 0; transform: translateX(1.6vmin); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    28%, 100% { opacity: 1; transform: translateX(0); }
+  }
+  /* the members' offer punches */
+  .e.hot .t span { animation: hot 8s linear infinite; transform-origin: 30% 60%; }
+  @keyframes hot {
+    0%, 40% { transform: scale(1) rotate(0deg); animation-timing-function: cubic-bezier(.2,.9,.3,1.2); }
+    44% { transform: scale(1.22) rotate(-4deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    48% { transform: scale(.96) rotate(0deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    52%, 100% { transform: scale(1) rotate(0deg); }
+  }
+  .e.hot .n { animation: hotn 8s linear infinite; }
+  @keyframes hotn {
+    0%, 40% { color: #C23A1E; }
+    43% { color: #1B1916; }
+    46% { color: #C23A1E; }
+    49% { color: #1B1916; }
+    52%, 100% { color: #C23A1E; }
+  }
+  /* the masthead rule is drawn again */
+  .rule { animation: rule 8s linear infinite; }
+  @keyframes rule {
+    0%, 60% { clip-path: inset(-200% 0 -200% 0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    66% { clip-path: inset(-200% 0 -200% 110%); animation-timing-function: steps(1, end); }
+    66.2% { clip-path: inset(-200% 110% -200% 0); animation-timing-function: cubic-bezier(.22,.7,.2,1); }
+    80%, 100% { clip-path: inset(-200% 0 -200% 0); }
+  }
+  /* shop the issue: the arrow line nudges twice */
+  .foot .cta i { animation: nudge 8s linear infinite; }
+  @keyframes nudge {
+    0%, 82% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    85% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    91% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    94%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1 class="serif">Contents</h1>
+    <div class="meta"><b>Atelier Nord</b><br>Issue 14 · Autumn 2026</div>
+  </div>
+  <div class="rule"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tag">On the cover<i>p. 018</i></div>
+  <div class="list">
+    <div class="e"><div class="n serif">004</div><div><div class="t">Editor’s Picks</div><div class="d">Ten pieces for the new season</div></div></div>
+    <div class="e"><div class="n serif">018</div><div><div class="t">The Autumn Edit</div><div class="d">The full collection, online now</div></div></div>
+    <div class="e hot"><div class="n serif">032</div><div><div class="t">Private Sale<span>−40%</span></div><div class="d">Members shop first, this week only</div></div></div>
+    <div class="e"><div class="n serif">046</div><div><div class="t">Stockists</div><div class="d">Free delivery over $150</div></div></div>
+  </div>
+  <div class="foot"><span class="url">ateliernord.com</span><span class="cta">Shop the issue<i></i></span></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Smokum&family=Arvo:ital,wght@0,400;0,700;1,400&family=Cabin+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Ranch Gate — a log ranch gate at dusk: two posts and a crossbeam, a pine plank hung on chains with a burned-in
+     "Rocking R" brand and the store name, a mesa on the horizon, the offer written on the dirt below.
+     tall → the product framed between the posts, ground band below · square & wide → the gate on the left, product bleeds right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #C9C3B2; }
+  .banner { --ink: #2A140A; --cream: #F6ECD8; --rust: #B4542A; --ground: 52vmin; --gw: 100%;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Cabin Condensed", "Arial Narrow", Arial, sans-serif;
+    background: linear-gradient(180deg, #9FB2B4 0%, #C4C8BC 45%, #E3D2B4 78%, #E9C9A0 100%); }
+
+  /* scenery */
+  .mesa { position: absolute; left: 0; width: var(--gw); bottom: calc(var(--ground) - .2vmin); height: 12vmin; background: #8A7686; opacity: .75;
+    clip-path: polygon(0 100%, 0 70%, 8% 66%, 14% 40%, 30% 38%, 34% 62%, 52% 64%, 58% 22%, 64% 18%, 78% 20%, 82% 55%, 92% 60%, 100% 52%, 100% 100%); }
+  .ground { position: absolute; left: 0; width: var(--gw); bottom: 0; height: var(--ground); box-sizing: border-box; padding: 6vmin 7vmin 5.4vmin;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background:
+      repeating-linear-gradient(178deg, rgba(90,50,20,.10) 0 .3vmin, transparent .3vmin 2.2vmin),
+      radial-gradient(80% 40% at 30% 0%, rgba(255,230,190,.35), transparent 70%),
+      linear-gradient(180deg, #C79B6B 0%, #B3845A 30%, #93663F 100%); }
+  .ground::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .6vmin; background: rgba(60,30,10,.25); }
+
+  /* posts + beam */
+  .post { position: absolute; top: 2vmin; bottom: calc(var(--ground) - 3vmin); width: 8vmin; border-radius: .8vmin .8vmin 0 0; z-index: 2;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.14) 0 .3vmin, transparent .3vmin 1.3vmin, rgba(255,220,170,.08) 1.3vmin 1.6vmin, transparent 1.6vmin 2.4vmin),
+      linear-gradient(90deg, #4A2F1B 0%, #7B5334 35%, #6A4529 70%, #3E2615 100%);
+    box-shadow: .8vmin 0 1.4vmin rgba(40,20,5,.35); }
+  .post.l { left: 5vmin; } .post.r { right: 5vmin; }
+  .beam { position: absolute; left: 0; width: var(--gw); top: 5vmin; height: 7vmin; z-index: 3;
+    background:
+      radial-gradient(1.4vmin 2.4vmin at 22% 50%, #3E2615 30%, transparent 70%),
+      radial-gradient(1.2vmin 2vmin at 71% 45%, #3E2615 30%, transparent 70%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 .3vmin, transparent .3vmin 1.2vmin, rgba(255,220,170,.08) 1.2vmin 1.5vmin, transparent 1.5vmin 2.2vmin),
+      linear-gradient(180deg, #7B5334 0%, #8E6440 30%, #6A4529 70%, #3E2615 100%);
+    box-shadow: 0 1vmin 1.4vmin rgba(40,20,5,.35); }
+  .chain { position: absolute; top: 12vmin; height: 3.4vmin; width: 1.2vmin; z-index: 3;
+    background: radial-gradient(ellipse .5vmin .8vmin at 50% 50%, transparent 55%, #2E2A26 60% 85%, transparent 90%) 0 0 / 1.2vmin 1.2vmin repeat-y; }
+
+  .chain.c1 { left: calc(var(--gw) * .3); } .chain.c2 { left: calc(var(--gw) * .7 - 1.2vmin); }
+
+  /* the plank */
+  .plank { position: absolute; left: 15vmin; width: calc(var(--gw) - 30vmin); top: 15.2vmin; height: 26vmin; z-index: 3; box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center; gap: 3.4vmin; padding: 0 4vmin; border-radius: .6vmin;
+    background:
+      radial-gradient(1.6vmin 1vmin at 94% 86%, rgba(90,50,20,.45) 30%, transparent 75%),
+      radial-gradient(40% 60% at 20% 40%, rgba(255,240,210,.35), transparent 70%),
+      repeating-linear-gradient(1deg, rgba(120,70,30,.14) 0 .25vmin, transparent .25vmin 1.1vmin, rgba(120,70,30,.08) 1.1vmin 1.5vmin, transparent 1.5vmin 2.6vmin),
+      linear-gradient(180deg, #E6C38E 0%, #D9B07A 50%, #C99A62 100%);
+    box-shadow: inset 0 0 0 .4vmin rgba(110,60,25,.35), inset 0 -1vmin 1.6vmin rgba(110,60,25,.25), 0 1.4vmin 1.8vmin rgba(40,20,5,.35); }
+  .plank::before, .plank::after { content: ""; position: absolute; top: 1.4vmin; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #9A938A, #3A342E); }
+  .plank::before { left: 1.6vmin; } .plank::after { right: 1.6vmin; }
+  .brand { flex: none; width: 15vmin; height: 15vmin; filter: drop-shadow(0 0 .5vmin rgba(130,55,15,.7)); }
+  .nm { display: flex; flex-direction: column; align-items: flex-start; }
+  .nm b { font-family: "Smokum", "Rockwell", Georgia, serif; font-weight: 400; font-size: 9vmin; line-height: .95; letter-spacing: .02em; white-space: nowrap;
+    color: #2A140A; text-shadow: 0 0 .4vmin rgba(140,60,15,.75), 0 0 1.2vmin rgba(160,80,20,.4); }
+  .nm span { margin-top: .8vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; color: #5A2E14; }
+
+  .photo { position: absolute; left: 15vmin; width: calc(100% - 30vmin); top: 46vmin; height: calc(100% - 46vmin - var(--ground)); object-fit: cover; object-position: 50% 22%; display: block; z-index: 1; }
+
+  /* ground copy */
+  h1 { margin: 0; font-family: "Arvo", Rockwell, Georgia, serif; font-weight: 700; font-size: 8.4vmin; line-height: 1; letter-spacing: -.01em; color: var(--cream); text-shadow: 0 .3vmin 0 rgba(60,30,10,.35); }
+  h1 i { font-weight: 400; }
+  .deal { display: flex; align-items: center; gap: 3vmin; }
+  .deal .pct { font-family: "Smokum", Georgia, serif; font-size: 16vmin; line-height: .9; color: var(--ink); white-space: nowrap; text-shadow: 0 0 .4vmin rgba(140,60,15,.5); }
+  .deal .pct small { font-size: .45em; }
+  .deal p { margin: 0; font-family: "Arvo", Georgia, serif; font-style: italic; font-size: 3vmin; line-height: 1.3; color: var(--cream); }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 2vmin; font-size: 2.2vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; color: var(--cream); }
+  .foot .code { color: var(--ink); background: var(--cream); padding: .8vmin 1.6vmin .7vmin; letter-spacing: .16em; }
+
+  /* 3:4 – 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --ground: 42vmin; }
+    .plank { top: 14.6vmin; height: 20vmin; gap: 2.6vmin; }
+    .brand { width: 12vmin; height: 12vmin; }
+    .nm b { font-size: 7.6vmin; }
+    .photo { top: 38vmin; height: calc(100% - 38vmin - var(--ground)); }
+    .ground { padding: 4.6vmin 7vmin 4.4vmin; }
+    h1 { font-size: 7vmin; }
+    .deal .pct { font-size: 13vmin; }
+    .deal p { font-size: 2.5vmin; }
+  }
+  /* square: gate on the left, product bleeds right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --gw: 52%; --ground: 46vmin; }
+    .photo { left: auto; right: 0; top: 0; width: 48%; height: 100%; }
+    .post.l { left: 3vmin; width: 6vmin; } .post.r { right: auto; left: calc(52% - 9vmin); width: 6vmin; }
+    .beam { top: 4vmin; height: 6vmin; }
+    .chain { top: 10vmin; height: 3vmin; }
+    .plank { left: 11vmin; width: calc(52% - 22vmin); top: 12.8vmin; height: 22vmin; flex-direction: column; gap: 1vmin; padding: 0 2vmin; }
+    .brand { width: 9vmin; height: 9vmin; }
+    .nm { align-items: center; }
+    .nm b { font-size: 5.6vmin; }
+    .nm span { font-size: 1.6vmin; letter-spacing: .22em; }
+    .ground { padding: 5vmin 5vmin 5vmin; }
+    h1 { font-size: 5.8vmin; }
+    .deal { gap: 2vmin; }
+    .deal .pct { font-size: 11vmin; }
+    .deal p { font-size: 2vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.4vmin; font-size: 1.8vmin; letter-spacing: .18em; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --gw: 54%; --ground: 44vmin; }
+    .photo { width: 46%; }
+    .post.l { left: 4vmin; width: 7vmin; } .post.r { left: calc(54% - 11vmin); width: 7vmin; }
+    .beam { top: 4vmin; height: 6.4vmin; }
+    .chain { top: 10.4vmin; }
+    .plank { left: 14vmin; width: calc(54% - 28vmin); top: 13.4vmin; height: 22vmin; flex-direction: row; gap: 3vmin; padding: 0 3vmin; }
+    .brand { width: 12vmin; height: 12vmin; }
+    .nm { align-items: flex-start; }
+    .nm b { font-size: 7.2vmin; }
+    .nm span { font-size: 1.8vmin; letter-spacing: .28em; }
+    .ground { padding: 5.4vmin 7vmin 5.4vmin; }
+    h1 { font-size: 7vmin; }
+    .deal .pct { font-size: 13vmin; }
+    .deal p { font-size: 2.4vmin; }
+    .foot { flex-direction: row; align-items: center; font-size: 2vmin; letter-spacing: .22em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="mesa"></div>
+  <div class="ground">
+    <h1>Fresh off <i>the range.</i></h1>
+    <div class="deal"><span class="pct">30%<small> off</small></span><p>the whole new herd,<br>this weekend only</p></div>
+    <div class="foot"><span class="code">Code BRAND30</span><span>Ride in →</span></div>
+  </div>
+  <div class="post l"></div><div class="post r"></div>
+  <div class="beam"></div>
+  <i class="chain c1"></i><i class="chain c2"></i>
+  <div class="plank">
+    <svg class="brand" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#2A140A" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M34 16 V66 M34 16 H56 C72 16 72 42 56 42 H34 M52 42 L70 66" stroke-width="8"/>
+      <path d="M16 72 C 34 90 66 90 84 72" stroke-width="8"/>
+    </svg>
+    <div class="nm"><b>Ranch Hand</b><span>Dry Goods · Est. 1889</span></div>
+  </div>
+</div>
+</body>
+</html>

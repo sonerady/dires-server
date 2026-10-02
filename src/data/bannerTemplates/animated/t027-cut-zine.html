@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Courier+Prime:wght@400;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  /* Cut Zine — photocopied indie zine: toner grain, torn taped photo, ransom-note cut letters, typewriter + handwriting.
+     tall → photo on top, cut headline below · square & wide → photo left, cut headline stacked right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFECE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFECE4; color: #111; font-family: "Courier Prime", "Courier New", monospace; }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .36; mix-blend-mode: multiply; pointer-events: none; }
+  .streak { position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background: linear-gradient(90deg, transparent 0 11%, rgba(0,0,0,.05) 11.3%, transparent 11.8% 63%, rgba(0,0,0,.04) 63.2%, transparent 63.9%),
+                linear-gradient(180deg, rgba(0,0,0,.06), transparent 6%, transparent 94%, rgba(0,0,0,.07)); }
+
+  .shot { position: absolute; left: 6vmin; right: 6vmin; top: 7vmin; height: calc(100% - 7vmin - 62vmin); transform: rotate(-1.6deg); filter: drop-shadow(0 .5vmin .8vmin rgba(0,0,0,.28)); }
+  .clip { position: absolute; inset: 0; background: #fff; padding: 1.4vmin; box-sizing: border-box;
+    clip-path: polygon(0 0, 100% 0, 100% 97.2%, 96% 98.6%, 92% 97.4%, 87% 99.2%, 81% 97.8%, 76% 99.4%, 70% 97.6%, 64% 99%, 58% 97.4%, 52% 99.3%, 46% 97.7%, 40% 99.1%, 34% 97.5%, 28% 99.4%, 22% 97.8%, 16% 99%, 10% 97.4%, 5% 98.9%, 0 97.6%); }
+  .clip img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; filter: contrast(1.08) saturate(.94); }
+  .clip::after { content: ""; position: absolute; inset: 1.4vmin; background: radial-gradient(rgba(0,0,0,.5) 28%, transparent 30%) 0 0 / .8vmin .8vmin; mix-blend-mode: multiply; opacity: .1; }
+  .tape { position: absolute; width: 16vmin; height: 4.6vmin; background: rgba(229,221,190,.82); box-shadow: 0 0 0 1px rgba(0,0,0,.04); }
+  .tape.t1 { left: -3vmin; top: -1.8vmin; transform: rotate(-32deg); }
+  .tape.t2 { right: -3vmin; top: -1.4vmin; transform: rotate(28deg); }
+
+  .stamp { position: absolute; right: 4vmin; top: 3vmin; width: 15vmin; height: 15vmin; border-radius: 50%; border: .5vmin solid #E8337A; color: #E8337A; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(14deg); font-family: "Archivo Black", Arial, sans-serif; text-transform: uppercase; line-height: 1; opacity: .92; }
+  .stamp small { font-size: 1.7vmin; letter-spacing: .1em; }
+  .stamp b { font-size: 5.6vmin; font-weight: 400; }
+
+  .cut { position: absolute; left: 5vmin; right: 5vmin; bottom: 25vmin; display: flex; flex-wrap: wrap; align-items: center; gap: 1vmin 1.2vmin; }
+  .word { display: flex; gap: .7vmin; }
+  .cut { flex-direction: column; align-items: flex-start; }
+  .cut .word + .word { margin-left: 12vmin; }
+  .l { display: inline-block; padding: .2vmin 1.3vmin .6vmin; font-size: 13vmin; line-height: 1; font-family: "Archivo Black", Arial, sans-serif; text-transform: uppercase; box-shadow: .3vmin .4vmin 0 rgba(0,0,0,.18); }
+  .k { background: #111; color: #EFECE4; }
+  .w { background: #fff; color: #111; }
+  .p { background: #E8337A; color: #fff; }
+  .y { background: #F2E21B; color: #111; }
+  .m { font-family: "Courier Prime", monospace; font-weight: 700; text-transform: lowercase; }
+  .r1 { transform: rotate(-4deg); } .r2 { transform: rotate(3deg) translateY(.8vmin); } .r3 { transform: rotate(-2deg) translateY(-.6vmin); } .r4 { transform: rotate(5deg); } .r5 { transform: rotate(-6deg) translateY(.6vmin); }
+
+  .type { position: absolute; left: 5vmin; bottom: 6vmin; width: 52vmin; font-size: 2.3vmin; line-height: 1.4; }
+  .type mark { background: #F2E21B; color: #111; padding: 0 .6vmin; font-weight: 700; }
+  .note { position: absolute; right: 5vmin; bottom: 6vmin; width: 32vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 600; font-size: 5vmin; line-height: .95; color: #1D3FBF; transform: rotate(-5deg); text-align: center; }
+  .note svg { display: block; width: 26vmin; height: 3vmin; margin: .6vmin auto 0; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .shot { height: calc(100% - 7vmin - 50vmin); }
+    .cut { bottom: 17vmin; flex-direction: row; align-items: center; gap: 1vmin 4vmin; }
+    .cut .word + .word { margin-left: 0; }
+    .l { font-size: 11vmin; }
+    .type { bottom: 4.6vmin; }
+    .note { bottom: 4vmin; font-size: 4.4vmin; }
+  }
+  /* square — photo left, headline stacked right */
+  @media (min-aspect-ratio: 9/10) {
+    .shot { left: 5vmin; right: auto; width: 50%; top: 6vmin; height: calc(100% - 12vmin); }
+    .stamp { right: 5vmin; top: 4vmin; width: 13vmin; height: 13vmin; }
+    .stamp b { font-size: 4.8vmin; }
+    .cut { left: calc(50% + 11vmin); right: 4vmin; top: 20vmin; bottom: auto; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .cut .word + .word { margin-left: 3vmin; }
+    .l { font-size: 7.6vmin; padding: .2vmin 1vmin .5vmin; }
+    .type { left: calc(50% + 11vmin); right: 4vmin; width: auto; bottom: 22vmin; font-size: 2vmin; }
+    .note { right: 5vmin; bottom: 4vmin; width: 30vmin; font-size: 4.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 44%; }
+    .cut { left: calc(44% + 13vmin); top: 16vmin; flex-direction: row; flex-wrap: wrap; right: 20vmin; }
+    .l { font-size: 10vmin; }
+    .type { left: calc(44% + 13vmin); right: auto; width: 56vmin; bottom: 22vmin; font-size: 2.2vmin; }
+    .note { right: 7vmin; bottom: 6vmin; width: 34vmin; font-size: 4.6vmin; }
+    .stamp { width: 15vmin; height: 15vmin; right: 6vmin; top: 5vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* ransom letters are re-pasted one by one, stop-motion style (hard steps, no tweening) */
+  .l { --r: 0deg; --y: 0vmin; }
+  .r1 { --r: -4deg; } .r2 { --r: 3deg; --y: .8vmin; } .r3 { --r: -2deg; --y: -.6vmin; } .r4 { --r: 5deg; } .r5 { --r: -6deg; --y: .6vmin; }
+  .l { animation: slap 6s steps(1, end) infinite; }
+  @keyframes slap {
+    0%, 30% { opacity: 1; transform: rotate(var(--r)) translateY(var(--y)) scale(1); }
+    31% { opacity: 0; transform: rotate(var(--r)) translateY(var(--y)) scale(1); }
+    33% { opacity: 1; transform: rotate(calc(var(--r) + 9deg)) translateY(calc(var(--y) - 1vmin)) scale(1.3); }
+    34.4% { opacity: 1; transform: rotate(calc(var(--r) - 2deg)) translateY(var(--y)) scale(.94); }
+    35.8%, 100% { opacity: 1; transform: rotate(var(--r)) translateY(var(--y)) scale(1); }
+  }
+  .word:first-child .l:nth-child(2) { animation-delay: -5.85s; }
+  .word:first-child .l:nth-child(3) { animation-delay: -5.7s; }
+  .word:last-child .l:nth-child(1) { animation-delay: -5.5s; }
+  .word:last-child .l:nth-child(2) { animation-delay: -5.35s; }
+  .word:last-child .l:nth-child(3) { animation-delay: -5.2s; }
+  .word:last-child .l:nth-child(4) { animation-delay: -5.05s; }
+  /* toner grain crawls between frames like a photocopy */
+  .grain { animation: toner .5s steps(1, end) infinite; }
+  @keyframes toner {
+    0% { transform: scale(1.06) translate(0, 0); }
+    33.3% { transform: scale(1.06) translate(-1.2%, .8%); }
+    66.6% { transform: scale(1.06) translate(.9%, -1%); }
+    100% { transform: scale(1.06) translate(0, 0); }
+  }
+  .grain { transform: scale(1.06); }
+  /* the taped photo gets knocked as the letters land, then settles */
+  .shot { animation: knock 6s linear infinite; }
+  @keyframes knock {
+    0%, 36% { transform: rotate(-1.6deg); animation-timing-function: steps(1, end); }
+    37.5% { transform: rotate(-.9deg); animation-timing-function: steps(1, end); }
+    39% { transform: rotate(-2deg); animation-timing-function: steps(1, end); }
+    40.5%, 100% { transform: rotate(-1.6deg); }
+  }
+  /* ISSUE 03 stamp: inked again */
+  .stamp { animation: stampit 6s linear infinite; }
+  @keyframes stampit {
+    0%, 54% { transform: rotate(14deg) scale(1); opacity: .92; animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    57% { transform: rotate(20deg) scale(1.3); opacity: 0; animation-timing-function: steps(1, end); }
+    58% { transform: rotate(20deg) scale(1.3); opacity: 0; animation-timing-function: cubic-bezier(.7,0,.9,.6); }
+    61% { transform: rotate(13deg) scale(.93); opacity: 1; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    66%, 100% { transform: rotate(14deg) scale(1); opacity: .92; }
+  }
+  /* the biro underline under the note is scribbled in again */
+  .note path { stroke-dasharray: 100 100; stroke-dashoffset: 0; animation: scribble 6s linear infinite; }
+  @keyframes scribble {
+    0%, 66% { stroke-dashoffset: 0; animation-timing-function: steps(1, end); }
+    66.5% { stroke-dashoffset: 100; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    76%, 100% { stroke-dashoffset: 0; }
+  }
+  .note { transform-origin: 50% 50%; animation: jot 6s linear infinite; }
+  @keyframes jot {
+    0%, 64% { transform: rotate(-5deg) translateY(0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    68% { transform: rotate(-7deg) translateY(-.6vmin); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    76%, 100% { transform: rotate(-5deg) translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" aria-hidden="true"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="3" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .38 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  <div class="streak"></div>
+  <div class="shot">
+    <div class="clip"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="tape t1"></div><div class="tape t2"></div>
+  </div>
+  <div class="stamp"><small>Issue</small><b>03</b></div>
+  <div class="cut">
+    <span class="word"><span class="l k r1">N</span><span class="l w m r2">e</span><span class="l p r3">W</span></span>
+    <span class="word"><span class="l y r4">D</span><span class="l k r5">R</span><span class="l w m r1">o</span><span class="l k r2">P</span></span>
+  </div>
+  <div class="type">small batch. no restocks.<br>−30% this week with code <mark>ZINE30</mark></div>
+  <div class="note">limited run,<br>don’t sleep on it!<svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M2 6 C 15 1, 25 9, 38 5 S 62 2, 75 6 S 92 4, 98 3" fill="none" stroke="#1D3FBF" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+</div>
+</body>
+</html>

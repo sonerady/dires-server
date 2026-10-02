@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400;1,9..144,600&family=Caveat:wght@600&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Seasonal Edit — responsive: big serif headline on paper, photo panel right, notes column left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE6D8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFE6D8; color: #3B2A1B; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; }
+  h1 { position: absolute; left: 4.2vmin; top: 1.6vmin; margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-style: italic; font-size: 23vmin; line-height: 1; letter-spacing: -.035em; }
+  .script { position: absolute; right: 5vmin; top: 14vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 600; font-size: 10vmin; color: #B4532A; transform: rotate(-8deg); }
+  .photo { position: absolute; right: 5vmin; top: 30vmin; height: calc(100% - 35vmin); width: 56%; object-fit: cover; object-position: 50% 30%; box-shadow: 0 2vmin 5vmin rgba(59,42,27,.18); }
+  .col { position: absolute; left: 5vmin; top: 33vmin; bottom: 5vmin; width: calc(44% - 14vmin); display: flex; flex-direction: column; }
+  .no { font-size: 1.8vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #B4532A; padding-bottom: 1.4vmin; border-bottom: .2vmin solid rgba(59,42,27,.35); }
+  .p { margin-top: 3vmin; font-family: "Fraunces", Georgia, serif; font-size: 3.2vmin; line-height: 1.32; }
+  .price { margin-top: 5vmin; font-size: 2.1vmin; letter-spacing: .06em; text-transform: uppercase; line-height: 1.5; }
+  .price b { display: block; font-family: "Fraunces", Georgia, serif; font-size: 7vmin; letter-spacing: -.02em; text-transform: none; line-height: 1.05; }
+  .cta { margin-top: 4.4vmin; align-self: flex-start; font-size: 2.4vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; border-bottom: .35vmin solid #3B2A1B; padding-bottom: .6vmin; }
+  .note { margin-top: auto; position: relative; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 600; font-size: 6vmin; color: #B4532A; transform: rotate(-5deg); }
+  .note svg { position: absolute; left: 19vmin; top: -2vmin; width: 10vmin; height: 7vmin; overflow: visible; }
+  @media (min-aspect-ratio: 6/5) {
+    h1 { font-size: 19vmin; }
+    .script { right: auto; left: 64vmin; top: 9vmin; }
+    .photo { top: 5vmin; height: calc(100% - 10vmin); width: 42%; }
+    .col { top: 27vmin; width: calc(58% - 16vmin); }
+    .p { max-width: 60vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <h1>Summer</h1>
+  <div class="script">edit.</div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="col">
+    <div class="no">No. 03 — Resort</div>
+    <div class="p">Embroidered maxi dresses, soft cotton and the pieces that travel well.</div>
+    <div class="price">Maxi dresses from<b>$129</b></div>
+    <div class="cta">Shop the edit →</div>
+    <div class="note">sun's out!
+      <svg viewBox="0 0 110 80"><path d="M4 60 C 30 70, 70 60, 100 18" fill="none" stroke="#B4532A" stroke-width="5" stroke-linecap="round"/><path d="M84 16 L 101 16 L 98 34" fill="none" stroke="#B4532A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+</div>
+</body>
+</html>

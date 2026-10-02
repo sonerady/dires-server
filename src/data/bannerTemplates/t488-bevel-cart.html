@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Libre+Caslon+Text:ital,wght@1,400;1,700&display=swap" rel="stylesheet">
+<style>
+  /* Bevel Cart — a product page from a 2002 web shop, done with restraint: navy header with an italic serif wordmark,
+     folder tabs, breadcrumb, "click to enlarge", a list / our price / you save table, half-star rating, green stock line,
+     a bevelled amber "Add to Cart" with a quantity box, a padlock line and "customers also bought" crops of the look.
+     tall → header, photo, product info · square & wide → header across, photo left, info right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFFFFF; }
+  .banner { --navy: #1B2A5E; --link: #0B45B8; --red: #B3200E; --line: #C9CDD6; --hd: 8.4vmin; --tabs: 5.6vmin; --info: 64vmin;
+    position: fixed; inset: 0; overflow: hidden; background: #fff; color: #111; font-family: "Noto Sans", Verdana, Tahoma, sans-serif; }
+
+  .hd { position: absolute; left: 0; right: 0; top: 0; height: var(--hd); background: linear-gradient(180deg, #25397A, var(--navy)); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 5vmin; box-sizing: border-box; }
+  .logo { font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-weight: 700; font-size: 4.2vmin; letter-spacing: -.01em; white-space: nowrap; }
+  .logo small { font-family: "Noto Sans", sans-serif; font-style: normal; font-weight: 400; font-size: 1.6vmin; letter-spacing: .14em; margin-left: 1vmin; opacity: .8; text-transform: uppercase; }
+  .hd .acc { font-size: 1.7vmin; white-space: nowrap; }
+  .hd .acc b { display: inline-block; margin-left: 1.2vmin; padding: .5vmin 1.2vmin; background: #F6B23A; color: #111; }
+  .tabs { position: absolute; left: 0; right: 0; top: var(--hd); height: var(--tabs); background: #DDE3EF; border-bottom: .5vmin solid var(--navy); display: flex; align-items: flex-end; gap: .8vmin; padding: 0 4vmin; box-sizing: border-box; }
+  .tabs span { padding: .8vmin 2vmin .7vmin; border-radius: 1vmin 1vmin 0 0; background: #B9C3D9; font-size: 1.8vmin; font-weight: 700; color: var(--navy); white-space: nowrap; box-shadow: inset 1px 1px 0 rgba(255,255,255,.7); }
+  .tabs span.on { background: var(--navy); color: #fff; }
+  .tabs span.sale { background: var(--red); color: #fff; }
+  .crumb { position: absolute; left: 5vmin; right: 5vmin; top: calc(var(--hd) + var(--tabs) + 1.8vmin); font-size: 1.7vmin; color: #555; white-space: nowrap; }
+  .crumb a { color: var(--link); text-decoration: underline; }
+
+  .pic { position: absolute; left: 5vmin; right: 5vmin; top: calc(var(--hd) + var(--tabs) + 6vmin); height: calc(100% - var(--hd) - var(--tabs) - 6vmin - var(--info) - 4.4vmin); border: 1px solid var(--line); overflow: hidden; }
+  .pic img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .rib { position: absolute; left: 0; top: 2.4vmin; background: var(--red); color: #fff; padding: .8vmin 1.8vmin .8vmin 1.4vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .06em; white-space: nowrap; clip-path: polygon(0 0, 100% 0, calc(100% - 1.2vmin) 50%, 100% 100%, 0 100%); }
+  .enl { position: absolute; left: 5vmin; top: calc(100% - var(--info) - 3.6vmin); font-size: 1.7vmin; color: var(--link); text-decoration: underline; white-space: nowrap; }
+
+  .info { position: absolute; left: 5vmin; right: 5vmin; bottom: 4vmin; height: calc(var(--info) - 6vmin); display: flex; flex-direction: column; }
+  h1 { margin: 0; font-size: 4.4vmin; font-weight: 700; line-height: 1.1; letter-spacing: -.01em; }
+  .by { margin-top: .8vmin; display: flex; align-items: center; gap: 1.4vmin; font-size: 1.7vmin; white-space: nowrap; }
+  .by a { color: var(--link); text-decoration: underline; }
+  .stars { position: relative; display: inline-block; font-size: 2.2vmin; letter-spacing: .1em; color: #D5D8DE; line-height: 1; }
+  .stars i { position: absolute; left: 0; top: 0; width: 90%; overflow: hidden; color: #F2A413; font-style: normal; white-space: nowrap; }
+  .price { margin-top: 2vmin; padding: 1.4vmin 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: .7vmin 2.2vmin; align-items: baseline; font-size: 1.9vmin; }
+  .price dt { color: #555; text-align: right; }
+  .price dd { margin: 0; }
+  .price s { color: #555; }
+  .price .our { font-size: 4.6vmin; font-weight: 700; color: var(--red); line-height: 1; }
+  .price .save { color: var(--red); }
+  .stock { margin-top: 1.6vmin; font-size: 1.9vmin; font-weight: 700; color: #0E7A27; white-space: nowrap; }
+  .stock span { font-weight: 400; color: #333; }
+  .buy { margin-top: 2.2vmin; display: flex; align-items: center; gap: 2vmin; }
+  .qty { display: flex; align-items: center; font-size: 1.8vmin; gap: 1vmin; white-space: nowrap; }
+  .qty u { text-decoration: none; display: inline-flex; align-items: center; gap: 1.4vmin; padding: .6vmin .8vmin .6vmin 1.2vmin; border: 1px solid #7A7F8A; box-shadow: inset 1px 1px 0 #999; background: #fff; }
+  .qty u::after { content: ""; width: 2.2vmin; height: 2.4vmin; background: linear-gradient(180deg, #F4F4F4, #CFCFCF); box-shadow: inset 0 0 0 1px #8A8A8A; clip-path: none; }
+  .cart { flex: 1; display: flex; align-items: center; justify-content: center; gap: 1.4vmin; height: 6.4vmin; border-radius: .8vmin; border: 1px solid #8E5A06;
+    background: linear-gradient(180deg, #FFE3A3 0%, #F9C04D 48%, #F0A320 52%, #F6B53A 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 .3vmin 0 #B9780F; font-size: 2.6vmin; font-weight: 700; color: #1C1405; white-space: nowrap; }
+  .cart svg { width: 3.4vmin; height: 3vmin; }
+  .sec { margin-top: 1.4vmin; display: flex; align-items: center; gap: 1vmin; font-size: 1.7vmin; color: #444; white-space: nowrap; }
+  .sec i { position: relative; width: 1.6vmin; height: 1.3vmin; margin-top: .8vmin; background: #C99A1A; border-radius: .2vmin; }
+  .sec i::before { content: ""; position: absolute; left: .25vmin; right: .25vmin; top: -1vmin; height: 1.2vmin; border: .3vmin solid #7A7F8A; border-bottom: 0; border-radius: .8vmin .8vmin 0 0; box-sizing: border-box; }
+  .also { margin-top: auto; }
+  .also h2 { margin: 0 0 1vmin; font-size: 1.8vmin; font-weight: 700; color: var(--navy); border-bottom: 1px solid var(--line); padding-bottom: .6vmin; white-space: nowrap; }
+  .thumbs { display: flex; gap: 1.6vmin; }
+  .thumbs div { flex: 1; height: 9vmin; position: relative; overflow: hidden; border: 1px solid var(--line); }
+  .thumbs img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumbs div:nth-child(1) img { object-position: 50% 10%; transform: scale(1.8); transform-origin: 50% 20%; }
+  .thumbs div:nth-child(2) img { object-position: 50% 50%; transform: scale(2.4); transform-origin: 40% 55%; }
+  .thumbs div:nth-child(3) img { object-position: 50% 90%; transform: scale(2); transform-origin: 55% 85%; }
+  .thumbs div:nth-child(4) { display: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --info: 60vmin; }
+    .pic, .info { left: 9vmin; right: 9vmin; }
+    .crumb, .enl { left: 9vmin; }
+    h1 { font-size: 4vmin; }
+    .thumbs div { height: 7.4vmin; }
+  }
+
+  /* square & wide: header across, photo left, product info right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --hd: 8vmin; --tabs: 5.4vmin; }
+    .crumb { left: 4vmin; }
+    .pic { left: 4vmin; right: auto; width: 44%; top: calc(var(--hd) + var(--tabs) + 5.6vmin); height: calc(100% - var(--hd) - var(--tabs) - 5.6vmin - 8vmin); }
+    .enl { left: 4vmin; top: auto; bottom: 3.4vmin; }
+    .info { left: calc(44% + 8vmin); right: 4vmin; top: calc(var(--hd) + var(--tabs) + 5.6vmin); bottom: 4vmin; height: auto; }
+    h1 { font-size: 3.6vmin; }
+    .price { margin-top: 1.6vmin; padding: 1.1vmin 0; font-size: 1.8vmin; }
+    .price .our { font-size: 4vmin; }
+    .stock span { display: none; }
+    .buy { margin-top: 1.8vmin; }
+    .cart { height: 5.6vmin; font-size: 2.3vmin; }
+    .also { flex: 1; min-height: 0; margin-top: 3vmin; display: flex; flex-direction: column; justify-content: flex-end; }
+    .thumbs { flex: 1; max-height: 22vmin; min-height: 8vmin; }
+    .thumbs div { height: auto; }
+    .thumbs div:nth-child(3) { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .pic { width: 36%; }
+    .info { left: calc(36% + 8vmin); right: 5vmin; }
+    h1 { font-size: 4.2vmin; }
+    .stock span { display: inline; }
+    .thumbs { max-height: 20vmin; }
+    .thumbs div:nth-child(3), .thumbs div:nth-child(4) { display: block; }
+    .thumbs div:nth-child(4) img { object-position: 50% 30%; transform: scale(2.2); transform-origin: 30% 35%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="hd"><div class="logo">Studio Oro<small>online store</small></div><div class="acc">Sign in · Help<b>Cart (0)</b></div></div>
+  <div class="tabs"><span>Home</span><span>Women</span><span>Men</span><span class="on">New In</span><span class="sale">Sale</span></div>
+  <div class="crumb"><a>Home</a> &gt; <a>New In</a> &gt; The Season Edit</div>
+  <div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="rib">WEB EXCLUSIVE · 30% OFF</div></div>
+  <div class="enl">⊕ Click to enlarge</div>
+  <div class="info">
+    <h1>The Season Edit — Look 04</h1>
+    <div class="by"><span class="stars">★★★★★<i>★★★★★</i></span><a>212 customer reviews</a></div>
+    <dl class="price">
+      <dt>List price:</dt><dd><s>$129.00</s></dd>
+      <dt>Our price:</dt><dd class="our">$89.00</dd>
+      <dt>You save:</dt><dd class="save">$40.00 (30%)</dd>
+    </dl>
+    <div class="stock">In stock. <span>Usually ships within 24 hours.</span></div>
+    <div class="buy">
+      <div class="qty">Qty: <u>1</u></div>
+      <div class="cart"><svg viewBox="0 0 24 20"><path d="M1 2h4l3 11h11l3-8H7" fill="none" stroke="#1C1405" stroke-width="2" stroke-linejoin="round"/><circle cx="10" cy="17" r="1.8" fill="#1C1405"/><circle cx="17" cy="17" r="1.8" fill="#1C1405"/></svg>Add to Cart</div>
+    </div>
+    <div class="sec"><i></i>Secure checkout · 128-bit SSL · code WEB30</div>
+    <div class="also">
+      <h2>Customers who bought this also bought</h2>
+      <div class="thumbs"><div><img src="{{PRODUCT_IMAGE}}" alt=""></div><div><img src="{{PRODUCT_IMAGE}}" alt=""></div><div><img src="{{PRODUCT_IMAGE}}" alt=""></div><div><img src="{{PRODUCT_IMAGE}}" alt=""></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

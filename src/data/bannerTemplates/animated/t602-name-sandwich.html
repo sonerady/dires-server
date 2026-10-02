@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;900&family=DM+Mono:wght@400;500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Name Sandwich — creator collab announcement: the creator's name in solid condensed caps above the photo,
+     the house name in outline caps below it, a lilac "×" rail between, and a mono spec strip (pieces / drop date / from-price).
+     tall / 3:4 → creator · photo · brand stacked · square → names + specs left, photo right · wide → creator | photo | brand */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #131115; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #131115; color: #F2EEF7; box-sizing: border-box;
+    font-family: "DM Mono", ui-monospace, Menlo, monospace; display: flex; flex-direction: column; padding: 5vmin 5.6vmin 5vmin; }
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(70vmin 50vmin at 100% 0%, rgba(185,166,255,.16), transparent 70%), radial-gradient(70vmin 50vmin at 0% 100%, rgba(185,166,255,.10), transparent 70%); }
+
+  .meta { position: relative; flex: none; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #9B94A8; white-space: nowrap; }
+  .meta b { color: #B9A6FF; font-weight: 500; }
+  .who, .house { position: relative; flex: none; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; text-transform: uppercase; line-height: .8; letter-spacing: -.005em; white-space: nowrap; }
+  .who { margin-top: 2.6vmin; font-size: 15.4vmin; }
+  .house { font-size: 15.4vmin; color: transparent; -webkit-text-stroke: .35vmin #B9A6FF; }
+  .who span, .house span { display: inline-block; line-height: .8; }
+  .who span:first-child, .house span:first-child { margin-right: .22em; }
+  .rail { position: relative; flex: none; display: flex; align-items: center; gap: 2vmin; margin: 2.2vmin 0 2.8vmin; font-size: 1.7vmin; letter-spacing: .1em; color: #CFC8DB; white-space: nowrap; }
+  .rail::before, .rail::after { content: ""; flex: 1 1 auto; height: 1px; background: rgba(242,238,247,.28); }
+  .rail b { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 500; font-size: 7vmin; line-height: .7; color: #B9A6FF; }
+  .rail.r2 { margin: 2.8vmin 0 2.2vmin; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .specs { position: relative; flex: none; display: grid; grid-template-columns: repeat(3, auto) 1fr; align-items: end; gap: 4vmin; margin-top: 3.2vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(242,238,247,.22); }
+  .specs div { font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #9B94A8; white-space: nowrap; }
+  .specs div b { display: block; margin-bottom: .6vmin; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 4.6vmin; line-height: 1; letter-spacing: 0; color: #F2EEF7; }
+  .specs .cta, .specs2 .cta { color: #131115; }
+  .cta { justify-self: end; align-self: center; padding: 1.8vmin 2.8vmin; background: #B9A6FF; color: #131115; font-size: 1.8vmin; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 5.6vmin 4.4vmin; }
+    .who, .house { font-size: 14.6vmin; }
+    .who { margin-top: 2vmin; }
+    .rail { margin: 1.8vmin 0 2.2vmin; } .rail.r2 { margin: 2.2vmin 0 1.8vmin; }
+    .rail b { font-size: 6vmin; }
+    .specs { margin-top: 2.4vmin; padding-top: 2vmin; }
+    .specs div b { font-size: 4vmin; }
+  }
+  /* ── square: the names stack on the left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: grid; padding: 5vmin; column-gap: 4.6vmin;
+      grid-template-columns: 1fr 48%; grid-template-rows: auto auto auto auto 1fr auto;
+      grid-template-areas: "meta photo" "who photo" "r1 photo" "house photo" "r2 photo" "specs photo"; }
+    .meta { grid-area: meta; flex-direction: column; gap: .8vmin; }
+    .who { grid-area: who; margin-top: 4vmin; font-size: 14.4vmin; }
+    .house { grid-area: house; font-size: 14.4vmin; -webkit-text-stroke: .28vmin #B9A6FF; }
+    .who span, .house span { display: block; margin: 0; }
+    .rail { grid-area: r1; margin: 2vmin 0; }
+    .rail.r2 { display: none; }
+    .rail b { font-size: 5vmin; }
+    .photo { grid-area: photo; }
+    .specs { grid-area: specs; margin: 0; grid-template-columns: repeat(3, auto); gap: 1.6vmin 3vmin; }
+    .specs div b { font-size: 3.6vmin; }
+    .cta { grid-column: 1 / -1; justify-self: start; margin-top: 1.4vmin; }
+  }
+  /* ── wide: creator | photo | house ── */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { padding: 5.4vmin 6vmin; column-gap: 5vmin;
+      grid-template-columns: minmax(0,1fr) 34% minmax(0,1fr); grid-template-rows: auto auto 1fr auto;
+      grid-template-areas: "meta photo r2" "who photo house" "r1 photo ." "specs photo specs2"; }
+    .meta { grid-area: meta; }
+    .who { grid-area: who; margin-top: 4vmin; font-size: 15vmin; }
+    .house { grid-area: house; margin-top: 4vmin; font-size: 15vmin; text-align: right; align-self: start; }
+    .rail { grid-area: r1; margin: 3vmin 0 0; align-self: start; }
+    .rail span:last-child { display: none; }
+    .rail.r2 { display: flex; grid-area: r2; margin: 0; align-self: end; }
+    .rail b { font-size: 6vmin; }
+    .specs { grid-area: specs; grid-template-columns: repeat(3, auto); gap: 3vmin; }
+    .specs .cta { display: none; }
+    .specs2 { display: flex !important; grid-area: specs2; }
+    .specs div b { font-size: 4vmin; }
+  }
+  .specs2 { display: none; position: relative; flex-direction: column; align-items: flex-end; justify-content: flex-end; gap: 1.6vmin; text-align: right; }
+  .specs2 p { margin: 0; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #9B94A8; }
+  .specs2 .cta { display: block; }
+  /* ───────────── motion (6 s loop · t=0 = static design) ───────────── */
+  /* creator name re-stamps line by line, the × turns, a lilac fill floods through the outlined house name, specs tick in, CTA sheen */
+  .photo { overflow: hidden; }
+  .photo img { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .who span { animation: stamp 6s cubic-bezier(.7,0,.2,1) infinite; }
+  .who span + span { animation-delay: -5.85s; }
+  @keyframes stamp {
+    0%, 6% { clip-path: inset(-5% -2% -5% -2%); transform: translateY(0); }
+    12% { clip-path: inset(-5% -2% 105% -2%); transform: translateY(0); }
+    13% { clip-path: inset(105% -2% -5% -2%); transform: translateY(0); }
+    22%, 100% { clip-path: inset(-5% -2% -5% -2%); transform: translateY(0); }
+  }
+
+  .rail b { display: inline-block; animation: turn 6s cubic-bezier(.7,0,.2,1) infinite; }
+  .rail.r2 b { animation-delay: -5.7s; }
+  @keyframes turn { 0%, 18% { transform: rotate(0deg) scale(1); } 28% { transform: rotate(90deg) scale(1.25); } 34%, 100% { transform: rotate(180deg) scale(1); } }
+
+  .house { background: linear-gradient(100deg, rgba(185,166,255,0) 38%, rgba(185,166,255,.95) 48%, rgba(185,166,255,.95) 52%, rgba(185,166,255,0) 62%) no-repeat;
+    background-size: 300% 100%; background-position: 100% 0; -webkit-background-clip: text; background-clip: text;
+    animation: flood 6s cubic-bezier(.5,0,.5,1) infinite; }
+  @keyframes flood { 0%, 36% { background-position: 100% 0; } 66%, 100% { background-position: 0% 0; } }
+
+  .specs div:not(.cta) b { animation: tick 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .specs div:nth-child(2) b { animation-delay: -5.85s; }
+  .specs div:nth-child(3) b { animation-delay: -5.7s; }
+  @keyframes tick { 0%, 70%, 82%, 100% { transform: translateY(0); color: #F2EEF7; } 74% { transform: translateY(-.8vmin); color: #B9A6FF; } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.6) 50%, transparent 65%) no-repeat; background-size: 250% 100%; background-position: 150% 0;
+    animation: sheen 3s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes sheen { 0%, 55% { background-position: 150% 0; } 85%, 100% { background-position: -50% 0; } }
+  .cta .ar { display: inline-block; animation: nudge 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 60%, 84%, 100% { transform: translateX(0); } 72% { transform: translateX(.7vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="meta"><span>Collab <b>№ 014</b></span><span>Announced 25.09</span></div>
+  <div class="who"><span>Noor </span><span>Haddad</span></div>
+  <div class="rail"><span>@noor.hdd · 1.2M</span><b>×</b><span>her first capsule</span></div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="rail r2"><span>designed together</span><b>×</b><span>made in Porto</span></div>
+  <div class="house"><span>Atelier </span><span>Vesk</span></div>
+  <div class="specs">
+    <div><b>14</b>pieces</div>
+    <div><b>03.10</b>drop date</div>
+    <div><b>$68+</b>from</div>
+    <div class="cta">Join the waitlist <span class="ar">→</span></div>
+  </div>
+  <div class="specs2"><p>Limited run · no restock</p><div class="cta">Join the waitlist <span class="ar">→</span></div></div>
+</div>
+</body>
+</html>

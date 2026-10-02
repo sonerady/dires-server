@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Bunting — a string of cotton pennants sagging across the top of a cream field, one letter per flag (S-U-M-M-E-R),
+     a fat retro-script headline, the look below like the field beyond the flags.
+     tall → flags + copy on top, photo below · square & wide → flags + copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F7F0E3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F7F0E3; color: #19402E; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; }
+
+  .field { position: absolute; left: 0; right: 0; top: 0; height: 44%; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: 56%; object-fit: cover; object-position: 50% 22%; }
+
+  .string { position: absolute; left: -2vmin; right: -2vmin; top: 0; height: 22vmin; }
+  .string svg { position: absolute; left: 0; top: 0; width: 100%; height: 8vmin; }
+  .flags { position: absolute; left: 4vmin; right: 4vmin; top: 0; display: flex; justify-content: space-between; }
+  .f { position: relative; width: 12.6vmin; height: 15vmin; display: flex; justify-content: center; padding-top: 2.1vmin; box-sizing: border-box; clip-path: polygon(0 0, 100% 0, 50% 100%); font-family: "Shrikhand", Georgia, serif; font-size: 6.2vmin; line-height: 1; color: #F7F0E3; transform-origin: 50% 0;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 .3vmin, transparent .3vmin .8vmin); }
+  .f:nth-child(1) { background-color: #E8472B; margin-top: 1vmin; transform: rotate(4deg); }
+  .f:nth-child(2) { background-color: #2F5BD3; margin-top: 3.4vmin; transform: rotate(2.5deg); }
+  .f:nth-child(3) { background-color: #F2B53A; margin-top: 4.8vmin; transform: rotate(1deg); color: #19402E; }
+  .f:nth-child(4) { background-color: #FF8FB1; margin-top: 5.2vmin; transform: rotate(-.5deg); color: #19402E; }
+  .f:nth-child(5) { background-color: #19402E; margin-top: 4.6vmin; transform: rotate(-2deg); }
+  .f:nth-child(6) { background-color: #7FC8A9; margin-top: 3.2vmin; transform: rotate(-3.5deg); color: #19402E; }
+  .f:nth-child(7) { background-color: #E8472B; margin-top: 1vmin; transform: rotate(-5deg); font-size: 5vmin; padding-top: 2.8vmin; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: 23vmin; bottom: calc(56% + 4.4vmin); display: flex; flex-direction: column; justify-content: space-between; }
+  .kick { font-size: 1.9vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; display: flex; justify-content: space-between; }
+  h1 { margin: 0; font-family: "Shrikhand", Georgia, serif; font-weight: 400; font-size: 11.4vmin; line-height: .92; letter-spacing: -.01em; color: #E8472B; }
+  h1 span { color: #19402E; }
+  @media (min-aspect-ratio: 7/10) and (max-aspect-ratio: 9/10) { h1 br.b { display: none; } }
+  .row { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .sub { font-size: 2.3vmin; line-height: 1.35; max-width: 46vmin; }
+  .sub b { font-weight: 700; }
+  .cta { flex: none; padding: 1.7vmin 2.8vmin; background: #19402E; color: #F7F0E3; font-size: 2vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; border-radius: 6vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .field { height: 48%; }
+    .photo { height: 52%; }
+    .f { width: 11vmin; height: 13vmin; font-size: 5.4vmin; padding-top: 1.8vmin; }
+    .f:nth-child(7) { font-size: 4.4vmin; padding-top: 2.4vmin; }
+    .copy { top: 19.5vmin; bottom: calc(52% + 3.4vmin); }
+    h1 { font-size: 9.2vmin; }
+    .sub { font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .field { height: 100%; right: 48%; }
+    .photo { left: auto; right: 0; top: 0; width: 48%; height: 100%; object-position: 50% 25%; }
+    .string { right: calc(48% - 2vmin); }
+    .flags { left: 3vmin; right: calc(48% + 3vmin); }
+    .f { width: 7.6vmin; height: 10vmin; font-size: 4.2vmin; padding-top: 1.3vmin; }
+    .f:nth-child(7) { display: none; }
+    .copy { left: 5vmin; right: calc(48% + 5vmin); top: 21vmin; bottom: 5vmin; }
+    .kick span:last-child { display: none; }
+    h1 { font-size: 8.4vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+    .sub { font-size: 2vmin; }
+    .cta { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .field { right: 44%; }
+    .photo { width: 44%; object-position: 50% 30%; }
+    .string { right: calc(44% - 2vmin); }
+    .flags { left: 4vmin; right: calc(44% + 4vmin); }
+    .f { width: 10.6vmin; height: 13vmin; font-size: 5.4vmin; }
+    .f:nth-child(7) { display: flex; }
+    .f:nth-child(7) { font-size: 4.2vmin; }
+    .copy { left: 6vmin; right: calc(44% + 6vmin); top: 22vmin; bottom: 6vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { font-size: 12.4vmin; }
+    .row { flex-direction: row; align-items: flex-end; }
+    .sub { font-size: 2.2vmin; }
+    .cta { font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="field"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="string">
+    <svg viewBox="0 0 100 8" preserveAspectRatio="none" aria-hidden="true"><path d="M0 .6 Q 50 11 100 .6" fill="none" stroke="#19402E" stroke-width=".5" vector-effect="non-scaling-stroke" style="stroke-width:.35vmin"/></svg>
+  </div>
+  <div class="flags"><span class="f">S</span><span class="f">U</span><span class="f">M</span><span class="f">M</span><span class="f">E</span><span class="f">R</span><span class="f">✶</span></div>
+  <div class="copy">
+    <div class="kick"><span>Studio Oro · Festival season</span><span>03—06 Jul</span></div>
+    <h1>Out in the<br class="b"> <span>fields.</span></h1>
+    <div class="row">
+      <div class="sub"><b>30% off</b> the festival edit — everything you'd wear from the gates to the last set. Code <b>FIELD30</b>.</div>
+      <div class="cta">Shop now</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

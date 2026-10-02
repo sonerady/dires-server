@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,500;1,300;1,500&family=Mrs+Saint+Delafield&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Atelier Numéro — a couture house's collection sheet: giant serif numeral, a spec list,
+     the creative director's signature and a red basting stitch along the seam.
+     tall → photo above the sheet; square/wide → photo left, sheet right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFEAE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFEAE2; color: #1D1B18; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; top: 0; left: 0; width: 100%; height: 57%; object-fit: cover; object-position: 50% 16%; }
+  .stitch { position: absolute; left: 0; right: 0; top: calc(57% + 2.6vmin); height: .4vmin; background: repeating-linear-gradient(90deg, #A3302A 0 3vmin, transparent 3vmin 4.6vmin); }
+  .sheet { position: absolute; left: 6vmin; right: 6vmin; top: calc(57% + 7vmin); bottom: 5.5vmin; display: grid; grid-template-columns: auto 1fr; grid-template-rows: 1fr auto; grid-template-areas: "num spec" "sig sig"; column-gap: 6vmin; }
+  .num { grid-area: num; align-self: start; font-family: "Cormorant", Garamond, "Times New Roman", serif; }
+  .num .no { font-style: italic; font-weight: 500; font-size: 4.6vmin; line-height: 1; white-space: nowrap; }
+  .num .n { font-weight: 300; font-size: min(34vmin, 19.5vh); line-height: .74; letter-spacing: -.04em; margin-left: -1.4vmin; }
+  .spec { grid-area: spec; align-self: start; padding-top: .6vmin; }
+  .house { font-size: 2vmin; font-weight: 500; letter-spacing: .4em; text-transform: uppercase; }
+  .title { margin-top: 1.4vmin; font-family: "Cormorant", Garamond, serif; font-style: italic; font-weight: 500; font-size: min(6.4vmin, 3.9vh); line-height: .98; }
+  .rows { margin-top: 2.6vmin; border-top: 1px solid rgba(29,27,24,.35); }
+  .rows div { display: flex; justify-content: space-between; gap: 2vmin; padding: 1.1vmin 0; border-bottom: 1px solid rgba(29,27,24,.18); font-size: 2.1vmin; letter-spacing: .06em; }
+  .rows span { color: #6D655A; }
+  .sig { grid-area: sig; display: flex; align-items: flex-end; justify-content: space-between; gap: 4vmin; }
+  .sig .who { font-size: 1.8vmin; letter-spacing: .3em; text-transform: uppercase; color: #6D655A; }
+  .sig .hand { display: block; font-family: "Mrs Saint Delafield", "Snell Roundhand", cursive; font-size: min(9vmin, 5.4vh); line-height: .9; color: #1D1B18; letter-spacing: 0; text-transform: none; margin-bottom: .4vmin; }
+  .cta { flex: none; font-size: 2.2vmin; font-weight: 500; letter-spacing: .28em; text-transform: uppercase; padding-bottom: .8vmin; border-bottom: .3vmin solid #A3302A; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 55%; }
+    .stitch { top: calc(55% + 2.4vmin); }
+    .sheet { top: calc(55% + 6vmin); bottom: 4.5vmin; }
+    .num .n { font-size: 30vmin; }
+    .title { font-size: 5.8vmin; }
+    .rows div { padding: .9vmin 0; font-size: 2vmin; }
+    .sig .hand { font-size: 8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 47%; height: 100%; object-position: 50% 25%; }
+    .stitch { left: calc(47% + 2.4vmin); right: auto; top: 0; bottom: 0; width: .4vmin; height: auto; background: repeating-linear-gradient(180deg, #A3302A 0 3vmin, transparent 3vmin 4.6vmin); }
+    .sheet { left: calc(47% + 6vmin); right: 5vmin; top: 5.5vmin; bottom: 5vmin; grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; grid-template-areas: "num" "spec" "sig"; }
+    .num { display: flex; align-items: flex-start; gap: 1vmin; }
+    .num .n { font-size: 23vmin; }
+    .spec { padding-top: 2.4vmin; }
+    .title { font-size: 5vmin; }
+    .rows { margin-top: 1.8vmin; }
+    .rows div { padding: .8vmin 0; font-size: 1.8vmin; }
+    .sig { flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 2vmin; }
+    .sig .hand { font-size: 7.2vmin; }
+    .cta { font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .stitch { left: calc(48% + 2.6vmin); }
+    .sheet { left: calc(48% + 7vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; grid-template-columns: auto 1fr; grid-template-rows: 1fr auto; grid-template-areas: "num spec" "sig sig"; column-gap: 5vmin; }
+    .num { display: block; }
+    .num .n { font-size: 30vmin; }
+    .spec { padding-top: .6vmin; }
+    .title { font-size: 5.6vmin; }
+    .rows div { padding: 1vmin 0; font-size: 2vmin; }
+    .sig { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    .sig .hand { font-size: 8.4vmin; }
+    .cta { font-size: 2vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  .photo { transform-origin: 50% 50%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push {
+    0%, 100% { transform: scale(1); clip-path: inset(0); }
+    50% { transform: scale(1.03); clip-path: inset(1.456%); }
+  }
+  /* the basting stitch runs along the seam: one stitch repeat per 3s, tile = one repeat */
+  .stitch { background-size: 4.6vmin 100%; animation: baste 3s linear infinite; }
+  @keyframes baste { from { background-position: 0 0; } to { background-position: 4.6vmin 4.6vmin; } }
+  @media (min-aspect-ratio: 9/10) { .stitch { background-size: 100% 4.6vmin; } }
+  /* the collection numeral is re-set */
+  .num .n { animation: numeral 6s linear infinite; }
+  @keyframes numeral {
+    0%, 10% { opacity: 1; transform: translateY(0); filter: blur(0); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    18% { opacity: 0; transform: translateY(-.1em); filter: blur(.5vmin); animation-timing-function: steps(1, end); }
+    18.2% { opacity: 0; transform: translateY(.1em); filter: blur(.5vmin); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    32%, 100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  }
+  /* the creative director signs again, left to right */
+  .sig .hand { animation: signs 6s linear infinite; }
+  @keyframes signs {
+    0%, 44% { opacity: 1; clip-path: inset(-40% -10% -40% -10%); animation-timing-function: ease-in; }
+    50% { opacity: 0; clip-path: inset(-40% -10% -40% -10%); animation-timing-function: steps(1, end); }
+    50.2% { opacity: 1; clip-path: inset(-40% 110% -40% -10%); animation-timing-function: cubic-bezier(.45,.1,.4,1); }
+    76%, 100% { opacity: 1; clip-path: inset(-40% -10% -40% -10%); }
+  }
+  /* the red underline under DISCOVER is drawn anew */
+  .cta { border-bottom-color: transparent; background: linear-gradient(#A3302A, #A3302A) 0 100% / 100% .3vmin no-repeat; background-origin: border-box; animation: uline 6s linear infinite; }
+  @keyframes uline {
+    0%, 80% { background-size: 100% .3vmin; background-position: 100% 100%; animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    86% { background-size: 0% .3vmin; background-position: 100% 100%; animation-timing-function: steps(1, end); }
+    86.2% { background-size: 0% .3vmin; background-position: 0 100%; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    96%, 100% { background-size: 100% .3vmin; background-position: 0 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="stitch"></div>
+  <div class="sheet">
+    <div class="num"><div class="no">Collection N°</div><div class="n">07</div></div>
+    <div class="spec">
+      <div class="house">Atelier Nord</div>
+      <div class="title">Autumn–Winter<br>2026</div>
+      <div class="rows">
+        <div><span>Looks</span>42</div>
+        <div><span>Hours by hand</span>3,800</div>
+        <div><span>Presented</span>06.10</div>
+      </div>
+    </div>
+    <div class="sig">
+      <div class="who"><span class="hand">Hélène Marchal</span>Creative Director</div>
+      <div class="cta">Discover</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

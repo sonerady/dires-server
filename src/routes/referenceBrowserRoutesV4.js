@@ -1,3 +1,4 @@
+const { setGenerationProgress, getGenerationProgress, clearGenerationProgress } = require("../services/generationProgress");
 const { buildEditInput } = require("../utils/gpt25Edit");
 const { NB2_EDIT_MODEL, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const express = require("express");
@@ -3318,6 +3319,8 @@ router.post("/generate", async (req, res) => {
 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
+    // 🧭 Results kartındaki kullanıcı dostu aşama yazısı (services/generationProgress — yalnız bellekte)
+    setGenerationProgress(finalGenerationId, "preparing");
 
     logger.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
     logger.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);
@@ -3423,6 +3426,7 @@ router.post("/generate", async (req, res) => {
       const referenceImage = referenceImages[0];
 
       if (!referenceImage) {
+        clearGenerationProgress(finalGenerationId, "hata");
         return res.status(400).json({
           success: false,
           result: {
@@ -3446,6 +3450,7 @@ router.post("/generate", async (req, res) => {
         imageSourceForUpload = referenceImage.uri;
       } else {
         // file:// protokolü için frontend'de base64 dönüştürme zorunlu
+        clearGenerationProgress(finalGenerationId, "hata");
         return res.status(400).json({
           success: false,
           result: {
@@ -3472,6 +3477,7 @@ router.post("/generate", async (req, res) => {
     );
 
     // 🚀 Paralel işlemler başlat
+    setGenerationProgress(finalGenerationId, "request");
     logger.log(
       "🚀 Paralel işlemler başlatılıyor: Gemini + Arkaplan silme + ControlNet hazırlığı..."
     );
@@ -3747,7 +3753,9 @@ router.post("/generate", async (req, res) => {
 
     const startTime = Date.now(); // Define startTime here for overall processing time
 
+    setGenerationProgress(finalGenerationId, "generating");
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      if (attempt > 1) setGenerationProgress(finalGenerationId, "retrying");
       try {
         logger.log(
           `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`
@@ -3992,6 +4000,7 @@ router.post("/generate", async (req, res) => {
       }
     }
 
+    setGenerationProgress(finalGenerationId, "finishing");
     const initialResult = replicateResponse.data;
     logger.log("Fal.ai API final yanıtı (Replicate formatında):", initialResult);
 
@@ -4001,6 +4010,7 @@ router.post("/generate", async (req, res) => {
 
     if (!initialResult.id) {
       console.error("Fal.ai prediction ID alınamadı:", initialResult);
+      clearGenerationProgress(finalGenerationId, "hata");
 
       // 🗑️ Prediction ID hatası durumunda geçici dosyaları temizle
       logger.log(
@@ -4078,6 +4088,7 @@ router.post("/generate", async (req, res) => {
         replicate_prediction_id: initialResult.id,
         processing_time_seconds: processingTime,
       });
+      clearGenerationProgress(finalGenerationId, "tamamlandı");
 
       // 💳 KREDI GÜNCELLEME SIRASI
       // Kredi düşümü updateGenerationStatus içinde tetikleniyor (pay-on-success).
@@ -4132,6 +4143,7 @@ router.post("/generate", async (req, res) => {
       return res.status(200).json(responseData);
     } else {
       console.error("Replicate API başarısız:", finalResult);
+      clearGenerationProgress(finalGenerationId, "hata");
 
       // ❌ Status'u failed'e güncelle
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
@@ -4182,6 +4194,7 @@ router.post("/generate", async (req, res) => {
     }
   } catch (error) {
     console.error("Resim oluşturma hatası:", error);
+    clearGenerationProgress(finalGenerationId, "hata");
 
     // ❌ Status'u failed'e güncelle (genel hata durumu)
     if (finalGenerationId) {
@@ -4810,6 +4823,10 @@ router.get("/generation-status/:generationId", async (req, res) => {
         generationId: generation.generation_id,
         status: finalStatus,
         resultImageUrl: generation.result_image_url,
+        // ⏳ Ara aşama — bellekteki canlı aşama (services/generationProgress); tamamlanınca taşınmaz
+        stage: finalStatus === "processing" || finalStatus === "pending"
+          ? getGenerationProgress(generation.generation_id) || null
+          : null,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
         errorMessage: shouldUpdateStatus ? "İşlem zaman aşımına uğradı" : null,

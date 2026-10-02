@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Karla:wght@400;500;700&family=Mrs+Saint+Delafield&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* Welcome Letter — email 1 of a welcome series: a founder's short note with a signature, the photo as a matted print,
+     a welcome code in a dashed coupon and a "next in your inbox" teaser, with 3 series dots.
+     tall → headline, print, letter stacked · 3:4 → letter left, print right · square → print left, letter right · wide → letter left, wide print right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5EDE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F5EDE2; color: #2E2320; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; }
+
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 4vmin; display: flex; align-items: center; justify-content: space-between; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .logo { font-family: "EB Garamond", Georgia, serif; font-weight: 500; font-size: 3.2vmin; letter-spacing: .3em; }
+  .steps { display: flex; align-items: center; gap: 1vmin; color: #A8553A; }
+  .steps i { width: 1.2vmin; height: 1.2vmin; border-radius: 50%; border: 1px solid #A8553A; }
+  .steps i.on { background: #A8553A; }
+  .steps span { margin-left: .8vmin; }
+
+  .hl { position: absolute; left: 6vmin; right: 6vmin; top: 12vmin; }
+  h1 { margin: 0; font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 10vmin; line-height: .92; letter-spacing: -.03em; }
+  h1 i { color: #A8553A; }
+
+  .print { position: absolute; left: 6vmin; right: 6vmin; top: 36vmin; height: calc(100% - 100vmin); background: #FFFDF9; padding: 2vmin 2vmin 5vmin; box-sizing: border-box; box-shadow: 0 .4vmin 1.2vmin rgba(46,35,32,.12), 0 2vmin 4vmin -2vmin rgba(46,35,32,.2); }
+  .print img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; }
+  .print span { position: absolute; left: 2vmin; right: 2vmin; bottom: 1.4vmin; display: flex; justify-content: space-between; font-size: 1.6vmin; color: #8A7A70; white-space: nowrap; }
+
+  .letter { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.6vmin; height: 57vmin; display: flex; flex-direction: column; }
+  .letter p { margin: 0; font-family: "EB Garamond", Georgia, serif; font-size: 2.7vmin; line-height: 1.4; }
+  .sig { display: flex; align-items: flex-end; gap: 2vmin; margin-top: .4vmin; }
+  .sig b { font-family: "Mrs Saint Delafield", cursive; font-weight: 400; font-size: 8vmin; line-height: 1; color: #2E2320; }
+  .sig span { padding-bottom: 1.6vmin; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; color: #8A7A70; }
+  .ps { margin: 2.4vmin 0 0; font-family: "EB Garamond", Georgia, serif; font-style: italic; font-size: 2.3vmin; line-height: 1.4; color: #6E5E55; }
+  .coupon { margin-top: auto; display: flex; align-items: center; gap: 2.4vmin; padding: 2vmin 2.4vmin; border: .25vmin dashed #A8553A; }
+  .coupon .off { font-family: "EB Garamond", Georgia, serif; font-size: 6vmin; line-height: .9; color: #A8553A; white-space: nowrap; }
+  .coupon .off small { font-size: .45em; }
+  .coupon .txt { flex: 1; font-size: 1.7vmin; line-height: 1.4; color: #5E4F48; }
+  .coupon .txt b { display: block; font-size: 2.2vmin; letter-spacing: .12em; color: #2E2320; }
+  .cta { padding: 1.8vmin 3vmin; background: #2E2320; color: #F5EDE2; font-size: 1.8vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .nextup { margin-top: 1.8vmin; font-size: 1.6vmin; color: #8A7A70; white-space: nowrap; }
+  .nextup b { color: #2E2320; font-weight: 500; }
+
+  /* ── 3:4 — letter left, print right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .hl { right: 46%; }
+    h1 { font-size: 7.6vmin; }
+    .print { left: auto; right: 6vmin; width: calc(46% - 8vmin); top: 12vmin; bottom: 6vmin; height: auto; }
+    .letter { right: calc(46% + 3vmin); top: 40vmin; bottom: 5vmin; height: auto; }
+    .letter p { font-size: 2.2vmin; }
+    .sig b { font-size: 6.6vmin; }
+    .ps { font-size: 2vmin; }
+    .coupon { flex-wrap: wrap; gap: 1.4vmin 2vmin; }
+    .coupon .txt { flex: 1 1 18vmin; }
+    .cta { width: 100%; text-align: center; box-sizing: border-box; }
+  }
+  /* ── square — print left, letter right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .top { left: calc(44% + 2vmin); }
+    .steps span { display: none; }
+    .hl { left: calc(44% + 2vmin); right: 6vmin; top: 11vmin; }
+    h1 { font-size: 6.6vmin; }
+    .print { left: 5vmin; right: auto; width: calc(44% - 9vmin); top: 5vmin; bottom: 5vmin; }
+    .letter { left: calc(44% + 2vmin); right: 6vmin; top: 29vmin; bottom: 5vmin; }
+    .letter p { font-size: 1.9vmin; }
+    .sig b { font-size: 5.6vmin; }
+    .ps { font-size: 1.8vmin; margin-top: 1.4vmin; }
+    .sig span { padding-bottom: 1.2vmin; }
+    .coupon { padding: 1.4vmin 1.8vmin; flex-wrap: nowrap; }
+    .coupon .off { font-size: 4.8vmin; }
+    .cta { width: auto; padding: 1.5vmin 2.2vmin; font-size: 1.6vmin; }
+    .nextup { margin-top: 1.2vmin; }
+  }
+  /* ── wide — letter left, print right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .top { left: 6vmin; right: calc(46% + 4vmin); }
+    .steps span { display: inline; }
+    .hl { left: 6vmin; right: calc(46% + 4vmin); top: 12vmin; }
+    h1 { font-size: 7.4vmin; }
+    .print { left: auto; right: 5vmin; width: calc(46% - 5vmin); }
+    .letter { left: 6vmin; right: calc(46% + 4vmin); top: 32vmin; }
+    .letter p { font-size: 2.1vmin; }
+  }
+
+  /* ── animation loop ── */
+  /* 8s — slow and warm: the matted print floats gently on the page, the founder re-signs "Inès" by hand
+     (fade out → written left-to-right), the active series dot breathes a ring, and a soft light
+     passes over the coupon then the CTA. */
+  .print { animation: float 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0); box-shadow: 0 .4vmin 1.2vmin rgba(46,35,32,.12), 0 2vmin 4vmin -2vmin rgba(46,35,32,.2); }
+    50% { transform: translateY(-.8vmin) rotate(-.35deg); box-shadow: 0 .8vmin 1.8vmin rgba(46,35,32,.14), 0 3.4vmin 5vmin -2vmin rgba(46,35,32,.26); } }
+
+  .sig b { display: inline-block; animation: sign 8s linear infinite; }
+  @keyframes sign {
+    0%, 26% { opacity: 1; clip-path: inset(-30% -10% -40% -10%); }
+    30% { opacity: 0; clip-path: inset(-30% -10% -40% -10%); }
+    32% { opacity: 1; clip-path: inset(-30% 110% -40% -10%); animation-timing-function: cubic-bezier(.4,.1,.5,.95); }
+    52%, 100% { opacity: 1; clip-path: inset(-30% -10% -40% -10%); } }
+
+  .steps i { position: relative; }
+  .steps i.on::after { content: ""; position: absolute; inset: -1px; border-radius: 50%; border: 1px solid #A8553A; opacity: 0;
+    animation: ring 2s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes ring { 0% { opacity: 0; transform: scale(1); } 10% { opacity: .8; } 70%, 100% { opacity: 0; transform: scale(2.6); } }
+
+  .coupon, .cta { position: relative; overflow: hidden; }
+  .coupon::after, .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,240,220,.55) 50%, transparent 65%) no-repeat; background-size: 250% 100%;
+    background-position: 160% 0; animation: sheen 8s cubic-bezier(.45,0,.55,1) infinite; }
+  .coupon::after { animation-delay: -1.6s; }
+  .cta { z-index: 1; }
+  .cta::after { background-image: linear-gradient(105deg, transparent 35%, rgba(245,237,226,.3) 50%, transparent 65%); animation-delay: -.8s; }
+  @keyframes sheen { 0%, 78% { background-position: 160% 0; } 92%, 100% { background-position: -60% 0; } }
+  .coupon .off { display: inline-block; transform-origin: 50% 80%; animation: off 8s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes off { 0%, 80%, 92%, 100% { transform: scale(1); } 85% { transform: scale(1.1); } 89% { transform: scale(.98); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><span class="logo">AULÉ</span><span class="steps"><i class="on"></i><i></i><i></i><span>Welcome · 1 of 3</span></span></div>
+  <div class="hl"><h1>Welcome in. <i>We're glad you're here.</i></h1></div>
+  <div class="print"><img src="{{PRODUCT_IMAGE}}" alt=""><span><em>From the studio</em><em>SS · 01</em></span></div>
+  <div class="letter">
+    <p>Hi there — I started Aulé in a one-room studio with a single rule: make fewer things, and make them well. Everything you'll see from us is built to be used every day, for years. Here's a little something to say hello.</p>
+    <div class="sig"><b>Inès</b><span>Founder</span></div>
+    <div class="ps">P.S. Reply to this email any time — it comes straight to me.</div>
+    <div class="coupon">
+      <div class="off">15<small>%</small></div>
+      <div class="txt"><b>WELCOME15</b>Off your first order · 14 days</div>
+      <div class="cta">Start shopping</div>
+    </div>
+    <div class="nextup">Next in your inbox: <b>How we make it</b> — Thursday</div>
+  </div>
+</div>
+</body>
+</html>

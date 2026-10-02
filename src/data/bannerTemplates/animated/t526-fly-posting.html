@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Space+Mono:wght@400;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Fly Posting — a black site hoarding fly-posted overnight: one big photo poster, a yellow type bill,
+     and a run of repeat posters of the same shot, slightly out of line like a real paste-up crew left them.
+     tall / 3:4 → hero on top, bill + repeats below · square / wide → hero left, bill + repeat run right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1A1A19; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #141414; font-family: "Space Mono", "Courier New", monospace;
+    background:
+      linear-gradient(90deg, transparent 0 calc(33.3% - 1px), rgba(255,255,255,.07) calc(33.3% - 1px) 33.3%, transparent 33.3% calc(66.6% - 1px), rgba(255,255,255,.07) calc(66.6% - 1px) 66.6%, transparent 66.6%),
+      repeating-linear-gradient(180deg, rgba(255,255,255,.018) 0 .3vmin, transparent .3vmin 1.1vmin, rgba(0,0,0,.08) 1.1vmin 1.5vmin, transparent 1.5vmin 2.6vmin),
+      radial-gradient(60vmin 40vmin at 70% 20%, rgba(255,255,255,.05), transparent 70%),
+      #1D1D1C; }
+  .paper { position: absolute; background: #F4F1E8; box-shadow: 0 .4vmin 1.2vmin rgba(0,0,0,.5); }
+
+  .hero { left: 5vmin; right: 5vmin; top: 5vmin; height: calc(100% - 64vmin); }
+  .hero img { position: absolute; left: 1.6vmin; top: 1.6vmin; width: calc(100% - 3.2vmin); height: calc(100% - 6.4vmin); object-fit: cover; object-position: 50% 25%; display: block; }
+  .hero .imprint { position: absolute; left: 1.8vmin; right: 1.8vmin; bottom: 1.4vmin; display: flex; justify-content: space-between; font-size: 1.6vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  .bill { left: 4.4vmin; bottom: 5vmin; width: 56vmin; height: 50vmin; background: #F5D22E; transform: rotate(-.8deg); padding: 3.2vmin; box-sizing: border-box; display: flex; flex-direction: column;
+    background-image: linear-gradient(90deg, transparent 49.6%, rgba(0,0,0,.05) 50%, transparent 50.5%), linear-gradient(180deg, transparent 49.6%, rgba(0,0,0,.04) 50%, transparent 50.5%); }
+  .kick { font-size: 1.7vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: .6vmin 0 0; font-family: "League Gothic", Impact, sans-serif; font-weight: 400; font-size: 19vmin; line-height: .82; text-transform: uppercase; letter-spacing: .005em; }
+  .sub { margin-top: 1.4vmin; font-size: 1.8vmin; line-height: 1.4; }
+  .row { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 2vmin; border-top: .4vmin solid #141414; padding-top: 1.2vmin; }
+  .price { font-family: "League Gothic", Impact, sans-serif; font-size: 7.6vmin; line-height: .85; }
+  .url { font-size: 1.7vmin; font-weight: 700; text-align: right; line-height: 1.3; white-space: nowrap; }
+
+  .run { position: absolute; right: 5vmin; bottom: 5vmin; width: 29vmin; height: 51vmin; display: flex; flex-direction: column; gap: 2.4vmin; }
+  .rep { position: relative; flex: 1; background: #F4F1E8; box-shadow: 0 .4vmin 1.2vmin rgba(0,0,0,.5); }
+  .rep:nth-child(1) { transform: rotate(1.2deg); } .rep:nth-child(2) { transform: rotate(-.9deg) translateX(-.6vmin); } .rep:nth-child(3) { transform: rotate(.7deg); }
+  .rep:nth-child(3) { display: none; }
+  .rep img { position: absolute; left: 1vmin; top: 1vmin; width: calc(100% - 2vmin); height: calc(100% - 6.2vmin); object-fit: cover; object-position: 50% 25%; display: block; }
+  .rep span { position: absolute; left: 1vmin; right: 1vmin; bottom: 1vmin; height: 4.2vmin; background: #E0312B; color: #F4F1E8; font-family: "League Gothic", Impact, sans-serif; font-size: 3.4vmin; line-height: 4.2vmin; text-align: center; text-transform: uppercase; letter-spacing: .06em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .hero { top: 4.4vmin; height: calc(100% - 52vmin); }
+    .bill { width: 58vmin; height: 40vmin; bottom: 4.4vmin; padding: 2.6vmin; }
+    h1 { font-size: 14.6vmin; }
+    .price { font-size: 6vmin; }
+    .run { width: 29vmin; height: 41vmin; bottom: 4.4vmin; gap: 2vmin; }
+  }
+  /* square / wide — hero left, bill + repeat run right */
+  @media (min-aspect-ratio: 9/10) {
+    .hero { left: 5vmin; right: auto; top: 5vmin; width: 44%; height: calc(100% - 10vmin); }
+    .bill { left: calc(44% + 9vmin); right: 5vmin; width: auto; top: 5vmin; bottom: auto; height: 50vmin; padding: 2.8vmin; }
+    h1 { font-size: 15vmin; }
+    .price { font-size: 6.4vmin; }
+    .run { left: calc(44% + 9vmin); right: 5vmin; width: auto; top: 60vmin; bottom: 5vmin; height: auto; flex-direction: row; gap: 2.4vmin; }
+    .rep span { font-size: 2.6vmin; height: 3.4vmin; line-height: 3.4vmin; }
+    .rep img { height: calc(100% - 5.4vmin); }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .hero { width: 40%; }
+    .bill { left: calc(40% + 9vmin); height: 52vmin; padding: 3.4vmin; }
+    h1 { font-size: 19vmin; }
+    .price { font-size: 7.4vmin; }
+    .run { left: calc(40% + 9vmin); top: 62vmin; }
+    .rep:nth-child(3) { display: block; }
+    .rep span { font-size: 3vmin; height: 3.8vmin; line-height: 3.8vmin; }
+    .rep img { height: calc(100% - 5.8vmin); }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: hero shot breathes inside its poster (≤1.03), the fresh yellow bill lifts slightly in the draught (3s)
+     beats: 0.9s "Out now" slams · 2.1s the paste crew re-slaps the repeat run, poster after poster ·
+            3.9s the red "Out now" strips flash yellow in a chase down the run */
+  .hero img { animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.456%); } }
+  .bill { animation: draught 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes draught { 0%, 100% { transform: rotate(-.8deg); } 50% { transform: rotate(-.8deg) skewX(-.6deg) scaleY(.994); } }
+  h1 { transform-origin: 0 80%; animation: slam 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes slam { 0%, 13%, 27%, 100% { transform: none; } 16% { transform: scale(1.09) rotate(-1.5deg); } 20% { transform: scale(.97, 1.02); } 23.5% { transform: scale(1.01); } }
+  .rep:nth-child(1) { animation: paste1 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .rep:nth-child(2) { animation: paste2 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .rep:nth-child(3) { animation: paste3 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes paste1 { 0%, 33%, 45%, 100% { transform: rotate(1.2deg); box-shadow: 0 .4vmin 1.2vmin rgba(0,0,0,.5); }
+    37% { transform: rotate(3deg) translate(-.4vmin, -1vmin) scale(1.05); box-shadow: 0 2vmin 3vmin rgba(0,0,0,.55); } 40.5% { transform: rotate(.9deg) scale(.985); box-shadow: 0 .2vmin .6vmin rgba(0,0,0,.6); } 43% { transform: rotate(1.3deg) scale(1.004); } }
+  @keyframes paste2 { 0%, 40%, 52%, 100% { transform: rotate(-.9deg) translateX(-.6vmin); box-shadow: 0 .4vmin 1.2vmin rgba(0,0,0,.5); }
+    44% { transform: rotate(-2.8deg) translate(-.9vmin, -1vmin) scale(1.05); box-shadow: 0 2vmin 3vmin rgba(0,0,0,.55); } 47.5% { transform: rotate(-.6deg) translateX(-.6vmin) scale(.985); box-shadow: 0 .2vmin .6vmin rgba(0,0,0,.6); } 50% { transform: rotate(-1deg) translateX(-.6vmin) scale(1.004); } }
+  @keyframes paste3 { 0%, 47%, 59%, 100% { transform: rotate(.7deg); box-shadow: 0 .4vmin 1.2vmin rgba(0,0,0,.5); }
+    51% { transform: rotate(2.6deg) translate(-.4vmin, -1vmin) scale(1.05); box-shadow: 0 2vmin 3vmin rgba(0,0,0,.55); } 54.5% { transform: rotate(.4deg) scale(.985); box-shadow: 0 .2vmin .6vmin rgba(0,0,0,.6); } 57% { transform: rotate(.8deg) scale(1.004); } }
+  .rep span { animation: strip 6s linear infinite; }
+  .rep:nth-child(2) span { animation-delay: -5.8s; }
+  .rep:nth-child(3) span { animation-delay: -5.6s; }
+  @keyframes strip { 0%, 64%, 70%, 100% { background-color: #E0312B; color: #F4F1E8; } 65%, 69% { background-color: #F5D22E; color: #141414; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="paper hero"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="imprint"><span>Kiosk Nord</span><span>Out now · 25.09</span></div></div>
+  <div class="paper bill">
+    <div class="kick">Kiosk Nord presents</div>
+    <h1>Out now</h1>
+    <div class="sub">The new edit is on every wall in town. Now it's online too.</div>
+    <div class="row"><div class="price">From $49</div><div class="url">kiosknord.shop<br>Free returns</div></div>
+  </div>
+  <div class="run">
+    <div class="rep"><img src="{{PRODUCT_IMAGE}}" alt=""><span>Out now</span></div>
+    <div class="rep"><img src="{{PRODUCT_IMAGE}}" alt=""><span>Out now</span></div>
+    <div class="rep"><img src="{{PRODUCT_IMAGE}}" alt=""><span>Out now</span></div>
+  </div>
+</div>
+</body>
+</html>

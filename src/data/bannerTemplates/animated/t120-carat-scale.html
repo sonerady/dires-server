@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@700;900&family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Carat Scale — a jeweller's precision balance: the photo rests on the brushed-steel pan, and the
+     graphite body's backlit dot-matrix display reads the offer (−30% OFF, STABLE), with tare/mode keys.
+     tall → pan above the balance; 3:4 / square / wide → pan left, balance right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6E2DB; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F2F3F4; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(90% 60% at 50% 100%, #EFEBE5 0%, #E2DDD5 70%, #D8D2C9 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 74vmin); object-fit: cover; object-position: 50% 22%; }
+  /* brushed steel pan lip */
+  .pan { position: absolute; left: 0; right: 0; top: calc(100% - 74vmin); height: 2.6vmin;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.3) 0 .15vmin, rgba(0,0,0,0) .15vmin .5vmin), linear-gradient(180deg, #F4F5F6 0%, #B5B9BE 45%, #D8DBDE 70%, #8E9399 100%);
+    box-shadow: 0 .8vmin 1.4vmin rgba(40,36,30,.3); }
+
+  .body { position: absolute; left: 5vmin; right: 5vmin; top: calc(100% - 74vmin + 7vmin); bottom: 5vmin; box-sizing: border-box; padding: 3.6vmin 4.4vmin 4vmin; border-radius: 3vmin;
+    background: linear-gradient(170deg, #2B2E33 0%, #1C1E21 60%, #16181A 100%);
+    box-shadow: 0 2.4vmin 4vmin rgba(40,36,30,.35), inset 0 .25vmin 0 rgba(255,255,255,.12), inset 0 -.4vmin 0 rgba(0,0,0,.4);
+    display: flex; flex-direction: column; }
+  .model { display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #8C9197; }
+  .model span:last-child { letter-spacing: .08em; text-transform: none; white-space: nowrap; }
+  .lcd { position: relative; margin-top: 2.2vmin; padding: 2.2vmin 3vmin 2vmin; border-radius: 1.2vmin; color: #1E2A14;
+    background: linear-gradient(180deg, #CBD8A8 0%, #B4C48E 100%);
+    box-shadow: inset 0 .6vmin 1.2vmin rgba(30,42,20,.35), 0 0 0 .6vmin #0E0F10, 0 0 0 .75vmin #3A3D42;
+    display: grid; grid-template-columns: auto 1fr; column-gap: 3vmin; align-items: end; }
+  .ind { display: flex; flex-direction: column; gap: 1vmin; padding-bottom: 1vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  .ind span::before { content: "▸ "; }
+  .ind span + span { opacity: .35; }
+  .read { text-align: right; font-family: "Doto", "Courier New", monospace; font-weight: 900; font-size: 17vmin; line-height: .9; letter-spacing: -.02em; white-space: nowrap; }
+  .unit { grid-column: 2; text-align: right; margin-top: .6vmin; font-family: "Doto", monospace; font-weight: 900; font-size: 3.4vmin; letter-spacing: .12em; }
+  h1 { margin: 3.4vmin 0 0; font-weight: 800; font-size: 7.4vmin; line-height: .98; letter-spacing: -.03em; }
+  .txt { margin: 1.6vmin 0 0; font-size: 2.1vmin; line-height: 1.5; color: #A9AEB4; }
+  .keys { margin-top: auto; display: flex; gap: 1.8vmin; align-items: stretch; }
+  .keys div { padding: 1.7vmin 2.4vmin; border-radius: 1vmin; background: linear-gradient(180deg, #3A3E44, #2A2D31); box-shadow: 0 .4vmin 0 #0C0D0E, inset 0 .15vmin 0 rgba(255,255,255,.12); font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #C9CDD2; white-space: nowrap; }
+  .keys .go { margin-left: auto; background: linear-gradient(180deg, #F07A4C, #D95A2E); box-shadow: 0 .4vmin 0 #8E3717, inset 0 .15vmin 0 rgba(255,255,255,.3); color: #fff; font-size: 1.9vmin; }
+
+  /* ── 3:4 / square / wide — pan left, balance right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 52%; height: 100%; }
+    .pan { top: 0; bottom: 0; left: 52%; right: auto; width: 2.6vmin; height: auto;
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,.3) 0 .15vmin, rgba(0,0,0,0) .15vmin .5vmin), linear-gradient(90deg, #F4F5F6 0%, #B5B9BE 45%, #D8DBDE 70%, #8E9399 100%);
+      box-shadow: .8vmin 0 1.4vmin rgba(40,36,30,.3); }
+    .body { left: calc(52% + 7vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; padding: 3.4vmin 3.4vmin 3.6vmin; }
+    .model span:first-child { display: none; }
+    .lcd { padding: 2vmin 2.4vmin 1.8vmin; grid-template-columns: 1fr; flex: 1; align-content: center; max-height: 44vmin; }
+    .ind { flex-direction: row; gap: 2vmin; padding-bottom: 1vmin; }
+    .read { font-size: 12vmin; }
+    .unit { grid-column: 1; font-size: 2.8vmin; }
+    h1 { font-size: 6.4vmin; }
+    .keys { margin-top: 3vmin; }
+    .txt { font-size: 1.9vmin; }
+    .keys { flex-wrap: wrap; gap: 1.4vmin; }
+    .keys div { padding: 1.5vmin 1.8vmin; font-size: 1.6vmin; }
+    .keys .go { margin-left: 0; flex: 1 0 100%; text-align: center; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .pan { left: 50%; }
+    .body { left: calc(50% + 6vmin); top: 5vmin; bottom: 5vmin; padding: 3vmin; }
+    .lcd { margin-top: 1.8vmin; max-height: 34vmin; }
+    .read { font-size: 11vmin; }
+    h1 { font-size: 5.6vmin; margin-top: 2.6vmin; }
+    .txt { font-size: 1.7vmin; margin-top: 1.2vmin; }
+    .keys { margin-top: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .pan { left: 44%; }
+    .body { left: calc(44% + 8vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; padding: 3.6vmin 4vmin 4vmin; }
+    .model span:first-child { display: inline; }
+    .lcd { grid-template-columns: auto 1fr; padding: 2.2vmin 3vmin 2vmin; }
+    .ind { flex-direction: column; gap: 1vmin; }
+    .read { font-size: 17vmin; }
+    .unit { grid-column: 2; font-size: 3vmin; }
+    h1 { font-size: 6.4vmin; margin-top: 3vmin; }
+    .txt { display: block; font-size: 1.9vmin; }
+    .keys { flex-wrap: nowrap; }
+    .keys .go { margin-left: auto; flex: none; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* re-weighing: TARE is pressed, the reading races up and settles back on −30% */
+  .read { position: relative; }
+  .read i { position: absolute; right: 0; top: 0; font-style: normal; opacity: 0; }
+  .read .v { display: block; animation: rv 6s steps(1, end) infinite; }
+  @keyframes rv { 0%, 37.99% { opacity: 1; } 38%, 56.99% { opacity: 0; } 57%, 100% { opacity: 1; } }
+  .read i:nth-of-type(1) { animation: r1 6s steps(1, end) infinite; }
+  @keyframes r1 { 0%, 37.99% { opacity: 0; } 38%, 41.49% { opacity: 1; } 41.5%, 100% { opacity: 0; } }
+  .read i:nth-of-type(2) { animation: r2 6s steps(1, end) infinite; }
+  @keyframes r2 { 0%, 41.49% { opacity: 0; } 41.5%, 44.99% { opacity: 1; } 45%, 100% { opacity: 0; } }
+  .read i:nth-of-type(3) { animation: r3 6s steps(1, end) infinite; }
+  @keyframes r3 { 0%, 44.99% { opacity: 0; } 45%, 48.49% { opacity: 1; } 48.5%, 100% { opacity: 0; } }
+  .read i:nth-of-type(4) { animation: r4 6s steps(1, end) infinite; }
+  @keyframes r4 { 0%, 48.49% { opacity: 0; } 48.5%, 52.49% { opacity: 1; } 52.5%, 100% { opacity: 0; } }
+  .read i:nth-of-type(5) { animation: r5 6s steps(1, end) infinite; }
+  @keyframes r5 { 0%, 52.49% { opacity: 0; } 52.5%, 56.99% { opacity: 1; } 57%, 100% { opacity: 0; } }
+
+  /* STABLE drops out while weighing and double-blinks when it settles */
+  .ind span:first-child { animation: stable 6s steps(1, end) infinite; }
+  @keyframes stable { 0%, 37.99% { opacity: 1; } 38%, 56.99% { opacity: .2; } 57%, 58.99% { opacity: 1; } 59%, 60.99% { opacity: .2; } 61%, 100% { opacity: 1; } }
+  /* backlight swells on the settled reading */
+  .lcd { animation: backlight 6s linear infinite; }
+  @keyframes backlight {
+    0%, 56% { filter: brightness(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    59% { filter: brightness(1.1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    72%, 100% { filter: brightness(1); }
+  }
+  /* the pan dips under the weight */
+  .photo { transform-origin: 50% 100%; animation: dip 6s linear infinite; }
+  @keyframes dip {
+    0%, 38% { transform: scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    41.5% { transform: scale(1.022); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    46% { transform: scale(1.008); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: scale(1.014); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    58%, 100% { transform: scale(1); }
+  }
+  /* key presses: TARE before the weighing, the orange key after */
+  .keys div:first-child, .keys .go { animation: press 6s linear infinite; }
+  .keys .go { animation-delay: -2.7s; }
+  @keyframes press {
+    0%, 33% { translate: 0 0; animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    34.5% { translate: 0 .35vmin; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    38%, 100% { translate: 0 0; }
+  }
+  @media (min-aspect-ratio: 7/10) { .photo { transform-origin: 100% 50%; } }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="pan"></div>
+  <div class="body">
+    <div class="model"><span>Atelier Nord · Precision 200</span><span>d = 0.001 ct</span></div>
+    <div class="lcd">
+      <div class="ind"><span>Stable</span><span>Net</span></div>
+      <div class="read"><span class="v">−30%</span><i>0.00</i><i>−08%</i><i>−19%</i><i>−27%</i><i>−32%</i></div>
+      <div class="unit">OFF</div>
+    </div>
+    <h1>Worth its weight.</h1>
+    <p class="txt">30% off the new collection. Weighed in until Sunday.</p>
+    <div class="keys"><div>Tare</div><div>Mode</div><div class="go">Shop now →</div></div>
+  </div>
+</div>
+</body>
+</html>

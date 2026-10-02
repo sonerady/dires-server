@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Tinos:ital,wght@0,400;0,700;1,400&family=Arimo:wght@400;700&family=Cousine:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Index Of — brutalist web: a raw directory listing, default-blue hyperlinks, hard black rules */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFFFFF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FFFFFF; color: #000; font-family: "Tinos", "Times New Roman", Times, serif; }
+  a, .a { color: #0000EE; text-decoration: underline; text-decoration-thickness: .2vmin; text-underline-offset: .4vmin; }
+  .v { color: #551A8B; }
+
+  .page { position: absolute; inset: 0; padding: 4.4vmin 5vmin 4.4vmin; display: grid; grid-template-columns: 100%; grid-template-rows: auto minmax(0, 1fr) auto auto auto auto; grid-template-areas: "head" "shot" "cap" "sale" "tbl" "foot"; }
+  .head { grid-area: head; }
+  .bar { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; font-family: "Cousine", "Courier New", monospace; font-size: 1.7vmin; }
+  .bar b { background: #000; color: #fff; padding: .3vmin 1vmin; font-weight: 700; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 700; font-size: 7.4vmin; line-height: 1; letter-spacing: -.01em; }
+  .nav { margin-top: 1.4vmin; display: flex; flex-wrap: wrap; gap: .6vmin 1.8vmin; font-size: 2.3vmin; }
+  hr { margin: 2vmin 0 0; border: 0; border-top: .6vmin solid #000; }
+
+  .read { grid-area: read; display: none; margin-top: 3vmin; font-size: 2.4vmin; line-height: 1.4; max-width: 48vmin; }
+  .read b { font-weight: 700; }
+  .shot { grid-area: shot; position: relative; min-height: 0; margin-top: 2.4vmin; border: .6vmin solid #000; }
+  .shot img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .cap { grid-area: cap; margin-top: 1vmin; display: flex; justify-content: space-between; gap: 2vmin; font-size: 2vmin; font-style: italic; }
+
+  .sale { grid-area: sale; margin-top: 2.6vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 2vmin; }
+  .sale .big { font-family: "Arimo", Arial, Helvetica, sans-serif; font-weight: 700; font-size: 13vmin; line-height: .8; letter-spacing: -.06em; white-space: nowrap; }
+  .sale .big mark { background: #FFFF00; color: #000; padding: 0 .8vmin; }
+  .sale .new { font-family: "Arimo", Arial, sans-serif; font-weight: 700; font-size: 2vmin; color: #FF0000; text-transform: uppercase; letter-spacing: .04em; text-align: right; line-height: 1.3; }
+
+  table { grid-area: tbl; margin-top: 2.4vmin; width: 100%; border-collapse: collapse; font-family: "Cousine", "Courier New", monospace; font-size: 1.9vmin; }
+  th { text-align: left; font-weight: 700; padding: 0 0 .8vmin; border-bottom: .25vmin solid #000; }
+  td { padding: .7vmin 0 0; white-space: nowrap; }
+  td:first-child, th:first-child { width: 7vmin; }
+  td:last-child, th:last-child { text-align: right; }
+
+  .foot { grid-area: foot; margin-top: 2.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .btn { font-family: "Arimo", Arial, sans-serif; font-size: 2.3vmin; font-weight: 700; background: #D4D0C8; color: #000; padding: 1.3vmin 2.6vmin; border: .5vmin outset #EFEDE8; white-space: nowrap; }
+  .addr { font-size: 1.9vmin; font-style: italic; text-align: right; line-height: 1.3; }
+  .ctr { font-family: "Cousine", monospace; font-style: normal; background: #000; color: #39FF14; padding: 0 .6vmin; letter-spacing: .1em; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    h1 { font-size: 6.6vmin; }
+    .sale .big { font-size: 11vmin; }
+    .row3 { display: none; }
+  }
+  /* SQUARE & WIDE — the screenshot left, the page right */
+  @media (min-aspect-ratio: 9/10) {
+    .page { padding: 4vmin; column-gap: 4vmin; grid-template-columns: 46% minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+      grid-template-areas: "shot head" "shot read" "shot sale" "shot tbl" "cap foot"; }
+    .read { display: block; font-size: 2.1vmin; }
+    .shot { margin-top: 0; }
+    h1 { font-size: 6vmin; }
+    .nav { font-size: 2vmin; }
+    .sale .big { font-size: 9vmin; }
+    table { font-size: 1.7vmin; }
+    .row3 { display: table-row; }
+    .foot { margin-top: 2.6vmin; }
+    .cap { margin-top: 0; align-self: end; }
+    .btn { font-size: 2vmin; padding: 1.1vmin 2vmin; }
+    .addr { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .page { padding: 4.4vmin 5vmin; column-gap: 5vmin; grid-template-columns: 40% minmax(0, 1fr); }
+    h1 { font-size: 7vmin; }
+    .sale .big { font-size: 12vmin; }
+    table { font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design — the 1999 web page is live ───────── */
+  /* visitor counter: the last digit rolls over like an odometer, ten hits per loop */
+  .odo { display: inline-block; height: 1.3em; overflow: hidden; vertical-align: top; }
+  .odo > span { display: block; animation: odo 6s linear infinite; }
+  @keyframes odo {
+    0%, 7% { transform: translateY(0); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    10%, 17% { transform: translateY(-1.3em); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    20%, 27% { transform: translateY(-2.6em); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    30%, 37% { transform: translateY(-3.9em); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    40%, 47% { transform: translateY(-5.2em); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    50%, 57% { transform: translateY(-6.5em); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    60%, 67% { transform: translateY(-7.8em); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    70%, 77% { transform: translateY(-9.1em); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    80%, 87% { transform: translateY(-10.4em); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    90%, 97% { transform: translateY(-11.7em); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    100% { transform: translateY(-13em); }
+  }
+  /* New! blinks like a <blink> tag */
+  .sale .new { animation: blink 1s steps(1, end) infinite; }
+  @keyframes blink { 0%, 64% { opacity: 1; } 65%, 90% { opacity: 0; } 91%, 100% { opacity: 1; } }
+  /* the yellow highlighter is re-swiped across "−30%" */
+  .sale .big mark { background: linear-gradient(90deg, #FFFF00 50%, rgba(255,255,0,0) 50%) 0 0 / 200% 100% no-repeat; animation: hl 6s linear infinite; }
+  @keyframes hl {
+    0%, 14% { background-position: 0% 0; animation-timing-function: steps(1, end); }
+    15% { background-position: 100% 0; animation-timing-function: cubic-bezier(.55,0,.25,1); }
+    26%, 100% { background-position: 0% 0; }
+  }
+  /* a pointer glides in, clicks "Shop the drop" (the bevel presses in), and leaves */
+  .btn { position: relative; animation: press 6s linear infinite; }
+  @keyframes press {
+    0%, 66% { border-style: outset; background-color: #D4D0C8; animation-timing-function: steps(1, end); }
+    67%, 70% { border-style: inset; background-color: #C8C4BC; animation-timing-function: steps(1, end); }
+    71%, 100% { border-style: outset; background-color: #D4D0C8; }
+  }
+  .cur { position: absolute; left: 62%; top: 52%; width: 2.6vmin; height: 4.1vmin; transform: scale(0); transform-origin: 8% 5%; animation: cur 6s linear infinite; pointer-events: none; }
+  .cur svg { display: block; width: 100%; height: 100%; }
+  @keyframes cur {
+    0%, 46% { transform: translate(14vmin, -12vmin) scale(0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    49% { transform: translate(12.6vmin, -10.8vmin) scale(1); animation-timing-function: cubic-bezier(.3,0,.15,1); }
+    65% { transform: translate(0, 0) scale(1); animation-timing-function: steps(1, end); }
+    67% { transform: translate(0, 0) scale(.86); animation-timing-function: steps(1, end); }
+    70% { transform: translate(0, 0) scale(1); animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    80% { transform: translate(6vmin, -5vmin) scale(1); animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    84%, 100% { transform: translate(7vmin, -6vmin) scale(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="page">
+    <div class="head">
+      <div class="bar"><b>atelier-nord.store</b><span>/ss26/drop-03/</span></div>
+      <h1>Index of /ss26/drop-03</h1>
+      <div class="nav"><span class="a">Home</span><span class="a">New in</span><span class="a v">Sale</span><span class="a">Lookbook</span><span class="a">Stores</span></div>
+      <hr>
+    </div>
+    <div class="read"><b>README:</b> the new drop is live. Twenty-four pieces, one week, no restocks. Click fast.</div>
+    <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="cap"><span class="a">look_01.jpg</span><span>Fig. 1 — the new drop</span></div>
+    <div class="sale"><div class="big">Sale <mark>−30%</mark></div><div class="new">New!<br>this week</div></div>
+    <table>
+      <tr><th></th><th>Name</th><th>Modified</th></tr>
+      <tr><td>[DIR]</td><td><span class="a v">new-in/</span></td><td>25-Sep-26</td></tr>
+      <tr><td>[DIR]</td><td><span class="a">the-edit/</span></td><td>25-Sep-26</td></tr>
+      <tr class="row3"><td>[TXT]</td><td><span class="a">code-DROP30.txt</span></td><td>1 KB</td></tr>
+    </table>
+    <div class="foot"><span class="btn">Shop the drop<i class="cur" aria-hidden="true"><svg viewBox="0 0 13 20"><path d="M1 1 L1 16.5 L4.8 12.8 L7.6 19 L10 18 L7.3 11.8 L12.4 11.8 Z" fill="#fff" stroke="#000" stroke-width="1.1" stroke-linejoin="round"/></svg></i></span><span class="addr">Best viewed in person.<br>Visitors: <span class="ctr">004201<span class="odo"><span>7<br>8<br>9<br>0<br>1<br>2<br>3<br>4<br>5<br>6<br>7</span></span></span></span></div>
+  </div>
+</div>
+</body>
+</html>

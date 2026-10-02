@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Righteous&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Conversation Pit — a 70s living room: the photo hangs in a walnut frame on grooved wood panelling, a curved
+     burnt-orange channel-tufted sofa sinks in below with the copy stitched across its backrest, avocado shag underfoot,
+     a space-age globe pendant hangs over the sofa in the square / wide cuts.
+     tall / 3:4 → framed photo above, sofa across the bottom · square / wide → framed photo left, sofa + lamp on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #4A2812; }
+  .banner { --sb: 9vmin; --sh: 48vmin; --st: 8vmin; position: fixed; inset: 0; overflow: hidden; color: #FFF1DA; font-family: "Jost", "Futura", "Century Gothic", sans-serif;
+    background:
+      linear-gradient(180deg, rgba(20,8,2,.35) 0%, rgba(20,8,2,0) 30%, rgba(20,8,2,0) 70%, rgba(20,8,2,.45) 100%),
+      repeating-linear-gradient(90deg, rgba(255,210,150,.06) 0 .25vmin, rgba(0,0,0,0) .25vmin 2.1vmin),
+      repeating-linear-gradient(90deg, #6A3A1C 0 7.4vmin, #3A1E0C 7.4vmin 8vmin, #5E3317 8vmin 15.4vmin, #3A1E0C 15.4vmin 16vmin); }
+  .frame { position: absolute; left: 12vmin; right: 12vmin; top: 11vmin; height: calc(100% - 11vmin - var(--sb) - var(--sh) - 6vmin);
+    box-shadow: 0 0 0 1.4vmin #F1E4C8, 0 0 0 3.2vmin #2A170A, 0 0 0 3.5vmin #6B4424, 1vmin 2.4vmin 3vmin 3.4vmin rgba(10,4,0,.55); }
+  .frame img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+  .plaque { position: absolute; left: 50%; top: 3vmin; transform: translateX(-50%); padding: .9vmin 2.2vmin; background: linear-gradient(180deg, #F5D58C, #C99A3E); color: #3A1E0C; font-size: 1.7vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 .4vmin .8vmin rgba(0,0,0,.4); }
+  /* the pit */
+  .rug { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--sb) + 1vmin);
+    background: radial-gradient(circle, #9AAA42 0 .35vmin, rgba(0,0,0,0) .45vmin) 0 0 / 1.3vmin 1.3vmin, radial-gradient(circle, #4F5A1B 0 .35vmin, rgba(0,0,0,0) .45vmin) .65vmin .65vmin / 1.3vmin 1.3vmin, #6E7B2C; }
+  .sofa { position: absolute; left: -2vmin; right: -2vmin; bottom: var(--sb); height: var(--sh); }
+  .back { position: absolute; left: 0; right: 0; top: 0; bottom: 3vmin; border-radius: 18vmin 18vmin 0 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 22%, rgba(0,0,0,0) 70%, rgba(60,15,0,.3)), repeating-linear-gradient(90deg, #D2601F 0 8.6vmin, #B94F16 8.6vmin 9vmin), #D2601F;
+    box-shadow: inset 0 1.2vmin 0 rgba(255,190,130,.35); }
+  .arm { position: absolute; bottom: 0; width: 13vmin; height: 26vmin; border-radius: 6.5vmin 6.5vmin 1vmin 1vmin; background: linear-gradient(180deg, #C4561B, #A4440F); box-shadow: inset 0 1vmin 0 rgba(255,190,130,.3); }
+  .arm.l { left: -3vmin; } .arm.r { right: -3vmin; }
+  .seat { position: absolute; left: 7vmin; right: 7vmin; bottom: 0; height: var(--st); border-radius: 3vmin 3vmin 1vmin 1vmin; background: linear-gradient(180deg, #E8773A, #CB5A1C); box-shadow: 0 -.6vmin 1.4vmin rgba(60,15,0,.35); }
+  .copy { position: absolute; left: 14vmin; right: 14vmin; bottom: calc(var(--sb) + var(--st) + 2.2vmin); text-align: center; }
+  .k { font-size: 1.9vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #FFD27A; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Righteous", "Futura", sans-serif; font-weight: 400; font-size: 10vmin; line-height: .95; letter-spacing: -.01em; color: #FFF1DA; text-shadow: 0 .5vmin 0 #8E3A0C; }
+  .d { margin-top: 2vmin; font-size: 2.5vmin; font-weight: 400; line-height: 1.4; }
+  .d b { font-weight: 600; color: #FFD27A; }
+  .act { position: absolute; left: 0; right: 0; bottom: calc(var(--sb) + var(--st) / 2); transform: translateY(50%); display: flex; justify-content: center; }
+  .cta { background: #FFF1DA; color: #8E3A0C; border-radius: 99vmin; padding: 1.5vmin 3.4vmin; font-size: 2.2vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .code { margin-top: 1.4vmin; font-size: 1.9vmin; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .code b { font-weight: 600; color: #FFD27A; }
+  .code i { font-style: normal; }
+  .lamp { display: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --sb: 7vmin; --sh: 41vmin; --st: 7vmin; }
+    .frame { top: 9vmin; left: 16vmin; right: 16vmin; height: calc(100% - 9vmin - var(--sb) - var(--sh) - 5.5vmin); }
+    .plaque { top: 2.2vmin; font-size: 1.6vmin; padding: .7vmin 2vmin; }
+    h1 { font-size: 8.6vmin; margin-top: 1.2vmin; }
+    .d { font-size: 2.2vmin; margin-top: 1.4vmin; }
+    .cta { font-size: 2vmin; padding: 1.3vmin 3vmin; }
+    .code { font-size: 1.7vmin; }
+  }
+  /* square → framed photo left; sofa + globe pendant on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --sb: 7vmin; --sh: 58vmin; --st: 7vmin; }
+    .frame { left: 8vmin; right: auto; top: 9vmin; width: 39vmin; height: calc(100% - 9vmin - 12vmin); }
+    .plaque { left: 27.5vmin; top: 2.4vmin; font-size: 1.6vmin; }
+    .sofa { left: 53vmin; right: -4vmin; }
+    .back { border-radius: 14vmin 14vmin 0 0; }
+    .arm { width: 10vmin; height: 24vmin; }
+    .arm.l { left: -2vmin; }
+    .seat { left: 6vmin; right: 8vmin; }
+    .copy { left: calc(53vmin + 9vmin); right: 10vmin; }
+    .code i { display: none; }
+    .act { left: 53vmin; right: -4vmin; }
+    .k { white-space: normal; line-height: 1.6; font-size: 1.7vmin; }
+    h1 { font-size: 7.6vmin; }
+    .d { font-size: 2vmin; }
+    .lamp { display: block; position: absolute; left: calc(53vmin + (100% - 49vmin) / 2); top: 0; width: 13vmin; height: 26vmin; transform: translateX(-50%); }
+    .lamp::before { content: ""; position: absolute; left: 50%; top: 0; width: .4vmin; height: 12vmin; transform: translateX(-50%); background: linear-gradient(90deg, #8A6420, #E6C27A, #8A6420); }
+    .lamp::after { content: ""; position: absolute; left: 0; top: 12vmin; width: 13vmin; height: 13vmin; border-radius: 50%;
+      background: radial-gradient(circle at 36% 30%, #FFF4C9 0%, #FFC94A 30%, #E8A22B 60%, #B86A12 100%); box-shadow: 0 0 5vmin 1vmin rgba(255,190,80,.45); }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --sh: 56vmin; }
+    .frame { left: 9vmin; top: 10vmin; width: 58vmin; height: calc(100% - 20vmin); }
+    .plaque { left: 38vmin; top: 3vmin; }
+    .sofa { left: 76vmin; right: -4vmin; }
+    .back { border-radius: 18vmin 18vmin 0 0; }
+    .arm { width: 12vmin; height: 26vmin; }
+    .copy { left: calc(76vmin + 12vmin); right: 10vmin; }
+    .code i { display: inline; }
+    .act { left: 76vmin; right: -4vmin; }
+    .k { white-space: nowrap; font-size: 1.8vmin; }
+    h1 { font-size: 8.6vmin; }
+    .d { font-size: 2.2vmin; }
+    .lamp { left: calc(76vmin + (100% - 72vmin) / 2); width: 14vmin; height: 30vmin; }
+    .lamp::before { height: 16vmin; }
+    .lamp::after { top: 16vmin; width: 14vmin; height: 14vmin; }
+  }
+
+  /* ───────── motion (6s loop) — a slow evening in ─────────
+     constant: warm lamplight breathes over the panelling (3s), the globe pendant (square / wide) sways on its rod
+     beat 2.4–3.6s: "Sink right in." — the seat cushion squashes down and springs back, the headline and the
+     "Take a seat" pill sink with it · 4.8s the brass plaque catches the light */
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(90vmin 70vmin at 50% 0%, rgba(255,190,90,.22), rgba(255,190,90,0) 70%);
+    opacity: 0; animation: lamp 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes lamp { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+  .seat { transform-origin: 50% 100%; animation: squash 6s infinite; }
+  @keyframes squash {
+    0%, 40% { transform: scale(1, 1); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    47% { transform: scale(1.015, .8); animation-timing-function: cubic-bezier(.2,.8,.3,1.4); }
+    58%, 100% { transform: scale(1, 1); }
+  }
+  h1 { animation: sink 6s infinite; }
+  @keyframes sink {
+    0%, 41% { transform: translateY(0); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    48% { transform: translateY(1vmin); animation-timing-function: cubic-bezier(.2,.8,.3,1.4); }
+    60%, 100% { transform: translateY(0); }
+  }
+  .act { animation: sinkcta 6s infinite; }
+  @keyframes sinkcta {
+    0%, 40% { transform: translateY(50%); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    47% { transform: translateY(calc(50% + 1.4vmin)); animation-timing-function: cubic-bezier(.2,.8,.3,1.4); }
+    58%, 100% { transform: translateY(50%); }
+  }
+
+  .lamp { transform-origin: 50% 0; animation: pendulum 6s infinite; }
+  @keyframes pendulum {
+    0% { transform: translateX(-50%) rotate(0); animation-timing-function: cubic-bezier(.33,.67,.67,1); }
+    25% { transform: translateX(-50%) rotate(2.4deg); animation-timing-function: cubic-bezier(.33,0,.67,.33); }
+    50% { transform: translateX(-50%) rotate(0); animation-timing-function: cubic-bezier(.33,.67,.67,1); }
+    75% { transform: translateX(-50%) rotate(-2.4deg); animation-timing-function: cubic-bezier(.33,0,.67,.33); }
+    100% { transform: translateX(-50%) rotate(0); }
+  }
+
+  .plaque { overflow: hidden; }
+  .plaque::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,250,225,.75), rgba(255,255,255,0));
+    transform: translateX(-120%); animation: glint 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes glint { 0%, 78% { transform: translateX(-120%); } 92%, 100% { transform: translateX(360%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="plaque">Avocado House</div>
+  <div class="frame"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="lamp"></div>
+  <div class="rug"></div>
+  <div class="sofa"><div class="back"></div><div class="seat"></div><div class="arm l"></div><div class="arm r"></div></div>
+  <div class="copy">
+    <div class="k">The living-room sale</div>
+    <h1>Sink<br>right in.</h1>
+    <div class="d"><b>30% off</b> everything made for slow evenings in.</div>
+    <div class="code">Code <b>PIT30</b><i> · online &amp; in store</i></div>
+  </div>
+  <div class="act"><span class="cta">Take a seat</span></div>
+</div>
+</body>
+</html>

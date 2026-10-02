@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800;900&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Liquid Metal — a graphite night with the headline poured in liquid chrome: mirror bands, a dark horizon line
+     through the letters, and molten drips running off the baseline into small mercury beads. The price is chrome too,
+     the CTA a chrome-rimmed pill, and three mercury droplets roll across the empty dark.
+     tall → photo above, the pour below · 3:4 → photo above, two-column pour · square & wide → photo right, pour left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0D0E11; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #D6DAE0; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(80vmin 60vmin at 18% 88%, #23262D 0%, rgba(35,38,45,0) 70%), #0D0E11; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 72vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .scrim { position: absolute; left: 0; right: 0; top: calc(100% - 72vmin - 22vmin); height: 22vmin;
+    background: linear-gradient(0deg, rgba(13,14,17,1) 0%, rgba(13,14,17,.985) 7.69%, rgba(13,14,17,.943) 15.38%, rgba(13,14,17,.874) 23.08%, rgba(13,14,17,.784) 30.77%, rgba(13,14,17,.677) 38.46%, rgba(13,14,17,.56) 46.15%, rgba(13,14,17,.44) 53.85%, rgba(13,14,17,.323) 61.54%, rgba(13,14,17,.216) 69.23%, rgba(13,14,17,.126) 76.92%, rgba(13,14,17,.057) 84.62%, rgba(13,14,17,.015) 92.31%, rgba(13,14,17,0) 100%); }
+
+  .pour { position: absolute; left: 6vmin; right: 6vmin; bottom: 5.4vmin; height: calc(72vmin - 9vmin); display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #8D95A1; white-space: nowrap; }
+  .kick b { color: #E9ECF0; font-weight: 700; }
+  .head { position: relative; margin-top: 2.4vmin; align-self: flex-start; }
+  h1 { position: relative; margin: 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 900; font-size: 15.5vmin; line-height: .9; letter-spacing: -.04em; text-transform: uppercase; }
+  .chrome { background: linear-gradient(180deg, #FFFFFF 0%, #EEF1F5 18%, #AEB5C0 36%, #3A3F48 47%, #16181C 50%, #6B7380 57%, #CDD3DB 70%, #FFFFFF 82%, #8E96A2 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h1 span { display: block; }
+  .drip { position: absolute; top: 94%; width: 1.5vmin; height: var(--h); }
+  .drip::before { content: ""; position: absolute; inset: 0; border-radius: 0 0 .9vmin .9vmin; transform-origin: 50% 0;
+    background: linear-gradient(90deg, #5E6672 0%, #F4F6F9 35%, #B7BEC8 60%, #3C414A 100%); }
+  .drip::after { content: ""; position: absolute; left: 50%; bottom: -1.3vmin; width: 2.4vmin; height: 2.8vmin; transform: translateX(-50%); transform-origin: 50% 0; border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
+    background: radial-gradient(circle at 36% 30%, #FFFFFF 0%, #E3E7ED 16%, #8C94A0 44%, #2A2E35 74%, #6B7380 100%); }
+  .d1 { left: 11%; --h: 4.4vmin; } .d2 { left: 43%; --h: 7vmin; } .d3 { left: 79%; --h: 3vmin; }
+
+  .sub { position: relative; margin-top: 5.4vmin; font-size: 2.3vmin; line-height: 1.45; color: #A8AFBA; max-width: 60vmin; }
+  .sub b { color: #F1F3F6; font-weight: 700; }
+  .buy { margin-top: auto; display: flex; align-items: center; gap: 3.4vmin; }
+  .price { position: relative; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 7vmin; line-height: 1; letter-spacing: -.03em; white-space: nowrap; }
+  .price small { display: block; margin-bottom: .8vmin; font-family: "Manrope", sans-serif; font-weight: 700; font-size: 1.6vmin; letter-spacing: .22em; color: #7D8591; -webkit-text-fill-color: #7D8591; }
+  .cta { position: relative; overflow: hidden; padding: 1.9vmin 3.6vmin; border-radius: 99vmin; border: .35vmin solid transparent; font-size: 2.1vmin; font-weight: 700; color: #F4F6F9; white-space: nowrap;
+    background: linear-gradient(#15171B, #15171B) padding-box, linear-gradient(135deg, #FFFFFF 0%, #6D7480 30%, #F2F4F7 55%, #3A3F47 80%, #C5CBD3 100%) border-box;
+    box-shadow: 0 1.2vmin 3vmin rgba(0,0,0,.5); }
+  .fine { margin-top: 2.6vmin; font-size: 1.6vmin; letter-spacing: .08em; color: #6C7480; white-space: nowrap; }
+
+  .bead { position: absolute; border-radius: 50%; background: radial-gradient(circle at 34% 28%, #FFFFFF 0%, #E6EAF0 11%, #9098A4 36%, #2B2F36 64%, #0F1115 82%, #58606B 100%);
+    box-shadow: 0 1.6vmin 2.4vmin rgba(0,0,0,.6); }
+  .b1 { width: 11vmin; height: 11vmin; right: 7vmin; bottom: 40vmin; }
+  .b2 { width: 5vmin; height: 5vmin; right: 21vmin; bottom: 34vmin; }
+  .b3 { width: 2.6vmin; height: 2.6vmin; right: 12vmin; bottom: 29vmin; }
+
+  /* ══ motion — 6 s loop. t=0 = the static design. beat 1 (0.5–2.1 s): a specular band pours across MOL, then TEN ·
+     beat 2 (1–3.5 s): the long drip swells, lets go of its bead, recoils and grows a new one · beat 3 (3.9–5 s): the band
+     crosses the chrome price, a star glint flares on it and a sheen runs through the CTA · beads float and jiggle throughout ══ */
+  .chrome { background-image: linear-gradient(108deg, rgba(22,24,28,0) 36%, rgba(22,24,28,.55) 41.5%, rgba(22,24,28,0) 44.5%, rgba(255,255,255,.6) 47%, #FFFFFF 50%, rgba(255,255,255,.6) 53%, rgba(255,255,255,0) 57%),
+      linear-gradient(180deg, #FFFFFF 0%, #EEF1F5 18%, #AEB5C0 36%, #3A3F48 47%, #16181C 50%, #6B7380 57%, #CDD3DB 70%, #FFFFFF 82%, #8E96A2 100%);
+    background-size: 300% 100%, 100% 100%; background-repeat: no-repeat; background-position: 100% 0, 0 0; }
+  h1 .chrome { animation: sweepHead 6s linear infinite; }
+  h1 .chrome + .chrome { animation-delay: -5.64s; }
+  .price.chrome { animation: sweepPrice 6s linear infinite; }
+  @keyframes sweepHead {
+    0%, 8% { background-position: 100% 0, 0 0; animation-timing-function: cubic-bezier(.55,.05,.3,1); }
+    32%, 100% { background-position: 0% 0, 0 0; } }
+  @keyframes sweepPrice {
+    0%, 64% { background-position: 100% 0, 0 0; animation-timing-function: cubic-bezier(.5,.05,.3,1); }
+    80%, 100% { background-position: 0% 0, 0 0; } }
+
+  .price::after { content: ""; position: absolute; right: -1.6vmin; bottom: 4.4vmin; width: 3.6vmin; height: 3.6vmin; transform: scale(0) rotate(-45deg);
+    clip-path: polygon(50% 0, 55% 45%, 100% 50%, 55% 55%, 50% 100%, 45% 55%, 0 50%, 45% 45%);
+    background: radial-gradient(closest-side, #FFFFFF 0%, #FFFFFF 30%, rgba(236,240,246,.85) 55%, rgba(236,240,246,0) 100%);
+    animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 75% { transform: scale(0) rotate(-45deg); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    79% { transform: scale(1.1) rotate(0deg); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    84%, 100% { transform: scale(0) rotate(45deg); } }
+
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 60%; transform: translateX(-120%) skewX(-18deg);
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.16) 45%, rgba(255,255,255,.26) 50%, rgba(255,255,255,.16) 55%, rgba(255,255,255,0) 100%);
+    animation: sheen 6s linear infinite; pointer-events: none; }
+  @keyframes sheen {
+    0%, 70% { transform: translateX(-120%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,.05,.35,1); }
+    84%, 100% { transform: translateX(260%) skewX(-18deg); } }
+
+  /* drips: stems stretch from the letter, the tip bead rides the end */
+  .d1::before { animation: stemA 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .d1::after { animation: tipA 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes stemA { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.3); } }
+  @keyframes tipA { 0%, 100% { transform: translateX(-50%); } 50% { transform: translate(-50%, calc(var(--h) * .3)) scale(1.04, 1.1); } }
+  .d3::before { animation: stemB 3s cubic-bezier(.45,0,.55,1) infinite; }
+  .d3::after { animation: tipB 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes stemB { 0%, 30%, 100% { transform: scaleY(1); } 65% { transform: scaleY(1.4); } }
+  @keyframes tipB { 0%, 30%, 100% { transform: translateX(-50%); } 65% { transform: translate(-50%, calc(var(--h) * .4)) scale(1.03, 1.08); } }
+
+  .d2::before { animation: stemDrop 6s linear infinite; }
+  .d2::after { animation: tipDrop 6s linear infinite; }
+  @keyframes stemDrop {
+    0%, 14% { transform: scaleY(1); animation-timing-function: cubic-bezier(.45,0,.6,1); }
+    44% { transform: scaleY(1.45); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    50% { transform: scaleY(.88); animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    56% { transform: scaleY(1.05); animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    63%, 100% { transform: scaleY(1); } }
+  @keyframes tipDrop {
+    0%, 14% { transform: translateX(-50%); opacity: 1; animation-timing-function: cubic-bezier(.45,0,.6,1); }
+    44% { transform: translate(-50%, calc(var(--h) * .45)) scale(1.08, 1.16); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    47% { transform: translate(-50%, calc(var(--h) * .45 + 1vmin)) scale(.94, 1.22); opacity: .9; animation-timing-function: cubic-bezier(.55,0,1,.6); }
+    54% { transform: translate(-50%, calc(var(--h) * .45 + 6vmin)) scale(.8, 1.12); opacity: 0; }
+    58% { transform: translate(-50%, calc(var(--h) * .45 + 6vmin)) scale(.8, 1.12); opacity: 0; }
+    58.01% { transform: translateX(-50%) scale(0); opacity: 0; animation-timing-function: cubic-bezier(.25,.6,.35,1); }
+    64% { transform: translateX(-50%) scale(.35); opacity: 1; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    92%, 100% { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+  /* mercury droplets: slow drift + liquid jiggle (translate / scale are separate properties) */
+  .b1 { animation: floatA 6s cubic-bezier(.45,0,.55,1) infinite, jiggle 3s cubic-bezier(.45,0,.55,1) infinite; }
+  .b2 { animation: floatB 6s cubic-bezier(.45,0,.55,1) infinite, jiggle 2s cubic-bezier(.45,0,.55,1) infinite; }
+  .b3 { animation: floatC 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes floatA { 0%, 100% { translate: 0 0; } 50% { translate: -.8vmin -1.8vmin; } }
+  @keyframes floatB { 0%, 100% { translate: 0 0; } 35% { translate: 1vmin -1.4vmin; } 70% { translate: -.4vmin -.6vmin; } }
+  @keyframes floatC { 0%, 100% { translate: 0 0; } 50% { translate: .6vmin -1.6vmin; } }
+  @keyframes jiggle { 0%, 100% { scale: 1 1; } 30% { scale: 1.05 .95; } 60% { scale: .97 1.03; } }
+
+  /* ── 3:4 — photo above, headline left / details right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 50vmin); }
+    .scrim { top: calc(100% - 50vmin - 18vmin); height: 18vmin; }
+    .pour { height: calc(50vmin - 9vmin); bottom: 5vmin; display: grid; grid-template-columns: 44vmin 1fr; grid-template-rows: auto 1fr auto; column-gap: 4vmin; }
+    .kick { grid-column: 1 / 3; }
+    .head { grid-column: 1; grid-row: 2; margin-top: 3vmin; }
+    h1 { font-size: 12.6vmin; }
+    .sub { grid-column: 2; grid-row: 2; margin-top: 3.4vmin; font-size: 2vmin; }
+    .buy { grid-column: 2; grid-row: 3; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .price { font-size: 5.6vmin; }
+    .fine { grid-column: 1; grid-row: 3; align-self: end; margin: 0; }
+    .b1 { width: 7vmin; height: 7vmin; right: 5vmin; bottom: 32vmin; }
+    .b2 { width: 3.4vmin; height: 3.4vmin; right: 14vmin; bottom: 28vmin; }
+    .b3 { display: none; }
+  }
+  /* ── square — photo right, the pour on the left ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 52%; height: 100%; object-position: 50% 25%; }
+    .scrim { left: calc(48% - 1px); right: auto; top: 0; width: 16vmin; height: 100%;
+      background: linear-gradient(90deg, rgba(13,14,17,1) 0%, rgba(13,14,17,.985) 7.69%, rgba(13,14,17,.943) 15.38%, rgba(13,14,17,.874) 23.08%, rgba(13,14,17,.784) 30.77%, rgba(13,14,17,.677) 38.46%, rgba(13,14,17,.56) 46.15%, rgba(13,14,17,.44) 53.85%, rgba(13,14,17,.323) 61.54%, rgba(13,14,17,.216) 69.23%, rgba(13,14,17,.126) 76.92%, rgba(13,14,17,.057) 84.62%, rgba(13,14,17,.015) 92.31%, rgba(13,14,17,0) 100%); }
+    .pour { display: flex; left: 5.6vmin; right: auto; width: calc(48% - 9vmin); top: 6vmin; bottom: 5.6vmin; height: auto; }
+    .kick { font-size: 1.6vmin; letter-spacing: .2em; }
+    .head { grid-column: auto; grid-row: auto; margin-top: 4vmin; }
+    h1 { font-size: 12vmin; }
+    .sub { grid-column: auto; grid-row: auto; margin-top: 5.6vmin; font-size: 2vmin; }
+    .buy { grid-column: auto; grid-row: auto; flex-direction: column; align-items: flex-start; gap: 2.2vmin; }
+    .price { font-size: 6vmin; }
+    .fine { grid-column: auto; grid-row: auto; margin-top: 2.4vmin; align-self: auto; }
+    .b1 { width: 8vmin; height: 8vmin; right: auto; left: calc(48% - 17vmin); bottom: 26vmin; }
+    .b2 { width: 3.6vmin; height: 3.6vmin; right: auto; left: calc(48% - 8vmin); bottom: 38vmin; }
+    .b3 { display: block; width: 2vmin; height: 2vmin; right: auto; left: calc(48% - 22vmin); bottom: 40vmin; }
+  }
+  /* ── wide — more room: bigger pour, beads trail toward the photo ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .scrim { left: calc(52% - 1px); width: 18vmin; }
+    .pour { left: 7vmin; width: calc(52% - 13vmin); top: 7vmin; bottom: 6.4vmin; }
+    .kick { font-size: 1.7vmin; letter-spacing: .26em; }
+    h1 { font-size: 14vmin; }
+    .sub { font-size: 2.2vmin; }
+    .buy { flex-direction: row; align-items: center; gap: 3.4vmin; }
+    .price { font-size: 6.4vmin; }
+    .b1 { width: 10vmin; height: 10vmin; left: calc(52% - 22vmin); bottom: 44vmin; }
+    .b2 { width: 4.4vmin; height: 4.4vmin; left: calc(52% - 10vmin); bottom: 58vmin; }
+    .b3 { width: 2.4vmin; height: 2.4vmin; left: calc(52% - 28vmin); bottom: 62vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="scrim"></div>
+  <i class="bead b1"></i><i class="bead b2"></i><i class="bead b3"></i>
+  <div class="pour">
+    <div class="kick"><b>Hg Studio</b> · Liquid series · Drop 07</div>
+    <div class="head">
+      <h1><span class="chrome">Mol</span><span class="chrome">ten</span></h1>
+      <i class="drip d1"></i><i class="drip d2"></i><i class="drip d3"></i>
+    </div>
+    <div class="sub">Cast in <b>liquid silver</b>.<br>Poured once, worn on repeat.</div>
+    <div class="buy">
+      <div class="price chrome"><small>FROM</small>€148</div>
+      <div class="cta">Shop the pour →</div>
+    </div>
+    <div class="fine">Free returns · Ships in 48 h</div>
+  </div>
+</div>
+</body>
+</html>

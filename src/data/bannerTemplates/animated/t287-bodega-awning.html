@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Mansalva&display=swap" rel="stylesheet">
+<style>
+  /* Bodega Awning — a corner-store front: green awning with a scalloped valance and signage lettering, the look as the
+     shop window, and a half-down steel roll gate below carrying hand-lettered fluoro starbursts, a neon OPEN plaque and
+     a taped paper sign with the code.
+     tall → awning / window / gate · square & wide → awning across the top, window left, gate right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #151515; }
+  .banner { --grn: #0E5A34; --wht: #FBFAF4; --ylw: #F6F03A; --pnk: #FF4FA0; --ink: #141414;
+    position: fixed; inset: 0; overflow: hidden; background: #151515; color: var(--ink); font-family: "Bungee", "Arial Black", Impact, sans-serif; }
+
+  .awn { position: absolute; left: 0; right: 0; top: 0; height: 22vmin; z-index: 2; background: linear-gradient(180deg, #0A4629, var(--grn) 30%, #11663C); color: var(--wht);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: inset 0 -.6vmin 0 var(--wht), inset 0 -1.1vmin 0 var(--grn); }
+  .awn::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 3.6vmin;
+    background: radial-gradient(circle at 50% 0, var(--grn) 0 2.6vmin, rgba(14,90,52,0) 2.7vmin) 0 0 / 7.2vmin 3.6vmin repeat-x;
+    filter: drop-shadow(0 .5vmin .4vmin rgba(0,0,0,.35)); }
+  .awn b { font-weight: 400; font-size: 10.4vmin; line-height: 1; letter-spacing: .02em; text-shadow: .5vmin .5vmin 0 #062F1B; white-space: nowrap; }
+  .awn span { font-size: 2.2vmin; letter-spacing: .16em; margin-top: 1.2vmin; white-space: nowrap; }
+
+  .window { position: absolute; left: 0; right: 0; top: 26vmin; height: calc(100% - 26vmin - 58vmin); overflow: hidden; }
+  .window img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .gate { position: absolute; left: 0; right: 0; bottom: 0; height: 58vmin; overflow: hidden;
+    background: linear-gradient(90deg, rgba(0,0,0,.18), rgba(0,0,0,0) 12%, rgba(0,0,0,0) 88%, rgba(0,0,0,.18)),
+      repeating-linear-gradient(180deg, #8E9398 0 .45vmin, #D3D6D9 .45vmin 1.4vmin, #B7BBBF 1.4vmin 2.5vmin, #6E7378 2.5vmin 2.9vmin); }
+  .gate::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6vmin; background: linear-gradient(180deg, #5C6166, #3C4044); box-shadow: inset 0 .4vmin 0 #9DA2A7; }
+  .hdl { position: absolute; left: 50%; bottom: 1.6vmin; width: 12vmin; height: 2.4vmin; margin-left: -6vmin; z-index: 1; border: .6vmin solid #C4C8CC; border-top: 0; box-sizing: border-box; border-radius: 0 0 1vmin 1vmin; }
+
+  .burst { position: absolute; left: 4vmin; top: 4vmin; width: 38vmin; height: 38vmin; background: var(--ylw); transform: rotate(-8deg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    clip-path: polygon(50.0% 0.0%, 57.1% 9.6%, 67.1% 3.0%, 70.5% 14.5%, 82.1% 11.7%, 81.4% 23.6%, 93.3% 25.0%, 88.5% 36.0%, 99.2% 41.3%, 91.0% 50.0%, 99.2% 58.7%, 88.5% 64.0%, 93.3% 75.0%, 81.4% 76.4%, 82.1% 88.3%, 70.5% 85.5%, 67.1% 97.0%, 57.1% 90.4%, 50.0% 100.0%, 42.9% 90.4%, 32.9% 97.0%, 29.5% 85.5%, 17.9% 88.3%, 18.6% 76.4%, 6.7% 75.0%, 11.5% 64.0%, 0.8% 58.7%, 9.0% 50.0%, 0.8% 41.3%, 11.5% 36.0%, 6.7% 25.0%, 18.6% 23.6%, 17.9% 11.7%, 29.5% 14.5%, 32.9% 3.0%, 42.9% 9.6%); }
+  .burst small, .burst b { font-family: "Mansalva", "Marker Felt", cursive; font-weight: 400; }
+  .burst small { font-size: 3.6vmin; line-height: 1; }
+  .burst b { font-size: 8.4vmin; line-height: 1; white-space: nowrap; color: #D3141B; margin: .6vmin 0 .4vmin; }
+  .burst i { font-style: normal; font-family: "Mansalva", cursive; font-size: 4.4vmin; line-height: 1; }
+  .burst.p { left: 32vmin; top: 3vmin; width: 18vmin; height: 18vmin; background: var(--pnk); transform: rotate(10deg); z-index: 1; }
+  .burst.p b { font-size: 5.2vmin; color: var(--ink); }
+
+  .neon { position: absolute; right: 5vmin; top: 5vmin; width: 40vmin; box-sizing: border-box; padding: 1.6vmin 2vmin; background: #0C0C0E; border-radius: 1.2vmin; text-align: center; box-shadow: 0 .6vmin 1.2vmin rgba(0,0,0,.35); }
+  .neon b { display: block; font-weight: 400; font-size: 7vmin; line-height: 1; color: #FFE9E9; letter-spacing: .08em;
+    text-shadow: 0 0 .4vmin #FF4B4B, 0 0 1.2vmin #FF2A2A, 0 0 2.4vmin #FF1F1F; }
+  .neon span { display: block; margin-top: .8vmin; font-size: 2.4vmin; letter-spacing: .2em; color: #E8FAFF; text-shadow: 0 0 .4vmin #33C7FF, 0 0 1.2vmin #1FA8FF; white-space: nowrap; }
+
+  .card { position: absolute; right: 5vmin; top: 25vmin; width: 40vmin; box-sizing: border-box; padding: 2.4vmin 2.4vmin 2.2vmin; background: var(--wht); transform: rotate(2deg); box-shadow: 0 .5vmin 1vmin rgba(0,0,0,.3); }
+  .card::before { content: ""; position: absolute; left: 50%; top: -1.8vmin; width: 11vmin; height: 3.4vmin; margin-left: -5.5vmin; background: rgba(236,226,190,.8); transform: rotate(-3deg); }
+  .card .m { font-family: "Mansalva", "Marker Felt", cursive; font-size: 3.8vmin; line-height: 1.1; }
+  .card .c { display: inline-block; margin-top: 1vmin; font-size: 3.4vmin; letter-spacing: .04em; color: #D3141B; border-bottom: .4vmin solid #D3141B; }
+  .card .s { margin-top: 1.4vmin; font-size: 2vmin; letter-spacing: .1em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .awn { height: 20vmin; }
+    .awn b { font-size: 9.4vmin; }
+    .window { top: 23.6vmin; height: calc(100% - 23.6vmin - 52vmin); }
+    .gate { height: 52vmin; }
+    .burst { left: 9vmin; top: 3vmin; width: 34vmin; height: 34vmin; }
+    .burst b { font-size: 7.6vmin; }
+    .burst.p { left: 35vmin; top: 2vmin; width: 16vmin; height: 16vmin; }
+    .neon { right: 9vmin; top: 4vmin; width: 38vmin; }
+    .card { right: 9vmin; top: 22vmin; width: 38vmin; padding: 2vmin 2.2vmin; }
+  }
+
+  /* square & wide: awning across, window left, gate right */
+  @media (min-aspect-ratio: 9/10) {
+    .awn { height: 19vmin; }
+    .awn b { font-size: 9vmin; }
+    .window { right: auto; top: 22.6vmin; width: 52%; height: calc(100% - 22.6vmin); }
+    .gate { left: 52%; top: 19vmin; height: auto; }
+    .burst { left: 4vmin; top: 9vmin; width: 30vmin; height: 30vmin; }
+    .burst small { font-size: 3vmin; } .burst b { font-size: 6.6vmin; } .burst i { font-size: 3.6vmin; }
+    .burst.p { left: auto; right: 3vmin; top: 7vmin; width: 15vmin; height: 15vmin; }
+    .burst.p b { font-size: 4.4vmin; }
+    .neon { right: 4vmin; left: 4vmin; width: auto; top: 42vmin; padding: 1.2vmin 1.6vmin; }
+    .neon b { font-size: 5.6vmin; }
+    .neon span { font-size: 1.9vmin; }
+    .card { left: 4vmin; right: 4vmin; width: auto; top: 60vmin; padding: 1.8vmin 2vmin; transform: rotate(-1.5deg); }
+    .card .m { font-size: 3.2vmin; }
+    .card .c { font-size: 2.8vmin; }
+    .card .s { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .window { width: 48%; }
+    .gate { left: 48%; }
+    .burst { left: 5vmin; top: 12vmin; width: 36vmin; height: 36vmin; }
+    .burst b { font-size: 8vmin; } .burst small { font-size: 3.4vmin; } .burst i { font-size: 4vmin; }
+    .burst.p { right: auto; left: 5vmin; top: 50vmin; width: 16vmin; height: 16vmin; }
+    .neon { left: auto; right: 5vmin; width: 32vmin; top: 12vmin; padding: 1.6vmin 1.8vmin; }
+    .neon b { font-size: 6.4vmin; }
+    .card { left: auto; right: 5vmin; width: 32vmin; top: 33vmin; padding: 2vmin 2.2vmin; transform: rotate(2deg); }
+    .card .s { display: block; font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     street-corner life: the OPEN neon buzzes and stutters, the blue line breathes · the 30% starburst punches ·
+     the pink NEW! burst pops · the taped paper sign sways on its tape · the CTA arrow nudges */
+  .window img { transform-origin: 50% 30%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+
+  .neon b { animation: buzz 6s linear infinite; }
+  @keyframes buzz {
+    0%, 17.9%, 18.8%, 19.6%, 20.4%, 21.6%, 71.9%, 73.2%, 100% { color: #FFE9E9; text-shadow: 0 0 .4vmin #FF4B4B, 0 0 1.2vmin #FF2A2A, 0 0 2.4vmin #FF1F1F; }
+    18%, 18.7%, 19.7%, 20.3%, 72%, 73.1% { color: rgba(255,200,200,.28); text-shadow: 0 0 0 rgba(255,75,75,0), 0 0 0 rgba(255,42,42,0), 0 0 0 rgba(255,31,31,0); }
+    23% { color: #FFF4F4; text-shadow: 0 0 .6vmin #FF4B4B, 0 0 1.8vmin #FF2A2A, 0 0 3.6vmin #FF1F1F; }
+  }
+  .neon span { animation: tube 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes tube {
+    0%, 100% { text-shadow: 0 0 .4vmin #33C7FF, 0 0 1.2vmin #1FA8FF; }
+    50% { text-shadow: 0 0 .6vmin #33C7FF, 0 0 2.2vmin #1FA8FF; }
+  }
+
+  /* starbursts: rotation kept in a variable so each layout's tilt survives the animation */
+  .burst { --r: -8deg; animation: punch 6s linear infinite; }
+  .burst.p { --r: 10deg; animation-name: popnew; }
+  @keyframes punch {
+    0%, 30% { transform: rotate(var(--r)) scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.5); }
+    34% { transform: rotate(calc(var(--r) - 5deg)) scale(1.1); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    40% { transform: rotate(calc(var(--r) + 1deg)) scale(.98); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    45%, 100% { transform: rotate(var(--r)) scale(1); }
+  }
+  @keyframes popnew {
+    0%, 46% { transform: rotate(var(--r)) scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.6); }
+    50% { transform: rotate(calc(var(--r) + 14deg)) scale(1.2); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    54% { transform: rotate(calc(var(--r) - 6deg)) scale(.96); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    58% { transform: rotate(calc(var(--r) + 3deg)) scale(1.02); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    62%, 100% { transform: rotate(var(--r)) scale(1); }
+  }
+
+  /* paper sign: sways from the tape */
+  .card { --r: 2deg; transform-origin: 50% 0; animation: sway 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @media (min-aspect-ratio: 9/10) { .card { --r: -1.5deg; } }
+  @media (min-aspect-ratio: 6/5) { .card { --r: 2deg; } }
+  @keyframes sway {
+    0%, 100% { transform: rotate(var(--r)); }
+    25% { transform: rotate(calc(var(--r) + 1.4deg)); }
+    75% { transform: rotate(calc(var(--r) - 1deg)); }
+  }
+
+  .card .s span { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 78% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    81% { transform: translateX(.8vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    84% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    87% { transform: translateX(.8vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    90%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="awn"><b>Fresh Fits</b><span>Deli · Grocery · New season · 24 hrs</span></div>
+  <div class="window"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="gate">
+    <div class="burst"><small>Everything</small><b>30% off</b><i>today only!</i></div>
+    <div class="burst p"><b>New!</b></div>
+    <div class="neon"><b>Open</b><span>Online 24/7</span></div>
+    <div class="card"><div class="m">Just say the word at checkout:</div><div class="c">BODEGA30</div><div class="s">Shop now <span>→</span></div></div>
+    <i class="hdl"></i>
+  </div>
+</div>
+</body>
+</html>

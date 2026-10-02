@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Potta+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  /* Gacha Capsule — a capsule-toy machine on an Akihabara sidewalk: the photo is the glass window, the series lineup
+     runs down the side as six capsules (plus one secret), and the crank + exit flap sit on a cream control plate —
+     the capsule that drops out carries the code.
+     tall → window + lineup column, control plate below · square & wide → window left, lineup + plate right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E23B2E; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #FFF4DF; font-family: "M PLUS Rounded 1c", "Arial Rounded MT Bold", sans-serif;
+    background: radial-gradient(130% 80% at 30% 10%, #F04B3C 0%, #E23B2E 55%, #C92E23 100%); }
+  .banner::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 .4vmin, transparent .4vmin 2.4vmin); }
+
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .head .kick { font-weight: 800; font-size: 1.9vmin; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 1.2vmin; opacity: .92; }
+  h1 { margin: 0; font-family: "Potta One", "Arial Rounded MT Bold", sans-serif; font-weight: 400; font-size: 8vmin; line-height: .98; letter-spacing: -.01em; color: #FFF4DF; text-shadow: 0 .5vmin 0 #A8231A; }
+  .series { flex: none; text-align: center; background: #FFF4DF; color: #E23B2E; border-radius: 50%; width: 15vmin; height: 15vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; font-size: 1.7vmin; letter-spacing: .08em; line-height: 1.2; transform: rotate(8deg); box-shadow: 0 .6vmin 0 #A8231A; }
+  .series b { font-family: "Potta One", sans-serif; font-weight: 400; font-size: 5.6vmin; line-height: 1; letter-spacing: 0; }
+
+  /* the glass window */
+  .window { position: absolute; left: 6vmin; right: 23vmin; top: 30vmin; height: calc(100% - 79vmin); background: #2A0E0B; box-shadow: 0 0 0 1.2vmin #B92C22, 0 0 0 1.6vmin #F6725F; overflow: hidden; }
+  .window img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .window::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 2.4vmin rgba(0,0,0,.28); }
+
+  /* lineup */
+  .lineup { position: absolute; right: 5.4vmin; top: 30vmin; width: 12vmin; height: calc(100% - 79vmin); display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+  .lineup .lbl { font-weight: 800; font-size: 1.6vmin; letter-spacing: .14em; }
+  .cap { position: relative; width: 10.4vmin; height: 10.4vmin; border-radius: 50%; overflow: hidden; background: var(--c); box-shadow: 0 .5vmin 0 rgba(120,20,14,.55), inset 0 0 0 .35vmin rgba(255,255,255,.55); flex: none; }
+  .cap img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+  .cap::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 50%; background: var(--c); border-top: .35vmin solid rgba(0,0,0,.15); }
+  .cap::before { content: ""; position: absolute; left: 18%; top: 12%; width: 26%; height: 14%; border-radius: 50%; background: rgba(255,255,255,.7); transform: rotate(-30deg); z-index: 2; }
+  .cap span { position: absolute; left: 0; right: 0; bottom: 8%; z-index: 2; text-align: center; font-weight: 800; font-size: 1.7vmin; color: #fff; text-shadow: 0 .1vmin .3vmin rgba(0,0,0,.35); }
+  .c1 { --c: #FF7AB6; } .c1 img { object-position: 50% 12%; }
+  .c2 { --c: #36B3F0; } .c2 img { object-position: 50% 45%; transform: scale(1.5); }
+  .c3 { --c: #FFC933; } .c3 img { object-position: 30% 60%; transform: scale(1.7); }
+  .c4 { --c: #5CCB6B; } .c4 img { object-position: 70% 35%; transform: scale(1.4); }
+  .c5 { --c: #A77BFF; } .c5 img { object-position: 50% 85%; transform: scale(1.6); }
+  .c6 { --c: #1C1C1C; display: flex; align-items: center; justify-content: center; }
+  .c6::after { display: none; }
+  .c6 b { font-family: "Potta One", sans-serif; font-weight: 400; font-size: 5vmin; color: #FFD23F; line-height: 1; }
+
+  /* control plate */
+  .plate { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 36vmin; background: linear-gradient(180deg, #FFF8EA, #F4E6CB); border-radius: 2.4vmin; box-shadow: 0 .8vmin 0 #A8231A; color: #3A1A14; display: grid; grid-template-columns: 26vmin minmax(0, 1fr) 27vmin; align-items: center; column-gap: 2vmin; padding: 0 3vmin; box-sizing: border-box; }
+  .plate::before, .plate::after { content: ""; position: absolute; top: 1.6vmin; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #B9A88A); }
+  .plate::before { left: 1.6vmin; } .plate::after { right: 1.6vmin; }
+
+  .crank { display: flex; flex-direction: column; align-items: center; gap: 1.4vmin; }
+  .knob { position: relative; width: 22vmin; height: 22vmin; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #FFFFFF 0%, #EDE3D2 45%, #C8B999 100%); box-shadow: 0 0 0 .9vmin #E23B2E, 0 .8vmin 1.4vmin rgba(0,0,0,.25); }
+  .knob::before { content: ""; position: absolute; left: 50%; top: 50%; width: 19vmin; height: 5.4vmin; margin: -2.7vmin 0 0 -9.5vmin; border-radius: 2.7vmin; background: linear-gradient(180deg, #F0584A, #B92C22); transform: rotate(-32deg); box-shadow: 0 .5vmin .8vmin rgba(0,0,0,.28); }
+  .knob::after { content: ""; position: absolute; left: 50%; top: 50%; width: 3vmin; height: 3vmin; margin: -1.5vmin 0 0 -1.5vmin; border-radius: 50%; background: #FFF4DF; box-shadow: inset 0 0 0 .5vmin #B92C22; }
+  .crank span { font-weight: 800; font-size: 1.8vmin; letter-spacing: .16em; color: #E23B2E; }
+
+  .mid { text-align: center; }
+  .slot { width: 9vmin; height: 12vmin; margin: 0 auto 1.8vmin; border-radius: 1.4vmin; background: linear-gradient(180deg, #D9D2C3, #A99F8B); position: relative; box-shadow: inset 0 .3vmin 0 rgba(255,255,255,.6); }
+  .slot::after { content: ""; position: absolute; left: 50%; top: 2vmin; bottom: 2vmin; width: 1.2vmin; margin-left: -.6vmin; border-radius: .6vmin; background: #1E1512; }
+  .mid b { display: block; font-family: "Potta One", sans-serif; font-weight: 400; font-size: 4.2vmin; line-height: 1; color: #E23B2E; }
+  .mid p { margin: 1vmin 0 0; font-size: 1.8vmin; line-height: 1.35; font-weight: 500; }
+
+  .flap { position: relative; height: 27vmin; border-radius: 13vmin 13vmin 1.6vmin 1.6vmin; background: radial-gradient(120% 90% at 50% 20%, #3B1712 0%, #1C0906 80%); box-shadow: inset 0 1vmin 1.6vmin rgba(0,0,0,.6), 0 0 0 .8vmin #E4D5B8; display: flex; align-items: flex-end; justify-content: center; }
+  .capsule { position: relative; width: 21vmin; height: 21vmin; margin-bottom: 1.6vmin; border-radius: 50%; overflow: hidden; background: #FFFFFF; box-shadow: 0 .6vmin 1.2vmin rgba(0,0,0,.4); transform: rotate(-12deg); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #3A1A14; }
+  .capsule::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 47%; background: linear-gradient(180deg, rgba(255,122,182,.95), rgba(255,122,182,.8)); border-bottom: .4vmin solid rgba(0,0,0,.12); }
+  .capsule b { position: relative; font-family: "Potta One", sans-serif; font-weight: 400; font-size: 6.6vmin; line-height: .86; color: #fff; margin-top: -2vmin; text-shadow: 0 .3vmin 0 rgba(160,30,90,.5); }
+  .capsule span { position: relative; margin-top: 2.6vmin; line-height: 1.1; font-weight: 800; font-size: 1.9vmin; letter-spacing: .08em; }
+  .capsule small { position: relative; font-size: 1.6vmin; font-weight: 500; line-height: 1.1; margin-top: .6vmin; }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 1.2vmin; display: none; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .head { top: 4vmin; }
+    h1 { font-size: 7.6vmin; }
+    .series { width: 13vmin; height: 13vmin; }
+    .series b { font-size: 4.8vmin; }
+    .window, .lineup { top: 26vmin; height: calc(100% - 68vmin); }
+    .cap { width: 8.6vmin; height: 8.6vmin; }
+    .plate { height: 31vmin; bottom: 4.4vmin; grid-template-columns: 22vmin minmax(0, 1fr) 24vmin; }
+    .knob { width: 18vmin; height: 18vmin; }
+    .knob::before { width: 15.6vmin; height: 4.6vmin; margin: -2.3vmin 0 0 -7.8vmin; }
+    .flap { height: 24vmin; }
+    .capsule { width: 18.4vmin; height: 18.4vmin; }
+    .capsule b { font-size: 5.6vmin; }
+    .slot { width: 7vmin; height: 9vmin; margin-bottom: 1.2vmin; }
+  }
+  /* SQUARE — window left; head, lineup, plate on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .window { left: 5vmin; right: auto; top: 5vmin; bottom: 5vmin; height: auto; width: 46%; }
+    .head { left: calc(46% + 10vmin); right: 5vmin; top: 5vmin; }
+    .head .kick { font-size: 1.7vmin; }
+    h1 { font-size: 5.6vmin; }
+    .series { display: none; }
+    .series b { font-size: 4vmin; }
+    .lineup { left: calc(46% + 10vmin); right: 5vmin; top: 29vmin; width: auto; height: 8vmin; flex-direction: row; }
+    .lineup .lbl { display: none; }
+    .cap { width: 6vmin; height: 6vmin; }
+    .cap span { display: none; }
+    .c6 b { font-size: 3.4vmin; }
+    .plate { left: calc(46% + 10vmin); right: 5vmin; top: 42vmin; bottom: 5vmin; height: auto; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr auto; row-gap: 2vmin; padding: 3vmin 2.6vmin; }
+    .mid { grid-column: 1 / -1; grid-row: 2; display: flex; align-items: center; gap: 2vmin; text-align: left; }
+    .slot { display: none; }
+    .mid b { font-size: 3.4vmin; flex: none; }
+    .mid p { margin: 0; font-size: 1.7vmin; }
+    .knob { width: 15vmin; height: 15vmin; box-shadow: 0 0 0 .7vmin #E23B2E, 0 .6vmin 1vmin rgba(0,0,0,.25); }
+    .knob::before { width: 13vmin; height: 4vmin; margin: -2vmin 0 0 -6.5vmin; }
+    .crank span { font-size: 1.6vmin; }
+    .flap { height: 21vmin; }
+    .capsule { width: 16vmin; height: 16vmin; margin-bottom: 1vmin; }
+    .capsule b { font-size: 4.8vmin; margin-top: -1vmin; }
+    .capsule span { font-size: 1.6vmin; margin-top: 1vmin; }
+    .capsule small { display: none; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .window { width: 46%; left: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .head { left: calc(46% + 12vmin); right: 6vmin; top: 6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .series { display: flex; width: 13vmin; height: 13vmin; }
+    .lineup { left: calc(46% + 12vmin); right: 6vmin; top: 30vmin; height: 10vmin; }
+    .cap { width: 9vmin; height: 9vmin; }
+    .cap span { display: block; font-size: 1.6vmin; }
+    .c6 b { font-size: 4.4vmin; }
+    .plate { left: calc(46% + 12vmin); right: 6vmin; top: 46vmin; bottom: 7vmin; grid-template-columns: 17vmin minmax(0, 1fr) 21vmin; grid-template-rows: 1fr; padding: 0 2.6vmin; }
+    .mid { grid-column: auto; grid-row: auto; display: block; text-align: center; }
+    .mid b { font-size: 3.8vmin; }
+    .mid p { margin-top: 1vmin; }
+    .slot { display: block; width: 6vmin; height: 8vmin; margin-bottom: 1.2vmin; }
+    .slot::after { top: 1.4vmin; bottom: 1.4vmin; }
+    .knob { width: 15vmin; height: 15vmin; }
+    .flap { height: 24vmin; }
+    .capsule { width: 17vmin; height: 17vmin; }
+    .capsule b { font-size: 5vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div><div class="kick">Capsule Club · カプセル</div><h1>Turn for<br>a new look.</h1></div>
+    <div class="series">SERIES<b>08</b>6 + 1</div>
+  </div>
+  <div class="window"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="lineup">
+    <div class="lbl">LINEUP</div>
+    <div class="cap c1"><img src="{{PRODUCT_IMAGE}}" alt=""><span>01</span></div>
+    <div class="cap c2"><img src="{{PRODUCT_IMAGE}}" alt=""><span>02</span></div>
+    <div class="cap c3"><img src="{{PRODUCT_IMAGE}}" alt=""><span>03</span></div>
+    <div class="cap c4"><img src="{{PRODUCT_IMAGE}}" alt=""><span>04</span></div>
+    <div class="cap c5"><img src="{{PRODUCT_IMAGE}}" alt=""><span>05</span></div>
+    <div class="cap c6"><b>?</b></div>
+  </div>
+  <div class="plate">
+    <div class="crank"><div class="knob"></div><span>TURN · 回す</span></div>
+    <div class="mid"><div class="slot"></div><b>1 order<br>= 1 turn</b><p>A capsule with every order. Collect all six.</p></div>
+    <div class="flap"><div class="capsule"><b>−25%</b><span>GACHA25</span><small>ends 10.12</small></div></div>
+  </div>
+</div>
+</body>
+</html>

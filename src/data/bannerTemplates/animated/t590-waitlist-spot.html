@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Figtree:wght@400;500;700&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* Waitlist Spot — a restock-waitlist page/email: the photo bleeding off one edge, "sold out twice" headline,
+     your would-be place in line, the drop date, a segmented "batch reserved" meter, a drawn email field + join button.
+     tall → photo bleeds off the top, panel below · 3:4 / square → photo bleeds off the left · wide → photo bleeds off the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C1B22; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #1C1B22; color: #F1EEF8; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 24%; display: block; }
+  .chip { margin-left: auto; padding: .8vmin 1.8vmin; border-radius: 99vmin; background: #C9B6FF; color: #1C1B22; font-size: 1.6vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  .panel { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.4vmin; height: 77vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; align-items: center; gap: 1.4vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #C9B6FF; white-space: nowrap; }
+  .kick i { width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #C9B6FF; box-shadow: 0 0 0 .6vmin rgba(201,182,255,.2); }
+  h1 { margin: 2vmin 0 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 7vmin; line-height: 1; letter-spacing: -.04em; }
+  h1 span { color: #C9B6FF; font-weight: 400; }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 3vmin; margin-top: 3.4vmin; padding: 2.4vmin 0; border-top: 1px solid rgba(241,238,248,.16); border-bottom: 1px solid rgba(241,238,248,.16); }
+  .stats b { display: block; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 600; font-size: 5.4vmin; line-height: 1; letter-spacing: -.04em; white-space: nowrap; }
+  .stats span { display: block; margin-top: 1vmin; font-size: 1.7vmin; color: #A9A4B8; }
+
+  .meter { margin-top: 2.8vmin; }
+  .meter .t { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 500; white-space: nowrap; }
+  .meter .t b { color: #C9B6FF; }
+  .segs { margin-top: 1.2vmin; height: 1.6vmin; display: flex; gap: .5vmin; }
+  .segs i { flex: 1; border-radius: .3vmin; background: rgba(241,238,248,.12); }
+  .segs i.f { background: #C9B6FF; }
+
+  .form { margin-top: auto; display: flex; height: 7.4vmin; border: 1px solid rgba(241,238,248,.4); border-radius: 99vmin; padding: .7vmin; box-sizing: border-box; }
+  .field { flex: 1; display: flex; align-items: center; padding-left: 2.4vmin; font-size: 2vmin; color: #8C879C; white-space: nowrap; }
+  .field::after { content: ""; width: 1px; height: 2.8vmin; margin-left: .4vmin; background: #C9B6FF; }
+  .join { display: flex; align-items: center; padding: 0 3.4vmin; border-radius: 99vmin; background: #F1EEF8; color: #1C1B22; font-size: 1.9vmin; font-weight: 700; white-space: nowrap; }
+  .fine { margin-top: 1.6vmin; font-size: 1.6vmin; line-height: 1.4; color: #8C879C; text-align: center; }
+
+  /* ── 3:4 / square — photo bleeds off the left ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 46%; height: 100%; }
+    .panel { left: calc(46% + 5vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; height: auto; }
+    h1 { font-size: 5.4vmin; }
+    .stats { grid-template-columns: 1fr; gap: 2.4vmin; }
+    .stats b { font-size: 4.6vmin; }
+    .form { flex-direction: column; height: auto; border-radius: 3.6vmin; gap: .7vmin; }
+    .field { padding: 1.8vmin 2vmin; }
+    .join { justify-content: center; padding: 1.9vmin; }
+    .fine { text-align: left; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .panel { top: 5vmin; bottom: 5vmin; }
+    h1 { font-size: 4.6vmin; margin-top: 1.6vmin; }
+    .stats { grid-template-columns: 1fr 1fr; margin-top: 2.4vmin; padding: 2vmin 0; }
+    .stats b { font-size: 4vmin; }
+    .meter { margin-top: 2.2vmin; }
+  }
+  /* ── wide — photo bleeds off the right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: auto; right: 0; width: 48%; }
+    .panel { left: 6vmin; right: calc(48% + 6vmin); top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 5.6vmin; }
+    .stats b { font-size: 4.8vmin; }
+    .form { flex-direction: row; height: 7.4vmin; border-radius: 99vmin; gap: 0; }
+    .field { padding: 0 0 0 2.4vmin; }
+    .join { padding: 0 3.2vmin; }
+  }
+
+  /* ── animation loop ── */
+  /* 6s — the waitlist is filling: a lavender wave runs through the reserved segments and the next empty
+     segment keeps trying to fill, the status dot pings, "Batch 04 is coming." is re-written, the field
+     caret blinks, the photo breathes in its frame and a sheen crosses the join button. */
+  .photo { transform-origin: 50% 50%; animation: br 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes br { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.4563%); } }
+
+  .kick i { position: relative; }
+  .kick i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .25vmin solid #C9B6FF; opacity: 0;
+    animation: ring 1.5s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes ring { 0% { opacity: 0; transform: scale(1); } 8% { opacity: .8; } 70%, 100% { opacity: 0; transform: scale(2.8); } }
+
+  h1 span { display: inline-block; animation: rewrite 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes rewrite { 0%, 14%, 100% { clip-path: inset(-10% -3% -25% 0); opacity: 1; } 21.9% { opacity: 1; } 22%, 25% { clip-path: inset(-10% 100% -25% 0); opacity: 0; } 25.1% { opacity: 1; } 40% { clip-path: inset(-10% -3% -25% 0); } }
+
+  .segs i.f { animation: wave 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .segs i:nth-child(2) { animation-delay: -0.70s; }
+  .segs i:nth-child(3) { animation-delay: -0.65s; }
+  .segs i:nth-child(4) { animation-delay: -0.60s; }
+  .segs i:nth-child(5) { animation-delay: -0.55s; }
+  .segs i:nth-child(6) { animation-delay: -0.50s; }
+  .segs i:nth-child(7) { animation-delay: -0.45s; }
+  .segs i:nth-child(8) { animation-delay: -0.40s; }
+  .segs i:nth-child(9) { animation-delay: -0.35s; }
+  .segs i:nth-child(10) { animation-delay: -0.30s; }
+  .segs i:nth-child(11) { animation-delay: -0.25s; }
+  .segs i:nth-child(12) { animation-delay: -0.20s; }
+  .segs i:nth-child(13) { animation-delay: -0.15s; }
+  .segs i:nth-child(14) { animation-delay: -0.10s; }
+  .segs i:nth-child(15) { animation-delay: -0.05s; }
+  .segs i:nth-child(16) { animation-delay: 0s; }
+  .segs i:nth-child(1) { animation-delay: -.75s; }
+  @keyframes wave { 0%, 50%, 62%, 100% { filter: brightness(1); transform: scaleY(1); } 55% { filter: brightness(1.25); transform: scaleY(1.35); } }
+  .segs i:nth-child(17) { animation: fill 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes fill { 0%, 100% { background: rgba(241,238,248,.12); } 50% { background: rgba(201,182,255,.55); } }
+
+  .field::after { animation: caret 1s steps(1, end) infinite; }
+  @keyframes caret { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: 0; } }
+
+  .join { position: relative; overflow: hidden; }
+  .join::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+    background: linear-gradient(105deg, transparent 35%, rgba(201,182,255,.55) 50%, transparent 65%) no-repeat; background-size: 250% 100%;
+    background-position: 160% 0; animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 74% { background-position: 160% 0; } 88%, 100% { background-position: -60% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><i></i>Restock waitlist<span class="chip">Sold out · Sep 2</span></div>
+    <h1>Sold out twice. <span>Batch 04 is coming.</span></h1>
+    <div class="stats">
+      <div><b>#1,284</b><span>Your spot if you join now</span></div>
+      <div><b>12 Oct</b><span>Batch 04 drop date</span></div>
+    </div>
+    <div class="meter">
+      <div class="t"><span>Batch 04 reserved</span><b>82%</b></div>
+      <div class="segs"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="form"><div class="field">you@email.com</div><div class="join">Join the waitlist</div></div>
+    <div class="fine">Waitlist gets 48-hour early access · One email when it lands</div>
+  </div>
+</div>
+</body>
+</html>

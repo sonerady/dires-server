@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Albert+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Sound Bath — an evening session poster: a brass singing bowl on its cushion sending out concentric ripples
+     tagged with their frequencies, a centred serif lockup on indigo night; the photo melts into the dark.
+     tall → photo above, fading down · 3:4 and wider → photo left, fading right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #191B31; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F2ECDF; font-family: "Albert Sans", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(70vmin 40vmin at 50% 84%, rgba(209,172,98,.22), rgba(209,172,98,0) 70%), linear-gradient(180deg, #1E2038, #15162A); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .1; mix-blend-mode: screen; pointer-events: none; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 66vmin); object-fit: cover; object-position: 50% 20%; display: block;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,1) 84.0%, rgba(0,0,0,0.985) 85.2%, rgba(0,0,0,0.943) 86.5%, rgba(0,0,0,0.874) 87.7%, rgba(0,0,0,0.784) 88.9%, rgba(0,0,0,0.677) 90.2%, rgba(0,0,0,0.56) 91.4%, rgba(0,0,0,0.44) 92.6%, rgba(0,0,0,0.323) 93.8%, rgba(0,0,0,0.216) 95.1%, rgba(0,0,0,0.126) 96.3%, rgba(0,0,0,0.057) 97.5%, rgba(0,0,0,0.015) 98.8%, rgba(0,0,0,0) 100.0%); mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,1) 84.0%, rgba(0,0,0,0.985) 85.2%, rgba(0,0,0,0.943) 86.5%, rgba(0,0,0,0.874) 87.7%, rgba(0,0,0,0.784) 88.9%, rgba(0,0,0,0.677) 90.2%, rgba(0,0,0,0.56) 91.4%, rgba(0,0,0,0.44) 92.6%, rgba(0,0,0,0.323) 93.8%, rgba(0,0,0,0.216) 95.1%, rgba(0,0,0,0.126) 96.3%, rgba(0,0,0,0.057) 97.5%, rgba(0,0,0,0.015) 98.8%, rgba(0,0,0,0) 100.0%); }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 70vmin; box-sizing: border-box; padding: 0 6vmin 5.4vmin; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .kick { font-size: 1.7vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #D1AC62; white-space: nowrap; }
+  h1 { margin: 2vmin 0 0; font-family: "Playfair Display", Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: 1; letter-spacing: -.01em; }
+  h1 i { color: #CFC8EA; }
+  .bowl { display: block; width: 92vmin; height: auto; margin-top: auto; overflow: visible; }
+  .bowl text { font-family: "Albert Sans", Arial, sans-serif; font-size: 3.6px; font-weight: 500; letter-spacing: .3px; fill: #CFC8EA; }
+  .foot { width: 100%; margin-top: 3vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(207,200,234,.28); display: flex; align-items: center; justify-content: space-between; gap: 3vmin; text-align: left; }
+  .when { font-size: 1.8vmin; line-height: 1.5; letter-spacing: .04em; color: #CFC8EA; }
+  .when b { color: #F2ECDF; font-weight: 600; }
+  .cta { flex: none; padding: 1.8vmin 3.2vmin; border: 1px solid #D1AC62; border-radius: 99vmin; color: #F2E3BF; font-size: 1.9vmin; font-weight: 500; letter-spacing: .08em; white-space: nowrap; }
+  .cta b { font-weight: 600; color: #D1AC62; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 60vmin); }
+    .panel { height: 64vmin; padding-bottom: 4.6vmin; }
+    h1 { font-size: 8.6vmin; }
+    .bowl { width: 84vmin; }
+  }
+  /* ── 3:4 and wider → photo left fading right, poster on the right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { background: radial-gradient(50vmin 40vmin at 76% 64%, rgba(209,172,98,.2), rgba(209,172,98,0) 70%), linear-gradient(180deg, #1E2038, #15162A); }
+    .photo { width: 56%; height: 100%; object-position: 50% 22%; -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,1) 78.0%, rgba(0,0,0,0.985) 79.7%, rgba(0,0,0,0.943) 81.4%, rgba(0,0,0,0.874) 83.1%, rgba(0,0,0,0.784) 84.8%, rgba(0,0,0,0.677) 86.5%, rgba(0,0,0,0.56) 88.2%, rgba(0,0,0,0.44) 89.8%, rgba(0,0,0,0.323) 91.5%, rgba(0,0,0,0.216) 93.2%, rgba(0,0,0,0.126) 94.9%, rgba(0,0,0,0.057) 96.6%, rgba(0,0,0,0.015) 98.3%, rgba(0,0,0,0) 100.0%); mask-image: linear-gradient(90deg, #000 0%, rgba(0,0,0,1) 78.0%, rgba(0,0,0,0.985) 79.7%, rgba(0,0,0,0.943) 81.4%, rgba(0,0,0,0.874) 83.1%, rgba(0,0,0,0.784) 84.8%, rgba(0,0,0,0.677) 86.5%, rgba(0,0,0,0.56) 88.2%, rgba(0,0,0,0.44) 89.8%, rgba(0,0,0,0.323) 91.5%, rgba(0,0,0,0.216) 93.2%, rgba(0,0,0,0.126) 94.9%, rgba(0,0,0,0.057) 96.6%, rgba(0,0,0,0.015) 98.3%, rgba(0,0,0,0) 100.0%); }
+    .panel { left: 48%; top: 0; height: auto; padding: 7vmin 4.6vmin 5.4vmin; }
+    h1 { font-size: 8vmin; margin-top: 2.6vmin; }
+    .bowl { width: 50vmin; margin-top: auto; }
+    .foot { flex-direction: column; align-items: center; text-align: center; gap: 2.2vmin; margin-top: auto; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 54%; }
+    .panel { left: 46%; padding: 5.4vmin 4.6vmin 5vmin; }
+    h1 { font-size: 7.2vmin; margin-top: 2vmin; }
+    .bowl { width: 50vmin; margin-top: auto; }
+    .foot { margin-top: 2.6vmin; padding-top: 2vmin; gap: 1.8vmin; }
+    .when { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { background: radial-gradient(60vmin 40vmin at 72% 66%, rgba(209,172,98,.22), rgba(209,172,98,0) 70%), linear-gradient(180deg, #1E2038, #15162A); }
+    .photo { width: 52%; object-position: 70% 30%; }
+    .panel { left: 44%; padding: 7vmin 6vmin 6vmin; }
+    h1 { font-size: 9.4vmin; margin-top: 2.6vmin; }
+    .bowl { width: 72vmin; }
+    .foot { margin-top: 3vmin; flex-direction: row; text-align: left; justify-content: space-between; }
+    .when { font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion (8 s loop · t=0 = static design) ─────────
+     slow evening rhythm: the mallet draws back and strikes the bowl rim twice per loop (1.8 s, 5.8 s);
+     each strike sends two thin sound waves rolling out past the printed rings, the rim flares, the frequency
+     tags brighten as the wave reaches them; the warm floor glow and the photo breathe;
+     "slow down." exhales once (3 s) */
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(60vmin 34vmin at 50% 86%, rgba(209,172,98,.22), rgba(209,172,98,0) 70%);
+    animation: floor 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes floor { 0%, 44%, 100% { opacity: 0; } 58% { opacity: 1; } }
+  @media (min-aspect-ratio: 7/10) { .banner::before { background: radial-gradient(44vmin 34vmin at 76% 64%, rgba(209,172,98,.2), rgba(209,172,98,0) 70%); } }
+
+  .photo { transform-origin: 40% 35%; animation: drift 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes drift { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .bowl .mallet { transform-box: view-box; transform-origin: 134px 62px; animation: strike 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes strike {
+    0%, 20% { transform: rotate(0deg); }
+    38% { transform: rotate(9deg); animation-timing-function: cubic-bezier(.7,0,1,.6); }
+    45% { transform: rotate(-3deg); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    60%, 100% { transform: rotate(0deg); }
+  }
+  .bowl .wave { fill: none; stroke: #EDD39B; stroke-width: .7; vector-effect: non-scaling-stroke; transform-box: view-box; transform-origin: 100px 32px; opacity: 0;
+    animation: wave 4s cubic-bezier(.15,.55,.35,1) infinite; }
+  .bowl .wave.w2 { animation-name: wave2; stroke: #CFC8EA; }
+  @keyframes wave { 0%, 45% { opacity: 0; transform: scale(1); } 47% { opacity: .85; transform: scale(1.05); } 100% { opacity: 0; transform: scale(3.7); } }
+  @keyframes wave2 { 0%, 51% { opacity: 0; transform: scale(1); } 53% { opacity: .55; transform: scale(1.04); } 100% { opacity: 0; transform: scale(3.2); } }
+  .bowl .rim { animation: rim 4s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes rim { 0%, 44%, 80%, 100% { stroke: #EDD39B; stroke-width: .7; } 47% { stroke: #FFF4D6; stroke-width: 1.4; } }
+
+  .bowl text { animation: tag 4s cubic-bezier(.45,0,.55,1) infinite; }
+  .bowl text:nth-of-type(2) { animation-delay: -.2s; }
+  .bowl text:nth-of-type(1), .bowl text:nth-of-type(3) { animation-delay: -.45s; }
+  @keyframes tag { 0%, 54%, 86%, 100% { fill: #CFC8EA; } 66% { fill: #F4DFA8; } }
+
+  h1 i { display: inline-block; animation: exhale 8s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes exhale {
+    0%, 32% { opacity: 1; filter: blur(0); transform: translateY(0); }
+    41%, 44% { opacity: 0; filter: blur(.5vmin); transform: translateY(.8vmin); }
+    58%, 100% { opacity: 1; filter: blur(0); transform: translateY(0); }
+  }
+  .cta { animation: halo 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes halo { 0%, 46%, 100% { box-shadow: 0 0 0 0 rgba(209,172,98,0); } 62% { box-shadow: 0 0 2.2vmin .2vmin rgba(209,172,98,.35); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick">Evening sound bath · Nº 7</div>
+    <h1>Tune in,<br><i>slow down.</i></h1>
+    <svg class="bowl" viewBox="0 0 200 74" aria-hidden="true">
+      <defs>
+        <linearGradient id="brass" x1="0" x2="1"><stop offset="0" stop-color="#7A5B25"/><stop offset=".28" stop-color="#E7C98A"/><stop offset=".55" stop-color="#C39A4C"/><stop offset="1" stop-color="#6E5020"/></linearGradient>
+        <linearGradient id="inside" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A2C14"/><stop offset="1" stop-color="#8D6B31"/></linearGradient>
+      </defs>
+      <g fill="none" stroke="#D1AC62">
+        <ellipse cx="100" cy="32" rx="97" ry="27" stroke-opacity=".14" stroke-dasharray="1 2.2"/>
+        <ellipse cx="100" cy="32" rx="78" ry="21" stroke-opacity=".24" stroke-width=".5"/>
+        <ellipse cx="100" cy="32" rx="59" ry="15.6" stroke-opacity=".38" stroke-width=".5"/>
+        <ellipse cx="100" cy="32" rx="42" ry="10.8" stroke-opacity=".56" stroke-width=".6"/>
+      </g>
+      <ellipse class="wave" cx="100" cy="32" rx="27" ry="5.2"/>
+      <ellipse class="wave w2" cx="100" cy="32" rx="27" ry="5.2"/>
+      <text x="178.5" y="21">432 Hz</text>
+      <text x="159" y="17.2" text-anchor="end" opacity=".85">528</text>
+      <text x="21.5" y="21" text-anchor="end">639 Hz</text>
+      <ellipse cx="100" cy="64" rx="30" ry="6.4" fill="#5A2B3F"/>
+      <ellipse cx="100" cy="62.4" rx="26" ry="4.6" fill="#733852"/>
+      <path d="M73 32 C74 50 84 60 100 60 C116 60 126 50 127 32 Z" fill="url(#brass)"/>
+      <ellipse cx="100" cy="32" rx="27" ry="5.2" fill="url(#inside)"/>
+      <ellipse class="rim" cx="100" cy="32" rx="27" ry="5.2" fill="none" stroke="#EDD39B" stroke-width=".7"/>
+      <g class="mallet">
+        <line x1="134" y1="62" x2="156" y2="40" stroke="#9A6D3E" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="157.6" cy="38.4" r="3.2" fill="#E9E1CF"/>
+      </g>
+    </svg>
+    <div class="foot">
+      <div class="when"><b>Thu 20:00</b> · Studio Oro<br>Soft layers for the evening</div>
+      <div class="cta">Members <b>−20%</b> · Shop the calm</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

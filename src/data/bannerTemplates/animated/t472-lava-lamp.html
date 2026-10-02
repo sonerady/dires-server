@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Lava Lamp — the photo is the glowing glass of a copper 70s lava lamp (tapered bottle, cone cap, flared base);
+     wax blobs drift through the aubergine room around it, bubbly fat type, a warm halo behind the lamp.
+     tall / 3:4 → copy above, lamp standing on the bottom edge · square / wide → copy left, lamp right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2A0E29; }
+  .banner { --lx: 50%; --lw: 72vmin; --lt: 44vmin; --cap: 11vmin; --base: 24vmin;
+    position: fixed; inset: 0; overflow: hidden; color: #FBE6CF; font-family: "Outfit", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(90vmin 110vmin at var(--lx) 72%, rgba(255,120,60,.30) 0%, rgba(214,50,110,.14) 45%, rgba(42,14,41,0) 75%), linear-gradient(180deg, #230B24 0%, #34102F 60%, #3E1230 100%); }
+  /* drifting wax */
+  .blob { position: absolute; background: radial-gradient(circle at 35% 30%, #FFB35C 0%, #FF6A3D 45%, #D8266E 100%); border-radius: 58% 42% 55% 45% / 47% 60% 40% 53%; box-shadow: 0 0 5vmin rgba(255,90,80,.35); }
+  .b1 { width: 20vmin; height: 25vmin; left: -6vmin; top: 58%; }
+  .b2 { width: 11vmin; height: 9vmin; left: 4vmin; top: 80%; border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%; }
+  .b3 { width: 16vmin; height: 13vmin; right: -5vmin; top: 66%; border-radius: 50% 50% 38% 62% / 60% 45% 55% 40%; }
+  .b4 { width: 7vmin; height: 8vmin; right: 7vmin; top: 88%; }
+  .b5 { width: 5vmin; height: 5vmin; left: 13vmin; top: 70%; border-radius: 50%; }
+  /* the lamp */
+  .lamp { position: absolute; left: calc(var(--lx) - var(--lw) / 2 - 7vmin); width: calc(var(--lw) + 14vmin); top: var(--lt); bottom: 0; }
+  .cap { position: absolute; left: 50%; top: 0; width: calc(var(--lw) * .62); height: var(--cap); transform: translateX(-50%); clip-path: polygon(34% 0, 66% 0, 100% 100%, 0 100%);
+    background: linear-gradient(90deg, #5A2E17 0%, #B8683A 18%, #F6D2A2 34%, #D9925A 48%, #8A4A26 72%, #4A240F 100%); }
+  .cap::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1.2vmin; background: rgba(40,14,20,.45); }
+  .glass { position: absolute; left: 7vmin; right: 7vmin; top: var(--cap); bottom: var(--base); }
+  .glass img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 16%; display: block; clip-path: url(#bottle); }
+  .glass::after { content: ""; position: absolute; left: 21%; top: 12%; width: 2.2vmin; height: 58%; border-radius: 99vmin; transform: rotate(-4deg); background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.34) 30%, rgba(255,255,255,.12) 80%, rgba(255,255,255,0)); }
+  .collar { position: absolute; left: 5.5vmin; right: 5.5vmin; bottom: calc(var(--base) - 1.4vmin); height: 2.8vmin; background: linear-gradient(90deg, #4A240F, #B8683A 16%, #F6D2A2 32%, #C27A45 52%, #6E3719 80%, #4A240F); }
+  .base { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--base) - 1.4vmin); clip-path: polygon(7% 0, 93% 0, 100% 100%, 0 100%);
+    background: linear-gradient(90deg, #4A240F 0%, #A55A2E 14%, #F2C28E 28%, #D08A52 40%, #8A4A26 66%, #3E1D0C 100%); }
+  .base::before { content: ""; position: absolute; left: 0; right: 0; top: 38%; height: .5vmin; background: rgba(40,14,20,.35); }
+  .base b { position: absolute; left: 50%; top: 52%; transform: translateX(-50%); text-align: center; font-size: 1.7vmin; font-weight: 800; letter-spacing: .4em; text-transform: uppercase; color: #3A1A10; white-space: nowrap; }
+  /* copy */
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 6.5vmin; }
+  .k { display: flex; justify-content: space-between; font-size: 1.9vmin; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; color: #FF9C5B; white-space: nowrap; }
+  .k span + span { color: rgba(251,230,207,.66); letter-spacing: .2em; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Bagel Fat One", "Cooper Black", Georgia, serif; font-weight: 400; font-size: 15vmin; line-height: .88; letter-spacing: -.01em; white-space: nowrap;
+    background: linear-gradient(180deg, #FFD27A 0%, #FF8A45 45%, #F0467E 95%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .row { margin-top: 2.8vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .d { font-size: 2.8vmin; line-height: 1.35; font-weight: 400; }
+  .d b { font-weight: 800; color: #FFD27A; }
+  .d small { display: block; margin-top: .8vmin; font-size: 1.9vmin; letter-spacing: .16em; text-transform: uppercase; color: rgba(251,230,207,.72); }
+  .d small em { font-style: normal; font-weight: 800; color: #FBE6CF; }
+  .cta { flex: none; background: linear-gradient(90deg, #FF8A45, #F0467E); color: #2A0E29; border-radius: 99vmin; padding: 2vmin 3.6vmin; font-size: 2.3vmin; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 0 4vmin rgba(255,110,80,.35); }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --lw: 58vmin; --lt: 39vmin; --cap: 8vmin; --base: 19vmin; }
+    .copy { top: 5vmin; }
+    h1 { font-size: 12.6vmin; margin-top: 2vmin; }
+    .row { margin-top: 2.2vmin; }
+    .d { font-size: 2.3vmin; }
+    .b1 { top: 50%; } .b3 { top: 58%; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --lx: 70%; --lw: 44vmin; --lt: 4vmin; --cap: 8vmin; --base: 18vmin; background: radial-gradient(70vmin 90vmin at var(--lx) 62%, rgba(255,120,60,.30) 0%, rgba(214,50,110,.14) 45%, rgba(42,14,41,0) 75%), linear-gradient(180deg, #230B24 0%, #34102F 60%, #3E1230 100%); }
+    .copy { left: 6vmin; right: auto; width: calc(var(--lx) - var(--lw) / 2 - 16vmin); top: 7vmin; bottom: 7vmin; display: flex; flex-direction: column; }
+    .k { flex-direction: column; gap: 1vmin; font-size: 1.7vmin; }
+    h1 { margin-top: auto; font-size: 11vmin; white-space: normal; }
+    .row { margin-top: 5vmin; margin-bottom: auto; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .d { font-size: 2.3vmin; }
+    .cta { font-size: 2.1vmin; }
+    .b1 { left: auto; right: -7vmin; top: 12%; width: 16vmin; height: 20vmin; }
+    .b2 { left: auto; right: 3vmin; top: 42%; }
+    .b3 { right: auto; left: 46%; top: 76%; width: 12vmin; height: 10vmin; }
+    .b4 { right: auto; left: 40%; top: 58%; width: 5vmin; height: 6vmin; }
+    .b5 { left: auto; right: 4vmin; top: 80%; width: 8vmin; height: 8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --lx: 74%; --lw: 46vmin; }
+    .copy { left: 8vmin; width: calc(var(--lx) - var(--lw) / 2 - 20vmin); top: 9vmin; bottom: 9vmin; }
+    .k { flex-direction: row; gap: 4vmin; justify-content: flex-start; font-size: 1.8vmin; }
+    h1 { margin-top: auto; font-size: 14vmin; white-space: nowrap; }
+    .row { flex-direction: row; align-items: flex-end; margin-top: 6vmin; }
+    .d { font-size: 2.5vmin; }
+    .b3 { left: 47%; top: 5%; width: 11vmin; height: 9vmin; }
+    .b4 { left: -2vmin; top: 58%; width: 6vmin; height: 7vmin; }
+  }
+
+  /* ───────── motion (6s loop) — slow, warm, hypnotic ─────────
+     constant: the wax blobs rise, stretch and sink back on their own lazy paths (each a different arc & squash);
+     the room halo swells with the lamp's heat (3s breath) and the glass highlight glints
+     beat 2.4–3.6s: the lamp surges — the glass warms (brightness/saturation lift) and the halo flares ·
+     4.6s: a hot sheen slides across "Switch it on" */
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(70vmin 80vmin at var(--lx) 62%, rgba(255,140,70,.28) 0%, rgba(214,50,110,.12) 50%, rgba(42,14,41,0) 78%);
+    opacity: 0; animation: heat 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes heat { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+  .blob { animation: 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .b1 { animation-name: rise1; }
+  .b2 { animation-name: rise2; }
+  .b3 { animation-name: rise3; }
+  .b4 { animation-name: rise2; animation-duration: 3s; }
+  .b5 { animation-name: rise1; animation-duration: 3s; }
+  @keyframes rise1 { 0%, 100% { transform: translate(0, 0) scale(1, 1) rotate(0); } 30% { transform: translate(.8vmin, -3vmin) scale(.94, 1.08) rotate(4deg); } 60% { transform: translate(1.2vmin, -5vmin) scale(1.05, .95) rotate(-3deg); } }
+  @keyframes rise2 { 0%, 100% { transform: translate(0, 0) scale(1, 1); } 45% { transform: translate(-1vmin, -4vmin) scale(1.08, .92); } 70% { transform: translate(-.4vmin, -2vmin) scale(.95, 1.06); } }
+  @keyframes rise3 { 0%, 100% { transform: translate(0, 0) scale(1, 1) rotate(0); } 40% { transform: translate(-1.2vmin, 2.4vmin) scale(1.06, .94) rotate(-5deg); } 75% { transform: translate(-.4vmin, 3.6vmin) scale(.96, 1.05) rotate(2deg); } }
+
+  .glass img { animation: surge 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes surge { 0%, 36%, 66%, 100% { filter: none; } 50% { filter: brightness(1.08) saturate(1.12); } }
+  .lamp::before { content: ""; position: absolute; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none;
+    background: radial-gradient(50% 45% at 50% 50%, rgba(255,140,70,.35), rgba(255,140,70,0) 70%); transform: scale(1.15);
+    opacity: 0; animation: flare 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes flare { 0%, 36%, 70%, 100% { opacity: 0; } 50% { opacity: 1; } }
+  .glass::after { animation: glint 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glint { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+  .cta { position: relative; overflow: hidden; animation: ctaglow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ctaglow { 0%, 70%, 92%, 100% { box-shadow: 0 0 4vmin rgba(255,110,80,.35); } 80% { box-shadow: 0 0 6vmin rgba(255,140,90,.7); } }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,240,210,.55), rgba(255,255,255,0));
+    transform: translateX(-120%); animation: sheen 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 72% { transform: translateX(-120%); } 86%, 100% { transform: translateX(330%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="bottle" clipPathUnits="objectBoundingBox"><path d="M.19,0H.81C.87,.3 1,.62 1,1H0C0,.62 .13,.3 .19,0Z"/></clipPath></defs></svg>
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div><div class="blob b5"></div>
+  <div class="lamp">
+    <div class="cap"></div>
+    <div class="glass"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="base"><b>Halcyon Home</b></div>
+    <div class="collar"></div>
+  </div>
+  <div class="copy">
+    <div class="k"><span>The after-dark edit</span><span>Thu – Sun</span></div>
+    <h1>Slow Glow</h1>
+    <div class="row">
+      <div class="d">Warm up to <b>40% off</b><br>the evening collection<small>Code <em>GLOW40</em></small></div>
+      <div class="cta">Switch it on</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

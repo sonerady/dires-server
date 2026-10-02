@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Dream Stairs — a staircase of pale plaster rises out of a black-and-cream chequered floor into a dusk-pink sky
+     and stops at nothing but the photo, which stands on the top step like a door into the new season. Pearl
+     spheres hang in the air, their shadows left behind on the floor.
+     tall → headline across the top, photo right, offer column left · 3:4 → copy column left, photo right
+     square / wide → same stair, flatter steps, headline one line */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFC9C4; }
+  .banner { --fl: 14vmin; --sh: 5.4vmin; --sw: 7vmin; --pl: 40vmin; --pr: 6vmin; --pt: 37vmin;
+    position: fixed; inset: 0; overflow: hidden; color: #2A2233; font-family: "Space Mono", "Courier New", monospace;
+    background: linear-gradient(180deg, #A99BCB 0%, #C9AAC9 30%, #E8BCC0 58%, #F5D3C2 82%, #F8E0CC 100%); }
+  .moon { position: absolute; right: 9vmin; top: 26vmin; width: 7vmin; height: 7vmin; border-radius: 50%; box-shadow: -1.4vmin .8vmin 0 0 #FFF4E6; transform: rotate(-12deg); opacity: .9; }
+
+  /* chequered floor in perspective */
+  .floor { position: absolute; left: 0; right: 0; bottom: 0; height: var(--fl); overflow: hidden; perspective: 14vmin; perspective-origin: 50% 0; background: #2A2233; }
+  .floor i { position: absolute; left: -100%; right: -100%; top: 0; height: 60vmin; transform-origin: 50% 0; transform: rotateX(58deg);
+    background: repeating-conic-gradient(#2A2233 0 25%, #F3E7DA 0 50%) 50% 0 / 6vmin 6vmin; }
+  .floor::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(42,34,51,.55), rgba(42,34,51,0) 60%); }
+
+  /* the staircase: six blocks, each running to the right edge */
+  .st { position: absolute; right: 0; bottom: var(--fl); box-sizing: border-box; border-top: 1.1vmin solid #FBF1E8;
+    background: linear-gradient(180deg, #E9D5C9 0%, #DDC3B6 100%); box-shadow: -1.2vmin 0 2.4vmin rgba(90,50,70,.22); }
+  .s1 { left: calc(var(--pl) - var(--sw) * 5); height: calc(var(--sh) * 1); }
+  .s2 { left: calc(var(--pl) - var(--sw) * 4); height: calc(var(--sh) * 2); }
+  .s3 { left: calc(var(--pl) - var(--sw) * 3); height: calc(var(--sh) * 3); }
+  .s4 { left: calc(var(--pl) - var(--sw) * 2); height: calc(var(--sh) * 4); }
+  .s5 { left: calc(var(--pl) - var(--sw) * 1); height: calc(var(--sh) * 5); }
+  .s6 { left: var(--pl); height: calc(var(--sh) * 6); }
+
+  .photo { position: absolute; left: var(--pl); right: var(--pr); top: var(--pt); width: calc(100% - var(--pl) - var(--pr)); height: calc(100% - var(--pt) - var(--fl) - var(--sh) * 6);
+    object-fit: cover; object-position: 50% 25%; display: block; box-shadow: 0 2vmin 4vmin rgba(90,50,70,.3); }
+
+  /* floating pearls and their left-behind shadows */
+  .orb { position: absolute; border-radius: 50%; background: radial-gradient(circle at 34% 30%, #FFFFFF 0 8%, #F4E8EE 24%, #D8C2D6 60%, #9E86A8 100%); box-shadow: 0 1.4vmin 3vmin rgba(90,50,70,.25); }
+  .o1 { width: 11vmin; height: 11vmin; left: 9vmin; top: calc(100% - var(--fl) - 42vmin); }
+  .o2 { width: 6vmin; height: 6vmin; left: 22vmin; top: calc(100% - var(--fl) - 34vmin); }
+  .o3 { width: 4vmin; height: 4vmin; left: 30vmin; top: calc(100% - var(--fl) - 48vmin); }
+  .ghost { position: absolute; bottom: calc(var(--fl) * .45); height: 1.6vmin; border-radius: 50%; background: radial-gradient(closest-side, rgba(42,34,51,.8), rgba(42,34,51,0)); }
+  .g1 { left: 7vmin; width: 15vmin; } .g2 { left: 23vmin; width: 8vmin; }
+
+  /* type */
+  .mast { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .mast span + span { font-weight: 400; }
+  .head { position: absolute; left: 5.4vmin; right: 6vmin; top: 9.6vmin; }
+  h1 { margin: 0; font-family: "Syne", "Arial Black", sans-serif; font-weight: 800; font-size: 14.4vmin; line-height: .9; letter-spacing: -.045em; white-space: nowrap; }
+  .sub { margin: 2vmin 0 0 .6vmin; font-size: 2vmin; line-height: 1.45; }
+  .buy { position: absolute; left: 6vmin; top: 42vmin; width: calc(var(--pl) - 11vmin); display: flex; flex-direction: column; align-items: flex-start; gap: 2.2vmin; }
+  .offer { font-size: 1.8vmin; line-height: 1.4; }
+  .offer b { display: block; font-family: "Syne", "Arial Black", sans-serif; font-weight: 800; font-size: 7.4vmin; line-height: .95; letter-spacing: -.04em; color: #7A3F66; }
+  .offer small { display: block; margin-top: .6vmin; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .cta { padding: 1.6vmin 2.8vmin; background: #2A2233; color: #F8E0CC; font-size: 1.8vmin; font-weight: 700; letter-spacing: .08em; white-space: nowrap; }
+
+  /* 3:4 / 4:5 → copy column left, photo right */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --fl: 12vmin; --sh: 4.6vmin; --sw: 7.4vmin; --pl: 44vmin; --pt: 6vmin; }
+    .mast { right: calc(100% - var(--pl) + 4vmin); flex-direction: column; gap: 1vmin; top: 6vmin; }
+    .head { top: 14vmin; right: calc(100% - var(--pl) + 3vmin); }
+    h1 { font-size: 9.4vmin; white-space: normal; }
+    .sub { font-size: 1.8vmin; }
+    .buy { top: 50vmin; }
+    .offer b { font-size: 6.4vmin; }
+    .moon { right: auto; left: 30vmin; top: 5vmin; width: 5vmin; height: 5vmin; }
+    .o1 { width: 8vmin; height: 8vmin; left: 8vmin; top: calc(100% - var(--fl) - 34vmin); }
+    .o2 { left: 22vmin; top: calc(100% - var(--fl) - 22vmin); width: 5vmin; height: 5vmin; }
+    .o3 { display: none; }
+    .g1 { width: 11vmin; } .g2 { left: 21vmin; width: 7vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --fl: 11vmin; --sh: 4.2vmin; --sw: 6.6vmin; --pl: 48%; --pt: 6vmin; }
+    h1 { font-size: 10vmin; }
+    .buy { top: 44vmin; }
+    .o1 { top: calc(100% - var(--fl) - 30vmin); left: 6vmin; }
+    .o2 { top: calc(100% - var(--fl) - 16vmin); left: 17vmin; }
+    .g1 { left: 4vmin; } .g2 { left: 16vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --fl: 11vmin; --sh: 4.2vmin; --sw: 8vmin; --pl: 50%; --pr: 7vmin; --pt: 7vmin; }
+    .mast { left: 7vmin; right: calc(100% - var(--pl) + 5vmin); top: 7vmin; flex-direction: row; }
+    .head { left: 6.4vmin; top: 12vmin; right: calc(100% - var(--pl) + 4vmin); }
+    h1 { font-size: min(10vmin, 6.6vw); white-space: nowrap; }
+    .buy { left: 7vmin; top: 36vmin; width: auto; flex-direction: row; align-items: flex-end; gap: 4vmin; }
+    .offer b { font-size: 6.4vmin; }
+    .moon { left: calc(var(--pl) - 13vmin); top: 52vmin; }
+    .o1 { left: 8vmin; top: calc(100% - var(--fl) - 24vmin); width: 9vmin; height: 9vmin; }
+    .o2 { left: 22vmin; top: calc(100% - var(--fl) - 12vmin); }
+    .g1 { left: 6vmin; width: 13vmin; } .g2 { left: 20vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <i class="moon"></i>
+  <div class="floor"><i></i></div>
+  <i class="ghost g1"></i><i class="ghost g2"></i>
+  <i class="st s1"></i><i class="st s2"></i><i class="st s3"></i><i class="st s4"></i><i class="st s5"></i><i class="st s6"></i>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i>
+  <div class="mast"><span>Escalier</span><span>New arrivals</span></div>
+  <div class="head">
+    <h1>Step up.</h1>
+    <div class="sub">The new season, one level higher.</div>
+  </div>
+  <div class="buy">
+    <div class="offer"><b>−30%</b>on every new arrival<small>3 days only</small></div>
+    <span class="cta">Climb in →</span>
+  </div>
+</div>
+</body>
+</html>

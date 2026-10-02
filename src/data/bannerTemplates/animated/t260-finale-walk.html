@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Finale Walk — the whole cast out for the last lap: the look repeated as a line-up of tall slices,
+     the centre one in full colour under the spot, the others dimmed with their look numbers; the sale is the finale.
+     tall → FINALE header, three slices, offer · square → four slices · wide → five slices, copy band below */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0B0B0C; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F1EEE7; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(ellipse 60% 55% at 50% 48%, #262320 0%, #121112 60%, #0B0B0C 100%); }
+  .bb { font-family: "Bebas Neue", "Oswald", Impact, sans-serif; font-weight: 400; }
+
+  .top { position: absolute; left: 5vmin; right: 5vmin; top: 4.4vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 2vmin; }
+  .top h1 { margin: 0; font-family: "Bebas Neue", Impact, sans-serif; font-weight: 400; font-size: 25vmin; line-height: .78; letter-spacing: .01em; }
+  .top small { font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; line-height: 1.6; text-align: right; padding-bottom: 1vmin; white-space: nowrap; }
+  .top small b { color: #E23B2E; font-weight: 700; }
+
+  .line { position: absolute; left: 5vmin; right: 5vmin; top: 30vmin; bottom: 33vmin; display: flex; gap: 1.6vmin; align-items: stretch; }
+  .sl { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+  .sl .win { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+  .sl img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+  .sl.dim img { filter: grayscale(1) brightness(.5) contrast(1.1); }
+  .sl .no { flex: none; display: flex; justify-content: space-between; align-items: baseline; padding-top: 1.2vmin; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #8D8983; }
+  .sl .no b { font-family: "Bebas Neue", sans-serif; font-weight: 400; font-size: 4.4vmin; letter-spacing: .02em; color: #8D8983; line-height: .9; }
+  .sl.hero { flex: 2.4 1 0; }
+  .sl.hero .no, .sl.hero .no b { color: #F1EEE7; }
+  .sl.hero .no b { color: #E23B2E; }
+  .s1 img { object-position: 22% 20%; }
+  .s2 img { object-position: 38% 20%; }
+  .s3 img { object-position: 50% 20%; }
+  .s4 img { object-position: 62% 20%; }
+  .s5 img { object-position: 78% 20%; }
+  .s1, .s5 { display: none; }
+
+  .bot { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.6vmin; height: 24vmin; display: flex; flex-direction: column; justify-content: flex-end; }
+  .offer { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .offer .pct { font-family: "Bebas Neue", sans-serif; font-size: 20vmin; line-height: .8; color: #E23B2E; white-space: nowrap; }
+  .offer .txt { font-size: 3vmin; line-height: 1.2; font-weight: 500; text-align: right; }
+  .meta { margin-top: 2.4vmin; padding-top: 1.4vmin; border-top: 1px solid rgba(241,238,231,.35); display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .meta b { font-weight: 700; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .top h1 { font-size: 21vmin; }
+    .line { top: 26vmin; bottom: 29vmin; }
+    .bot { height: 21vmin; }
+    .offer .pct { font-size: 17vmin; }
+    .offer .txt { font-size: 2.7vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .top h1 { font-size: 17vmin; }
+    .line { top: 22vmin; bottom: 24vmin; }
+    .bot { height: 17vmin; bottom: 4vmin; }
+    .offer .pct { font-size: 13vmin; }
+    .offer .txt { font-size: 2.5vmin; }
+    .meta { margin-top: 1.6vmin; }
+  }
+  /* square — four in line */
+  @media (min-aspect-ratio: 9/10) {
+    .top { top: 4vmin; }
+    .top h1 { font-size: 15vmin; }
+    .line { top: 19vmin; bottom: 21vmin; }
+    .s1 { display: flex; }
+    .sl.hero { flex: 2 1 0; }
+    .bot { height: 15vmin; bottom: 4vmin; }
+    .offer .pct { font-size: 11vmin; }
+    .offer .txt { font-size: 2.4vmin; }
+    .meta { margin-top: 1.4vmin; font-size: 1.6vmin; }
+  }
+  /* wide — the full line-up of five, copy in a band beneath */
+  @media (min-aspect-ratio: 6/5) {
+    .top { left: 5vmin; right: 5vmin; }
+    .top h1 { font-size: 15vmin; }
+    .line { top: 19vmin; bottom: 22vmin; gap: 1.4vmin; }
+    .s5 { display: flex; }
+    .sl.hero { flex: 2.2 1 0; }
+    .bot { height: 16vmin; }
+    .offer .pct { font-size: 12vmin; }
+    .offer .txt { font-size: 2.8vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     the closing look pushes in slowly (6s) · the "last walk" dot blinks every second ·
+     0.7s a follow-spot travels the line-up left→right, bringing each dimmed look up to colour ·
+     3.5s FINALE rises again · 4.6s the −40% punches in */
+  .sl.dim img { animation: lit 6s linear infinite; }
+  .s1 img { animation-delay: -1.68s; }
+  .s2 img { animation-delay: -1.32s; }
+  .s4 img { animation-delay: -.6s; }
+  .s5 img { animation-delay: -.24s; }
+  @keyframes lit {
+    0%, 40% { filter: grayscale(1) brightness(.5) contrast(1.1); animation-timing-function: cubic-bezier(.3,.4,.3,1); }
+    45%, 49% { filter: grayscale(0) brightness(.97) contrast(1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    58%, 100% { filter: grayscale(1) brightness(.5) contrast(1.1); }
+  }
+  .sl.hero img { transform-origin: 50% 30%; animation: push 6s linear infinite; }
+  @keyframes push {
+    0%, 100% { transform: scale(1); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: scale(1.04); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+  }
+  .top small .dot { font-style: normal; display: inline-block; animation: blink 1s steps(1, end) infinite; }
+  @keyframes blink { 0%, 55% { opacity: 1; } 56%, 92% { opacity: .15; } 93%, 100% { opacity: 1; } }
+  .top h1 { animation: rise 6s linear infinite; }
+  @keyframes rise {
+    0%, 56% { clip-path: inset(-8% -3% -8% -3%); transform: translateY(0); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+    60% { clip-path: inset(-8% -3% 108% -3%); transform: translateY(0); animation-timing-function: steps(1, end); }
+    60.5% { clip-path: inset(108% -3% -8% -3%); transform: translateY(3vmin); animation-timing-function: cubic-bezier(.2,.7,.25,1); }
+    70%, 100% { clip-path: inset(-8% -3% -8% -3%); transform: translateY(0); }
+  }
+  .offer .pct { transform-origin: 0 90%; animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 73% { transform: scale(1); opacity: 1; animation-timing-function: cubic-bezier(.55,0,.9,.4); }
+    75.5% { transform: scale(.8); opacity: 0; animation-timing-function: steps(1, end); }
+    76% { transform: scale(1.14); opacity: 1; animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    80% { transform: scale(.97); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    84% { transform: scale(1.01); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    87%, 100% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <h1>Finale</h1>
+    <small>Studio Oro · SS27<br><b><i class="dot">●</i> Last walk</b> · all looks</small>
+  </div>
+  <div class="line">
+    <div class="sl dim s1"><div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="no"><span>Look</span><b>12</b></div></div>
+    <div class="sl dim s2"><div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="no"><span>Look</span><b>23</b></div></div>
+    <div class="sl hero s3"><div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="no"><span>Closing look</span><b>36</b></div></div>
+    <div class="sl dim s4"><div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="no"><span>Look</span><b>01</b></div></div>
+    <div class="sl dim s5"><div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="no"><span>Look</span><b>18</b></div></div>
+  </div>
+  <div class="bot">
+    <div class="offer">
+      <div class="pct">−40%</div>
+      <div class="txt">Every look, one last walk.<br>The season sale.</div>
+    </div>
+    <div class="meta"><span>Fri 10 — Sun 12.10</span><span>Shop the finale <b>→</b></span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  /* Correspondence Card — engraved stationery on a laid-paper desk: a heavy card with a hand-painted navy edge,
+     a three-letter monogram (surname initial raised in the middle), an engraved address line and a
+     "With compliments" note in pen script; a claret-lined navy envelope waits underneath.
+     tall → photo above the desk; square/wide → photo left, desk + card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCE1E4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1C2A48; font-family: "Cormorant Garamond", Garamond, "Times New Roman", serif; font-variant-numeric: lining-nums;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 7vmin, rgba(28,42,72,.05) 7vmin calc(7vmin + 1px)),
+      repeating-linear-gradient(0deg, transparent 0 .5vmin, rgba(255,255,255,.35) .5vmin .75vmin),
+      linear-gradient(160deg, #E3E7EA 0%, #D5DBDF 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 68vmin); object-fit: cover; object-position: 50% 20%; }
+  .desk { position: absolute; left: 0; right: 0; bottom: 0; height: 68vmin; overflow: hidden; }
+
+  /* envelope: navy, closed flap edged with a claret liner */
+  .env { position: absolute; right: -6vmin; top: 7vmin; width: 58vmin; height: 40vmin; background: #1C2A48; transform: rotate(-6deg); box-shadow: 0 1vmin 2.4vmin rgba(20,28,44,.35); }
+  .env::before { content: ""; position: absolute; inset: 0; clip-path: polygon(0 0, 50% 58%, 100% 0, 100% 3%, 50% 61%, 0 3%); background: #7A2331; z-index: 1; }
+  .env::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 100%; clip-path: polygon(0 0, 50% 58%, 100% 0, 100% 100%, 0 100%); background: #16223D; }
+
+  .card { position: absolute; left: 50%; top: 50%; width: 80vmin; height: 56vmin; transform: translate(-50%, -50%) rotate(-1deg); box-sizing: border-box;
+    background: #FBF8F1; border: .7vmin solid #1C2A48; padding: 4.4vmin 6vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    box-shadow: 0 .3vmin 0 #E7E1D3, 0 1.6vmin 3.4vmin rgba(20,28,44,.32); }
+  .card::before { content: ""; position: absolute; inset: 1.6vmin; border: 1px solid rgba(28,42,72,.35); pointer-events: none; }
+  .mono { display: flex; align-items: center; gap: 1.6vmin; font-weight: 500; line-height: 1; }
+  .mono span { font-size: 5.2vmin; letter-spacing: 0; }
+  .mono b { font-weight: 500; font-size: 10vmin; }
+  .mono i { width: .8vmin; height: .8vmin; background: #1C2A48; transform: rotate(45deg); }
+  .addr { margin-top: 1.8vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; }
+  .rule { width: 12vmin; height: 1px; margin: 2.2vmin 0 1.2vmin; background: rgba(28,42,72,.5); }
+  .script { font-family: "Pinyon Script", "Snell Roundhand", cursive; font-size: 7.4vmin; line-height: 1.1; color: #1C2A48; }
+  .body { margin-top: .8vmin; font-size: 3.4vmin; line-height: 1.25; font-style: italic; max-width: 60vmin; }
+  .code { margin-top: 2vmin; display: flex; align-items: center; gap: 1.8vmin; white-space: nowrap; font-size: 2vmin; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; }
+  .code b { font-weight: 600; padding: .5vmin 1.4vmin .5vmin 1.7vmin; border: 1px solid #1C2A48; }
+  .code em { color: #7A2331; font-style: normal; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 60vmin); }
+    .desk { height: 60vmin; }
+    .card { height: 50vmin; width: 78vmin; padding: 3.6vmin 6vmin; }
+    .mono b { font-size: 7.6vmin; }
+    .mono span { font-size: 4.2vmin; }
+    .script { font-size: 5.8vmin; }
+    .body { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .desk { left: 50%; top: 0; height: auto; }
+    .env { right: -14vmin; top: 8vmin; width: 40vmin; height: 56vmin; transform: rotate(7deg); }
+    .card { width: 40vmin; height: 78vmin; padding: 5vmin 4vmin; transform: translate(-50%, -50%) rotate(-1.5deg); }
+    .mono b { font-size: 7.6vmin; }
+    .mono span { font-size: 4vmin; }
+    .addr { font-size: 1.6vmin; letter-spacing: .26em; margin-right: -.26em; line-height: 1.6; }
+    .script { font-size: 6vmin; }
+    .body { font-size: 2.6vmin; max-width: 30vmin; }
+    .code { flex-direction: column; gap: 1.2vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 40% 25%; }
+    .desk { left: 46%; }
+    .env { right: -10vmin; top: 10vmin; width: 50vmin; height: 64vmin; }
+    .card { width: 56vmin; height: 76vmin; padding: 5vmin 5vmin; }
+    .mono b { font-size: 9vmin; }
+    .mono span { font-size: 4.8vmin; }
+    .addr { font-size: 1.8vmin; }
+    .script { font-size: 7vmin; }
+    .body { font-size: 3vmin; max-width: 42vmin; }
+    .code { flex-direction: row; gap: 1.8vmin; font-size: 1.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="desk">
+    <div class="env"></div>
+    <div class="card">
+      <div class="mono"><span>A</span><i></i><b>N</b><i></i><span>E</span></div>
+      <div class="addr">Atelier Nord · Mount Street</div>
+      <div class="rule"></div>
+      <div class="script">With compliments,</div>
+      <div class="body">twenty per cent off the autumn collection, for friends of the house.</div>
+      <div class="code"><b>FRIEND20</b><em>Until 31 October</em></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

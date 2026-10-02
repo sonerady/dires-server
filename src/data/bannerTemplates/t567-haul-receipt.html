@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,500;0,800;0,900;1,800&family=Courier+Prime:wght@400;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Haul Receipt — a try-on haul cover: a chunky title, the photo, and a zig-zag till receipt listing the haul with
+     keep / return verdicts (returns struck through), the featured piece starred, a kept total and a barcode.
+     tall / 3:4 → title, photo, receipt band · square / wide → photo left, title + receipt right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #CDBDF2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #231A33; font-family: "Rubik", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(110vmin 90vmin at 10% 0%, #DCCFF8, #CDBDF2 60%, #BFAEEA 100%);
+    display: flex; flex-direction: column; padding: 5vmin 6vmin 5.4vmin; box-sizing: border-box; }
+
+  .head { position: relative; flex: none; display: flex; align-items: flex-end; gap: 3vmin; }
+  h1 { margin: 0; font-weight: 900; font-size: 11.4vmin; line-height: .84; letter-spacing: -.045em; }
+  h1 i { font-style: italic; font-weight: 800; color: #F0522E; }
+  .chip { margin-left: auto; flex: none; text-align: right; font-size: 1.8vmin; font-weight: 500; line-height: 1.35; }
+  .chip b { display: inline-block; margin-bottom: .8vmin; padding: .7vmin 1.6vmin; border-radius: 99vmin; background: #231A33; color: #CDBDF2; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 4vmin; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .rc { position: relative; flex: none; margin-top: 4.6vmin; background: #FFFDF7; padding: 2.8vmin 4vmin 3vmin; font-family: "Courier Prime", "Courier New", monospace; font-size: 2vmin; color: #231A33;
+    filter: drop-shadow(0 1.2vmin 1.6vmin rgba(60,30,110,.22)); }
+  .rc::before, .rc::after { content: ""; position: absolute; left: 0; right: 0; height: 1.6vmin; background-size: 1.6vmin 1.6vmin; background-repeat: repeat-x; }
+  .rc::before { top: -1.6vmin; background-image: linear-gradient(-45deg, #FFFDF7 .8vmin, transparent 0), linear-gradient(45deg, #FFFDF7 .8vmin, transparent 0); background-position: left bottom; }
+  .rc::after { bottom: -1.6vmin; background-image: linear-gradient(-135deg, #FFFDF7 .8vmin, transparent 0), linear-gradient(135deg, #FFFDF7 .8vmin, transparent 0); background-position: left top; }
+  .rt { display: flex; justify-content: space-between; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding-bottom: 1.2vmin; border-bottom: 1px dashed #8C8398; }
+  .ln { display: flex; gap: 1.6vmin; padding-top: 1.1vmin; line-height: 1.2; }
+  .ln .n { color: #8C8398; }
+  .ln .v { margin-left: auto; font-weight: 700; }
+  .ln.x .t { text-decoration: line-through; color: #8C8398; }
+  .ln.x .v { color: #8C8398; }
+  .ln.me { margin: .6vmin -1.2vmin 0; padding: .8vmin 1.2vmin; background: #231A33; color: #FFFDF7; }
+  .ln.me .n { color: #CDBDF2; }
+  .ln.me .v { color: #FFB199; }
+  .tot { display: flex; justify-content: space-between; align-items: baseline; margin-top: 1.4vmin; padding-top: 1.2vmin; border-top: 1px dashed #8C8398; font-weight: 700; }
+  .tot b { font-family: "Rubik", sans-serif; font-weight: 800; font-size: 4vmin; letter-spacing: -.03em; }
+  .bc { display: flex; align-items: center; gap: 3vmin; margin-top: 1.6vmin; }
+  .bars { flex: 1; height: 4.4vmin; background: repeating-linear-gradient(90deg, #231A33 0 .3vmin, transparent .3vmin .6vmin, #231A33 .6vmin 1.1vmin, transparent 1.1vmin 1.4vmin, #231A33 1.4vmin 1.6vmin, transparent 1.6vmin 2.3vmin); }
+  .cta { flex: none; padding: 1.6vmin 2.6vmin; background: #F0522E; color: #FFFDF7; font-family: "Rubik", sans-serif; font-size: 2vmin; font-weight: 800; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.8vmin; }
+    h1 { font-size: 9.6vmin; }
+    .photo { margin-top: 3.4vmin; }
+    .rc { margin-top: 4vmin; padding: 2.2vmin 3.6vmin 2.4vmin; font-size: 1.8vmin; }
+    .ln { padding-top: .8vmin; }
+    .tot b { font-size: 3.4vmin; }
+    .bc { margin-top: 1.2vmin; }
+    .bars { height: 3.6vmin; }
+  }
+  /* ── square: photo left, title + receipt right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .photo { position: absolute; left: 5.6vmin; top: 5.6vmin; bottom: 5.6vmin; width: 47%; height: auto; margin: 0; }
+    .head, .rc { position: absolute; left: calc(47% + 10vmin); right: 5.6vmin; }
+    .head { top: 6vmin; display: block; }
+    h1 { font-size: 8.4vmin; }
+    .chip { margin: 2.2vmin 0 0; text-align: left; }
+    .rc { bottom: 7.2vmin; margin: 0; padding: 2.2vmin 3vmin 2.4vmin; font-size: 1.7vmin; }
+    .ln { gap: 1.2vmin; padding-top: .8vmin; }
+    .tot b { font-size: 3.2vmin; }
+    .bc { gap: 2vmin; }
+    .bars { height: 3.4vmin; }
+    .cta { padding: 1.4vmin 2vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; left: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .head, .rc { left: calc(42% + 13vmin); right: 7vmin; }
+    .head { top: 7vmin; display: flex; }
+    h1 { font-size: 9.6vmin; }
+    .chip { margin: 0 0 0 auto; text-align: right; }
+    .rc { bottom: 7.6vmin; padding: 2.6vmin 3.8vmin 2.8vmin; font-size: 1.9vmin; }
+    .ln { gap: 1.6vmin; padding-top: 1vmin; }
+    .tot b { font-size: 3.8vmin; }
+    .bars { height: 4vmin; }
+    .cta { padding: 1.6vmin 2.6vmin; font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1>Try-on<br><i>haul.</i></h1>
+    <div class="chip"><b>Haul #07</b><br>honest review</div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="rc">
+    <div class="rt"><span>Receipt</span><span>5 items</span></div>
+    <div class="ln"><span class="n">01</span><span class="t">Linen shirt · M</span><span class="v">KEEP</span></div>
+    <div class="ln x"><span class="n">02</span><span class="t">Wide trouser · 28</span><span class="v">RETURN</span></div>
+    <div class="ln me"><span class="n">03</span><span class="t">★ This one</span><span class="v">KEEP ×2</span></div>
+    <div class="ln x"><span class="n">04</span><span class="t">Knit vest · S</span><span class="v">RETURN</span></div>
+    <div class="ln"><span class="n">05</span><span class="t">Canvas tote</span><span class="v">KEEP</span></div>
+    <div class="tot"><span>KEPT 3 / 5 · PIECE 03</span><b>$58</b></div>
+    <div class="bc"><div class="bars"></div><div class="cta">Shop my keeps →</div></div>
+  </div>
+</div>
+</body>
+</html>

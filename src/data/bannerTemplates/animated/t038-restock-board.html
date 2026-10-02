@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  /* Restock Board — a split-flap departures board announcing a restock: flap-tile headline, size rows with sold-out strikes, unit counter.
+     tall → photo on top, board below; square / wide → photo left, board right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0B0B0B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0B0B0B; color: #EDEDED; font-family: "Martian Mono", Menlo, monospace; }
+  :root { --y: #FFC400; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 66vmin); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .live { position: absolute; left: 4vmin; top: 4vmin; display: flex; align-items: center; gap: 1.2vmin; background: #0B0B0B; color: #EDEDED; padding: 1.1vmin 1.8vmin; font-weight: 800; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .live i { width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #FF3B30; box-shadow: 0 0 0 .5vmin rgba(255,59,48,.3); }
+  .board { position: absolute; left: 0; right: 0; bottom: 0; height: 66vmin; padding: 4vmin 5vmin 5vmin; box-sizing: border-box; display: flex; flex-direction: column; background: #0B0B0B; }
+  .top { display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #8A8A8A; }
+  .top b { color: var(--y); font-weight: 800; }
+  .flaps { margin-top: 2.2vmin; display: flex; gap: .9vmin; }
+  .flaps span { position: relative; flex: 1; height: 12vmin; display: flex; align-items: center; justify-content: center; background: linear-gradient(180deg, #262626 0 50%, #1C1C1C 50% 100%); border-radius: .6vmin; font-weight: 800; font-size: 10vmin; color: #F4F4F4; box-shadow: inset 0 -.3vmin 0 rgba(0,0,0,.6); }
+  .flaps span::after { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - .15vmin); height: .3vmin; background: #0B0B0B; }
+  .flaps span.y { color: var(--y); }
+  .rows { margin-top: 2.6vmin; }
+  .row { display: grid; grid-template-columns: 9vmin 1fr auto; align-items: center; gap: 2.4vmin; padding: .8vmin 0; border-top: 1px solid #262626; font-size: 2.2vmin; letter-spacing: .06em; text-transform: uppercase; }
+  .row.head { border-top: 0; padding-top: 0; font-size: 1.6vmin; letter-spacing: .16em; color: #6E6E6E; }
+  .row .s { background: #1E1E1E; text-align: center; padding: .6vmin 0; font-weight: 800; }
+  .row .q { font-weight: 800; color: #EDEDED; }
+  .row.low .st, .row.low .q { color: var(--y); }
+  .row.out { color: #5A5A5A; }
+  .row.out .s { background: #151515; color: #5A5A5A; }
+  .row.out .st { position: relative; justify-self: start; }
+  .row.out .st::after { content: ""; position: absolute; left: -1vmin; right: -1vmin; top: 50%; height: .3vmin; background: #FF3B30; }
+  .row.out .q { color: #5A5A5A; }
+  .row.x { display: none; }
+  .count { margin-top: auto; padding-top: 2vmin; display: flex; align-items: center; gap: 2.4vmin; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #8A8A8A; }
+  .count b { color: #EDEDED; font-weight: 800; font-size: 2.2vmin; }
+  .count i { flex: 1; height: 1.2vmin; background: repeating-linear-gradient(90deg, var(--y) 0 1vmin, transparent 1vmin 1.4vmin) left / 14% 100% no-repeat, repeating-linear-gradient(90deg, #2A2A2A 0 1vmin, transparent 1vmin 1.4vmin); }
+  .cta { margin-top: 2.4vmin; display: flex; justify-content: space-between; align-items: center; background: var(--y); color: #0B0B0B; padding: 2.2vmin 3vmin; font-weight: 800; font-size: 2.5vmin; letter-spacing: .08em; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .shot { height: calc(100% - 60vmin); }
+    .board { height: 60vmin; padding: 3.4vmin 5vmin 4.4vmin; }
+    .flaps span { height: 11.4vmin; font-size: 8.4vmin; }
+    .rows { margin-top: 2.4vmin; }
+    .row { padding: .8vmin 0; font-size: 2vmin; }
+    .cta { padding: 1.9vmin 3vmin; font-size: 2.3vmin; }
+  }
+  /* square / wide → photo left, board right */
+  @media (min-aspect-ratio: 9/10) {
+    .shot { right: auto; bottom: 0; height: auto; width: 48%; }
+    .board { left: 48%; top: 0; height: auto; padding: 5vmin 5vmin 5vmin; }
+    .flaps { gap: .7vmin; margin-top: 3vmin; }
+    .flaps span { height: 9.4vmin; font-size: 6.8vmin; }
+    .rows { margin-top: 3vmin; }
+    .row { grid-template-columns: 7.4vmin 1fr auto; font-size: 1.9vmin; padding: .9vmin 0; }
+    .row.x { display: grid; }
+    .top span:last-child { display: none; }
+    .count b { font-size: 2vmin; }
+    .cta { font-size: 2.1vmin; padding: 1.9vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 52%; }
+    .board { left: 52%; padding: 5vmin 6vmin; }
+    .flaps span { height: 11vmin; font-size: 8vmin; }
+    .row { font-size: 2vmin; }
+    .top span:last-child { display: inline; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* 1 · split-flap cascade: every tile flips over once, left → right */
+  .flaps span { transform-origin: 50% 50%; animation: flap 6s linear infinite; }
+  .flaps span:nth-child(2) { animation-delay: -5.85s; }
+  .flaps span:nth-child(3) { animation-delay: -5.7s; }
+  .flaps span:nth-child(4) { animation-delay: -5.55s; }
+  .flaps span:nth-child(5) { animation-delay: -5.4s; }
+  .flaps span:nth-child(6) { animation-delay: -5.25s; }
+  .flaps span:nth-child(7) { animation-delay: -5.1s; }
+  @keyframes flap {
+    0%, 18% { transform: perspective(40vmin) rotateX(0deg); filter: brightness(1); animation-timing-function: cubic-bezier(.55,0,.9,.45); }
+    21% { transform: perspective(40vmin) rotateX(88deg); filter: brightness(.55); animation-timing-function: steps(1, end); }
+    21.5% { transform: perspective(40vmin) rotateX(-88deg); filter: brightness(.55); animation-timing-function: cubic-bezier(.1,.55,.45,1); }
+    24.5% { transform: perspective(40vmin) rotateX(8deg); filter: brightness(1.15); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    26.5%, 100% { transform: perspective(40vmin) rotateX(0deg); filter: brightness(1); }
+  }
+  /* 2 · LIVE dot: a pulse ring every second */
+  .live i { position: relative; }
+  .live i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .3vmin solid #FF3B30; opacity: 0; animation: livering 1s linear infinite; }
+  @keyframes livering {
+    0% { transform: scale(1); opacity: 0; }
+    5% { transform: scale(1.1); opacity: .9; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    70%, 100% { transform: scale(2.6); opacity: 0; }
+  }
+  /* 3 · units left: the counter flaps over each time a piece sells (red), then again on restock (yellow) */
+  .count b { display: inline-block; transform-origin: 50% 55%; animation: sell 6s linear infinite, tick 6s linear infinite; }
+  @keyframes sell {
+    0%, 36% { transform: perspective(20vmin) rotateX(0deg); }
+    37.5% { transform: perspective(20vmin) rotateX(-90deg); }
+    39.5%, 54% { transform: perspective(20vmin) rotateX(0deg); }
+    55.5% { transform: perspective(20vmin) rotateX(-90deg); }
+    57.5%, 67% { transform: perspective(20vmin) rotateX(0deg); }
+    68.5% { transform: perspective(20vmin) rotateX(-90deg); }
+    70.5%, 83% { transform: perspective(20vmin) rotateX(0deg); }
+    84% { transform: perspective(20vmin) translateY(-.4vmin) scale(1.25); }
+    87%, 100% { transform: perspective(20vmin) translateY(0) scale(1); }
+  }
+  @keyframes tick {
+    0%, 36.9% { color: #EDEDED; } 37%, 40% { color: #FF3B30; } 40.1%, 54.9% { color: #EDEDED; } 55%, 58% { color: #FF3B30; }
+    58.1%, 67.9% { color: #EDEDED; } 68%, 71% { color: #FF3B30; } 71.1%, 83.9% { color: #EDEDED; } 84%, 90% { color: var(--y); } 90.1%, 100% { color: #EDEDED; }
+  }
+  /* the stock bar: a light sweeps along it on restock */
+  .count i { position: relative; overflow: hidden; }
+  .count i::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 20%; background: linear-gradient(90deg, rgba(255,196,0,0), rgba(255,220,90,.85), rgba(255,196,0,0)); transform: translateX(-100%); opacity: 0; animation: bar 6s linear infinite; }
+  @keyframes bar {
+    0%, 83% { transform: translateX(-100%); opacity: 0; animation-timing-function: steps(1, end); }
+    84% { transform: translateX(-100%); opacity: 1; animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    94% { transform: translateX(500%); opacity: 1; animation-timing-function: steps(1, end); }
+    95%, 100% { transform: translateX(500%); opacity: 0; }
+  }
+  /* 4 · low-stock row blinks, sold-out strikes are re-drawn */
+  .row.low .st, .row.low .q { animation: low 6s steps(1, end) infinite; }
+  @keyframes low { 0%, 37% { opacity: 1; } 38%, 40% { opacity: .2; } 41%, 43% { opacity: 1; } 44%, 46% { opacity: .2; } 47%, 100% { opacity: 1; } }
+  .row.out .st::after { transform-origin: 0 50%; animation: strike 6s linear infinite; }
+  @keyframes strike {
+    0%, 60% { transform: scaleX(1); animation-timing-function: steps(1, end); }
+    61% { transform: scaleX(0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    67%, 100% { transform: scaleX(1); }
+  }
+  /* 5 · CTA arrow */
+  .cta span { display: inline-block; animation: nudge 3s linear infinite; }
+  @keyframes nudge {
+    0%, 70% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    78% { transform: translateX(1.4vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="live"><i></i>Live now</div>
+  <div class="board">
+    <div class="top"><span><b>Back in stock</b> · Core edit</span><span>Upd. 09:41</span></div>
+    <div class="flaps"><span>R</span><span>E</span><span>S</span><span>T</span><span>O</span><span>C</span><span class="y">K</span></div>
+    <div class="rows">
+      <div class="row head"><span>Size</span><span>Status</span><span>Left</span></div>
+      <div class="row out x"><span class="s">34</span><span class="st">Sold out</span><span class="q">00</span></div>
+      <div class="row"><span class="s">36</span><span class="st">Restocked</span><span class="q">12</span></div>
+      <div class="row low"><span class="s">38</span><span class="st">Low stock</span><span class="q">03</span></div>
+      <div class="row out"><span class="s">40</span><span class="st">Sold out</span><span class="q">00</span></div>
+      <div class="row"><span class="s">42</span><span class="st">Restocked</span><span class="q">18</span></div>
+      <div class="row x"><span class="s">44</span><span class="st">Restocked</span><span class="q">09</span></div>
+    </div>
+    <div class="count"><span><b>042</b> / 300 left</span><i></i></div>
+    <div class="cta">Get yours now <span>→</span></div>
+  </div>
+</div>
+</body>
+</html>

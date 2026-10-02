@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Day to Night — one piece, twelve hours: a daylight half (cream, sun) and a night half (ink navy,
+     moon), each showing the look with the styling swaps as + / − notes; between them a sunset-graded
+     hour ruler runs 09 → 21 and the headline breaks across the two halves ("From desk / to dinner.").
+     tall / 3:4 → halves stacked, photos zig-zag; square / wide → halves side by side, ruler vertical */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E9D6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr 9vmin 1fr;
+    font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .half { position: relative; overflow: hidden; }
+  .day { background: #F3E9D6; color: #2A2118; }
+  .night { background: #172038; color: #EFE7D6; }
+  .half img { position: absolute; top: 0; width: 56%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .day img { right: 0; }
+  .night img { left: 0; object-position: 50% 30%; }
+  .copy { position: absolute; top: 0; bottom: 0; width: 44%; box-sizing: border-box; padding: 5vmin 4vmin 5vmin 5vmin; display: flex; flex-direction: column; }
+  .day .copy { left: 0; }
+  .night .copy { right: 0; padding: 5vmin 5vmin 5vmin 4vmin; }
+  .k { display: flex; align-items: center; gap: 1.4vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .k svg { width: 3.4vmin; height: 3.4vmin; flex: none; }
+  h2 { margin: 3vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-variation-settings: "opsz" 144; font-size: 10vmin; line-height: .9; letter-spacing: -.03em; }
+  .night h2 { font-style: italic; font-weight: 300; }
+  ul { list-style: none; margin: 3.4vmin 0 0; padding: 0; font-size: 2.2vmin; font-weight: 500; line-height: 1.3; }
+  li { display: flex; gap: 1.2vmin; padding: 1.1vmin 0; border-top: 1px solid rgba(42,33,24,.25); }
+  .night li { border-top-color: rgba(239,231,214,.25); }
+  li b { width: 2vmin; font-weight: 700; flex: none; }
+  .day li b { color: #C9791F; }
+  .night li b { color: #E6C77F; }
+  .foot { margin-top: auto; }
+  .foot p { margin: 0 0 2.4vmin; font-size: 2vmin; line-height: 1.4; }
+  .foot p b { color: #E6C77F; font-weight: 700; }
+  .cta { display: inline-block; background: #EFE7D6; color: #172038; padding: 1.7vmin 2.8vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .note { margin-top: auto; font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 2.6vmin; line-height: 1.25; }
+
+  /* the hour ruler: a sunset ramp from day to night */
+  .band { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 0 5vmin; box-sizing: border-box;
+    background: linear-gradient(90deg in oklab, #F3E9D6 0%, #EBCB93 22%, #D29868 40%, #9A5E68 58%, #4F4467 76%, #172038 100%); }
+  .band::before { content: ""; position: absolute; left: 12vmin; right: 12vmin; top: 50%; height: 1px; background: rgba(255,255,255,.55); }
+  .band span { position: relative; font-size: 2vmin; font-weight: 700; letter-spacing: .06em; padding: .6vmin 1vmin; }
+  .band span:nth-of-type(1) { color: #2A2118; }
+  .band span:nth-of-type(2) { color: #2A2118; }
+  .band span:nth-of-type(3), .band span:nth-of-type(4), .band span:nth-of-type(5) { color: #FFF8EC; }
+  .band svg { position: relative; width: 5vmin; height: 5vmin; flex: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { grid-template-rows: 1fr 8vmin 1fr; }
+    .copy { padding: 4vmin 3.4vmin 4vmin 5vmin; }
+    .night .copy { padding: 4vmin 5vmin 4vmin 3.4vmin; }
+    h2 { font-size: 8vmin; margin-top: 2.2vmin; }
+    ul { margin-top: 2.2vmin; font-size: 2vmin; }
+    li { padding: .8vmin 0; }
+    .foot p { margin-bottom: 1.6vmin; font-size: 1.8vmin; }
+  }
+  /* square / wide — halves side by side, the ruler turns vertical */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { grid-template-columns: 1fr 8vmin 1fr; grid-template-rows: 1fr; }
+    .half img { top: 0; left: 0; right: auto; width: 100%; height: 56%; }
+    .copy { top: 56%; bottom: 0; left: 0; right: 0; width: auto; padding: 3vmin 4vmin 4vmin; }
+    .night .copy { padding: 3vmin 4vmin 4vmin; }
+    .copy .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 2vmin; }
+    h2 { font-size: 6.4vmin; margin-top: 1.6vmin; }
+    ul { margin-top: 1.8vmin; font-size: 1.8vmin; }
+    li { padding: .6vmin 0; }
+    .note { display: none; }
+    .foot { display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+    .foot p { margin: 0; font-size: 1.7vmin; }
+    .cta { padding: 1.4vmin 2vmin; font-size: 1.7vmin; letter-spacing: .12em; }
+    .band { flex-direction: column; padding: 4vmin 0; background: linear-gradient(180deg in oklab, #F3E9D6 0%, #EBCB93 22%, #D29868 40%, #9A5E68 58%, #4F4467 76%, #172038 100%); }
+    .band::before { left: 50%; right: auto; top: 11vmin; bottom: 11vmin; width: 1px; height: auto; }
+    .band span { font-size: 1.8vmin; padding: .6vmin 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: 1fr 9vmin 1fr; }
+    .half img { height: 60%; }
+    .copy { top: 60%; padding: 3.4vmin 5vmin 5vmin; }
+    .night .copy { padding: 3.4vmin 5vmin 5vmin; }
+    .copy { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr auto; column-gap: 4vmin; }
+    .k { grid-column: 1; grid-row: 1; }
+    h2 { grid-column: 1; grid-row: 2 / span 2; font-size: 7.6vmin; margin-top: 1.6vmin; white-space: nowrap; }
+    ul { grid-column: 2; grid-row: 1 / span 2; margin: 0; font-size: 1.9vmin; }
+    .foot { grid-column: 2; grid-row: 3; margin-top: 1.6vmin; }
+    .day .note { display: none; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     twelve hours in six seconds: 0.4 s a bead of light sets off along the hour ruler (09 → 21), each hour
+     lifts as it passes · the daylight look warms in first, the evening look pushes in as the bead nears 21 ·
+     4.6 s the moon glows up · the day sun icon turns its rays through one ray-step per loop */
+  .band::after { content: ""; position: absolute; left: 12vmin; right: 12vmin; top: 50%; height: 2vmin; margin-top: -1vmin; pointer-events: none; opacity: 0;
+    background: radial-gradient(circle, #fff 0 .35vmin, rgba(255,248,236,.7) .55vmin, rgba(255,248,236,0) 1vmin) no-repeat 0% 50% / 2vmin 2vmin;
+    animation: bead 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bead { 0%, 6% { opacity: 0; background-position: 0% 50%; } 10% { opacity: 1; background-position: 0% 50%; }
+                    74% { opacity: 1; background-position: 100% 50%; } 80%, 100% { opacity: 0; background-position: 100% 50%; } }
+  .band span, .band svg { z-index: 1; }
+  .band span { animation: hr 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .band span:nth-of-type(1) { animation-delay: -1.04s; }
+  .band span:nth-of-type(2) { animation-delay: -.24s; }
+  .band span:nth-of-type(3) { animation-delay: -5.44s; }
+  .band span:nth-of-type(4) { animation-delay: -4.64s; }
+  .band span:nth-of-type(5) { animation-delay: -3.84s; }
+  @keyframes hr { 0%, 34%, 46%, 100% { transform: translateY(0) scale(1); } 39% { transform: translateY(-.5vmin) scale(1.22); } }
+  .band svg:last-of-type { animation: moon 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes moon { 0%, 70%, 100% { filter: drop-shadow(0 0 0 rgba(230,199,127,0)); transform: scale(1); } 80% { filter: drop-shadow(0 0 1.4vmin rgba(230,199,127,.95)); transform: scale(1.12); } 90% { filter: drop-shadow(0 0 .6vmin rgba(230,199,127,.5)); transform: scale(1); } }
+  .band svg:first-of-type { animation: sun 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sun { 0%, 20%, 100% { filter: drop-shadow(0 0 0 rgba(227,154,46,0)); } 8% { filter: drop-shadow(0 0 1.2vmin rgba(227,154,46,.9)); } }
+  .day .k svg { animation: rays 6s linear infinite; }
+  @keyframes rays { from { transform: rotate(0deg); } to { transform: rotate(45deg); } }
+
+  /* the looks breathe in turn (clipped on the img itself so nothing spills over the copy) */
+  .day img { transform-origin: 50% 30%; animation: dayin 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .night img { transform-origin: 50% 30%; animation: nightin 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes dayin { 0%, 100% { transform: scale(1); clip-path: inset(0 0 0 0); } 25% { transform: scale(1.035); clip-path: inset(1.01% 1.69% 2.37% 1.69%); } 50% { transform: scale(1); clip-path: inset(0 0 0 0); } }
+  @keyframes nightin { 0%, 45%, 100% { transform: scale(1); clip-path: inset(0 0 0 0); } 75% { transform: scale(1.035); clip-path: inset(1.01% 1.69% 2.37% 1.69%); } }
+
+  @media (min-aspect-ratio: 9/10) {
+    .band::after { left: 50%; right: auto; width: 2vmin; margin-left: -1vmin; top: 11vmin; bottom: 11vmin; height: auto; margin-top: 0;
+      background-position: 50% 0%; animation-name: beadv; }
+    @keyframes beadv { 0%, 6% { opacity: 0; background-position: 50% 0%; } 10% { opacity: 1; background-position: 50% 0%; }
+                       74% { opacity: 1; background-position: 50% 100%; } 80%, 100% { opacity: 0; background-position: 50% 100%; } }
+    @keyframes hr { 0%, 34%, 46%, 100% { transform: translateX(0) scale(1); } 39% { transform: translateX(0) scale(1.22); } }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="half day">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="copy">
+      <div class="k"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="8" fill="#E39A2E"/><g stroke="#E39A2E" stroke-width="2.6" stroke-linecap="round"><path d="M20 3v5M20 32v5M3 20h5M32 20h5M8 8l3.5 3.5M28.5 28.5 32 32M8 32l3.5-3.5M28.5 11.5 32 8"/></g></svg>09:00 · Day</div>
+      <h2>From<br>desk</h2>
+      <ul><li><b>+</b>A crisp layer</li><li><b>+</b>Flat shoes</li><li><b>+</b>The big tote</li></ul>
+      <div class="note">Same piece, twelve hours.</div>
+    </div>
+  </div>
+  <div class="band">
+    <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="9" fill="#E39A2E"/></svg>
+    <span>09</span><span>12</span><span>15</span><span>18</span><span>21</span>
+    <svg viewBox="0 0 40 40"><path d="M26 7a13 13 0 1 0 7 20A11 11 0 0 1 26 7z" fill="#E6C77F"/></svg>
+  </div>
+  <div class="half night">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="copy">
+      <div class="k"><svg viewBox="0 0 40 40"><path d="M25 6a14 14 0 1 0 9 22A12 12 0 0 1 25 6z" fill="#E6C77F"/></svg>21:00 · Night</div>
+      <h2>to dinner.</h2>
+      <ul><li><b>−</b>The layer</li><li><b>+</b>Gold &amp; a heel</li><li><b>+</b>A small bag</li></ul>
+      <div class="foot"><p>Code <b>AFTER9</b> · 15% off tonight</p><div class="cta">Shop the look</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

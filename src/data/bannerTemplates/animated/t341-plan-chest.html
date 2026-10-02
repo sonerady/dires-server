@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Plan Chest — a design-museum flat-file cabinet in powder-coated sage steel. Every drawer carries a card in a
+     brass label holder; the sale drawer is pulled out a little (overhang + cast shadow) and holds the offer.
+     tall → photo above the chest; 3:4 and wider → chest becomes a tall column beside the photo */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #C3C7BD; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #C3C7BD; color: #22251F; font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .chest { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; background: #C3C7BD; display: flex; flex-direction: column; padding: 0 4.4vmin; box-sizing: border-box; }
+  /* top plate of the cabinet */
+  .rail { flex: none; height: 10vmin; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(34,37,31,.28); box-shadow: 0 1px 0 rgba(255,255,255,.5); white-space: nowrap; }
+  .brand { font-weight: 800; font-size: 3vmin; letter-spacing: -.02em; }
+  .brand span { font-weight: 400; color: #5A5F55; margin-left: .6vmin; }
+  .ref { font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #464A42; }
+
+  .drawers { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 1.6vmin 0 3.2vmin; }
+  .d { position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding: 0 3vmin; background: #C9CDC3;
+       border-top: 1px solid rgba(255,255,255,.6); border-bottom: 1px solid rgba(34,37,31,.3); }
+  .d + .d { margin-top: .9vmin; }
+  /* brass label holder with a paper card inside */
+  .holder { flex: none; padding: .55vmin; background: linear-gradient(180deg, #B9AC88, #8F8263); box-shadow: 0 .2vmin .3vmin rgba(0,0,0,.25); }
+  .card { background: #F4F1E8; padding: .9vmin 1.6vmin 1vmin; display: flex; align-items: baseline; gap: 1.4vmin; white-space: nowrap; }
+  .card i { font-style: normal; font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; color: #6A6E64; letter-spacing: .06em; }
+  .card b { font-weight: 500; font-size: 2.2vmin; letter-spacing: -.005em; }
+  .pull { flex: none; width: 15vmin; height: 2.2vmin; border-radius: 1.1vmin; background: #3A3E36; box-shadow: inset 0 .5vmin .6vmin rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.55); }
+
+  /* the pulled-out sale drawer */
+  .d.open { flex: 2.7; margin-left: -2.4vmin; margin-right: -2.4vmin; padding: 0 5.4vmin; background: #D4D8CE; z-index: 2; align-items: stretch;
+            box-shadow: 0 1.6vmin 2.2vmin -.8vmin rgba(28,32,26,.45), 0 .3vmin 0 rgba(28,32,26,.2); }
+  .d.open + .d { margin-top: 2.2vmin; }
+  .d.open .holder { align-self: center; flex: 1; min-width: 0; max-width: 60vmin; }
+  .d.open .card { display: block; padding: 2vmin 2.4vmin 2.2vmin; }
+  .d.open .card .top { display: flex; justify-content: space-between; font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #5C6057; }
+  .d.open h1 { margin: 1.2vmin 0 0; font-weight: 800; font-size: 7.6vmin; line-height: .9; letter-spacing: -.045em; }
+  .d.open .off { display: flex; align-items: baseline; justify-content: space-between; margin-top: 1.4vmin; padding-top: 1.2vmin; border-top: 1px solid #22251F; }
+  .d.open .off strong { font-weight: 800; font-size: 5vmin; letter-spacing: -.04em; color: #A5502D; line-height: 1; }
+  .d.open .off span { font-family: "DM Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; }
+  .d.open .pull { align-self: center; }
+
+  .plinth { position: absolute; left: 0; right: 0; bottom: 0; height: 3.2vmin; background: #33372F; }
+
+  /* 3:4 / 4:5 → photo left, the chest a tall narrow column */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 54%; height: 100%; object-position: 50% 22%; }
+    .chest { left: 54%; top: 0; height: auto; padding: 0 3.4vmin; }
+    .rail { height: 12vmin; flex-direction: column; align-items: flex-start; justify-content: center; gap: .8vmin; }
+    .drawers { padding: 2vmin 0 5vmin; }
+    .d { padding: 0 2.2vmin; gap: 1.6vmin; }
+    .pull { width: 7vmin; }
+    .card b { font-size: 2vmin; }
+    .d.open { margin-left: -1.8vmin; margin-right: -1.8vmin; padding: 0 3vmin; flex-direction: column; justify-content: center; gap: 2vmin; }
+    .d.open .holder { flex: none; align-self: stretch; }
+    .d.open h1 { font-size: 6.8vmin; }
+    .d.open .off { flex-direction: column; gap: .8vmin; }
+    .d.open .off strong { font-size: 5.6vmin; }
+    .plinth { height: 3.6vmin; }
+  }
+  /* square → 50 / 50, pull becomes a compact slot */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .chest { left: 50%; padding: 0 3.6vmin; }
+    .rail { height: 9vmin; flex-direction: row; align-items: center; justify-content: space-between; }
+    .brand { font-size: 2.6vmin; }
+    .ref { font-size: 1.6vmin; }
+    .drawers { padding: 1.4vmin 0 4.4vmin; }
+    .d.open { flex: 3; flex-direction: row; align-items: center; padding: 0 2.6vmin; }
+    .d.open .holder { flex: 1; align-self: center; }
+    .d.open .pull { display: none; }
+    .d.open .card { padding: 1.6vmin 2vmin 1.8vmin; }
+    .d.open h1 { font-size: 6.6vmin; margin-top: 1vmin; }
+    .d.open .off { flex-direction: row; align-items: baseline; }
+    .d.open .off strong { font-size: 4.6vmin; }
+    .d.open .off span { font-size: 1.7vmin; }
+    .d.open + .d { margin-top: 1.8vmin; }
+    .pull { width: 8vmin; height: 2vmin; }
+    .plinth { height: 3vmin; }
+  }
+  /* wide → photo 54 %, roomy chest */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; object-position: 50% 28%; }
+    .chest { left: 54%; padding: 0 4.4vmin; }
+    .rail { height: 10vmin; }
+    .brand { font-size: 3vmin; }
+    .d { padding: 0 3vmin; }
+    .pull { width: 12vmin; }
+    .d.open { padding: 0 4.4vmin; }
+    .d.open .pull { display: block; }
+    .d.open .holder { max-width: 50vmin; }
+    .d.open h1 { font-size: 7.2vmin; }
+    .d.open .off strong { font-size: 5vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* 1 · the sale drawer is eased shut, then pulled back out with a soft settle (scale = depth, shadow = gap) */
+  .d.open { animation: drawer 6s linear infinite; }
+  @keyframes drawer {
+    0%, 8% { transform: scale(1); box-shadow: 0 1.6vmin 2.2vmin -.8vmin rgba(28,32,26,.45), 0 .3vmin 0 rgba(28,32,26,.2); animation-timing-function: cubic-bezier(.55,0,.45,1); }
+    18%, 21% { transform: scale(.962); box-shadow: 0 .2vmin .4vmin -.2vmin rgba(28,32,26,.2), 0 0 0 rgba(28,32,26,0); animation-timing-function: cubic-bezier(.25,.1,.2,1); }
+    29% { transform: scale(1.012); box-shadow: 0 2vmin 2.6vmin -.8vmin rgba(28,32,26,.5), 0 .4vmin 0 rgba(28,32,26,.2); animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    34%, 100% { transform: scale(1); box-shadow: 0 1.6vmin 2.2vmin -.8vmin rgba(28,32,26,.45), 0 .3vmin 0 rgba(28,32,26,.2); }
+  }
+  /* the neighbouring drawers take the knock */
+  .d:not(.open) { animation: knock 6s linear infinite; }
+  @keyframes knock { 0%, 17% { transform: translateY(0); } 18.5% { transform: translateY(.25vmin); animation-timing-function: cubic-bezier(.3,0,.3,1); } 22%, 100% { transform: translateY(0); } }
+  /* 2 · the offer is re-stamped as the drawer comes back out */
+  .d.open .off strong { transform-origin: 0 70%; animation: offer 6s linear infinite; }
+  @keyframes offer {
+    0%, 27% { transform: scale(1); color: #A5502D; animation-timing-function: cubic-bezier(.2,.8,.3,1.2); }
+    32% { transform: scale(1.1); color: #C4552A; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    38%, 100% { transform: scale(1); color: #A5502D; }
+  }
+  /* 3 · the brass label frames catch the light one after another, top to bottom */
+  .holder { position: relative; overflow: hidden; }
+  .holder .card { position: relative; z-index: 1; }
+  .holder::before { content: ""; position: absolute; top: -50%; bottom: -50%; left: 0; width: 45%; z-index: 0;
+    background: linear-gradient(90deg, rgba(255,246,214,0), rgba(255,246,214,.85) 50%, rgba(255,246,214,0));
+    transform: translateX(-130%) skewX(-20deg); animation: brass 6s linear infinite; }
+  .d:nth-child(1) .holder::before { animation-delay: 0s; }
+  .d:nth-child(2) .holder::before { animation-delay: -.25s; }
+  .d:nth-child(3) .holder::before { animation-delay: -.5s; }
+  .d:nth-child(4) .holder::before { animation-delay: -.75s; }
+  @keyframes brass { 0%, 58% { transform: translateX(-130%) skewX(-20deg); animation-timing-function: cubic-bezier(.45,0,.3,1); } 74%, 100% { transform: translateX(330%) skewX(-20deg); } }
+  /* 4 · "Open now" flickers like a lamp being switched on in the archive */
+  .d.open .card .top span:last-child { animation: lamp 6s steps(1, end) infinite; }
+  @keyframes lamp { 0%, 80% { opacity: 1; } 81%, 82% { opacity: .2; } 83%, 84.5% { opacity: 1; } 85%, 86% { opacity: .2; } 87%, 100% { opacity: 1; } }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="chest">
+    <div class="rail"><div class="brand">Nord Arkiv<span>Stockholm</span></div><div class="ref">Chest 03 · AW26</div></div>
+    <div class="drawers">
+      <div class="d"><div class="holder"><div class="card"><i>A1</i><b>New arrivals</b></div></div><div class="pull"></div></div>
+      <div class="d open">
+        <div class="holder"><div class="card">
+          <div class="top"><span>A2</span><span>Open now</span></div>
+          <h1>Archive<br>sale</h1>
+          <div class="off"><strong>−30%</strong><span>Code ARKIV30</span></div>
+        </div></div>
+        <div class="pull"></div>
+      </div>
+      <div class="d"><div class="holder"><div class="card"><i>A3</i><b>Repairs &amp; care</b></div></div><div class="pull"></div></div>
+      <div class="d"><div class="holder"><div class="card"><i>A4</i><b>Until 12 October</b></div></div><div class="pull"></div></div>
+    </div>
+    <div class="plinth"></div>
+  </div>
+</div>
+</body>
+</html>

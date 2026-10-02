@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Three Ways — "one piece, three ways": a triptych of the same photo cropped wider → closer, each
+     panel sitting on its own mood colour (oat for off-duty, slate for the desk, oxblood for evening)
+     with a Bodoni roman numeral and a one-line styling note. tall / 3:4 → title above the triptych;
+     square / wide → title column on the left, triptych on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EFE7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4EFE7; color: #1D1A17; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    display: flex; flex-direction: column; }
+  .head { flex: none; padding: 5vmin 5vmin 4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 4vmin; }
+  .kick { font-size: 1.8vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; }
+  .kick span { color: #8B2A2E; }
+  h1 { margin: 2.2vmin 0 0; font-family: "Bodoni Moda", Didot, Georgia, serif; font-weight: 500; font-size: 10.5vmin; line-height: .92; letter-spacing: -.02em; }
+  h1 i { font-weight: 400; }
+  .price { flex: none; text-align: right; padding-bottom: 1vmin; }
+  .price small { display: block; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #6F675E; }
+  .price b { display: block; margin-top: .6vmin; font-family: "Bodoni Moda", Georgia, serif; font-weight: 500; font-size: 5.6vmin; line-height: 1; }
+
+  .cols { flex: 1 1 auto; min-height: 0; display: flex; gap: 1px; background: #F4EFE7; }
+  .col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+  .pic { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+  .pic img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .c2 .pic img { transform: scale(1.3); transform-origin: 50% 32%; }
+  .c3 .pic img { object-position: 50% 40%; transform: scale(1.9); transform-origin: 50% 44%; }
+  .cap { flex: none; height: 25vmin; box-sizing: border-box; padding: 2.4vmin 2.6vmin 3vmin; display: flex; flex-direction: column; }
+  .c1 .cap { background: #E4D9C6; color: #1D1A17; }
+  .c2 .cap { background: #3C4851; color: #F4EFE7; }
+  .c3 .cap { background: #6E2227; color: #F4EFE7; }
+  .cap em { font-family: "Bodoni Moda", Georgia, serif; font-style: italic; font-weight: 400; font-size: 8vmin; line-height: .8; }
+  .cap b { margin-top: auto; font-size: 2.1vmin; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  .cap span { margin-top: .9vmin; font-size: 1.9vmin; line-height: 1.35; font-weight: 500; opacity: .86; }
+
+  .foot { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; padding: 3vmin 5vmin 4.4vmin; }
+  .foot p { margin: 0; font-size: 2vmin; font-weight: 500; }
+  .foot p b { font-weight: 800; }
+  .cta { flex: none; background: #1D1A17; color: #F4EFE7; padding: 1.8vmin 3.2vmin; font-size: 2vmin; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .head { padding: 4.4vmin 5vmin 3.4vmin; }
+    h1 { font-size: 9vmin; margin-top: 1.6vmin; }
+    .cap { height: 21vmin; padding: 2vmin 2.4vmin 2.4vmin; }
+    .cap em { font-size: 6.4vmin; }
+    .foot { padding: 2.6vmin 5vmin 3.6vmin; }
+  }
+  /* square / wide — the title becomes a column on the left */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: grid; grid-template-columns: 34% 1fr; grid-template-rows: 1fr auto; }
+    .head { grid-column: 1; grid-row: 1; flex-direction: column; align-items: flex-start; justify-content: flex-start; padding: 5vmin 4vmin 0 5vmin; gap: 0; }
+    h1 { font-size: 7.4vmin; margin-top: 2.4vmin; }
+    .price { align-self: stretch; text-align: left; margin-top: auto; padding: 2vmin 0 3.4vmin; border-top: 1px solid #1D1A17; }
+    .price b { font-size: 4.8vmin; }
+    .cols { grid-column: 2; grid-row: 1 / -1; }
+    .cap { height: 22vmin; padding: 2vmin 2vmin 2.4vmin; }
+    .cap em { font-size: 6vmin; }
+    .cap b { font-size: 1.8vmin; letter-spacing: .12em; }
+    .cap span { font-size: 1.7vmin; }
+    .foot { grid-column: 1; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 2vmin; padding: 0 4vmin 5vmin 5vmin; }
+    .foot p { font-size: 1.8vmin; line-height: 1.45; }
+    .cta { padding: 1.6vmin 2.6vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: 30% 1fr; }
+    .head { padding: 6vmin 4vmin 0 6vmin; }
+    h1 { font-size: 8.6vmin; }
+    .cap { height: 24vmin; padding: 2.4vmin 2.8vmin 2.8vmin; }
+    .cap em { font-size: 7vmin; }
+    .cap b { font-size: 2vmin; }
+    .cap span { font-size: 1.9vmin; }
+    .foot { padding: 0 4vmin 6vmin 6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div>
+      <div class="kick">The styling edit <span>— Nº 12</span></div>
+      <h1>One piece,<br><i>three ways.</i></h1>
+    </div>
+    <div class="price"><small>The piece</small><b>€129</b></div>
+  </div>
+  <div class="cols">
+    <div class="col c1"><div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="cap"><em>i.</em><b>Off-duty</b><span>Flat shoes, a big tote.</span></div></div>
+    <div class="col c2"><div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="cap"><em>ii.</em><b>Desk</b><span>A sharp layer on top.</span></div></div>
+    <div class="col c3"><div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="cap"><em>iii.</em><b>Evening</b><span>Gold and a red lip.</span></div></div>
+  </div>
+  <div class="foot">
+    <p><b>Wear it more,</b> buy it once.</p>
+    <div class="cta">Shop the piece</div>
+  </div>
+</div>
+</body>
+</html>

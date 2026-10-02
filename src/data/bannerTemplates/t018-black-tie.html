@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;1,6..96,400;1,6..96,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Black Tie — black & ivory evening edit; two giant Didone words hold the photo between them.
+     tall → "Black" above, "Tie." below; square/wide → the words turn vertical on either side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0A0A0A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0A0A0A; color: #F2EDE3; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 32vmin; width: 100%; height: calc(100% - 64vmin); object-fit: cover; object-position: 50% 20%; }
+  .w { position: absolute; font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-style: italic; font-weight: 400; font-size: 27vmin; line-height: .8; letter-spacing: -.03em; white-space: nowrap; }
+  .w1 { right: 4.5vmin; top: 8vmin; }
+  .w2 { left: 4.5vmin; bottom: 4.5vmin; font-style: normal; }
+  .m { position: absolute; font-size: 1.9vmin; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; line-height: 1.6; white-space: nowrap; }
+  .m1 { left: 5vmin; top: 5vmin; }
+  .m1 span { display: block; color: #9A9387; font-weight: 400; }
+  .m2 { right: 5vmin; bottom: 5vmin; text-align: right; }
+  .m2 b { display: block; margin-bottom: 1.4vmin; font-family: "Bodoni Moda", Didot, serif; font-style: italic; font-weight: 400; font-size: 4.6vmin; letter-spacing: 0; text-transform: none; line-height: 1.1; }
+  .m2 u { text-decoration: none; padding-bottom: .5vmin; border-bottom: .25vmin solid #F2EDE3; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { top: 29vmin; height: calc(100% - 58vmin); }
+    .w { font-size: 24vmin; }
+    .w1 { top: 6.5vmin; }
+    .w2 { bottom: 4vmin; }
+    .m2 b { font-size: 4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 27%; top: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .w { font-size: 19vmin; }
+    .w1 { right: auto; left: 13.5%; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); }
+    .w2 { left: 86.5%; bottom: auto; top: 50%; transform: translate(-50%, -50%) rotate(90deg); }
+    .m { font-size: 1.7vmin; letter-spacing: .26em; }
+    .m1 { left: 13.5%; top: 5vmin; transform: translateX(-50%); text-align: center; }
+    .m2 { right: auto; left: 86.5%; bottom: 5vmin; transform: translateX(-50%); text-align: center; }
+    .m2 b { font-size: 3.2vmin; margin-bottom: 1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 28%; width: 44%; }
+    .w { font-size: 25vmin; }
+    .w1 { left: 14%; }
+    .w2 { left: 86%; }
+    .m { font-size: 1.9vmin; letter-spacing: .32em; }
+    .m1 { left: 14%; }
+    .m2 { left: 86%; }
+    .m2 b { font-size: 3.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="w w1">Black</div>
+  <div class="w w2">Tie.</div>
+  <div class="m m1">Dress code<span>The Evening Edit</span></div>
+  <div class="m m2"><b>from €290</b><u>Shop now</u></div>
+</div>
+</body>
+</html>

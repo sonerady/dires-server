@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Oswald:wght@500;600&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+  /* Varsity Letter — letterman-jacket language: rib-knit stripe band, chenille felt patch with arched lettering, two-tone slab letters, chain-stitch script.
+     tall → photo on top, rib band, wool panel below; square / wide → wool panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #173B2A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #173B2A; color: #F2E9D3; font-family: "Oswald", "Arial Narrow", sans-serif; }
+  .wool { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: soft-light; opacity: .7; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 68vmin); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .rib { position: absolute; left: 0; right: 0; top: calc(100% - 68vmin); height: 6.4vmin;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,.16) 0 .3vmin, rgba(255,255,255,.06) .3vmin .7vmin, transparent .7vmin 1vmin),
+      linear-gradient(180deg, #F2E9D3 0 18%, #D9A441 18% 38%, #F2E9D3 38% 56%, #D9A441 56% 76%, #F2E9D3 76% 100%); box-shadow: 0 .6vmin 1.2vmin rgba(0,0,0,.3); }
+  .panel { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; top: calc(100% - 55vmin); display: grid; grid-template-columns: 33vmin 1fr; grid-template-rows: auto 1fr auto; column-gap: 5vmin; align-items: center; }
+  .patch { grid-row: 1; width: 33vmin; height: 33vmin; transform: rotate(-6deg); filter: drop-shadow(0 .8vmin 1.2vmin rgba(0,0,0,.35)); overflow: visible; }
+  .words { grid-row: 1; }
+  .dept { font-weight: 600; font-size: 1.9vmin; letter-spacing: .26em; text-transform: uppercase; color: #D9A441; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Alfa Slab One", Rockwell, serif; font-weight: 400; font-size: 9vmin; line-height: .95; letter-spacing: .01em; text-transform: uppercase; color: #F2E9D3;
+    text-shadow: .45vmin 0 0 #D9A441, -.45vmin 0 0 #D9A441, 0 .45vmin 0 #D9A441, 0 -.45vmin 0 #D9A441, .32vmin .32vmin 0 #D9A441, -.32vmin .32vmin 0 #D9A441, .32vmin -.32vmin 0 #D9A441, -.32vmin -.32vmin 0 #D9A441, .9vmin .9vmin 0 #0E2519, 1.2vmin 1.2vmin 0 #0E2519; }
+  .script { display: block; margin-top: -.6vmin; font-family: "Pacifico", "Brush Script MT", cursive; font-size: 7.6vmin; line-height: 1.2; color: #D9A441; transform: rotate(-5deg); transform-origin: left; padding-left: 3vmin; }
+  .offer { grid-column: 1 / -1; grid-row: 3; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 3vmin; border-top: 1px solid rgba(242,233,211,.28); }
+  .offer p { margin: 0; font-weight: 500; font-size: 2.3vmin; line-height: 1.35; letter-spacing: .06em; text-transform: uppercase; }
+  .offer p b { color: #D9A441; font-weight: 600; }
+  .btn { flex: none; position: relative; background: #F2E9D3; color: #173B2A; padding: 2.2vmin 3.6vmin; font-weight: 600; font-size: 2.3vmin; letter-spacing: .18em; text-transform: uppercase; }
+  .btn::after { content: ""; position: absolute; inset: .7vmin; border: .25vmin dashed rgba(23,59,42,.7); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .shot { height: calc(100% - 60vmin); }
+    .rib { top: calc(100% - 60vmin); height: 5.4vmin; }
+    .panel { top: calc(100% - 49vmin); bottom: 4.5vmin; grid-template-columns: 27vmin 1fr; }
+    .patch { width: 27vmin; height: 27vmin; }
+    h1 { font-size: 8.8vmin; }
+    .script { font-size: 6.6vmin; }
+    .offer { padding-top: 2.4vmin; }
+    .btn { padding: 1.9vmin 3vmin; font-size: 2.1vmin; }
+  }
+  /* square / wide → panel left, photo right, rib as a vertical cuff */
+  @media (min-aspect-ratio: 9/10) {
+    .shot { left: auto; bottom: 0; height: auto; width: 50%; }
+    .rib { top: 0; bottom: 0; left: 50%; right: auto; width: 5.4vmin; height: auto; margin-left: -5.4vmin;
+      background: repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 .3vmin, rgba(255,255,255,.06) .3vmin .7vmin, transparent .7vmin 1vmin),
+        linear-gradient(90deg, #F2E9D3 0 18%, #D9A441 18% 38%, #F2E9D3 38% 56%, #D9A441 56% 76%, #F2E9D3 76% 100%); }
+    .panel { left: 5vmin; right: calc(50% + 5vmin); top: 5vmin; bottom: 5vmin; grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto; }
+    .patch { width: 32vmin; height: 32vmin; justify-self: start; }
+    .words { grid-row: 2; margin-top: 4vmin; }
+    h1 { font-size: 7.2vmin; }
+    .script { font-size: 6vmin; }
+    .offer { grid-row: 4; flex-direction: column; align-items: flex-start; gap: 2.4vmin; padding-top: 2.4vmin; }
+    .offer p { font-size: 2vmin; }
+    .btn { font-size: 2vmin; padding: 1.8vmin 3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 52%; }
+    .rib { left: 52%; }
+    .panel { right: calc(52% + 6vmin); left: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .patch { width: 30vmin; height: 30vmin; }
+    h1 { font-size: 9vmin; }
+    .script { font-size: 6.6vmin; }
+    .offer { flex-direction: row; align-items: center; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* the patch's chain-stitch keeps running round (10 stitch lengths per loop) */
+  .patch .stitch { animation: stitch 6s linear infinite; }
+  @keyframes stitch { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -58; } }
+  /* beat 1 · the patch is pressed on: lifts, settles with a felt bounce; the stars twinkle */
+  .patch { animation: iron 6s linear infinite; }
+  @keyframes iron {
+    0%, 6% { transform: rotate(-6deg) scale(1); filter: drop-shadow(0 .8vmin 1.2vmin rgba(0,0,0,.35)); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    11% { transform: rotate(-10deg) scale(1.07); filter: drop-shadow(0 2vmin 2.4vmin rgba(0,0,0,.32)); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    14% { transform: rotate(-5deg) scale(.97); filter: drop-shadow(0 .5vmin .8vmin rgba(0,0,0,.4)); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    19%, 100% { transform: rotate(-6deg) scale(1); filter: drop-shadow(0 .8vmin 1.2vmin rgba(0,0,0,.35)); }
+  }
+  .patch .star { transform-box: fill-box; transform-origin: 50% 60%; animation: twinkle 6s linear infinite; }
+  .patch .star + .star { animation-delay: -5.8s; }
+  @keyframes twinkle {
+    0%, 13% { transform: scale(1) rotate(0); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    17% { transform: scale(1.7) rotate(72deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    23%, 100% { transform: scale(1) rotate(72deg); }
+  }
+  /* beat 2 · the script is chain-stitched again, left to right */
+  .script { animation: embroider 6s linear infinite; }
+  @keyframes embroider {
+    0%, 34% { clip-path: inset(-20% -10% -30% -10%); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    38% { clip-path: inset(-20% 110% -30% -10%); animation-timing-function: linear; }
+    41% { clip-path: inset(-20% 110% -30% -10%); animation-timing-function: cubic-bezier(.35,.1,.55,1); }
+    60%, 100% { clip-path: inset(-20% -10% -30% -10%); }
+  }
+  /* beat 3 · a satin sheen runs along the rib-knit band */
+  .rib { overflow: hidden; }
+  .rib::after { content: ""; position: absolute; inset: -50%; background: linear-gradient(100deg, rgba(255,255,255,0) 40%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 60%) 150% 0 / 300% 100% no-repeat; animation: satin 6s linear infinite; }
+  @keyframes satin {
+    0%, 64% { background-position: 150% 0; animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    82%, 100% { background-position: -50% 0; }
+  }
+  /* beat 4 · the members' offer glows, the button is pressed */
+  .offer p b { animation: gold 6s linear infinite; }
+  @keyframes gold { 0%, 70% { text-shadow: 0 0 0 rgba(217,164,65,0); animation-timing-function: cubic-bezier(.4,0,.2,1); } 76% { text-shadow: 0 0 1.4vmin rgba(217,164,65,.8); animation-timing-function: cubic-bezier(.4,0,.2,1); } 86%, 100% { text-shadow: 0 0 0 rgba(217,164,65,0); } }
+  .btn { animation: press 6s linear infinite; }
+  @keyframes press {
+    0%, 84% { transform: translateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    87% { transform: translateY(.5vmin); box-shadow: inset 0 .4vmin .8vmin rgba(0,0,0,.18); animation-timing-function: cubic-bezier(.2,.8,.3,1.3); }
+    92%, 100% { transform: translateY(0); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="wool" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="wl"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" seed="2"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#wl)"/></svg>
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="rib"></div>
+  <div class="panel">
+    <svg class="patch" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="fz" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="1" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/></filter>
+        <path id="arc" d="M 38 104 A 62 62 0 0 1 162 104"/>
+      </defs>
+      <circle cx="100" cy="100" r="97" fill="#D9A441" filter="url(#fz)"/>
+      <circle cx="100" cy="100" r="86" fill="#F2E9D3" filter="url(#fz)"/>
+      <circle class="stitch" cx="100" cy="100" r="80" fill="none" stroke="#173B2A" stroke-width="1.4" stroke-dasharray="3.2 2.6" opacity=".75"/>
+      <text font-family="Oswald, Arial Narrow, sans-serif" font-weight="600" font-size="15" letter-spacing="3.4" fill="#173B2A"><textPath href="#arc" startOffset="50%" text-anchor="middle">ATHLETIC DEPT.</textPath></text>
+      <text x="100" y="156" text-anchor="middle" font-family="Alfa Slab One, Rockwell, serif" font-size="78" fill="#173B2A" stroke="#D9A441" stroke-width="9" stroke-linejoin="round" paint-order="stroke" filter="url(#fz)">26</text>
+      <text class="star" x="42" y="138" text-anchor="middle" font-size="13" fill="#D9A441">★</text>
+      <text class="star" x="158" y="138" text-anchor="middle" font-size="13" fill="#D9A441">★</text>
+    </svg>
+    <div class="words">
+      <div class="dept">Fall / Winter · Est. 2026</div>
+      <h1>Varsity</h1>
+      <span class="script">Collection</span>
+    </div>
+    <div class="offer">
+      <p>Members save <b>15%</b><br>Code <b>VARSITY15</b></p>
+      <div class="btn">Shop the collection</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

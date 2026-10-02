@@ -174,15 +174,27 @@ function decideRefund(a, creditsDeducted) {
         a.defects.some((d) =>
           ["artifacts", "deformed_garment", "blur"].includes(d),
         )));
-  // Completely different object categories can be established without judging subtle anatomy.
-  // Require corroborating shape evidence and the user's allegation to be verified as well.
-  const clearReplacement =
+  // 24 Eyl 2026: model, belirgin bozuk görsellerde (gövde yok, kopuk uzuvlar) her seferinde
+  // refund_full + severe_anatomy + render 32 + distorted_anatomy verip güveni 0.78–0.85 arasında
+  // oynatıyordu → aynı görsel yarı yarıya reddediliyor, özet ise hatayı doğru anlatıyordu.
+  // Tüm kanıtlar aynı yönü gösterip görüntü kalitesi çok düşükse eşik 0.75.
+  const strongVisualFailure =
+    (a.failureType === "severe_anatomy" &&
+      a.renderQuality <= 40 &&
+      a.defects.includes("distorted_anatomy")) ||
+    (a.failureType === "corrupted_image" && a.renderQuality <= 30);
+  // 25 Eyl 2026 (kullanıcı raporu, istek cf0ae0e6): kısa dantel elbise yere kadar üç katlı maksi abiyeye
+  // dönüşmüştü; model refund_full + different_product + eşleşme 38 + changed_product & wrong_shape + kanıt +
+  // şikâyet doğrulandı dedi, ama güveni 0.72 verdi → 0.85 eşiği yüzünden reddedildi. Bu modelin güveni neredeyse
+  // her kararda 0.70–0.85 arasında gezdiği için ayırt edici değil; asıl sinyal yapısal kanıtlar. Ürünün FORMU
+  // değişmişse (iki kusur birlikte) ve şikâyet doğrulandıysa eşik 0.70.
+  const strongProductChange =
     a.failureType === "different_product" &&
-    a.productMatch <= 30 &&
+    a.productMatch <= 45 &&
     a.reasonAddressed === true &&
     a.defects.includes("changed_product") &&
     a.defects.includes("wrong_shape");
-  const minConfidence = clearReplacement ? 0.8 : 0.85;
+  const minConfidence = strongVisualFailure ? 0.75 : strongProductChange ? 0.7 : 0.85;
   const approved =
     deducted > 0 &&
     a.confidence >= minConfidence &&

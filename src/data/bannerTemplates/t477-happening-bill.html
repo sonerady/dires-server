@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Kablammo&family=Barlow+Condensed:wght@500;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Happening Bill — a psychedelic concert handbill for an in-store "happening": vibrating orange-on-electric-blue
+     lettering arched over the photo, op-art ripples radiating from behind it, a line-up row and an offer billed like the headliner.
+     tall / 3:4 → arch on top, photo centre, bill below · square / wide → photo left, arch + bill in the right column */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C3DDB; }
+  .banner { --cx: 50%; --cy: 52%; position: fixed; inset: 0; overflow: hidden; color: #FFF3D6; font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    background:
+      radial-gradient(120vmin 120vmin at var(--cx) var(--cy), rgba(28,61,219,0) 0%, rgba(40,20,120,.55) 100%),
+      repeating-radial-gradient(circle at var(--cx) var(--cy), #1C3DDB 0 2.4vmin, #2B57F4 2.4vmin 4.8vmin); }
+  .kick { position: absolute; left: 7vmin; right: 7vmin; top: 4vmin; display: flex; justify-content: space-between; font-size: 2vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; }
+  .kick span + span { color: #FFE14A; }
+  .arc { position: absolute; left: 5vmin; right: 5vmin; top: 10.5vmin; height: 27vmin; width: calc(100% - 10vmin); overflow: visible; filter: drop-shadow(.9vmin .9vmin 0 #FF2E93); }
+  .arc text { font-family: "Kablammo", "Cooper Black", Georgia, serif; font-size: 150px; fill: #FF5A1F; stroke: #FFE14A; stroke-width: 7px; paint-order: stroke; stroke-linejoin: round; }
+  .photo { position: absolute; left: 9vmin; right: 9vmin; top: 40vmin; width: calc(100% - 18vmin); height: calc(100% - 40vmin - 38vmin); object-fit: cover; object-position: 50% 22%; display: block;
+    box-shadow: 0 0 0 1.3vmin #FFF3D6, 1.6vmin 1.6vmin 0 1.3vmin #FF5A1F; }
+  .bill { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; text-align: center; }
+  .line { font-size: 2.3vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .line i { font-style: normal; color: #FF5A1F; margin: 0 1.2vmin; }
+  .off { margin-top: 1.6vmin; font-size: 8.6vmin; font-weight: 800; line-height: .95; letter-spacing: .01em; text-transform: uppercase; color: #FFE14A; white-space: nowrap; }
+  .row { margin-top: 2.2vmin; display: flex; justify-content: center; align-items: center; gap: 3.4vmin; }
+  .when { font-size: 2.8vmin; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .cta { background: #FF2E93; color: #FFF3D6; border-radius: 99vmin; padding: 1.5vmin 3.4vmin; font-size: 2.5vmin; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; box-shadow: .6vmin .6vmin 0 #FFE14A; }
+  .fine { margin-top: 2vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,243,214,.8); white-space: nowrap; }
+  .fine b { color: #FFE14A; font-weight: 800; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .kick { top: 3.2vmin; font-size: 1.8vmin; }
+    .arc { top: 8.8vmin; height: 23vmin; left: 10vmin; right: 10vmin; width: calc(100% - 20vmin); }
+    .photo { top: 34vmin; left: 14vmin; right: 14vmin; width: calc(100% - 28vmin); height: calc(100% - 34vmin - 34vmin); }
+    .bill { bottom: 4vmin; }
+    .line { font-size: 2vmin; }
+    .off { font-size: 7.4vmin; margin-top: 1.2vmin; }
+    .row { margin-top: 1.8vmin; }
+    .when { font-size: 2.4vmin; }
+    .cta { font-size: 2.2vmin; padding: 1.3vmin 3vmin; }
+    .fine { margin-top: 1.6vmin; font-size: 1.7vmin; }
+  }
+  /* square → photo left, handbill column right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --cx: 28vmin; --cy: 50%; }
+    .photo { left: 7vmin; right: auto; top: 7vmin; width: 42vmin; height: calc(100% - 14vmin); }
+    .kick { left: 57vmin; right: 5vmin; top: 7vmin; flex-direction: column; align-items: center; gap: 1vmin; font-size: 1.7vmin; }
+    .arc { left: 55vmin; right: 3vmin; width: calc(100% - 58vmin); top: 14vmin; height: 16vmin; }
+    .bill { left: 57vmin; right: 5vmin; bottom: 7vmin; }
+    .line { white-space: normal; font-size: 2.7vmin; line-height: 1.25; }
+    .line i { display: block; margin: .6vmin 0; font-size: 1.8vmin; }
+    .off { font-size: 6.4vmin; margin-top: 3vmin; white-space: normal; }
+    .row { flex-direction: column; gap: 2vmin; margin-top: 2.4vmin; }
+    .when { font-size: 2.2vmin; }
+    .cta { font-size: 2vmin; }
+    .fine { font-size: 1.6vmin; white-space: normal; line-height: 1.5; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --cx: 38vmin; }
+    .photo { left: 8vmin; top: 8vmin; width: 60vmin; height: calc(100% - 16vmin); }
+    .kick { left: 78vmin; right: 7vmin; top: 8vmin; flex-direction: row; font-size: 1.8vmin; }
+    .arc { left: 75vmin; right: 5vmin; width: calc(100% - 80vmin); top: 16vmin; height: 24vmin; }
+    .bill { left: 78vmin; right: 7vmin; bottom: 8vmin; text-align: center; }
+    .line { white-space: nowrap; font-size: 2vmin; }
+    .line i { display: inline; margin: 0 1vmin; font-size: inherit; }
+    .off { font-size: 7.6vmin; white-space: nowrap; }
+    .row { flex-direction: row; justify-content: center; align-items: center; gap: 3vmin; }
+    .fine { white-space: nowrap; font-size: 1.7vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="kick"><span>Marigold Supply presents</span><span>Nº 477</span></div>
+  <svg class="arc" viewBox="0 0 900 270" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <defs><path id="hb" d="M40,250 Q450,20 860,250"/></defs>
+    <text text-anchor="middle"><textPath href="#hb" startOffset="50%" textLength="800" lengthAdjust="spacingAndGlyphs">Happening</textPath></text>
+  </svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="bill">
+    <div class="line">Live DJ<i>✺</i>Flash tattoos<i>✺</i>Free lemonade</div>
+    <div class="off">20% off everything</div>
+    <div class="row"><span class="when">Sat 14 Sep · 6 pm till late</span><span class="cta">Save your spot</span></div>
+    <div class="fine">Admission free · online with code <b>HAPPEN20</b></div>
+  </div>
+</div>
+</body>
+</html>

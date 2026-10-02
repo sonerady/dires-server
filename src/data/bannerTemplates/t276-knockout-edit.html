@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Knockout Edit — the headline is cut out of black: the letters are windows onto a close crop of the
+     same product (its fabric, print or colour), while the full look stays clear beside it.
+     Built with a white-on-black type layer in multiply over a duplicate photo — no image in CSS.
+     TALL → look on top, knockout word + offer below · 7/10+ → look left, "ED/IT" stacked right · WIDE → one line */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0D0D0D; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0D0D0D; color: #F3F0EA; font-family: "Space Mono", Menlo, monospace; display: flex; flex-direction: column; }
+  .ph { position: relative; flex: 1; min-height: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .side { flex: none; box-sizing: border-box; padding: 3.4vmin 4vmin 4.2vmin; display: flex; flex-direction: column; }
+  .lab { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .06em; text-transform: uppercase; color: rgba(243,240,234,.72); }
+  .lab b { color: #F3F0EA; font-weight: 700; }
+
+  .ko { position: relative; overflow: hidden; isolation: isolate; margin-top: 2.2vmin; }
+  .ko .zoom { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; display: block; transform: scale(2.2); filter: brightness(1.14) saturate(1.12); }
+  .ko .mask { position: relative; background: #0D0D0D; color: #FFFFFF; mix-blend-mode: multiply; display: flex; flex-direction: column; }
+  .t { font-family: "Archivo Black", "Arial Black", sans-serif; font-size: 36.4vmin; line-height: .74; letter-spacing: -.02em; text-transform: uppercase; white-space: nowrap; padding: 1.2vmin 0 .4vmin; margin-left: -.3vmin; }
+  .t2 { display: none; }
+
+  .row { margin-top: 2.6vmin; display: flex; align-items: stretch; justify-content: space-between; gap: 3vmin; }
+  .row p { margin: 0; font-size: 1.9vmin; line-height: 1.5; }
+  .row p b { font-weight: 700; color: #FF3D2E; }
+  .cta { flex: none; display: flex; align-items: center; background: #F3F0EA; color: #0D0D0D; font-weight: 700; font-size: 2.1vmin; letter-spacing: .04em; text-transform: uppercase; padding: 0 3vmin; white-space: nowrap; }
+
+  /* SHORTER PORTRAIT — photo left, the word breaks into ED / IT on the right */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { flex-direction: row; }
+    .side { width: 50%; height: 100%; padding: 4.4vmin 4.4vmin 4.4vmin 4vmin; }
+    .ko { margin-top: auto; }
+    .t1 { display: none; }
+    .t2 { display: block; font-size: 28vmin; }
+    .t2 + .t2 { padding-top: .4vmin; }
+    .row { flex-direction: column; gap: 2.4vmin; margin-top: 3vmin; }
+    .cta { justify-content: space-between; padding: 1.8vmin 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .side { width: 48%; padding: 3.8vmin; }
+    .t2 { font-size: 26vmin; }
+    .row p { font-size: 1.7vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.6vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .side { width: 54%; padding: 4.6vmin 5vmin; }
+    .t1 { display: block; font-size: 30.4vmin; }
+    .t2 { display: none; }
+    .row { flex-direction: row; margin-top: 3vmin; }
+    .cta { padding: 0 3vmin; font-size: 2.1vmin; }
+    .row p { font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="side">
+    <div class="lab"><span>The <b>new</b> collection</span><span>Look 07 / Detail</span></div>
+    <div class="ko">
+      <img class="zoom" src="{{PRODUCT_IMAGE}}" alt="">
+      <div class="mask"><div class="t t1">Edit</div><div class="t t2">Ed</div><div class="t t2">it</div></div>
+    </div>
+    <div class="row">
+      <p>Cut from the new season.<br><b>20% off</b> with code CUT20</p>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

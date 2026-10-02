@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Savile Row — chalk-stripe cloth panel, a tailor's tape along the seam, a fitting ticket.
+     tall → photo above the cloth, tape across; 7/10+ → photo left, tape runs down the seam */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1A2030; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #1A2030; color: #ECE5D3; font-family: "IBM Plex Mono", Menlo, Consolas, monospace; }
+  .cloth { position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 2.7vmin, rgba(236,229,211,.14) 2.7vmin calc(2.7vmin + 1px)),
+      repeating-linear-gradient(90deg, transparent 0 .9vmin, rgba(0,0,0,.08) .9vmin 1.8vmin),
+      radial-gradient(130% 90% at 20% 100%, #25304A 0%, #1A2030 55%, #141926 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 66vmin); object-fit: cover; object-position: 50% 22%; }
+
+  /* the tape measure: mm / half-cm / cm ticks, numbered every cm, a brass tip at zero */
+  .tape { position: absolute; left: 0; right: 0; top: calc(100% - 66vmin); height: 5.6vmin; overflow: hidden; z-index: 2;
+    background:
+      repeating-linear-gradient(90deg, #1E1B15 0 1px, transparent 1px 10vmin) 0 0 / 100% 2.9vmin no-repeat,
+      repeating-linear-gradient(90deg, #1E1B15 0 1px, transparent 1px 5vmin) 0 0 / 100% 2vmin no-repeat,
+      repeating-linear-gradient(90deg, rgba(30,27,21,.75) 0 1px, transparent 1px 1vmin) 0 0 / 100% 1.2vmin no-repeat,
+      linear-gradient(180deg, #EBC869, #DDB553);
+    box-shadow: 0 .8vmin 1.8vmin rgba(0,0,0,.4); }
+  .tape .tip { position: absolute; left: 0; top: 0; bottom: 0; width: 1.4vmin; background: linear-gradient(90deg, #8C7A4E, #C9B27A 60%, #8C7A4E); }
+  .tape .n { position: absolute; left: 5vmin; bottom: .55vmin; display: flex; }
+  .tape .n span { flex: none; width: 10vmin; text-align: center; font-size: 1.8vmin; font-weight: 600; line-height: 1; color: #1E1B15; }
+  .tape .n span.r { color: #B3261E; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: calc(66vmin - 5.6vmin); }
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: #BDB49E; }
+  .copy { position: absolute; left: 6vmin; top: 11vmin; width: 52vmin; }
+  h1 { margin: 0; font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-weight: 400; font-size: 11.6vmin; line-height: .92; letter-spacing: -.02em; }
+  h1 i { font-weight: 400; color: #E7D6A6; }
+  .lede { margin-top: 3vmin; font-size: 2.2vmin; line-height: 1.5; color: #CFC7B2; }
+  .cta { position: absolute; left: 6vmin; bottom: 6vmin; display: flex; white-space: nowrap; align-items: center; gap: 2.4vmin; font-size: 2.2vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+  .cta i { display: block; width: 9vmin; height: .25vmin; background: #E7D6A6; }
+
+  /* fitting ticket */
+  .ticket { position: absolute; right: 6vmin; top: 10vmin; width: 32vmin; padding: 4.4vmin 3vmin 3vmin; box-sizing: border-box; background: #F1EADA; color: #1A2030; transform: rotate(3deg); box-shadow: 0 1.4vmin 3vmin rgba(0,0,0,.4); }
+  .ticket::before { content: ""; position: absolute; left: 50%; top: 1.6vmin; width: 1.6vmin; height: 1.6vmin; margin-left: -.8vmin; border-radius: 50%; background: #1A2030; }
+  .ticket .t { display: flex; justify-content: space-between; font-size: 1.6vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; padding-bottom: 1.4vmin; border-bottom: .25vmin solid #1A2030; }
+  .ticket .row { display: flex; justify-content: space-between; gap: 1vmin; padding: 1.15vmin 0; font-size: 1.7vmin; border-bottom: 1px dashed rgba(26,32,48,.35); }
+  .ticket .row b { font-weight: 600; }
+  .ticket .p { display: flex; align-items: baseline; justify-content: space-between; margin-top: 2vmin; font-size: 1.6vmin; letter-spacing: .16em; text-transform: uppercase; }
+  .ticket .p b { font-family: "Bodoni Moda", Didot, serif; font-size: 6vmin; font-weight: 500; letter-spacing: -.01em; }
+
+  /* ── shorter portrait + square: photo left, tape runs vertically down the seam ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 54%; height: 100%; object-position: 50% 25%; }
+    .tape { left: 54%; right: auto; top: 0; bottom: 0; width: 5.6vmin; height: auto;
+      background:
+        repeating-linear-gradient(180deg, #1E1B15 0 1px, transparent 1px 10vmin) 0 0 / 2.9vmin 100% no-repeat,
+        repeating-linear-gradient(180deg, #1E1B15 0 1px, transparent 1px 5vmin) 0 0 / 2vmin 100% no-repeat,
+        repeating-linear-gradient(180deg, rgba(30,27,21,.75) 0 1px, transparent 1px 1vmin) 0 0 / 1.2vmin 100% no-repeat,
+        linear-gradient(90deg, #EBC869, #DDB553); }
+    .tape .tip { left: 0; right: 0; top: 0; bottom: auto; width: auto; height: 1.4vmin; background: linear-gradient(180deg, #8C7A4E, #C9B27A 60%, #8C7A4E); }
+    .tape .n { left: auto; right: .5vmin; top: 5vmin; bottom: auto; flex-direction: column; }
+    .tape .n span { width: auto; height: 10vmin; line-height: 10vmin; }
+    .panel { left: calc(54% + 5.6vmin); top: 0; height: auto; display: flex; flex-direction: column; padding: 6vmin 5.5vmin; box-sizing: border-box; }
+    .top { position: static; flex-direction: column; gap: 1vmin; }
+    .copy { position: static; width: auto; margin-top: 5vmin; }
+    h1 { font-size: 8.4vmin; }
+    .lede { font-size: 2vmin; margin-top: 2.4vmin; }
+    .ticket { position: relative; right: auto; top: auto; width: 30vmin; margin: 5vmin 0 0 1vmin; }
+    .cta { position: static; margin-top: auto; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .tape { left: 50%; }
+    .panel { left: calc(50% + 5.6vmin); padding: 5vmin 5vmin; }
+    .copy { margin-top: 3.4vmin; }
+    h1 { font-size: 7.6vmin; }
+    .lede { display: none; }
+    .ticket { width: 28vmin; margin-top: 3.6vmin; padding: 4vmin 2.6vmin 2.4vmin; }
+    .ticket .row { padding: .9vmin 0; }
+    .ticket .p b { font-size: 5vmin; }
+    .cta { gap: 1.6vmin; font-size: 2vmin; letter-spacing: .18em; }
+    .cta i { width: 5vmin; }
+  }
+  /* ── wide: photo left, cloth on the right holds copy + ticket side by side ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .tape { left: 42%; }
+    .panel { left: calc(42% + 5.6vmin); display: block; padding: 0; }
+    .top { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; flex-direction: row; }
+    .copy { position: absolute; left: 6vmin; top: 21vmin; width: calc(100% - 46vmin); margin: 0; }
+    h1 { font-size: 10.2vmin; }
+    .lede { display: block; font-size: 2.3vmin; margin-top: 4vmin; }
+    .ticket { position: absolute; right: 6vmin; top: 19vmin; margin: 0; width: 32vmin; padding: 4.4vmin 3vmin 3vmin; }
+    .ticket .row { padding: 1.15vmin 0; }
+    .ticket .p b { font-size: 6vmin; }
+    .cta { position: absolute; left: 6vmin; bottom: 7vmin; gap: 2.4vmin; font-size: 2.2vmin; }
+    .cta i { width: 9vmin; }
+  }
+
+  /* ───────── motion: 8s loop, restrained — t=0 = the static design ───────── */
+  /* photo: a very slow push-in */
+  .photo { transform-origin: 50% 30%; animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  /* the cloth catches the light: a wide soft sheen crosses the worsted once per loop */
+  .cloth::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(115deg, rgba(236,229,211,0) 38%, rgba(236,229,211,.035) 44%, rgba(236,229,211,.075) 50%, rgba(236,229,211,.035) 56%, rgba(236,229,211,0) 62%) 100% 0 / 300% 100% no-repeat;
+    animation: wool 8s linear infinite; }
+  @keyframes wool { 0%, 10% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.55,1); } 70%, 100% { background-position: 0% 0; } }
+  /* the tape: a satin glint runs along it */
+  .tape::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,250,230,0) 42%, rgba(255,250,230,.5) 50%, rgba(255,250,230,0) 58%) 100% 0 / 300% 100% no-repeat;
+    animation: tapeH 8s linear infinite; }
+  @keyframes tapeH { 0%, 22% { background-position: 100% 0; animation-timing-function: cubic-bezier(.5,0,.4,1); } 44%, 100% { background-position: 0% 0; } }
+  @keyframes tapeV { 0%, 22% { background-position: 0 100%; animation-timing-function: cubic-bezier(.5,0,.4,1); } 44%, 100% { background-position: 0 0%; } }
+  /* the fitting ticket sways on its eyelet like a tag on a hanger */
+  .ticket { transform-origin: 50% 2.4vmin; animation: sway 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sway { 0%, 100% { transform: rotate(3deg); } 25% { transform: rotate(1.4deg); } 50% { transform: rotate(3.8deg); } 75% { transform: rotate(2.2deg); } }
+  /* tailor's chalk: a stroke is drawn under "measure." then brushed away */
+  h1 i { position: relative; display: inline-block; }
+  h1 i::after { content: ""; position: absolute; left: .02em; right: .12em; bottom: -.02em; height: .05em; border-radius: .03em;
+    background: repeating-linear-gradient(90deg, rgba(236,229,211,.85) 0 .5vmin, rgba(236,229,211,.55) .5vmin .7vmin);
+    clip-path: inset(0 100% 0 0); opacity: 1; transform: rotate(-1.2deg); animation: chalk 8s linear infinite; }
+  @keyframes chalk {
+    0%, 46% { clip-path: inset(0 100% 0 0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    58%, 80% { clip-path: inset(0 0 0 0); opacity: 1; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    90% { clip-path: inset(0 0 0 0); opacity: 0; animation-timing-function: steps(1, end); }
+    91%, 100% { clip-path: inset(0 100% 0 0); opacity: 0; }
+  }
+  /* CTA rule stretches out and back */
+  .cta i { transform-origin: 0 50%; animation: rule 8s linear infinite; }
+  @keyframes rule { 0%, 60% { transform: scaleX(1); animation-timing-function: cubic-bezier(.6,0,.2,1); } 70%, 78% { transform: scaleX(1.5); animation-timing-function: cubic-bezier(.6,0,.2,1); } 90%, 100% { transform: scaleX(1); } }
+  @media (min-aspect-ratio: 7/10) {
+    .tape::after { background: linear-gradient(180deg, rgba(255,250,230,0) 42%, rgba(255,250,230,.5) 50%, rgba(255,250,230,0) 58%) 0 100% / 100% 300% no-repeat; animation-name: tapeV; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="cloth"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tape"><div class="tip"></div><div class="n"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span class="r">10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span></div></div>
+  <div class="panel">
+    <div class="top"><span>The Tailoring Room</span><span>Nº 14 — SS26</span></div>
+    <div class="copy">
+      <h1>Cut to<br><i>measure.</i></h1>
+      <div class="lede">Seasonal cloth, cut and finished to your exact fit.</div>
+    </div>
+    <div class="ticket">
+      <div class="t"><span>Fitting</span><span>Nº 0419</span></div>
+      <div class="row"><span>Client</span><b>You</b></div>
+      <div class="row"><span>Cloth</span><b>Seasonal</b></div>
+      <div class="row"><span>Fittings</span><b>Two</b></div>
+      <div class="row"><span>Ready in</span><b>14 days</b></div>
+      <div class="p"><span>From</span><b>$240</b></div>
+    </div>
+    <div class="cta">Book a fitting <i></i></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=DM+Sans:opsz,wght@9..40,400..800&display=swap" rel="stylesheet">
+<style>
+  /* Week of Looks — an outfit planner page: Monday to Sunday, each day with its own crop of the
+     same photo and a handwritten plan ("big meeting", "gallery"…); Saturday — the pictured look — is
+     ringed in red marker and highlighted. tall / 3:4 → the big look above a 7-column week strip;
+     square / wide → look on the left, the week as a ruled 7-line agenda on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F1E6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6F1E6; color: #22211F; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif;
+    display: flex; flex-direction: column; padding: 5vmin; box-sizing: border-box; }
+  .hand { font-family: "Caveat", "Bradley Hand", cursive; }
+
+  .head { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .wk { font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .wk span { color: #C8412E; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 800; font-size: 8.4vmin; line-height: .9; letter-spacing: -.035em; }
+  h1 em { display: block; font-family: "Caveat", cursive; font-style: normal; font-weight: 700; font-size: 1.12em; line-height: .8; letter-spacing: 0; color: #C8412E; }
+  .stamp { flex: none; text-align: right; font-size: 1.8vmin; line-height: 1.5; font-weight: 500; padding-bottom: .6vmin; }
+  .stamp b { font-weight: 800; }
+
+  .ph { flex: 1 1 auto; min-height: 0; position: relative; margin-top: 3vmin; overflow: hidden; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .tag { position: absolute; left: 0; bottom: 0; background: #F4DE6B; color: #22211F; padding: 1vmin 1.8vmin; font-size: 1.8vmin; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+
+  .week { flex: none; display: grid; grid-template-columns: repeat(7, 1fr); gap: 1.2vmin; margin-top: 3vmin; }
+  .d { position: relative; display: flex; flex-direction: column; min-width: 0; }
+  .dn { position: relative; font-size: 1.8vmin; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; padding-bottom: 1vmin; border-bottom: .3vmin solid #22211F; }
+  .dn svg { position: absolute; left: -1.2vmin; top: -1.2vmin; width: 8vmin; height: 4.8vmin; overflow: visible; }
+  .cr { position: relative; height: 17vmin; margin-top: 1vmin; overflow: hidden; background: #E6DED0; }
+  .cr img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .d1 .cr img { object-position: 50% 16%; transform: scale(2.2); transform-origin: 50% 18%; }
+  .d2 .cr img { object-position: 50% 36%; transform: scale(1.6); transform-origin: 50% 38%; }
+  .d3 .cr img { object-position: 50% 55%; transform: scale(2.6); transform-origin: 50% 55%; }
+  .d4 .cr img { object-position: 40% 45%; transform: scale(2); transform-origin: 40% 45%; }
+  .d5 .cr img { object-position: 50% 86%; transform: scale(1.9); transform-origin: 50% 88%; }
+  .d6 .cr img { object-position: 50% 24%; }
+  .d7 .cr img { object-position: 60% 50%; transform: scale(2.8); transform-origin: 60% 50%; }
+  .d em { margin-top: .8vmin; font-family: "Caveat", cursive; font-style: normal; font-weight: 500; font-size: 2.7vmin; line-height: .95; }
+  .d6 .cr { outline: .5vmin solid #F4DE6B; outline-offset: -.5vmin; }
+  .d6 em { color: #C8412E; font-weight: 700; }
+
+  .foot { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; margin-top: 3vmin; padding-top: 2.2vmin; border-top: 1px solid rgba(34,33,31,.3); }
+  .foot p { margin: 0; font-size: 2vmin; line-height: 1.4; }
+  .foot p b { font-weight: 800; }
+  .foot p mark { background: #F4DE6B; color: #22211F; padding: 0 .6vmin; font-weight: 800; }
+  .cta { flex: none; background: #22211F; color: #F6F1E6; padding: 1.8vmin 3vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 5vmin; }
+    h1 { font-size: 7vmin; }
+    .ph, .week { margin-top: 2.4vmin; }
+    .cr { height: 12vmin; }
+    .d em { font-size: 2.4vmin; }
+    .foot { margin-top: 2.4vmin; padding-top: 1.8vmin; }
+  }
+  /* square / wide — the week becomes a ruled agenda on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: grid; grid-template-columns: 44% 1fr; grid-template-rows: auto 1fr auto; column-gap: 5vmin; padding: 0 5vmin 0 0; }
+    .ph { grid-column: 1; grid-row: 1 / -1; margin: 0; }
+    .head { grid-column: 2; grid-row: 1; margin-top: 5vmin; }
+    h1 { font-size: 6.4vmin; }
+    .stamp { display: none; }
+    .week { grid-column: 2; grid-row: 2; margin-top: 3vmin; grid-template-columns: 1fr; gap: 0; align-content: center; }
+    .d { flex-direction: row; align-items: center; gap: 2vmin; height: 8.2vmin; border-bottom: 1px solid rgba(34,33,31,.3); }
+    .d:first-child { border-top: 1px solid rgba(34,33,31,.3); }
+    .dn { width: 7vmin; flex: none; border: 0; padding: 0; }
+    .dn svg { left: -1.6vmin; top: -1.6vmin; }
+    .cr { flex: none; width: 10vmin; height: 6.6vmin; margin: 0; }
+    .d em { margin: 0; font-size: 2.9vmin; }
+    .foot { grid-column: 2; grid-row: 3; margin: 2.6vmin 0 5vmin; padding-top: 0; border: 0; flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .foot p { font-size: 1.8vmin; }
+    .cta { padding: 1.5vmin 2.6vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: 40% 1fr; column-gap: 6vmin; padding-right: 6vmin; }
+    .head { margin-top: 6vmin; }
+    h1 { font-size: 7vmin; }
+    h1 em { display: inline; margin-left: 1.6vmin; }
+    .stamp { display: block; }
+    .week { grid-template-columns: 1fr 1fr; column-gap: 4vmin; }
+    .d:nth-child(2) { border-top: 1px solid rgba(34,33,31,.3); }
+    .d { height: 11vmin; }
+    .cr { width: 11vmin; height: 8.4vmin; }
+    .foot { flex-direction: row; align-items: center; margin-bottom: 6vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     planning the week: 0.5 s a yellow marker frame hops day by day, Mon → Fri, and lands on Saturday, whose crop
+     gives a little jump · 2.9 s the red ring round "Sat" is re-drawn in one marker stroke ·
+     4.2 s "one edit." is re-written left to right · the "Saturday" tag slides out and back, the big look drifts in slowly */
+  .cr::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 .5vmin #F4DE6B; opacity: 0; pointer-events: none;
+    animation: hop 6s linear infinite; }
+  @keyframes hop { 0%, 100% { opacity: 0; } 1% { opacity: 1; } 7.5% { opacity: 1; } 9% { opacity: 0; } }
+  .d6 .cr::after, .d7 .cr::after { display: none; }
+  .d6 .cr { animation: land 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes land { 0%, 42%, 54%, 100% { transform: translateY(0); } 46% { transform: translateY(-1.2vmin); } 50% { transform: translateY(.2vmin); } }
+  .d em { animation: note 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes note { 0%, 100% { transform: rotate(0deg); } 2% { transform: rotate(-3deg); } 6% { transform: rotate(0deg); } }
+  .d7 em { animation: none; }
+  .d6 em { animation-name: note6; }
+  @keyframes note6 { 0%, 100% { transform: scale(1); } 3% { transform: scale(1.15); } 8% { transform: scale(1); } }
+  .d1 .cr::after, .d1 em { animation-delay: -5.5s; }
+  .d2 .cr::after, .d2 em { animation-delay: -5.1s; }
+  .d3 .cr::after, .d3 em { animation-delay: -4.7s; }
+  .d4 .cr::after, .d4 em { animation-delay: -4.3s; }
+  .d5 .cr::after, .d5 em { animation-delay: -3.9s; }
+  .d6 em { animation-delay: -3.3s; }
+
+  .dn svg path { stroke-dasharray: 1 1; stroke-dashoffset: 0; animation: ring 6s cubic-bezier(.55,0,.35,1) infinite; }
+  @keyframes ring { 0%, 48% { stroke-dashoffset: 0; } 52% { stroke-dashoffset: -1; } 52.01% { stroke-dashoffset: 1; } 66%, 100% { stroke-dashoffset: 0; } }
+
+  h1 em { animation: write 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes write { 0%, 68% { clip-path: inset(-20% -5% -20% 0); } 71% { clip-path: inset(-20% 100% -20% 0); } 88%, 100% { clip-path: inset(-20% -5% -20% 0); } }
+
+  .tag { animation: tag 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes tag { 0%, 30%, 52%, 100% { transform: translateX(0); } 36%, 40% { transform: translateX(-102%); } }
+  .ph img { transform-origin: 50% 30%; animation: drift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes drift { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div>
+      <div class="wk">Week 39 <span>· outfit planner</span></div>
+      <h1>Seven days, <em>one edit.</em></h1>
+    </div>
+    <div class="stamp">Mon — Sun<br><b>7 looks planned</b></div>
+  </div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="tag">Saturday</div></div>
+  <div class="week">
+    <div class="d d1"><span class="dn">Mon</span><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><em>big meeting</em></div>
+    <div class="d d2"><span class="dn">Tue</span><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><em>desk, then gym</em></div>
+    <div class="d d3"><span class="dn">Wed</span><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><em>gallery</em></div>
+    <div class="d d4"><span class="dn">Thu</span><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><em>late dinner</em></div>
+    <div class="d d5"><span class="dn">Fri</span><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><em>drinks!</em></div>
+    <div class="d d6"><span class="dn">Sat<svg viewBox="0 0 80 48" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M60 6 C38 0 8 4 5 22 C2 40 34 46 56 42 C76 38 80 18 66 9 C58 4 46 3 36 5" fill="none" stroke="#C8412E" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg></span><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><em>this one</em></div>
+    <div class="d d7"><span class="dn">Sun</span><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><em>slow brunch</em></div>
+  </div>
+  <div class="foot">
+    <p><b>Plan 3 looks,</b> get 15% off<br>code <mark>WEEK15</mark></p>
+    <div class="cta">Plan my week</div>
+  </div>
+</div>
+</body>
+</html>

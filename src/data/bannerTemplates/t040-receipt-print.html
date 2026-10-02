@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+  /* Receipt Print — a thermal till receipt fresh out of the printer on an electric-blue counter: torn zigzag top, dotted rules, line items, total, barcode.
+     tall → photo on top, receipt rising from the bottom edge; square / wide → photo left, receipt right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2340D8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(90% 70% at 70% 80%, #2F4FEA 0%, #2340D8 55%, #1B33B8 100%); color: #1A1A1A; font-family: "VT323", "Courier New", monospace; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 72vmin); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .kick { position: absolute; left: 5vmin; top: calc(100% - 68vmin); font-family: "Archivo Black", Arial Black, sans-serif; font-size: 2.2vmin; letter-spacing: .14em; text-transform: uppercase; color: #fff; }
+  .kick span { color: #FFE14D; }
+  .rwrap { position: absolute; left: 11vmin; right: 11vmin; top: calc(100% - 62vmin); bottom: -4vmin; transform: rotate(-2deg); filter: drop-shadow(0 .6vmin .8vmin rgba(0,0,40,.35)) drop-shadow(0 2.4vmin 3vmin rgba(0,0,40,.25)); }
+  .receipt { height: 100%; box-sizing: border-box; padding: 4.4vmin 5vmin 0; background: linear-gradient(90deg, #ECEAE4 0%, #FBFAF6 8%, #FFFFFF 50%, #FBFAF6 92%, #E9E7E1 100%);
+    -webkit-mask: linear-gradient(#000 0 0) 0 1.2vmin / 100% 100% no-repeat, conic-gradient(from 135deg at 50% 0, #000 90deg, #0000 0) 0 0 / 2.4vmin 1.2vmin repeat-x;
+            mask: linear-gradient(#000 0 0) 0 1.2vmin / 100% 100% no-repeat, conic-gradient(from 135deg at 50% 0, #000 90deg, #0000 0) 0 0 / 2.4vmin 1.2vmin repeat-x; }
+  .logo { text-align: center; font-family: "Archivo Black", Arial Black, sans-serif; font-size: 5.2vmin; line-height: 1; letter-spacing: -.02em; text-transform: uppercase; }
+  .meta { margin-top: 1.6vmin; text-align: center; font-size: 2.9vmin; line-height: 1.1; color: #3A3A3A; }
+  .rule { margin: 1.8vmin 0; height: .5vmin; background: radial-gradient(circle, #1A1A1A 40%, transparent 45%) 0 50% / 1.2vmin .5vmin repeat-x; }
+  .line { display: flex; align-items: baseline; gap: 1.2vmin; font-size: 3.9vmin; line-height: 1.3; text-transform: uppercase; }
+  .line .n { flex: none; }
+  .line .dots { flex: 1; min-width: 2vmin; border-bottom: .3vmin dotted #8A8A8A; transform: translateY(-.8vmin); }
+  .line .p { flex: none; }
+  .line.off { color: #D5241C; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; font-size: 4vmin; text-transform: uppercase; }
+  .total b { font-family: "Archivo Black", Arial Black, sans-serif; font-weight: 400; font-size: 7.6vmin; letter-spacing: -.03em; line-height: 1; }
+  .saved { text-align: right; font-size: 3.3vmin; color: #D5241C; text-transform: uppercase; margin-top: 1vmin; }
+  .bars { margin-top: 2.4vmin; height: 6.4vmin; background: repeating-linear-gradient(90deg, #1A1A1A 0 .3vmin, transparent .3vmin .6vmin, #1A1A1A .6vmin 1.3vmin, transparent 1.3vmin 1.6vmin, #1A1A1A 1.6vmin 1.8vmin, transparent 1.8vmin 2.4vmin, #1A1A1A 2.4vmin 3vmin, transparent 3vmin 3.2vmin); }
+  .thanks { margin-top: 1.2vmin; text-align: center; font-size: 2.8vmin; text-transform: uppercase; letter-spacing: .08em; }
+  .stamp { position: absolute; right: 2vmin; top: calc(100% - 68vmin); width: 18vmin; height: 18vmin; border-radius: 50%; border: .6vmin solid #D5241C; color: #D5241C; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(14deg); font-family: "Archivo Black", Arial Black, sans-serif; font-size: 5.4vmin; line-height: .9; opacity: .88; mix-blend-mode: multiply; }
+  .stamp small { font-family: "VT323", monospace; font-size: 2.6vmin; letter-spacing: .1em; margin-top: .6vmin; }
+  .stamp::after { content: ""; position: absolute; inset: 1vmin; border: .25vmin solid #D5241C; border-radius: 50%; }
+  .x { display: none !important; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .shot { height: calc(100% - 64vmin); }
+    .kick { top: calc(100% - 60.5vmin); }
+    .rwrap { left: 13vmin; right: 13vmin; top: calc(100% - 55vmin); }
+    .receipt { padding: 4vmin 4.6vmin 0; }
+    .logo { font-size: 4.6vmin; }
+    .line { font-size: 3.5vmin; }
+    .total b { font-size: 6.6vmin; }
+    .rule { margin: 1.4vmin 0; }
+    .bars { height: 5.4vmin; margin-top: 1.8vmin; }
+    .stamp { width: 15vmin; height: 15vmin; font-size: 4.6vmin; top: calc(100% - 59vmin); right: 3vmin; }
+  }
+  /* square / wide → photo left, receipt right */
+  @media (min-aspect-ratio: 9/10) {
+    .shot { right: auto; bottom: 0; height: auto; width: 52%; }
+    .kick { left: calc(52% + 5vmin); top: 4.4vmin; font-size: 1.7vmin; letter-spacing: .1em; white-space: nowrap; }
+    .rwrap { left: calc(52% + 5vmin); right: 5vmin; top: 11vmin; transform: rotate(1.6deg); }
+    .receipt { padding: 3.6vmin 3.4vmin 0; }
+    .logo { font-size: 4vmin; }
+    .meta { font-size: 2.6vmin; }
+    .rule { margin: 1.3vmin 0; }
+    .line { font-size: 2.9vmin; gap: .6vmin; }
+    .total { font-size: 3.2vmin; }
+    .total b { font-size: 5.4vmin; }
+    .saved { font-size: 2.9vmin; }
+    .bars { height: 5vmin; margin-top: 1.8vmin; }
+    .thanks { font-size: 2.8vmin; }
+    .x { display: block !important; }
+    .line.x { display: flex !important; }
+    .stamp { display: none; width: 13vmin; height: 13vmin; font-size: 3.8vmin; right: 1.5vmin; top: 2vmin; }
+    .stamp small { font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 55%; }
+    .kick { left: calc(55% + 7vmin); }
+    .rwrap { left: calc(55% + 7vmin); right: 7vmin; top: 15vmin; }
+    .receipt { padding: 3.8vmin 4.4vmin 0; }
+    .line { font-size: 3.4vmin; }
+    .total b { font-size: 6.2vmin; }
+    .stamp { display: flex; width: 14vmin; height: 14vmin; font-size: 4.2vmin; right: 1.5vmin; top: 2vmin; }
+    .kick { font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="kick">Summer sale <span>●</span> code SUMMER30</div>
+  <div class="rwrap">
+    <div class="receipt">
+      <div class="logo">Studio Nord</div>
+      <div class="meta">Store 014 · Reg 03<br>10.03.26 &nbsp;14:07</div>
+      <div class="rule"></div>
+      <div class="line"><span class="n">1 × New season piece</span><span class="dots"></span><span class="p">129.00</span></div>
+      <div class="line"><span class="n">1 × The essential</span><span class="dots"></span><span class="p">59.00</span></div>
+      <div class="line off"><span class="n">Summer sale −30%</span><span class="dots"></span><span class="p">−56.40</span></div>
+      <div class="rule"></div>
+      <div class="total"><span>Total</span><b>€131.60</b></div>
+      <div class="saved">You saved €56.40</div>
+      <div class="rule x"></div>
+      <div class="line x"><span class="n">Code</span><span class="dots"></span><span class="p">SUMMER30</span></div>
+      <div class="bars"></div>
+      <div class="thanks x">Thank you · shop online 24/7</div>
+    </div>
+  </div>
+  <div class="stamp">−30%<small>ALL WEEK</small></div>
+</div>
+</body>
+</html>

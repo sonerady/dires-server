@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="4">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  /* 1960s Mod op-art — black/white concentric rings vibrate out from a target roundel; photo is a clean window in the pattern,
+     all copy sits on solid black / white chips. tall: photo top, band + roundel below · square & wide: photo left, target right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F1EA; }
+  .banner { --k: #0B0B0B; --w: #F4F1EA; --r: #E03A2F; --cx: 50%; --cy: calc(100% - 24vmin); --dd: 36vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--k); font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    background: repeating-radial-gradient(circle at var(--cx) var(--cy), var(--k) calc(var(--o) - 2.6vmin) calc(var(--o) - 1.3vmin), var(--w) calc(var(--o) - 1.3vmin) var(--o)); }
+  .photo { position: absolute; left: 13vmin; right: 13vmin; top: 12vmin; height: calc(100% - 12vmin - 66vmin); width: calc(100% - 26vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .kick { position: absolute; left: 13vmin; top: 4.4vmin; background: var(--k); color: var(--w); padding: 1.2vmin 2vmin; font-size: 1.9vmin; font-weight: 700; font-stretch: 125%; letter-spacing: .2em; text-transform: uppercase; }
+  .kick b { color: var(--r); }
+  .band { position: absolute; left: 0; right: 0; top: calc(100% - 60vmin); background: var(--k); color: var(--w); padding: 2.6vmin 5vmin 2.4vmin; text-align: center; }
+  h1 { margin: 0; font-weight: 900; font-stretch: 125%; font-size: 7.6vmin; line-height: .95; letter-spacing: -.01em; text-transform: uppercase; }
+  .band p { margin: 1.2vmin 0 0; font-size: 1.9vmin; font-weight: 600; font-stretch: 110%; letter-spacing: .26em; text-transform: uppercase; }
+  .disc { position: absolute; left: var(--cx); top: var(--cy); width: var(--dd); height: var(--dd); transform: translate(-50%, -50%); border-radius: 50%; background: var(--w); box-shadow: 0 0 0 1.3vmin var(--k), 0 0 0 2.6vmin var(--w), 0 0 0 3.9vmin var(--r);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .disc span { font-size: 2vmin; font-weight: 700; font-stretch: 125%; letter-spacing: .24em; text-transform: uppercase; }
+  .disc b { font-weight: 900; font-stretch: 125%; font-size: calc(var(--dd) * .3); line-height: .92; letter-spacing: -.04em; }
+  .c { position: absolute; bottom: 5vmin; padding: 1.5vmin 2vmin; font-size: 2vmin; font-weight: 700; font-stretch: 112%; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .c1 { left: 4vmin; background: var(--w); border: .5vmin solid var(--k); }
+  .c1 u { text-decoration: none; font-weight: 900; }
+  .c2 { right: 4vmin; background: var(--r); color: #fff; border: .5vmin solid var(--r); }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --cy: calc(100% - 21vmin); --dd: 30vmin; }
+    .photo { left: 17vmin; right: 17vmin; width: calc(100% - 34vmin); top: 11vmin; height: calc(100% - 11vmin - 56vmin); }
+    .kick { left: 17vmin; top: 3.6vmin; }
+    .band { top: calc(100% - 51vmin); padding: 2vmin 5vmin; }
+    h1 { font-size: 7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --cx: calc(100% - 24vmin); --cy: 63vmin; --dd: 27vmin; }
+    .photo { left: 5vmin; top: 5vmin; bottom: 5vmin; right: auto; width: 45vmin; height: calc(100% - 10vmin); }
+    .kick { left: 55vmin; top: 5vmin; }
+    .band { left: 50vmin; top: 13vmin; padding: 2.4vmin 3.4vmin; text-align: left; }
+    h1 { font-size: 5.8vmin; }
+    .band p { font-size: 1.7vmin; letter-spacing: .18em; }
+    .c { padding: 1.2vmin 1.6vmin; font-size: 1.8vmin; }
+    .c1 { left: 55vmin; bottom: 11.6vmin; }
+    .c2 { left: 55vmin; right: auto; bottom: 3.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --cx: calc(100% - 30vmin); --cy: 60vmin; --dd: 34vmin; }
+    .photo { width: 54vmin; }
+    .kick { left: 65vmin; top: 5vmin; }
+    .band { left: 59vmin; top: 13vmin; padding: 2.6vmin 5vmin 2.6vmin 6vmin; }
+    h1 { font-size: 6.6vmin; }
+    .c { bottom: auto; }
+    .c1 { left: 65vmin; top: 50vmin; }
+    .c2 { left: 65vmin; right: auto; top: 62vmin; }
+  }
+
+  /* ───────── motion: 4s loop, t=0 = the static design — op-art vibration: the target radiates, the roundel beats ───────── */
+  @property --o { syntax: "<length>"; inherits: false; initial-value: 0px; }
+  /* the concentric rings stream outward from the roundel — two full stripes (2 × 2.6vmin) per loop, so it wraps seamlessly */
+  .banner { --o: 0vmin; animation: radiate 4s linear infinite; }
+  @keyframes radiate { from { --o: 0vmin; } to { --o: 5.2vmin; } }
+  /* the roundel beats twice per loop (a double "thump"), its red ring flares with it */
+  .disc { animation: thump 2s linear infinite; }
+  @keyframes thump {
+    0% { transform: translate(-50%, -50%) scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    7% { transform: translate(-50%, -50%) scale(1.07); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    16% { transform: translate(-50%, -50%) scale(.985); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    23% { transform: translate(-50%, -50%) scale(1.035); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    36%, 100% { transform: translate(-50%, -50%) scale(1); }
+  }
+  /* the headline shivers like a moiré — a quick horizontal skew on the off-beat */
+  h1 { animation: moire 2s linear infinite; }
+  @keyframes moire {
+    0%, 48% { transform: skewX(0deg); color: #F4F1EA; animation-timing-function: steps(1, end); }
+    50% { transform: skewX(-8deg) translateX(.6vmin); color: #E03A2F; animation-timing-function: steps(1, end); }
+    53% { transform: skewX(6deg) translateX(-.4vmin); color: #F4F1EA; animation-timing-function: steps(1, end); }
+    56% { transform: skewX(-3deg); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    64%, 100% { transform: skewX(0deg); color: #F4F1EA; }
+  }
+  /* the red mid-dot in the kicker blinks on each beat */
+  .kick b { display: inline-block; animation: blink 1s steps(1, end) infinite; }
+  @keyframes blink { 0%, 50% { opacity: 1; } 51%, 85% { opacity: 0; } 86%, 100% { opacity: 1; } }
+  /* CTA chip steps forward twice */
+  .c2 { animation: step 4s linear infinite; }
+  @keyframes step {
+    0%, 70% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    75% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    80% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    85% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    90%, 100% { transform: translateX(0); }
+  }
+  /* the code chip flips black/white on the downbeat of the loop */
+  .c1 { animation: flip 4s linear infinite; }
+  @keyframes flip {
+    0%, 40% { background-color: #F4F1EA; color: #0B0B0B; animation-timing-function: steps(1, end); }
+    42%, 56% { background-color: #0B0B0B; color: #F4F1EA; animation-timing-function: steps(1, end); }
+    58%, 100% { background-color: #F4F1EA; color: #0B0B0B; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="kick">Studio Oro <b>·</b> Mod 66</div>
+  <div class="band">
+    <h1>Swing Season</h1>
+    <p>The black &amp; white edit · ends Sunday</p>
+  </div>
+  <div class="disc"><span>Up to</span><b>40%</b><span>off</span></div>
+  <div class="c c1">Code <u>OPART40</u></div>
+  <div class="c c2">Shop the edit →</div>
+</div>
+</body>
+</html>

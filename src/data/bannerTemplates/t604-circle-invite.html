@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Circle Invite — ambassador programme invitation: a cream letterpress card with a double inner rule and a red wax seal
+     on its top edge, three roman-numbered perks and an application deadline, set on bottle green under the photo.
+     tall / 3:4 → photo top, invitation below · square / wide → photo left, invitation right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #17312A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #17312A; color: #2A2620; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif; }
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0 .4vmin, transparent .4vmin 1.6vmin); }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; width: 100%; height: calc(100% - 72vmin); object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .card { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 60vmin; box-sizing: border-box; background: #F4EDDF;
+    padding: 8vmin 5vmin 4vmin; display: flex; flex-direction: column; align-items: center; text-align: center;
+    box-shadow: 0 2vmin 5vmin rgba(0,0,0,.28); }
+  .card::before { content: ""; position: absolute; inset: 1.6vmin; border: 1px solid rgba(160,122,58,.7); pointer-events: none; }
+  .card::after { content: ""; position: absolute; inset: 2.3vmin; border: 1px solid rgba(160,122,58,.35); pointer-events: none; }
+
+  .seal { position: absolute; left: 50%; top: 0; width: 13vmin; height: 13vmin; transform: translate(-50%, -50%) rotate(-8deg); z-index: 2;
+    border-radius: 47% 53% 50% 50% / 52% 46% 54% 48%;
+    background: radial-gradient(circle at 38% 34%, #D24A3C 0%, #A8261E 45%, #7D1812 100%);
+    box-shadow: 0 .6vmin 1.4vmin rgba(0,0,0,.35), inset 0 0 0 1.1vmin rgba(0,0,0,.08); }
+  .seal b { position: absolute; inset: 2.4vmin; border-radius: 50%; border: .3vmin solid rgba(255,220,200,.35); display: flex; align-items: center; justify-content: center;
+    font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 4.6vmin; line-height: 1; color: rgba(255,226,210,.85); }
+
+  .kick { position: relative; font-size: 1.7vmin; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; color: #A07A3A; white-space: nowrap; }
+  h1 { position: relative; margin: 1.6vmin 0 0; font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 9vmin; line-height: .98; letter-spacing: -.01em; color: #17312A; }
+  .sub { position: relative; margin-top: 1.8vmin; max-width: 62vmin; font-size: 2vmin; line-height: 1.4; color: #5A5245; }
+  .perks { position: relative; margin-top: auto; width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.4vmin; padding: 2.4vmin 0; border-top: 1px solid rgba(160,122,58,.45); border-bottom: 1px solid rgba(160,122,58,.45); }
+  .perks div { font-size: 1.7vmin; line-height: 1.3; font-weight: 500; color: #2A2620; }
+  .perks div b { display: block; margin-bottom: .6vmin; font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 3vmin; line-height: 1; color: #A8261E; }
+  .foot { position: relative; margin-top: 2.4vmin; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .date { font-size: 1.8vmin; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #5A5245; white-space: nowrap; }
+  .date b { color: #17312A; }
+  .cta { flex: none; padding: 1.7vmin 3vmin; background: #17312A; color: #F4EDDF; font-size: 1.9vmin; font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .card { left: 6vmin; right: 6vmin; bottom: 4.4vmin; height: 53vmin; padding: 7.4vmin 5vmin 3.4vmin; }
+    .seal { width: 11vmin; height: 11vmin; }
+    .seal b { inset: 2vmin; font-size: 3.8vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 1.2vmin; }
+    .sub { margin-top: 1.4vmin; font-size: 1.8vmin; }
+    .perks { padding: 1.8vmin 0; }
+    .perks div b { font-size: 2.6vmin; }
+    .foot { margin-top: 1.8vmin; }
+  }
+  /* ── square / wide: photo left, the invitation card on the right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; bottom: 0; width: 44%; height: 100%; }
+    .card { left: calc(44% + 5vmin); right: 5vmin; top: 12vmin; bottom: 5vmin; height: auto; padding: 8vmin 4.4vmin 3.6vmin; justify-content: center; }
+    .perks { margin-top: 4vmin; }
+    .foot { margin-top: 3vmin; }
+    .seal { width: 11vmin; height: 11vmin; }
+    .seal b { inset: 2vmin; font-size: 3.8vmin; }
+    h1 { font-size: 7vmin; }
+    .sub { font-size: 1.8vmin; }
+    .perks { grid-template-columns: 1fr; gap: 1.2vmin; text-align: left; padding: 1.8vmin 0; }
+    .perks div { display: flex; align-items: baseline; gap: 1.6vmin; }
+    .perks div b { flex: none; width: 4vmin; margin: 0; font-size: 2.4vmin; }
+    .foot { flex-direction: column; gap: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .card { left: calc(42% + 7vmin); right: 7vmin; top: 12vmin; bottom: 6vmin; padding: 8.6vmin 6vmin 4vmin; }
+    .seal { width: 13vmin; height: 13vmin; }
+    .seal b { inset: 2.4vmin; font-size: 4.6vmin; }
+    h1 { font-size: 8.4vmin; }
+    .sub { font-size: 2vmin; }
+    .perks { grid-template-columns: repeat(3, 1fr); gap: 3vmin; padding: 2.2vmin 0; }
+    .perks div { display: block; }
+    .perks div b { width: auto; margin-bottom: .6vmin; font-size: 3vmin; }
+    .foot { flex-direction: row; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="card">
+    <div class="seal"><b>O</b></div>
+    <div class="kick">By invitation only</div>
+    <h1>Join the<br>Orrin Circle</h1>
+    <div class="sub">Our ambassador programme opens to 200 new members this season.</div>
+    <div class="perks">
+      <div><b>I</b>First look at every drop</div>
+      <div><b>II</b>20% on every sale you inspire</div>
+      <div><b>III</b>A seasonal wardrobe box</div>
+    </div>
+    <div class="foot">
+      <div class="date">Apply by <b>31 Oct</b></div>
+      <div class="cta">Request an invitation →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

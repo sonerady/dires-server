@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Carton Dieline — the unfolded perfume box as a print proof: magenta cut (solid) and fold (dashed) lines,
+     tuck flap, printed side panels, the photo as the front face, back panel with barcode, PAO jar and the offer,
+     colour bar + registration + slug. tall → box panels stacked; square/wide → panels in a row */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F2EC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1B2748; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.018) 0 1px, transparent 1px .6vmin), #F4F2EC;
+    --die: #E0197D; --fx: 13vmin; --fw: 74vmin; --ft: 10%; --fb: 42%; }
+  .cut { border: 0 solid var(--die); }
+
+  /* front face = photo */
+  .front { position: absolute; left: var(--fx); width: var(--fw); top: var(--ft); bottom: var(--fb); }
+  .front img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .front::after { content: ""; position: absolute; inset: 0; border: 1px dashed var(--die); }
+
+  /* side panels — printed navy, bleeding off the frame */
+  .side { position: absolute; top: var(--ft); bottom: var(--fb); background: #1B2748; border-top: 1px solid var(--die); border-bottom: 1px solid var(--die); overflow: hidden; }
+  .side.l { left: 0; width: var(--fx); }
+  .side.r { left: calc(var(--fx) + var(--fw)); right: 0; }
+  .side span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); white-space: nowrap; font-stretch: 125%; font-weight: 700; font-size: 2.4vmin; letter-spacing: .3em; color: #F4F2EC; }
+  .side.r span { transform: translate(-50%, -50%) rotate(90deg); font-weight: 500; font-size: 1.8vmin; color: #C8CDE0; }
+
+  /* tuck flap + dust flaps */
+  .flap { position: absolute; left: var(--fx); width: var(--fw); top: calc(var(--ft) - 8vmin); height: 8vmin; }
+  .dust { position: absolute; top: calc(var(--ft) - 4vmin); height: 4vmin; }
+  .dust.l { left: calc(var(--fx) - 11vmin); width: 11vmin; }
+  .dust.r { left: calc(var(--fx) + var(--fw)); width: 11vmin; }
+  .flap svg, .dust svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .flap path, .dust path { fill: none; stroke: var(--die); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .flap span { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-30%); text-align: center; font-stretch: 125%; font-weight: 800; font-size: 2.6vmin; letter-spacing: .4em; margin-right: -.4em; }
+
+  /* back panel */
+  .back { position: absolute; left: var(--fx); width: var(--fw); top: calc(100% - var(--fb)); bottom: 9vmin; box-sizing: border-box; padding: 4vmin 4vmin 3.4vmin;
+    border-left: 1px solid var(--die); border-right: 1px solid var(--die); border-bottom: 1px solid var(--die); display: flex; flex-direction: column; }
+  .k { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #4B5577; }
+  h1 { margin: 1.6vmin 0 0; font-stretch: 125%; font-weight: 800; font-size: 7vmin; line-height: .92; letter-spacing: -.01em; text-transform: uppercase; }
+  .off { margin-top: 1.8vmin; font-stretch: 100%; font-weight: 600; font-size: 4vmin; color: #E0572B; }
+  .row { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 2vmin; }
+  .bar { width: 22vmin; }
+  .bar i { display: block; height: 7vmin; background: repeating-linear-gradient(90deg, #1B2748 0 .3vmin, transparent .3vmin .6vmin, #1B2748 .6vmin 1.2vmin, transparent 1.2vmin 1.5vmin, #1B2748 1.5vmin 1.7vmin, transparent 1.7vmin 2.3vmin, #1B2748 2.3vmin 2.8vmin, transparent 2.8vmin 3.1vmin); }
+  .bar b { display: block; margin-top: .5vmin; font-family: "IBM Plex Mono", monospace; font-weight: 400; font-size: 1.6vmin; letter-spacing: .1em; white-space: nowrap; }
+  .icons { display: flex; align-items: flex-end; gap: 2vmin; }
+  .icons svg { width: 6.4vmin; height: 6.4vmin; }
+  .icons svg * { fill: none; stroke: #1B2748; stroke-width: 2.4; stroke-linejoin: round; }
+  .icons svg text { fill: #1B2748; stroke: none; font-family: "Archivo", Arial, sans-serif; font-weight: 700; }
+  .ml { font-family: "IBM Plex Mono", monospace; font-size: 1.8vmin; line-height: 1.3; text-align: right; }
+  .code { margin-top: 2vmin; font-family: "IBM Plex Mono", monospace; font-size: 1.7vmin; color: #4B5577; }
+  .code b { font-weight: 500; color: #1B2748; }
+
+  /* proof furniture */
+  .slug { position: absolute; left: var(--fx); right: 4vmin; bottom: 3vmin; display: flex; align-items: center; gap: 2vmin; font-family: "IBM Plex Mono", monospace; font-size: 1.6vmin; color: var(--die); white-space: nowrap; }
+  .cbar { display: flex; flex: none; }
+  .cbar i { width: 2.4vmin; height: 2.4vmin; }
+  .reg { width: 3.4vmin; height: 3.4vmin; flex: none; }
+  .reg * { fill: none; stroke: #1B2748; stroke-width: 1.4; }
+  .crop { position: absolute; width: 4vmin; height: 4vmin; border: 0 solid #1B2748; }
+  .crop.a { left: calc(var(--fx) - 6vmin); top: calc(var(--ft) - 13vmin); border-right-width: 1px; border-bottom-width: 1px; }
+  .crop.b { left: calc(var(--fx) + var(--fw) + 2vmin); top: calc(var(--ft) - 13vmin); border-left-width: 1px; border-bottom-width: 1px; }
+  .note { position: absolute; font-family: "IBM Plex Mono", monospace; font-size: 1.6vmin; color: var(--die); white-space: nowrap; }
+  .note.fold { left: calc(var(--fx) + 2vmin); top: calc(100% - var(--fb) + .8vmin); }
+  .note.dim { right: calc(100% - var(--fx) - var(--fw)); top: calc(var(--ft) - 11vmin); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --fx: 16vmin; --fw: 68vmin; --ft: 9.5%; --fb: 41%; }
+    h1 { font-size: 6.6vmin; }
+    .off { font-size: 3.6vmin; margin-top: 1.2vmin; }
+    .back { padding: 3vmin 3.4vmin 2.8vmin; }
+    .bar i { height: 5.4vmin; }
+    .icons svg { width: 5.4vmin; height: 5.4vmin; }
+    .code { margin-top: 1.4vmin; }
+  }
+  /* ── row: [side][front][side][back] ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --fx: 7vmin; --fw: 44vmin; --ft: 15vmin; --fb: 13vmin; --sw: 8vmin; }
+    .side.r { right: auto; width: var(--sw); }
+    .back { left: calc(var(--fx) + var(--fw) + var(--sw)); width: auto; right: 0; top: var(--ft); bottom: var(--fb); padding: 3.6vmin 5vmin 3vmin 3.6vmin;
+      border-left: 0; border-top: 1px solid var(--die); border-right: 0; }
+    .back::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; border-left: 1px dashed var(--die); }
+    h1 { font-size: 4.6vmin; }
+    .off { font-size: 2.8vmin; }
+    .row { flex-wrap: wrap; }
+    .bar { width: 18vmin; }
+    .bar i { height: 5vmin; }
+    .icons svg { width: 4.8vmin; height: 4.8vmin; }
+    .ml { display: none; }
+    .flap { top: calc(var(--ft) - 8vmin); }
+    .slug { bottom: 4.4vmin; }
+    .note.fold { left: calc(var(--fx) + var(--fw) + var(--sw) + 1vmin); top: calc(100% - var(--fb) + 1vmin); }
+    .note.fold::before { content: "↑ "; }
+    .crop.a { top: 2.6vmin; }
+    .crop.b { top: 2.6vmin; left: calc(var(--fx) + var(--fw) + var(--sw) + 2vmin); }
+    .note.dim { right: auto; left: calc(var(--fx) + var(--fw) + var(--sw) + 3vmin); top: calc(var(--ft) - 4.4vmin); }
+    .dust.r { width: var(--sw); }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --fx: 10vmin; --fw: 56vmin; --ft: 15vmin; --fb: 13vmin; --sw: 11vmin; }
+    .front img { object-position: 60% 30%; }
+    .back { right: 10vmin; border-right: 1px solid var(--die); padding: 4.4vmin 4.4vmin 3.6vmin; }
+    h1 { font-size: 6vmin; }
+    .off { font-size: 3.4vmin; }
+    .row { flex-wrap: nowrap; }
+    .bar { width: 22vmin; }
+    .bar i { height: 6.4vmin; }
+    .icons svg { width: 5.6vmin; height: 5.6vmin; }
+    .ml { display: block; }
+    .crop.b { left: auto; right: 5vmin; border-left-width: 0; border-right-width: 1px; }
+  }
+  /* ── animated loop (6s) ── the proof comes alive: the tuck flap and dust flaps fold shut and spring back open,
+     a scanner laser reads the barcode, the colour bar flashes patch by patch, the reg mark turns, the offer punches */
+  .flap { transform-origin: 50% 100%; animation: cdFlap 6s linear infinite; }
+  @keyframes cdFlap {
+    0%, 6% { transform: perspective(60vmin) rotateX(0deg); animation-timing-function: cubic-bezier(.55,0,.4,1); }
+    18%, 26% { transform: perspective(60vmin) rotateX(76deg); animation-timing-function: cubic-bezier(.3,0,.25,1.35); }
+    38%, 100% { transform: perspective(60vmin) rotateX(0deg); }
+  }
+  .dust { transform-origin: 50% 100%; animation: cdDust 6s linear infinite; }
+  @keyframes cdDust {
+    0%, 2% { transform: perspective(40vmin) rotateX(0deg); animation-timing-function: cubic-bezier(.55,0,.4,1); }
+    13%, 29% { transform: perspective(40vmin) rotateX(72deg); animation-timing-function: cubic-bezier(.3,0,.25,1.35); }
+    41%, 100% { transform: perspective(40vmin) rotateX(0deg); }
+  }
+  .bar i { position: relative; }
+  .bar i::after { content: ""; position: absolute; left: -1vmin; right: -1vmin; top: -.6vmin; bottom: -.6vmin; opacity: 0;
+    background: linear-gradient(90deg, transparent 0 49.2%, rgba(255,40,70,.95) 49.6% 50.4%, transparent 50.8%) 100% 0 / 200% 100% no-repeat;
+    box-shadow: none; animation: cdScan 6s linear infinite; }
+  @keyframes cdScan {
+    0%, 40% { opacity: 0; background-position: 100% 0; }
+    42% { opacity: 1; background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { opacity: 1; background-position: 0% 0; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    58% { opacity: 1; background-position: 100% 0; }
+    60%, 100% { opacity: 0; background-position: 100% 0; }
+  }
+  .cbar i { animation: cdPatch 6s linear infinite; }
+  @keyframes cdPatch { 0%, 58%, 63%, 100% { opacity: 1; transform: none; } 60% { opacity: .35; transform: scaleY(1.25); } }
+  .cbar i:nth-child(1) { animation-delay: .0s; } .cbar i:nth-child(2) { animation-delay: -.12s; } .cbar i:nth-child(3) { animation-delay: -.24s; }
+  .cbar i:nth-child(4) { animation-delay: -.36s; } .cbar i:nth-child(5) { animation-delay: -.48s; } .cbar i:nth-child(6) { animation-delay: -.6s; }
+  .cbar { flex-direction: row-reverse; }
+  .reg { animation: cdReg 6s linear infinite; }
+  @keyframes cdReg { 0%, 62% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.6,0,.2,1); } 74%, 100% { transform: rotate(180deg); } }
+  .off { transform-origin: 0 60%; animation: cdOff 6s linear infinite; }
+  @keyframes cdOff {
+    0%, 74% { transform: none; animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    77% { transform: scale(.94); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    81% { transform: scale(1.08); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    87%, 100% { transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="crop a"></div><div class="crop b"></div>
+  <div class="note dim">⟷ 74 × 128 mm</div>
+  <div class="dust l"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100 L10 0 L80 0 L100 100"/></svg></div>
+  <div class="dust r"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100 L20 0 L90 0 L100 100"/></svg></div>
+  <div class="flap"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100 L0 40 Q0 0 12 0 L88 0 Q100 0 100 40 L100 100"/></svg><span>ATELIER ORO</span></div>
+  <div class="side l"><span>EAU DE SAISON · Nº 26</span></div>
+  <div class="front"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="side r"><span>SS26 · 100 ML ℮</span></div>
+  <div class="back">
+    <div class="k">Back panel · open here</div>
+    <h1>Unbox the<br>new season</h1>
+    <div class="off">30% off · launch price</div>
+    <div class="code">Code <b>UNBOX30</b> · Contains: new cuts, soft fabrics, daylight.</div>
+    <div class="row">
+      <div class="bar"><i></i><b>5 012026 300308</b></div>
+      <div class="icons">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 16 L32 16 L30 36 L10 36 Z"/><path d="M8 16 L12 6 L36 10 L32 16"/><text x="20" y="31" font-size="10" text-anchor="middle">12M</text></svg>
+        <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5 L27 17 M27 17 L21 17 M27 17 L28 11"/><path d="M33 22 L27 34 L20 34 M20 34 L24 30 M20 34 L24 37"/><path d="M13 34 L6 22 L12 12 M12 12 L7 13 M12 12 L13 17"/></svg>
+      </div>
+      <div class="ml">℮ 100 ml<br>3.4 fl.oz</div>
+    </div>
+  </div>
+  <div class="note fold">— — fold</div>
+  <div class="slug">
+    <span class="cbar"><i style="background:#E0572B"></i><i style="background:#1B2748"></i><i style="background:#1B1B1B"></i><i style="background:#FFE000"></i><i style="background:#E0197D"></i><i style="background:#00A0E0"></i></span>
+    <svg class="reg" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="5.5"/><path d="M10 0 V20 M0 10 H20"/></svg>
+    <span>ORO_SS26_carton_v3.pdf · proof 1:1</span>
+  </div>
+</div>
+</body>
+</html>

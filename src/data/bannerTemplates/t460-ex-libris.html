@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+  /* Ex Libris — an Art Nouveau bookplate pasted onto a marbled endpaper: stone-marbled indigo, rust and ochre
+     paper, a silk bookmark hanging over the edge, a woodcut-bordered plate with iris corners, "Ex Libris" in
+     letterpress small caps and the look printed as the plate's engraving.
+     tall → plate with engraving above, lettering below · square & wide → engraving left, lettering right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2A3A5E; }
+  .banner { --ink: #1C1A17; --paper: #F4ECD8; --rust: #9C3F24; --indigo: #2A3A5E; --ochre: #C9973F;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "IM Fell English", "Garamond", Georgia, serif; background: var(--indigo); }
+
+  /* marbled endpaper (stone pattern, combed by a turbulence filter) */
+  .marble { position: absolute; inset: -8vmin; filter: url(#exMarble);
+    background:
+      radial-gradient(closest-side, #B8583A 0 58%, #F1E4C6 61% 70%, #1E2B47 72% 78%, rgba(0,0,0,0) 80%) 0 0 / 11vmin 9vmin,
+      radial-gradient(closest-side, #D5A24A 0 56%, #F3E8CF 59% 69%, rgba(0,0,0,0) 71%) 4vmin 5vmin / 13vmin 7vmin,
+      radial-gradient(closest-side, #7898B8 0 54%, #EFE2C4 57% 68%, rgba(0,0,0,0) 70%) 7vmin 1vmin / 7vmin 11vmin,
+      radial-gradient(closest-side, #8A2E28 0 52%, #EFE2C4 55% 66%, rgba(0,0,0,0) 68%) 2vmin 6vmin / 17vmin 13vmin,
+      radial-gradient(closest-side, #3E5A86 0 54%, #E8D9B6 57% 68%, rgba(0,0,0,0) 70%) 9vmin 3vmin / 9vmin 6vmin,
+      radial-gradient(closest-side, #C77B45 0 50%, #F1E4C6 53% 64%, rgba(0,0,0,0) 66%) 5vmin 9vmin / 5vmin 5vmin,
+      linear-gradient(160deg, #2F4068, #243354); }
+  .marble::after { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 70% at 50% 45%, rgba(20,24,40,0) 40%, rgba(20,24,40,.35) 100%); }
+
+  /* silk bookmark */
+  .silk { position: absolute; left: 2.2vmin; top: 0; width: 3.4vmin; height: 64vmin; z-index: 3;
+    background: linear-gradient(90deg, #6E1C1A 0%, #A8332C 30%, #C44A3E 48%, #9A2C26 70%, #6A1A18 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 2.2vmin), 0 100%); filter: drop-shadow(.3vmin .5vmin .5vmin rgba(0,0,0,.4)); }
+
+  /* the bookplate */
+  .plate { position: absolute; inset: 7vmin 7vmin 7vmin 9vmin; background:
+      radial-gradient(70% 50% at 30% 20%, rgba(255,255,255,.45), rgba(255,255,255,0)),
+      linear-gradient(170deg, #F6EFDD 0%, #F1E7CF 60%, #E9DCBE 100%);
+    box-shadow: 0 1.4vmin 3vmin rgba(10,14,30,.5), 0 .2vmin .4vmin rgba(10,14,30,.4); }
+  .plate::before { content: ""; position: absolute; inset: 2vmin; border: .9vmin solid var(--ink); box-shadow: inset 0 0 0 .6vmin var(--paper), inset 0 0 0 calc(.6vmin + 1px) var(--ink); pointer-events: none; }
+  .corner { position: absolute; width: 8vmin; height: 8vmin; z-index: 2; }
+  .corner.tl { left: 3.1vmin; top: 3.1vmin; } .corner.tr { right: 3.1vmin; top: 3.1vmin; transform: scaleX(-1); }
+  .corner.bl { left: 3.1vmin; bottom: 3.1vmin; transform: scaleY(-1); } .corner.br { right: 3.1vmin; bottom: 3.1vmin; transform: scale(-1); }
+
+  .in { position: absolute; inset: 5.6vmin 6vmin 5vmin; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .hd { flex: none; display: flex; flex-direction: column; align-items: center; }
+  .ex { display: flex; align-items: center; gap: 2vmin; font-family: "IM Fell English SC", Georgia, serif; font-size: 5.4vmin; line-height: 1; letter-spacing: .12em; margin-right: -.12em; white-space: nowrap; }
+  .ex svg { width: 6vmin; height: 3vmin; flex: none; }
+  .ex svg.r { transform: scaleX(-1); }
+  .of { margin-top: .8vmin; font-style: italic; font-size: 2.4vmin; color: var(--rust); white-space: nowrap; }
+  .eng { position: relative; flex: 1; min-height: 0; width: 100%; margin-top: 2.6vmin; }
+  .eng::before { content: ""; position: absolute; inset: -1.2vmin; border: 1px solid var(--ink); }
+  .eng img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+  .txt { flex: none; width: 100%; display: flex; flex-direction: column; align-items: center; }
+  h1 { margin: 3.6vmin 0 0; font-weight: 400; font-style: italic; font-size: 9vmin; line-height: 1; white-space: nowrap; }
+  .rule { width: 30vmin; height: 2.4vmin; margin-top: 1.2vmin; display: block; }
+  .sub { margin-top: 1vmin; font-size: 2.8vmin; line-height: 1.25; color: #3A342C; text-wrap: balance; }
+  .deal { margin-top: 2.4vmin; display: flex; align-items: center; gap: 2.4vmin; white-space: nowrap; }
+  .deal b { font-family: "IM Fell English SC", Georgia, serif; font-weight: 400; font-size: 5.6vmin; line-height: 1; color: var(--rust); }
+  .deal span { padding: .9vmin 2vmin .7vmin; border: 1px solid var(--ink); outline: 1px solid var(--ink); outline-offset: .4vmin; font-family: "IM Fell English SC", Georgia, serif; font-size: 2.4vmin; letter-spacing: .14em; }
+  .fine { margin-top: 2.2vmin; font-style: italic; font-size: 2vmin; color: #4A4238; white-space: nowrap; }
+
+  /* shorter portrait */
+  @media (min-aspect-ratio: 7/10) {
+    .plate { inset: 5vmin 11vmin 5vmin 13vmin; }
+    .silk { left: 5vmin; height: 52vmin; }
+    .ex { font-size: 4.6vmin; }
+    .eng { margin-top: 2vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 3vmin; }
+    .rule { margin-top: .8vmin; }
+    .sub { font-size: 2.5vmin; margin-top: .6vmin; }
+    .deal { margin-top: 1.8vmin; }
+    .deal b { font-size: 4.8vmin; }
+    .fine { margin-top: 1.6vmin; }
+  }
+  /* square: engraving left, lettering right */
+  @media (min-aspect-ratio: 9/10) {
+    .plate { inset: 6vmin 6vmin 6vmin 9vmin; }
+    .silk { left: 2.4vmin; height: 58vmin; }
+    .in { inset: 6vmin 5.6vmin 6vmin; display: grid; grid-template-columns: 50% minmax(0, 1fr); grid-template-rows: 1fr auto auto 1fr; column-gap: 4vmin; justify-items: center; }
+    .eng { grid-column: 1; grid-row: 1 / 5; margin: 3.4vmin 0 3.4vmin 3.4vmin; align-self: stretch; }
+    .corner { width: 6vmin; height: 6vmin; }
+    .hd { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; align-items: center; }
+    .txt { grid-column: 2; grid-row: 3; }
+    .ex { font-size: 4.2vmin; gap: 1.2vmin; }
+    .ex svg { width: 4.4vmin; height: 2.2vmin; }
+    .of { font-size: 2.1vmin; white-space: normal; }
+    h1 { font-size: 6.4vmin; white-space: normal; line-height: 1.05; margin-top: 3vmin; }
+    .rule { width: 24vmin; }
+    .sub { font-size: 2.3vmin; }
+    .deal { flex-direction: column; gap: 1.6vmin; margin-top: 2.4vmin; }
+    .deal b { font-size: 5vmin; }
+    .deal span { font-size: 2vmin; }
+    .fine { font-size: 1.8vmin; white-space: normal; line-height: 1.4; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .plate { inset: 5vmin 7vmin 5vmin 10vmin; }
+    .silk { left: 3.2vmin; height: 64vmin; }
+    .in { grid-template-columns: 50% minmax(0, 1fr); column-gap: 5vmin; inset: 5.6vmin 6vmin 5.6vmin; }
+    .ex { font-size: 4.8vmin; gap: 1.8vmin; }
+    .ex svg { width: 5.4vmin; height: 2.7vmin; }
+    .of { white-space: nowrap; }
+    h1 { font-size: 6.8vmin; white-space: nowrap; }
+    .rule { width: 28vmin; }
+    .sub { font-size: 2.5vmin; }
+    .deal { flex-direction: row; gap: 2.2vmin; }
+    .deal b { font-size: 5.4vmin; }
+    .fine { white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="exMarble" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+      <feTurbulence type="turbulence" baseFrequency=".006 .011" numOctaves="3" seed="11" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="140" xChannelSelector="R" yChannelSelector="B"/>
+    </filter>
+    <defs>
+      <g id="exIris">
+        <path d="M4 76 C 4 44, 14 22, 40 8" fill="none" stroke="#1C1A17" stroke-width="3" stroke-linecap="round"/>
+        <path d="M4 76 C 8 58, 20 48, 34 46" fill="none" stroke="#1C1A17" stroke-width="2" stroke-linecap="round"/>
+        <path d="M40 8 C 30 4, 20 10, 22 20 C 28 16, 36 14, 40 8 Z" fill="#1C1A17"/>
+        <path d="M40 8 C 50 6, 58 14, 54 24 C 48 18, 42 14, 40 8 Z" fill="#9C3F24"/>
+        <path d="M40 8 C 42 18, 36 28, 28 30 C 28 22, 34 14, 40 8 Z" fill="#1C1A17"/>
+        <path d="M34 46 C 26 40, 16 42, 12 52 C 20 54, 28 52, 34 46 Z" fill="#1C1A17"/>
+        <circle cx="10" cy="10" r="2.4" fill="#1C1A17"/>
+      </g>
+    </defs>
+  </svg>
+  <div class="marble" aria-hidden="true"></div>
+  <i class="silk" aria-hidden="true"></i>
+  <div class="plate">
+    <svg class="corner tl" viewBox="0 0 80 80" aria-hidden="true"><use href="#exIris"/></svg>
+    <svg class="corner tr" viewBox="0 0 80 80" aria-hidden="true"><use href="#exIris"/></svg>
+    <svg class="corner bl" viewBox="0 0 80 80" aria-hidden="true"><use href="#exIris"/></svg>
+    <svg class="corner br" viewBox="0 0 80 80" aria-hidden="true"><use href="#exIris"/></svg>
+    <div class="in">
+      <div class="hd">
+        <div class="ex">
+          <svg viewBox="0 0 60 30" aria-hidden="true"><path d="M58 15 C 44 15, 36 4, 24 8 C 14 12, 16 24, 26 22 C 32 20, 30 12, 24 14 M58 15 C 44 15, 38 26, 26 26" fill="none" stroke="#1C1A17" stroke-width="2" stroke-linecap="round"/><circle cx="6" cy="15" r="3" fill="#9C3F24"/></svg>
+          <span>Ex Libris</span>
+          <svg class="r" viewBox="0 0 60 30" aria-hidden="true"><path d="M58 15 C 44 15, 36 4, 24 8 C 14 12, 16 24, 26 22 C 32 20, 30 12, 24 14 M58 15 C 44 15, 38 26, 26 26" fill="none" stroke="#1C1A17" stroke-width="2" stroke-linecap="round"/><circle cx="6" cy="15" r="3" fill="#9C3F24"/></svg>
+        </div>
+        <div class="of">from the shelves of Atelier Iris</div>
+      </div>
+      <div class="eng"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="txt">
+        <h1>The Autumn Volume</h1>
+        <svg class="rule" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 12 H 128 M172 12 H 296" stroke="#1C1A17" stroke-width="1.4" vector-effect="non-scaling-stroke"/><path d="M150 3 L 160 12 L 150 21 L 140 12 Z" fill="#9C3F24"/><circle cx="132" cy="12" r="2.4" fill="#1C1A17"/><circle cx="168" cy="12" r="2.4" fill="#1C1A17"/></svg>
+        <div class="sub">A new chapter, bound in deep colour.</div>
+        <div class="deal"><b>20% off</b><span>Code SHELF20</span></div>
+        <div class="fine">Plate Nº 1926 · until 31 October · atelieriris.com</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

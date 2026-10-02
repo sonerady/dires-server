@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Space+Mono:wght@400;700&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* Ship By — a shipping-cutoff notice styled as a parcel label stuck on kraft board: from/to lines, a huge "order by" date,
+     the photo, a 3-step cutoff timeline (standard / express / next-day, express highlighted), a countdown and a barcode.
+     tall → label stacked · 3:4 → stacked, timeline beside countdown · square / wide → label split: info left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D6B98A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1A1A1A; font-family: "Space Mono", Menlo, monospace;
+    background: repeating-linear-gradient(97deg, rgba(120,84,40,.06) 0 .3vmin, transparent .3vmin 1.6vmin), linear-gradient(160deg, #DDC193, #CFAF7C); }
+  .tape { position: absolute; left: 50%; top: 1.6vmin; width: 22vmin; height: 5vmin; margin-left: -11vmin; background: rgba(238,230,210,.7); transform: rotate(-2deg); z-index: 2; box-shadow: 0 .2vmin .4vmin rgba(0,0,0,.08); }
+
+  .label { position: absolute; inset: 4vmin; background: #FBF8F1; box-shadow: 0 .4vmin 1vmin rgba(60,40,10,.18), 0 2vmin 4vmin -2vmin rgba(60,40,10,.3); }
+
+  .fromto { position: absolute; left: 4vmin; right: 4vmin; top: 4vmin; display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.6vmin; border-bottom: .3vmin solid #1A1A1A; font-size: 1.6vmin; line-height: 1.35; white-space: nowrap; }
+  .fromto b { display: block; font-weight: 700; }
+  .prio { align-self: center; padding: .8vmin 1.4vmin; background: #1A1A1A; color: #FBF8F1; font-weight: 700; letter-spacing: .14em; }
+
+  .hl { position: absolute; left: 4vmin; right: 4vmin; top: 13vmin; }
+  .hl small { display: block; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #F2541B; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 14vmin; line-height: .92; letter-spacing: -.01em; text-transform: uppercase; }
+  h1 span { color: #F2541B; white-space: nowrap; }
+  .hl p { margin: 2vmin 0 0; font-size: 1.9vmin; line-height: 1.4; }
+
+  .photo { position: absolute; left: 4vmin; top: 49vmin; width: calc(100% - 8vmin); height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .line { position: absolute; left: 4vmin; right: 4vmin; bottom: 17vmin; height: 16vmin; display: grid; grid-template-columns: repeat(3, 1fr); border-top: .3vmin solid #1A1A1A; }
+  .step { position: relative; padding: 2.6vmin 1.6vmin 0 0; }
+  .step::before { content: ""; position: absolute; left: 0; top: -1.1vmin; width: 1.9vmin; height: 1.9vmin; border-radius: 50%; background: #FBF8F1; border: .3vmin solid #1A1A1A; box-sizing: border-box; }
+  .step span { display: block; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #6A6358; }
+  .step b { display: block; margin-top: .6vmin; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 700; font-size: 4.6vmin; line-height: 1; }
+  .step em { display: block; margin-top: .4vmin; font-style: normal; font-size: 1.6vmin; }
+  .step.hot::before { background: #F2541B; border-color: #F2541B; box-shadow: 0 0 0 .7vmin rgba(242,84,27,.2); }
+  .step.hot b { color: #F2541B; }
+
+  .bot { position: absolute; left: 4vmin; right: 4vmin; bottom: 4vmin; height: 10vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .clock span { display: block; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #6A6358; }
+  .clock b { display: flex; gap: 1vmin; margin-top: .8vmin; font-size: 3.4vmin; font-weight: 700; white-space: nowrap; }
+  .clock b i { font-style: normal; padding: .4vmin 1vmin; background: #1A1A1A; color: #FBF8F1; }
+  .code { display: flex; flex-direction: column; align-items: flex-end; gap: .6vmin; }
+  .bars { width: 30vmin; height: 7vmin; background: repeating-linear-gradient(90deg, #1A1A1A 0 .4vmin, transparent .4vmin .7vmin, #1A1A1A .7vmin 1.5vmin, transparent 1.5vmin 1.8vmin, #1A1A1A 1.8vmin 2vmin, transparent 2vmin 2.6vmin, #1A1A1A 2.6vmin 3.3vmin, transparent 3.3vmin 3.6vmin); }
+  .code span { font-size: 1.6vmin; letter-spacing: .2em; }
+  .cta { display: none; }
+
+  /* ── 3:4 ── */
+  @media (min-aspect-ratio: 7/10) {
+    h1 { font-size: 11.6vmin; }
+    .photo { top: 46vmin; height: calc(100% - 74vmin); }
+    .line { right: 42vmin; bottom: 4vmin; height: 20vmin; }
+    .step b { font-size: 4vmin; }
+    .bot { left: auto; width: 34vmin; bottom: 4vmin; height: 20vmin; flex-direction: column; align-items: flex-end; justify-content: space-between; }
+    .clock { text-align: right; }
+    .clock b { justify-content: flex-end; }
+    .bars { width: 28vmin; height: 6vmin; }
+  }
+  /* ── square / wide — info left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .label { inset: 4vmin; }
+    .fromto { right: calc(46% + 2vmin); }
+    .prio { display: none; }
+    .hl { right: calc(46% + 2vmin); top: 12vmin; }
+    h1 { font-size: 11vmin; }
+    .hl p { font-size: 1.7vmin; }
+    .photo { left: auto; right: 4vmin; top: 4vmin; width: calc(46% - 4vmin); height: calc(100% - 8vmin); }
+    .line { right: calc(46% + 2vmin); bottom: 18vmin; height: 16vmin; }
+    .step { padding-right: 1vmin; }
+    .step b { font-size: 3.6vmin; }
+    .step em { font-size: 1.6vmin; }
+    .bot { left: 4vmin; right: calc(46% + 2vmin); width: auto; bottom: 4vmin; height: 11vmin; flex-direction: row; align-items: flex-end; }
+    .clock { text-align: left; }
+    .clock b { justify-content: flex-start; font-size: 2.8vmin; }
+    .bars { width: 18vmin; height: 6vmin; }
+    .code span { font-size: 1.6vmin; letter-spacing: .08em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .fromto, .hl, .line, .bot { right: calc(50% + 2vmin); }
+    .prio { display: block; }
+    .photo { width: calc(50% - 4vmin); }
+    h1 { font-size: 13vmin; }
+    .hl p { font-size: 1.9vmin; }
+    .step b { font-size: 4.2vmin; }
+    .clock b { font-size: 3.2vmin; }
+    .bars { width: 24vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <i class="tape"></i>
+  <div class="label">
+    <div class="fromto"><div><b>From</b>Pell Studio, Lisbon</div><div class="prio">Priority</div><div><b>To</b>Someone you love</div></div>
+    <div class="hl">
+      <small>Holiday shipping notice</small>
+      <h1>Order by<br><span>Dec 19</span></h1>
+      <p>Get it there in time. Free express on orders over $120.</p>
+    </div>
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="line">
+      <div class="step"><span>Standard</span><b>Dec 15</b><em>Free over $60</em></div>
+      <div class="step hot"><span>Express</span><b>Dec 19</b><em>2–3 days</em></div>
+      <div class="step"><span>Next day</span><b>Dec 21</b><em>Order by 2 pm</em></div>
+    </div>
+    <div class="bot">
+      <div class="clock"><span>Express closes in</span><b><i>03d</i><i>14h</i><i>22m</i></b></div>
+      <div class="code"><i class="bars"></i><span>PS 1219 0042</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

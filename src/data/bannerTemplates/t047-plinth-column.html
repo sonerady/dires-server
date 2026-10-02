@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Plinth — architecture: the photo stands as a tall column on a stepped stone plinth carved with the brand.
+     tall → centred column; square/wide → column on the left, a quiet text wall on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E7E4DF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E7E4DF; color: #34312D; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    --x: 15%; --w: 70%; --top: 8vmin; --ph: calc(100% - 64vmin); --pl: 27vmin; }
+  /* soft light falling on the wall from above */
+  .banner::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,.55), rgba(255,255,255,0) 70%); }
+  .photo { position: absolute; left: var(--x); top: var(--top); width: var(--w); height: var(--ph); object-fit: cover; object-position: 50% 16%; }
+  .plinth { position: absolute; left: calc(var(--x) - 5vmin); width: calc(var(--w) + 10vmin); top: calc(var(--top) + var(--ph)); height: var(--pl); }
+  .cap { height: 2.4vmin; background: #F1EEE9; box-shadow: 0 .5vmin .8vmin rgba(52,49,45,.14); }
+  .body { position: absolute; left: 2.4vmin; right: 2.4vmin; top: 2.4vmin; bottom: 2.6vmin; background: #D6D1C9; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .base { position: absolute; left: -2vmin; right: -2vmin; bottom: 0; height: 2.6vmin; background: #CBC5BC; }
+  .ins { font-family: "Cinzel", "Trajan Pro", Georgia, serif; font-weight: 600; font-size: 5.4vmin; letter-spacing: .22em; margin-right: -.22em; color: #4A453F; text-shadow: 0 .15vmin 0 rgba(255,255,255,.55), 0 -.1vmin 0 rgba(0,0,0,.12); }
+  .ins2 { margin-top: 1vmin; font-family: "Cinzel", Georgia, serif; font-weight: 500; font-size: 2.4vmin; letter-spacing: .5em; margin-right: -.5em; color: #6A645C; text-shadow: 0 .12vmin 0 rgba(255,255,255,.5); }
+  .floor { position: absolute; left: 0; right: 0; top: calc(var(--top) + var(--ph) + var(--pl)); height: 1px; background: rgba(52,49,45,.28); }
+  .text { position: absolute; left: 7vmin; right: 7vmin; bottom: 8vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 4vmin; }
+  .t { font-size: 4.6vmin; font-weight: 500; letter-spacing: -.01em; line-height: 1.2; }
+  .t span { display: block; font-size: 2.3vmin; font-weight: 400; color: #6A645C; margin-top: .8vmin; letter-spacing: 0; }
+  .cta { font-size: 2vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; padding-bottom: .6vmin; border-bottom: 1px solid #34312D; }
+  .fig { position: absolute; left: 7vmin; top: 3vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .26em; text-transform: uppercase; color: #6A645C; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --x: 21%; --w: 58%; --top: 6vmin; --ph: calc(100% - 53vmin); --pl: 22vmin; }
+    .ins { font-size: 4.8vmin; }
+    .text { bottom: 5vmin; }
+    .t { font-size: 3.6vmin; }
+    .t span { font-size: 2vmin; }
+    .fig { top: 2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --x: 12%; --w: 36%; --top: 6vmin; --ph: 64%; --pl: 21%; }
+    .banner::before { background: radial-gradient(70% 90% at 30% 0%, rgba(255,255,255,.55), rgba(255,255,255,0) 70%); }
+    .ins { font-size: 3.1vmin; }
+    .ins2 { font-size: 1.9vmin; }
+    .text { left: 58%; right: 7vmin; top: auto; bottom: 32vmin; display: block; }
+    .t { font-size: 4.4vmin; line-height: 1.1; }
+    .t span { font-size: 2vmin; margin-top: 2vmin; line-height: 1.5; }
+    .cta { display: inline-block; margin-top: 4vmin; }
+    .fig { left: 58%; top: 6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --x: 12%; --w: 30%; --ph: 64%; }
+    .text { left: 55%; right: 10vmin; }
+    .t { font-size: 5vmin; }
+    .fig { left: 55%; }
+    .ins { font-size: 3.5vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="fig">Fig. 1 — Structure</div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="floor"></div>
+  <div class="plinth">
+    <div class="cap"></div>
+    <div class="body">
+      <div class="ins">Atelier Nord</div>
+      <div class="ins2">MMXXVI</div>
+    </div>
+    <div class="base"></div>
+  </div>
+  <div class="text">
+    <div class="t">Built to last.<span>The new collection, in store and online.</span></div>
+    <div class="cta">Shop now</div>
+  </div>
+</div>
+</body>
+</html>

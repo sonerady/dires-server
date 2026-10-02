@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+  /* Fit Finder — the two-step fit quiz of an online store drawn as calm UI on lilac: step 1 a row of size
+     chips from XS to 4XL (all equal, one picked), step 2 a slider from "close" to "relaxed" resting on
+     "true to size", and a round sticker on the photo with the crowd verdict.
+     tall → photo above the quiz sheet · square / wide → photo left, the quiz right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E9E3F4; }
+  .banner { --panel: max(80vmin, 46%); position: fixed; inset: 0; overflow: hidden; background: #E9E3F4; color: #1E1A38; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+  .verdict { position: absolute; right: 4.6vmin; top: 4.6vmin; width: 19vmin; height: 19vmin; border-radius: 50%; background: #FF6B3D; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: rotate(8deg); box-shadow: 0 1vmin 2.4vmin rgba(30,26,56,.3); }
+  .verdict b { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 6.4vmin; line-height: .9; }
+  .verdict small { margin-top: .6vmin; font-weight: 700; font-size: 1.65vmin; line-height: 1.2; letter-spacing: .06em; text-transform: uppercase; }
+
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 5vmin 6vmin 5vmin; display: flex; flex-direction: column; }
+  .tag { display: flex; align-items: center; gap: 1.4vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .18em; text-transform: uppercase; color: #5B4E9A; }
+  .tag i { width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #FF6B3D; }
+  .tag span:last-child { margin-left: auto; color: #1E1A38; }
+  h1 { margin: 1.6vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 11.4vmin; line-height: .95; letter-spacing: -.015em; }
+  h1 em { color: #5B4E9A; }
+  .step { margin-top: 3.4vmin; background: #FFFFFF; padding: 2.4vmin 2.8vmin 2.8vmin; box-shadow: 0 .4vmin 1.6vmin rgba(30,26,56,.08); }
+  .step + .step { margin-top: 1.6vmin; }
+  .q { display: flex; align-items: baseline; gap: 1.4vmin; font-weight: 500; font-size: 2.3vmin; }
+  .q b { font-weight: 700; font-size: 1.7vmin; letter-spacing: .12em; color: #8A80BF; }
+  .chips { display: flex; gap: 1vmin; margin-top: 1.8vmin; }
+  .chips span { flex: 1; text-align: center; padding: 1.3vmin 0; border: 1px solid #C9C1E4; font-weight: 500; font-size: 2.1vmin; white-space: nowrap; }
+  .chips .on { background: #1E1A38; border-color: #1E1A38; color: #fff; }
+  .slider { position: relative; margin: 3.4vmin 1.4vmin 0; height: .6vmin; background: #DAD4EE; border-radius: .3vmin; }
+  .slider::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: #5B4E9A; border-radius: .3vmin; }
+  .slider i { position: absolute; left: 50%; top: 50%; width: 4.4vmin; height: 4.4vmin; margin: -2.2vmin 0 0 -2.2vmin; border-radius: 50%; background: #fff; border: .5vmin solid #5B4E9A; box-sizing: border-box; box-shadow: 0 .4vmin 1vmin rgba(30,26,56,.2); }
+  .ends { display: flex; justify-content: space-between; margin-top: 2.8vmin; font-size: 1.9vmin; color: #6D6690; }
+  .ends b { color: #1E1A38; font-weight: 700; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 2vmin; line-height: 1.35; color: #4A4470; }
+  .foot p b { color: #1E1A38; }
+  .cta { flex: none; background: #1E1A38; color: #fff; padding: 2vmin 3.2vmin; font-weight: 700; font-size: 2.3vmin; letter-spacing: .04em; white-space: nowrap; border-radius: 5vmin; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 78vmin; }
+    .sheet { padding: 4vmin 6vmin 4vmin; }
+    h1 { font-size: 9.6vmin; margin-top: 1.2vmin; }
+    .step { margin-top: 2.6vmin; padding: 2vmin 2.6vmin 2.4vmin; }
+    .chips { margin-top: 1.4vmin; }
+    .slider { margin-top: 3vmin; }
+    .ends { margin-top: 2.6vmin; }
+    .verdict { width: 16vmin; height: 16vmin; }
+    .verdict b { font-size: 5.4vmin; }
+    .verdict small { font-size: 1.6vmin; }
+  }
+  /* square → photo left, quiz right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; }
+    .verdict { right: auto; left: calc(46% - 20vmin); top: 4vmin; width: 16vmin; height: 16vmin; }
+    .sheet { left: 46%; top: 0; height: auto; padding: 5vmin 4.6vmin 4.6vmin; }
+    .tag { font-size: 1.6vmin; letter-spacing: .14em; }
+    h1 { font-size: 7.8vmin; margin-top: 2vmin; }
+    .step { margin-top: 3vmin; padding: 2.2vmin 2.2vmin 2.6vmin; }
+    .q { font-size: 2.1vmin; }
+    .chips { flex-wrap: wrap; gap: .8vmin; }
+    .chips span { flex: 0 0 calc(25% - .6vmin); font-size: 2vmin; padding: 1.1vmin 0; }
+    .ends { font-size: 1.8vmin; }
+    .foot { flex-direction: column; align-items: stretch; gap: 1.8vmin; }
+    .cta { text-align: center; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 28%; }
+    .verdict { left: calc(44% - 21vmin); width: 17vmin; height: 17vmin; }
+    .sheet { left: 44%; padding: 5.4vmin 6vmin 5.4vmin; }
+    .tag { font-size: 1.8vmin; }
+    h1 { font-size: 10.4vmin; }
+    .step { margin-top: 4vmin; padding: 2.6vmin 2.8vmin 3vmin; }
+    .step + .step { margin-top: 2vmin; }
+    .chips { flex-wrap: nowrap; }
+    .chips span { flex: 1; font-size: 2.1vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static quiz, L picked, slider on "true to size") ─────────
+     the quiz demos itself: constant orange dot pulse (1.5s) ·
+     1.0s the selection hops L → XL → M and is tapped back onto L (press ripple) ·
+     2.6s the slider knob glides to "close", across to "relaxed", and settles back on "true to size" ·
+     4.6s the 9/10 sticker pops · 5.2s the CTA is pressed */
+  .tag i { animation: dot 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.75); } }
+
+  .chips span { transition: none; }
+  .chips span:nth-child(3) { animation: chipM 6s linear infinite; }
+  .chips span:nth-child(4) { animation: chipL 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .chips span:nth-child(5) { animation: chipXL 6s linear infinite; }
+  @keyframes chipL {
+    0%, 16.5% { background: #1E1A38; border-color: #1E1A38; color: #fff; transform: scale(1); }
+    17.5%, 35.5% { background: rgba(30,26,56,0); border-color: #C9C1E4; color: #1E1A38; transform: scale(1); }
+    36.5% { background: #1E1A38; border-color: #1E1A38; color: #fff; transform: scale(.9); }
+    40%, 100% { background: #1E1A38; border-color: #1E1A38; color: #fff; transform: scale(1); }
+  }
+  @keyframes chipXL {
+    0%, 16.5%, 27.5%, 100% { background: rgba(30,26,56,0); border-color: #C9C1E4; color: #1E1A38; }
+    17.5%, 26.5% { background: #1E1A38; border-color: #1E1A38; color: #fff; }
+  }
+  @keyframes chipM {
+    0%, 26.5%, 36.5%, 100% { background: rgba(30,26,56,0); border-color: #C9C1E4; color: #1E1A38; }
+    27.5%, 35.5% { background: #1E1A38; border-color: #1E1A38; color: #fff; }
+  }
+
+  .slider::before { width: 100%; transform-origin: 0 50%; transform: scaleX(.5); animation: fill 6s cubic-bezier(.65,0,.35,1) infinite; }
+  .slider i { animation: knob 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes knob { 0%, 43% { left: 50%; } 52%, 55% { left: 12%; } 66%, 69% { left: 88%; } 78%, 100% { left: 50%; } }
+  @keyframes fill { 0%, 43% { transform: scaleX(.5); } 52%, 55% { transform: scaleX(.12); } 66%, 69% { transform: scaleX(.88); } 78%, 100% { transform: scaleX(.5); } }
+  .ends b { animation: tts 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .ends span:first-child { animation: endC 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .ends span:last-child { animation: endR 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes tts { 0%, 43%, 78%, 100% { opacity: 1; } 50%, 71% { opacity: .35; } }
+  @keyframes endC { 0%, 46%, 60%, 100% { color: #6D6690; } 51%, 56% { color: #1E1A38; } }
+  @keyframes endR { 0%, 60%, 74%, 100% { color: #6D6690; } 65%, 70% { color: #1E1A38; } }
+
+  .verdict { animation: pop 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pop {
+    0%, 75% { transform: rotate(8deg) scale(1); }
+    79% { transform: rotate(-2deg) scale(1.14); }
+    83% { transform: rotate(11deg) scale(.97); }
+    87%, 100% { transform: rotate(8deg) scale(1); }
+  }
+
+  .cta { animation: press 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes press {
+    0%, 86% { transform: scale(1); box-shadow: 0 0 0 0 rgba(91,78,154,0); }
+    88% { transform: scale(.93); box-shadow: 0 0 0 0 rgba(91,78,154,.45); }
+    92% { transform: scale(1.02); }
+    98%, 100% { transform: scale(1); box-shadow: 0 0 0 2vmin rgba(91,78,154,0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="verdict"><b>9/10</b><small>say true<br>to size</small></div>
+  <div class="sheet">
+    <div class="tag"><i></i><span>Fit Finder</span><span>XS – 4XL</span></div>
+    <h1>Find <em>your</em> fit<br>in two taps.</h1>
+    <div class="step">
+      <div class="q"><b>01</b>Your usual size</div>
+      <div class="chips"><span>XS</span><span>S</span><span>M</span><span class="on">L</span><span>XL</span><span>2XL</span><span>3XL</span><span>4XL</span></div>
+    </div>
+    <div class="step">
+      <div class="q"><b>02</b>How do you like it?</div>
+      <div class="slider"><i></i></div>
+      <div class="ends"><span>Close</span><b>True to size</b><span>Relaxed</span></div>
+    </div>
+    <div class="foot"><p><b>Free swaps</b> if it's not quite right.<br>New collection, every size.</p><span class="cta">Find my fit →</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400;1,9..144,600&family=Caveat:wght@600&family=Karla:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Seasonal Edit — responsive: big serif headline on paper, photo panel right, notes column left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE6D8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFE6D8; color: #3B2A1B; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; }
+  h1 { position: absolute; left: 4.2vmin; top: 1.6vmin; margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-style: italic; font-size: 23vmin; line-height: 1; letter-spacing: -.035em; }
+  .script { position: absolute; right: 5vmin; top: 14vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 600; font-size: 10vmin; color: #B4532A; transform: rotate(-8deg); }
+  .photo { position: absolute; right: 5vmin; top: 30vmin; height: calc(100% - 35vmin); width: 56%; object-fit: cover; object-position: 50% 30%; box-shadow: 0 2vmin 5vmin rgba(59,42,27,.18); }
+  .col { position: absolute; left: 5vmin; top: 33vmin; bottom: 5vmin; width: calc(44% - 14vmin); display: flex; flex-direction: column; }
+  .no { font-size: 1.8vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #B4532A; padding-bottom: 1.4vmin; border-bottom: .2vmin solid rgba(59,42,27,.35); }
+  .p { margin-top: 3vmin; font-family: "Fraunces", Georgia, serif; font-size: 3.2vmin; line-height: 1.32; }
+  .price { margin-top: 5vmin; font-size: 2.1vmin; letter-spacing: .06em; text-transform: uppercase; line-height: 1.5; }
+  .price b { display: block; font-family: "Fraunces", Georgia, serif; font-size: 7vmin; letter-spacing: -.02em; text-transform: none; line-height: 1.05; }
+  .cta { margin-top: 4.4vmin; align-self: flex-start; font-size: 2.4vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; border-bottom: .35vmin solid #3B2A1B; padding-bottom: .6vmin; }
+  .note { margin-top: auto; position: relative; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 600; font-size: 6vmin; color: #B4532A; transform: rotate(-5deg); }
+  .note svg { position: absolute; left: 19vmin; top: -2vmin; width: 10vmin; height: 7vmin; overflow: visible; }
+  @media (min-aspect-ratio: 6/5) {
+    h1 { font-size: 19vmin; }
+    .script { right: auto; left: 64vmin; top: 9vmin; }
+    .photo { top: 5vmin; height: calc(100% - 10vmin); width: 42%; }
+    .col { top: 27vmin; width: calc(58% - 16vmin); }
+    .p { max-width: 60vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ─────────
+     (each @keyframes carries an invisible outline-color so no effect is compositor-only: the frame-stepped
+      video renderer parallel tabs otherwise freeze transform/opacity-only animations) */
+  /* headline: dissolves and rises back into place, slow and editorial */
+  h1 { animation: rise 8s linear infinite; }
+  @keyframes rise {
+    0%, 6% { outline-color: transparent; transform: translateY(0); opacity: 1; filter: blur(0); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    12% { transform: translateY(-1.5vmin); opacity: 0; filter: blur(.8vmin); animation-timing-function: steps(1, end); }
+    14% { transform: translateY(5vmin); opacity: 0; filter: blur(.8vmin); animation-timing-function: cubic-bezier(.16,.8,.3,1); }
+    30%, 100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+  }
+  /* "edit." re-written with the pen once the headline has landed */
+  .script { animation: pen 8s linear infinite; }
+  @keyframes pen {
+    0%, 8% { outline-color: transparent; clip-path: inset(-40% -10% -40% -10%); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    12% { clip-path: inset(-40% -10% -40% -10%); opacity: 0; animation-timing-function: steps(1, end); }
+    24% { clip-path: inset(-40% 110% -40% -10%); opacity: 1; animation-timing-function: cubic-bezier(.45,.1,.4,1); }
+    36%, 100% { clip-path: inset(-40% -10% -40% -10%); opacity: 1; }
+  }
+  /* the photo print floats a touch, its shadow deepening as it lifts */
+  .photo { animation: float 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes float {
+    0%, 100% { outline-color: transparent; transform: translateY(0); box-shadow: 0 2vmin 5vmin rgba(59,42,27,.18); }
+    50% { transform: translateY(-1vmin); box-shadow: 0 3.2vmin 6.5vmin rgba(59,42,27,.22); }
+  }
+  /* the hand-drawn arrow is drawn again: shaft, then head */
+  .note svg path { stroke-dasharray: 1 1; stroke-dashoffset: 0; }
+  .note svg path:first-child { animation: shaft 8s linear infinite; }
+  .note svg path:last-child { animation: head 8s linear infinite; }
+  @keyframes shaft {
+    0%, 44% { outline-color: transparent; stroke-dashoffset: 0; opacity: 1; animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    48% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    50% { stroke-dashoffset: 1; opacity: 1; animation-timing-function: cubic-bezier(.5,.1,.45,1); }
+    58%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+  @keyframes head {
+    0%, 44% { outline-color: transparent; stroke-dashoffset: 0; opacity: 1; animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    48% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    57% { stroke-dashoffset: 1; opacity: 1; animation-timing-function: cubic-bezier(.3,.2,.3,1); }
+    63%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+  .note { animation: bob 8s linear infinite; }
+  @keyframes bob {
+    0%, 60% { outline-color: transparent; transform: rotate(-5deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    65% { transform: rotate(-3deg) translateY(-.4vmin); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    71%, 100% { transform: rotate(-5deg); }
+  }
+  /* CTA: the arrow steps forward twice, the underline follows */
+  .cta span { display: inline-block; animation: step 8s linear infinite; }
+  @keyframes step {
+    0%, 72% { outline-color: transparent; transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    75% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    78% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    81% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    85%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <h1>Summer</h1>
+  <div class="script">edit.</div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="col">
+    <div class="no">No. 03 — Resort</div>
+    <div class="p">Embroidered maxi dresses, soft cotton and the pieces that travel well.</div>
+    <div class="price">Maxi dresses from<b>$129</b></div>
+    <div class="cta">Shop the edit <span>→</span></div>
+    <div class="note">sun's out!
+      <svg viewBox="0 0 110 80"><path pathLength="1" d="M4 60 C 30 70, 70 60, 100 18" fill="none" stroke="#B4532A" stroke-width="5" stroke-linecap="round"/><path pathLength="1" d="M84 16 L 101 16 L 98 34" fill="none" stroke="#B4532A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+</div>
+</body>
+</html>

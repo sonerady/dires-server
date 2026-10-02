@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=DM+Mono:wght@400;500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Bullet Spread — a dot-grid bullet-journal page: a striped washi strip carries the date, the new piece is taped
+     in with two patterned strips, and the drop is logged as rapid-log bullets (• task · ○ event · ✕ done · › migrated)
+     with the price boxed by hand. tall → header / photo / log stacked · 3:4 → header over photo + log side by side ·
+     square → photo left, page right · wide → an open two-page spread, log on the left page, photo on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F1E6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2F3340; font-family: "Kalam", "Comic Sans MS", cursive;
+    background:
+      radial-gradient(circle, rgba(70,76,96,.26) 0 .22vmin, transparent .3vmin) 0 0 / 3.2vmin 3.2vmin,
+      linear-gradient(180deg, #FAF6EC 0%, #F4EEE0 100%); }
+  .gutter { display: none; }
+
+  .washi { position: absolute; height: 5.2vmin; background:
+      repeating-linear-gradient(-45deg, rgba(231,137,120,.82) 0 1.1vmin, rgba(248,214,196,.82) 1.1vmin 2.2vmin);
+    clip-path: polygon(0 8%, 2% 0, 98% 6%, 100% 0, 99% 30%, 100% 55%, 98.6% 78%, 100% 100%, 2% 94%, 0 100%, 1.2% 70%, 0 44%); }
+  .head { position: absolute; left: 8vmin; right: 8vmin; top: 6vmin; }
+  .head .washi { left: -2vmin; width: 44vmin; top: -.4vmin; transform: rotate(-1.6deg); }
+  .date { position: relative; padding: .6vmin 0 0 1.4vmin; font-family: "DM Mono", ui-monospace, monospace; font-size: 1.8vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: #3A2A28; white-space: nowrap; }
+  h1 { margin: 3.4vmin 0 0; font-weight: 700; font-size: 10.4vmin; line-height: .98; letter-spacing: -.01em; color: #262A36; }
+  h1 u { text-decoration: none; background: linear-gradient(180deg, transparent 58%, rgba(244,200,90,.7) 58% 90%, transparent 90%); }
+
+  .shot { position: absolute; left: 12vmin; right: 12vmin; top: 39vmin; bottom: 52vmin; }
+  .shot img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block;
+    box-shadow: 0 .4vmin 1.4vmin rgba(60,50,40,.22); }
+  .w { position: absolute; width: 13vmin; height: 3.8vmin; top: -2vmin;
+    clip-path: polygon(0 10%, 3% 0, 97% 8%, 100% 0, 98% 40%, 100% 70%, 97% 100%, 3% 92%, 0 100%, 2% 60%); }
+  .w1 { left: -5vmin; transform: rotate(-28deg); background:
+      radial-gradient(circle, rgba(255,255,255,.9) 0 .45vmin, transparent .55vmin) 0 0 / 1.8vmin 1.8vmin,
+      rgba(118,160,170,.8); }
+  .w2 { right: -5vmin; transform: rotate(24deg); background:
+      linear-gradient(90deg, rgba(255,255,255,.55) 1px, transparent 1px) 0 0 / 1.4vmin 1.4vmin,
+      linear-gradient(0deg, rgba(255,255,255,.55) 1px, transparent 1px) 0 0 / 1.4vmin 1.4vmin,
+      rgba(236,190,90,.82); }
+
+  .log { position: absolute; left: 10vmin; right: 10vmin; bottom: 6vmin; height: 42vmin; display: flex; flex-direction: column; }
+  .log h2 { margin: 0; font-family: "DM Mono", ui-monospace, monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: #7A7466; }
+  ul { list-style: none; margin: 1.6vmin 0 0; padding: 0; }
+  li { position: relative; padding-left: 5vmin; font-size: 3.4vmin; line-height: 1.5; white-space: nowrap; }
+  li b { position: absolute; left: .6vmin; top: 0; width: 3vmin; text-align: center; font-weight: 700; }
+  li s { text-decoration-thickness: .3vmin; text-decoration-color: rgba(47,51,64,.6); color: #8A8578; }
+  li.ev b { color: #C4553F; }
+  .buy { margin-top: auto; display: flex; align-items: center; gap: 4vmin; }
+  .price { position: relative; padding: .6vmin 2.6vmin; font-weight: 700; font-size: 6.6vmin; line-height: 1.1; color: #262A36; white-space: nowrap;
+    border: .4vmin solid #262A36; border-radius: 1.4vmin .6vmin 1.8vmin .8vmin; transform: rotate(-2deg); }
+  .cta { font-family: "DM Mono", ui-monospace, monospace; font-size: 2vmin; font-weight: 500; letter-spacing: .06em; white-space: nowrap; color: #262A36; border-bottom: 1px solid #262A36; padding-bottom: .5vmin; }
+  .fine { margin-top: 2.2vmin; font-family: "DM Mono", ui-monospace, monospace; font-size: 1.6vmin; color: #7A7466; white-space: nowrap; }
+
+  /* ── 3:4 — header across, photo left, log right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .head { top: 5.4vmin; }
+    h1 { font-size: 9vmin; margin-top: 2.8vmin; }
+    .shot { left: 8vmin; right: auto; width: 50vmin; top: 33vmin; bottom: 7vmin; }
+    .log { left: 64vmin; right: 5vmin; top: 33vmin; bottom: 7vmin; height: auto; }
+    li { font-size: 2.7vmin; padding-left: 3.8vmin; line-height: 1.55; }
+    li b { left: 0; }
+    .buy { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .price { font-size: 5.6vmin; margin-left: .6vmin; }
+    .cta { font-size: 1.8vmin; }
+    .fine { white-space: normal; line-height: 1.4; }
+  }
+  /* ── square — photo left, the whole page on the right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .shot { left: 7vmin; width: 46vmin; top: 8vmin; bottom: 8vmin; }
+    .head { left: 60vmin; right: 5vmin; top: 6vmin; }
+    .head .washi { width: 32vmin; }
+    .date { font-size: 1.6vmin; letter-spacing: .1em; }
+    h1 { font-size: 6.8vmin; margin-top: 2.6vmin; }
+    .log { left: 60vmin; right: 4vmin; top: 36vmin; bottom: 6vmin; }
+    .log h2 { font-size: 1.6vmin; }
+    ul { margin-top: 1vmin; }
+    li { font-size: 2.5vmin; line-height: 1.45; }
+    .price { font-size: 5vmin; }
+    .buy { gap: 2vmin; }
+    .fine { margin-top: 1.6vmin; }
+  }
+  /* ── wide — open spread: log on the left page, photo on the right page ── */
+  @media (min-aspect-ratio: 6/5) {
+    .gutter { display: block; position: absolute; top: 0; bottom: 0; left: calc(50% - 5vmin); width: 10vmin;
+      background: linear-gradient(90deg, transparent 0%, rgba(90,80,60,.08) 38%, rgba(90,80,60,.26) 50%, rgba(90,80,60,.08) 62%, transparent 100%); }
+    .shot { left: calc(50% + 8vmin); right: 8vmin; width: auto; top: 9vmin; bottom: 9vmin; }
+    .head { left: 9vmin; right: calc(50% + 6vmin); top: 7vmin; }
+    .head .washi { width: 40vmin; }
+    .date { font-size: 1.8vmin; }
+    h1 { font-size: 8.4vmin; margin-top: 3vmin; }
+    .log { left: 9vmin; right: calc(50% + 6vmin); top: 40vmin; bottom: 7vmin; }
+    li { font-size: 2.8vmin; line-height: 1.45; }
+    .buy { flex-direction: row; align-items: center; gap: 4vmin; }
+    .price { font-size: 5.6vmin; }
+    .fine { white-space: nowrap; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     the journal being filled in, one pen stroke per beat:
+     0.6s the highlighter on "must-have" retracts and is swiped back on · 2.0s the strike through "wait for the restock" is re-drawn ·
+     2.6s the ○ event bullet pulses · 3.0s the › migrated arrow nudges toward the cart · 4.2s the hand-boxed price pops ·
+     5.0s the teal washi strip lifts at the corner and is pressed back down */
+  h1 u { background-repeat: no-repeat; background-size: 100% 100%; background-position: 100% 0; animation: hl 6s linear infinite; }
+  @keyframes hl {
+    0%, 10% { background-size: 100% 100%; background-position: 100% 0; animation-timing-function: cubic-bezier(.5,0,.9,.4); }
+    14% { background-size: 0% 100%; background-position: 100% 0; }
+    14.1%, 16% { background-size: 0% 100%; background-position: 0 0; animation-timing-function: cubic-bezier(.3,.1,.2,1); }
+    25%, 100% { background-size: 100% 100%; background-position: 0 0; } }
+
+  li s { position: relative; animation: strike 6s linear infinite; }
+  li s::after { content: ""; position: absolute; left: -.2vmin; right: -.2vmin; top: 55%; height: .3vmin; background: rgba(47,51,64,.6); border-radius: .2vmin;
+    clip-path: inset(0 100% 0 0); opacity: 0; animation: strikeLine 6s linear infinite; }
+  @keyframes strike { 0%, 32%, 46%, 100% { text-decoration-color: rgba(47,51,64,.6); } 32.5%, 45.5% { text-decoration-color: rgba(47,51,64,0); } }
+  @keyframes strikeLine {
+    0%, 32.4% { opacity: 0; clip-path: inset(0 100% 0 0); }
+    32.5%, 34% { opacity: 1; clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.4,.1,.2,1); }
+    41%, 45.5% { opacity: 1; clip-path: inset(0 0 0 0); }
+    45.6%, 100% { opacity: 0; clip-path: inset(0 0 0 0); } }
+
+  li b { transform-origin: 50% 55%; }
+  li.ev b { animation: ev 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes ev { 0%, 42%, 52%, 100% { transform: scale(1); } 46% { transform: scale(1.35); } }
+  li:nth-child(4) b { animation: mig 6s cubic-bezier(.4,0,.3,1) infinite; }
+  @keyframes mig { 0%, 50%, 66%, 100% { transform: translateX(0); } 53% { transform: translateX(.9vmin); } 56% { transform: translateX(0); } 59% { transform: translateX(.9vmin); } }
+
+  .price { animation: box 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes box { 0%, 68%, 82%, 100% { transform: rotate(-2deg) scale(1); } 72% { transform: rotate(-4.5deg) scale(1.08); } 76% { transform: rotate(-.8deg) scale(.99); } }
+
+  .w1 { transform-origin: 85% 50%; animation: lift 6s cubic-bezier(.4,0,.3,1) infinite; }
+  @keyframes lift { 0%, 82%, 96%, 100% { transform: rotate(-28deg); } 87%, 90% { transform: rotate(-38deg) translateY(-.6vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="gutter"></div>
+  <div class="head">
+    <i class="washi"></i>
+    <div class="date">Week 39 · Thu 25.09</div>
+    <h1>This week's<br><u>must-have</u></h1>
+  </div>
+
+  <div class="shot">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <i class="w w1"></i><i class="w w2"></i>
+  </div>
+
+  <div class="log">
+    <h2>Rapid log · Maren &amp; Co.</h2>
+    <ul>
+      <li><b>•</b>new piece just landed</li>
+      <li class="ev"><b>○</b>drop goes live Fri 10:00</li>
+      <li><b>✕</b><s>wait for the restock</s></li>
+      <li><b>›</b>moved to my cart</li>
+    </ul>
+    <div class="buy">
+      <div class="price">$58</div>
+      <div class="cta">Add to cart →</div>
+    </div>
+    <div class="fine">Free returns · 30 days</div>
+  </div>
+</div>
+</body>
+</html>

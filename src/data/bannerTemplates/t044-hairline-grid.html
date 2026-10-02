@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Hairline Grid — a visible 1px construction grid; the photo and every word snap to it.
+     The only colour is one tiny index number. 6 cols in portrait, 12 in square/wide. */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F5F2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6F5F2; color: #161616; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+    --c: calc(100% / 6); --r: calc(100% / 12); }
+  .grid { position: absolute; inset: 0; background-image: linear-gradient(to right, rgba(22,22,22,.13) 1px, transparent 1px), linear-gradient(to bottom, rgba(22,22,22,.13) 1px, transparent 1px); background-size: var(--c) var(--r); background-position: -1px -1px; }
+  .photo { position: absolute; left: var(--c); top: var(--r); width: calc(var(--c) * 5); height: calc(var(--r) * 8); object-fit: cover; object-position: 50% 18%; }
+  /* the tiny index number — the one colour, sitting on a grid crossing with a registration cross */
+  .idx { position: absolute; left: 0; top: 0; width: var(--c); height: var(--r); }
+  .idx b { position: absolute; left: 1.6vmin; bottom: 1.4vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-weight: 500; font-size: 2vmin; color: #E0431F; letter-spacing: .04em; }
+  .idx i { position: absolute; right: -1.6vmin; bottom: -1.6vmin; width: 3.2vmin; height: 3.2vmin; }
+  .idx i::before, .idx i::after { content: ""; position: absolute; background: #E0431F; }
+  .idx i::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+  .idx i::after { top: 50%; left: 0; right: 0; height: 1px; }
+  .mono { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .06em; text-transform: uppercase; color: #555; }
+  .m1 { position: absolute; left: calc(var(--c) + 1.6vmin); top: calc(var(--r) - 3.6vmin); }
+  .m2 { position: absolute; right: 1.6vmin; top: calc(var(--r) - 3.6vmin); }
+  .title { position: absolute; left: calc(var(--c) + 1.6vmin); top: calc(var(--r) * 9 + 2vmin); right: 1.6vmin; }
+  h1 { margin: 0; font-weight: 300; font-size: 9vmin; line-height: .95; letter-spacing: -.04em; }
+  .lede { position: absolute; left: calc(var(--c) + 1.6vmin); width: calc(var(--c) * 3 - 3.2vmin); top: calc(var(--r) * 11 + 1.6vmin); font-size: 2.1vmin; line-height: 1.4; color: #3A3A3A; }
+  .cta { position: absolute; left: calc(var(--c) * 4 + 1.6vmin); right: 1.6vmin; top: calc(var(--r) * 11 + 1.6vmin); font-size: 2.1vmin; font-weight: 500; }
+  .cta span { display: block; margin-top: .6vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.7vmin; color: #555; font-weight: 400; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .title { top: calc(var(--r) * 9 + 1.6vmin); }
+    h1 { font-size: 7.6vmin; }
+    .lede, .cta { top: calc(var(--r) * 11 + 1.2vmin); font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --c: calc(100% / 12); --r: calc(100% / 12); }
+    .photo { left: calc(var(--c) * 6); top: var(--r); width: calc(var(--c) * 5); height: calc(var(--r) * 10); object-position: 50% 22%; }
+    .idx { width: var(--c); height: var(--r); }
+    .m1 { left: calc(var(--c) + 1.4vmin); top: calc(var(--r) + 1.4vmin); }
+    .m2 { right: auto; left: calc(var(--c) * 6 + 1.4vmin); top: calc(var(--r) - 3.4vmin); }
+    .title { left: calc(var(--c) + 1.4vmin); right: auto; width: calc(var(--c) * 5 - 2.8vmin); top: calc(var(--r) * 4 + 1.6vmin); }
+    h1 { font-size: 7.4vmin; }
+    .lede { left: calc(var(--c) + 1.4vmin); width: calc(var(--c) * 4 - 2.8vmin); top: calc(var(--r) * 8 + 1.4vmin); font-size: 1.9vmin; }
+    .cta { left: calc(var(--c) + 1.4vmin); right: auto; width: calc(var(--c) * 4); top: calc(var(--r) * 10 + 1.4vmin); font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --c: calc(100% / 12); --r: calc(100% / 8); }
+    .photo { left: calc(var(--c) * 6); top: var(--r); width: calc(var(--c) * 5); height: calc(var(--r) * 6); object-position: 60% 25%; }
+    .m1 { top: calc(var(--r) + 1.4vmin); }
+    .title { top: calc(var(--r) * 3 + 1.6vmin); width: calc(var(--c) * 4 - 2.8vmin); }
+    h1 { font-size: 8.4vmin; }
+    .lede { top: calc(var(--r) * 5 + 1.4vmin); width: calc(var(--c) * 3 - 2.8vmin); }
+    .cta { top: calc(var(--r) * 6 + 1.4vmin); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="grid"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="idx"><b>07</b><i></i></div>
+  <div class="mono m1">Series 07 / SS26</div>
+  <div class="mono m2">Pl. 1 of 12</div>
+  <div class="title"><h1>Essentials,<br>reduced.</h1></div>
+  <div class="lede">Twelve pieces. Nothing added, nothing missing.</div>
+  <div class="cta">Shop the series →<span>From €69</span></div>
+</div>
+</body>
+</html>

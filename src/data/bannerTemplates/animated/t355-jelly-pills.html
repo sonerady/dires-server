@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+  /* Jelly Pills — the headline is poured into glossy pastel jelly capsules (inner shade, top gloss, soft coloured
+     drop), each word its own candy, tipped at small angles and piled against each other; the offer and code are
+     smaller jellies, with three loose gummy dots. Cute, but precise and airy.
+     tall → photo above, the candy pile below · square & wide → photo left, the pile right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFF6F4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2B2433; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(90% 50% at 100% 100%, #FFE3EC 0%, rgba(255,227,236,0) 70%), #FFF6F4; }
+
+  .ph { position: absolute; left: 0; top: 0; width: 100%; height: 57%; overflow: hidden; }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .tag { position: absolute; left: 5vmin; top: 4.4vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; background: rgba(255,255,255,.9); border-radius: 3vmin; padding: .8vmin 1.8vmin; white-space: nowrap; }
+  .tag span { font-weight: 500; letter-spacing: .06em; color: #8A7F93; margin-left: .8vmin; }
+
+  .pane { position: absolute; left: 6vmin; right: 6vmin; top: calc(57% + 5vmin); bottom: 5.5vmin; display: flex; flex-direction: column; }
+  .kick { font-weight: 500; font-size: 2vmin; letter-spacing: .14em; text-transform: uppercase; color: #8A7F93; white-space: nowrap; }
+  .pile { margin-top: 2.6vmin; display: flex; flex-wrap: wrap; align-items: center; gap: 0 .6vmin; }
+  .pill { position: relative; display: inline-block; font-family: "Fredoka", "Arial Rounded MT Bold", sans-serif; font-weight: 600; font-size: 11.6vmin; line-height: 1; letter-spacing: -.01em;
+    padding: 1.8vmin 4.2vmin 2.4vmin; border-radius: 12vmin; white-space: nowrap; margin-bottom: -.8vmin; }
+  .pill::after { content: ""; position: absolute; left: 12%; top: 13%; width: 30%; height: 20%; border-radius: 50%; background: rgba(255,255,255,.75); filter: blur(.35vmin); }
+  .mint { color: #1C6A4C; background: linear-gradient(180deg, #D8F7E8 0%, #A9E8CB 100%); box-shadow: inset 0 -1.2vmin 1.8vmin rgba(60,160,115,.35), inset 0 .6vmin 1vmin rgba(255,255,255,.8), 0 1.4vmin 2.4vmin rgba(90,190,145,.3); transform: rotate(-4deg); }
+  .pink { color: #9C2E57; background: linear-gradient(180deg, #FFE0EA 0%, #FFB3CB 100%); box-shadow: inset 0 -1.2vmin 1.8vmin rgba(220,90,135,.32), inset 0 .6vmin 1vmin rgba(255,255,255,.8), 0 1.4vmin 2.4vmin rgba(240,120,160,.3); transform: rotate(3deg); }
+  .lilac { color: #4B33A0; background: linear-gradient(180deg, #ECE5FF 0%, #C9B8FF 100%); box-shadow: inset 0 -1.2vmin 1.8vmin rgba(120,90,220,.3), inset 0 .6vmin 1vmin rgba(255,255,255,.8), 0 1.4vmin 2.4vmin rgba(140,110,230,.28); transform: rotate(-1.5deg); }
+
+  .pane p { margin: 3.4vmin 0 0; font-size: 2.3vmin; line-height: 1.45; color: #5E5468; max-width: 46vmin; }
+  .row { margin-top: auto; display: flex; align-items: center; gap: 1.4vmin; flex-wrap: nowrap; white-space: nowrap; }
+  .mini { position: relative; font-weight: 700; font-size: 2.2vmin; letter-spacing: .02em; padding: 1.3vmin 2.4vmin; border-radius: 4vmin; }
+  .mini.butter { color: #6E5100; background: linear-gradient(180deg, #FFF3C9, #FFE08A); box-shadow: inset 0 -.6vmin 1vmin rgba(210,160,20,.3), inset 0 .3vmin .6vmin rgba(255,255,255,.9), 0 .8vmin 1.4vmin rgba(230,180,40,.25); }
+  .mini.code { color: #2B2433; background: #fff; box-shadow: inset 0 0 0 .25vmin #E9DDE6; letter-spacing: .1em; font-weight: 500; }
+  .mini.code b { font-weight: 700; }
+  .mini.go { color: #fff; background: #2B2433; margin-left: auto; }
+  .gum { position: absolute; border-radius: 50%; }
+  .gum::after { content: ""; position: absolute; left: 22%; top: 16%; width: 34%; height: 26%; border-radius: 50%; background: rgba(255,255,255,.8); filter: blur(.2vmin); }
+  .g1 { width: 4.6vmin; height: 4.6vmin; right: 7vmin; top: calc(57% + 4vmin); background: radial-gradient(circle at 40% 35%, #FFE7A8, #FFC94D); box-shadow: 0 .8vmin 1.2vmin rgba(240,180,40,.3); }
+  .g2 { width: 3vmin; height: 3vmin; right: 14vmin; top: calc(57% + 9vmin); background: radial-gradient(circle at 40% 35%, #D5F4FF, #92D8F5); box-shadow: 0 .6vmin 1vmin rgba(90,180,230,.3); }
+  .g3 { width: 2.2vmin; height: 2.2vmin; right: 5.6vmin; top: calc(57% + 11vmin); background: radial-gradient(circle at 40% 35%, #FFD9E6, #FF9DBE); }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .ph { height: 54%; }
+    .pane { top: calc(54% + 4vmin); bottom: 4.6vmin; }
+    .pill { font-size: 8.6vmin; padding: 1.3vmin 3.4vmin 1.8vmin; }
+    .pane p { display: none; }
+    .g1 { top: calc(54% + 3vmin); } .g2 { top: calc(54% + 8vmin); } .g3 { top: calc(54% + 10vmin); }
+  }
+  /* SQUARE — photo left, pile right */
+  @media (min-aspect-ratio: 9/10) {
+    .ph { width: 50%; height: 100%; }
+    .pane { left: calc(50% + 5vmin); right: 5vmin; top: 7vmin; bottom: 6vmin; }
+    .pile { flex-direction: column; align-items: flex-start; margin-top: 4vmin; }
+    .pile .pink { margin-left: 5vmin; }
+    .pill { font-size: 8.4vmin; margin-bottom: 0; padding: 1.4vmin 3.6vmin 2vmin; }
+    .pane p { display: block; font-size: 2.1vmin; }
+    .row { flex-wrap: wrap; gap: 1.2vmin; }
+    .mini.go { margin-left: 0; }
+    .g1 { right: 6vmin; top: 6vmin; } .g2 { right: 12vmin; top: 11vmin; } .g3 { right: 5vmin; top: 13vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .ph { width: 44%; }
+    .pane { left: calc(44% + 7vmin); right: 7vmin; top: 8vmin; bottom: 7vmin; }
+    .pile { flex-direction: row; align-items: center; }
+    .pile .pink { margin-left: 0; }
+    .pill { font-size: 9.6vmin; margin-bottom: 1vmin; }
+    .pane p { font-size: 2.2vmin; }
+    .row { flex-wrap: nowrap; }
+    .mini.go { margin-left: auto; }
+    .g1 { right: 8vmin; top: 7vmin; } .g2 { right: 15vmin; top: 12vmin; } .g3 { right: 6vmin; top: 14vmin; }
+  }
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     fresh jelly: each word-capsule gets tapped in turn and wobbles (squash & stretch around its tilt),
+     the gloss slides over the candy, the gummy dots hop, and the offer jelly boings on the off-beat */
+  .ph img { transform-origin: 50% 30%; animation: jp-push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes jp-push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .pill { transform-origin: 50% 90%; animation: jp-mint 6s linear infinite; }
+  .pink { animation-name: jp-pink; }
+  .lilac { animation-name: jp-lilac; }
+  @keyframes jp-mint {
+    0%, 8% { transform: rotate(-4deg) scale(1, 1); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    11% { transform: rotate(-4deg) scale(1.07, .9); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    14.5% { transform: rotate(-4deg) scale(.95, 1.06); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    18% { transform: rotate(-4deg) scale(1.025, .975); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    21.5% { transform: rotate(-4deg) scale(.99, 1.01); }
+    25%, 100% { transform: rotate(-4deg) scale(1, 1); }
+  }
+  @keyframes jp-pink {
+    0%, 16% { transform: rotate(3deg) scale(1, 1); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    19% { transform: rotate(3deg) scale(1.07, .9); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    22.5% { transform: rotate(3deg) scale(.95, 1.06); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    26% { transform: rotate(3deg) scale(1.025, .975); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    29.5% { transform: rotate(3deg) scale(.99, 1.01); }
+    33%, 100% { transform: rotate(3deg) scale(1, 1); }
+  }
+  @keyframes jp-lilac {
+    0%, 24% { transform: rotate(-1.5deg) scale(1, 1); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    27% { transform: rotate(-1.5deg) scale(1.06, .91); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    30.5% { transform: rotate(-1.5deg) scale(.96, 1.05); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    34% { transform: rotate(-1.5deg) scale(1.02, .98); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    37.5% { transform: rotate(-1.5deg) scale(.995, 1.005); }
+    41%, 100% { transform: rotate(-1.5deg) scale(1, 1); }
+  }
+  /* gloss highlight glides across each capsule */
+  .pill::after { animation: jp-gloss 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes jp-gloss { 0%, 44% { transform: translateX(0); opacity: 1; } 56% { transform: translateX(120%); opacity: .35; } 57% { transform: translateX(-20%); opacity: 0; } 68%, 100% { transform: translateX(0); opacity: 1; } }
+
+  .gum { animation: jp-hop 3s linear infinite; }
+  .g2 { animation-name: jp-hop2; }
+  .g3 { animation-name: jp-hop3; }
+  @keyframes jp-hop {
+    0%, 40% { transform: translateY(0) scale(1, 1); animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+    52% { transform: translateY(-2.4vmin) scale(.96, 1.04); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    62% { transform: translateY(0) scale(1.14, .86); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    70%, 100% { transform: translateY(0) scale(1, 1); }
+  }
+  @keyframes jp-hop2 {
+    0%, 50% { transform: translateY(0) scale(1, 1); animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+    61% { transform: translateY(-1.8vmin) scale(.96, 1.04); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    71% { transform: translateY(0) scale(1.14, .86); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    79%, 100% { transform: translateY(0) scale(1, 1); }
+  }
+  @keyframes jp-hop3 {
+    0%, 58% { transform: translateY(0) scale(1, 1); animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+    68% { transform: translateY(-1.4vmin) scale(.96, 1.04); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    77% { transform: translateY(0) scale(1.14, .86); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    85%, 100% { transform: translateY(0) scale(1, 1); }
+  }
+
+  .mini.butter { animation: jp-boing 6s linear infinite; }
+  @keyframes jp-boing {
+    0%, 62% { transform: scale(1, 1); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    65% { transform: scale(1.1, .88); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    69% { transform: scale(.94, 1.08); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    73% { transform: scale(1.03, .97); }
+    77%, 100% { transform: scale(1, 1); }
+  }
+  .mini.go { animation: jp-go 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes jp-go { 0%, 80%, 100% { box-shadow: 0 0 0 0 rgba(43,36,51,0); } 82% { box-shadow: 0 0 0 0 rgba(43,36,51,.35); } 96% { box-shadow: 0 0 0 1.6vmin rgba(43,36,51,0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="tag">Studio Oro<span>젤리 · Drop 09</span></div></div>
+  <span class="gum g1"></span><span class="gum g2"></span><span class="gum g3"></span>
+  <div class="pane">
+    <div class="kick">Fresh out of the mould</div>
+    <div class="pile"><span class="pill mint">New in</span><span class="pill pink">soft</span><span class="pill lilac">colours.</span></div>
+    <p>Glossy everyday pieces in six sweet shades.</p>
+    <div class="row"><span class="mini butter">−20% this week</span><span class="mini code">CODE <b>JELLY20</b></span><span class="mini go">Shop →</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400;1,6..72,500&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Something New — the old wedding rhyme, edited: "old" and "borrowed" struck out in blue pen, "something new."
+     left standing in ink with a footnote marker, "something blue" set in cornflower, and a satin ribbon along the
+     seam. The footnote carries the offer. tall → photo above the page; square/wide → page left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F7F4EC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1E1C19; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif; background: #F7F4EC; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 22%; }
+  /* satin ribbon on the seam */
+  .ribbon { position: absolute; left: 0; right: 0; bottom: 80vmin; height: 1.8vmin; margin-bottom: -.9vmin; z-index: 2;
+    background: linear-gradient(180deg, #6F8FCB, #A9C0EA 30%, #7C9AD3 55%, #4F6FAE); box-shadow: 0 .4vmin .8vmin rgba(40,60,110,.25); }
+  .page { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; box-sizing: border-box; padding: 7vmin 8vmin 5.4vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .micro { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #7A7366; white-space: nowrap; }
+  .rhyme { margin: 0; font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400; font-size: 9.2vmin; line-height: 1.04; letter-spacing: -.02em; }
+  .rhyme span { display: block; white-space: nowrap; }
+  .rhyme .x { color: #BDB5A7; text-decoration: line-through; text-decoration-color: #3F63B0; text-decoration-thickness: .45vmin; }
+  .rhyme .new { font-weight: 500; }
+  .rhyme .new sup { display: inline-block; vertical-align: top; margin: 1.4vmin 0 0 1vmin; width: 3.6vmin; height: 3.6vmin; line-height: 3.6vmin; border-radius: 50%; background: #3F63B0; color: #FFFFFF;
+    font-family: "Work Sans", Arial, sans-serif; font-style: normal; font-weight: 600; font-size: 2vmin; letter-spacing: 0; text-align: center; }
+  .rhyme .blue { color: #3F63B0; }
+  .note { display: flex; gap: 2vmin; align-items: baseline; border-top: 1px solid #1E1C19; padding-top: 2vmin; }
+  .note b { flex: none; display: inline-block; width: 3vmin; height: 3vmin; line-height: 3vmin; border-radius: 50%; background: #3F63B0; color: #FFFFFF; text-align: center; font-size: 1.7vmin; }
+  .note p { margin: 0; font-size: 2.2vmin; line-height: 1.5; }
+  .note p strong { font-weight: 600; }
+  .note p em { font-style: normal; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; font-size: .86em; color: #3F63B0; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 68vmin); }
+    .ribbon { bottom: 68vmin; }
+    .page { height: 68vmin; padding: 5.4vmin 8vmin 4.4vmin; }
+    .rhyme { font-size: 7.8vmin; }
+    .rhyme .new sup { width: 3.2vmin; height: 3.2vmin; line-height: 3.2vmin; font-size: 1.8vmin; margin-top: 1.2vmin; }
+    .note p { font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 44%; height: 100%; object-position: 50% 25%; }
+    .ribbon { left: auto; right: 44%; top: 0; bottom: 0; width: 1.8vmin; height: auto; margin: 0 -.9vmin 0 0;
+      background: linear-gradient(90deg, #6F8FCB, #A9C0EA 30%, #7C9AD3 55%, #4F6FAE); }
+    .page { top: 0; right: 44%; height: auto; padding: 7vmin 5vmin 6vmin 5.4vmin; }
+    .micro span:last-child { display: none; }
+    .rhyme { font-size: 5.7vmin; }
+    .rhyme .new sup { width: 2.8vmin; height: 2.8vmin; line-height: 2.8vmin; font-size: 1.6vmin; margin: .9vmin 0 0 .8vmin; }
+    .note p { font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .ribbon { right: 44%; }
+    .page { right: 44%; padding: 7vmin 9vmin 6.4vmin; }
+    .micro span:last-child { display: inline; }
+    .rhyme { font-size: 7.9vmin; }
+    .rhyme .new sup { width: 3.6vmin; height: 3.6vmin; line-height: 3.6vmin; font-size: 2vmin; margin: 1.4vmin 0 0 1vmin; }
+    .note p { font-size: 2.1vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="ribbon"></div>
+  <div class="page">
+    <div class="micro"><span>Atelier Nord</span><span>Wedding season, edited</span></div>
+    <h1 class="rhyme"><span class="x">Something old,</span><span class="new">something new.<sup>1</sup></span><span class="x">Something borrowed,</span><span class="blue">something blue.</span></h1>
+    <div class="note"><b>1</b><p><strong>The Guest Edit — 20% off new arrivals.</strong> Code <em>NEW20</em>, until Sunday.</p></div>
+  </div>
+</div>
+</body>
+</html>

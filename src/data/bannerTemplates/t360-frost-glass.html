@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  /* Frosted Glass — soft focus, literally: the backdrop is the same photo melted into a pastel blur, the sharp
+     photo floats in front with four fine focus brackets, and the copy sits on a frosted-glass card (backdrop
+     blur, milky white, hairline rim) with smaller frosted chips for the offer.
+     tall → photo above, glass card below · square & wide → photo left, glass card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3ECF1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2A2433; font-family: "Urbanist", "Helvetica Neue", Arial, sans-serif; background: #F3ECF1; }
+
+  .bg { position: absolute; left: -15%; top: -15%; width: 130%; height: 130%; object-fit: cover; object-position: 50% 30%; filter: blur(6vmin) saturate(1.25); }
+  .wash { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,246,250,.42) 0%, rgba(240,236,255,.34) 50%, rgba(255,240,244,.5) 100%); }
+
+  .ph { position: absolute; left: 9vmin; right: 9vmin; top: 9vmin; height: calc(60% - 9vmin); box-shadow: 0 2.4vmin 5vmin rgba(60,30,70,.18); }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .br { position: absolute; width: 3.4vmin; height: 3.4vmin; border: 0 solid rgba(255,255,255,.95); }
+  .br.a { left: -2.6vmin; top: -2.6vmin; border-width: .35vmin 0 0 .35vmin; }
+  .br.b { right: -2.6vmin; top: -2.6vmin; border-width: .35vmin .35vmin 0 0; }
+  .br.c { left: -2.6vmin; bottom: -2.6vmin; border-width: 0 0 .35vmin .35vmin; }
+  .br.d { right: -2.6vmin; bottom: -2.6vmin; border-width: 0 .35vmin .35vmin 0; }
+
+  .glass { position: absolute; left: 5.5vmin; right: 5.5vmin; top: calc(60% + 5vmin); bottom: 5.5vmin; box-sizing: border-box; padding: 4vmin 4.4vmin; border-radius: 4.4vmin;
+    background: linear-gradient(145deg, rgba(255,255,255,.78), rgba(255,255,255,.6)); -webkit-backdrop-filter: blur(3vmin) saturate(1.4); backdrop-filter: blur(3vmin) saturate(1.4);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.9), inset 0 .3vmin 0 rgba(255,255,255,.9), 0 2vmin 4vmin rgba(70,40,90,.12);
+    display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .top span { font-weight: 500; letter-spacing: .08em; color: #6F6479; }
+  h1 { margin: 2.4vmin 0 0; font-weight: 300; font-size: 11.4vmin; line-height: .98; letter-spacing: -.04em; }
+  h1 em { font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -.02em; color: #7B4FA8; }
+  .glass p { margin: 2.4vmin 0 0; font-size: 2.5vmin; line-height: 1.45; color: #4B4256; max-width: 72vmin; }
+  .row { margin-top: auto; display: flex; gap: 1.2vmin; align-items: center; white-space: nowrap; }
+  .chip { font-weight: 600; font-size: 2vmin; padding: 1.3vmin 2.2vmin; border-radius: 4vmin; background: rgba(255,255,255,.7); box-shadow: inset 0 0 0 1px rgba(255,255,255,1), 0 .6vmin 1.4vmin rgba(70,40,90,.08); }
+  .chip b { color: #7B4FA8; font-weight: 700; }
+  .chip.go { margin-left: auto; background: #2A2433; color: #fff; box-shadow: none; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .ph { left: 13vmin; right: 13vmin; top: 8vmin; height: calc(58% - 8vmin); }
+    .glass { top: calc(58% + 4.4vmin); bottom: 5vmin; padding: 3.2vmin 4vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 1.8vmin; }
+    .glass p { display: none; }
+  }
+  /* SQUARE — photo left, glass right */
+  @media (min-aspect-ratio: 9/10) {
+    .ph { left: 8vmin; right: auto; width: 42%; top: 8vmin; height: calc(100% - 16vmin); }
+    .glass { left: calc(42% + 14vmin); right: 5.5vmin; top: 8vmin; bottom: 8vmin; padding: 4vmin; }
+    .top { flex-direction: column; gap: .8vmin; }
+    h1 { font-size: 8.2vmin; margin-top: 3.6vmin; }
+    .glass p { display: block; font-size: 2vmin; }
+    .row { flex-wrap: wrap; }
+    .chip.go { margin-left: 0; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .ph { width: 38%; left: 9vmin; }
+    .glass { left: calc(38% + 17vmin); right: 8vmin; padding: 5vmin; }
+    .top { flex-direction: row; }
+    h1 { font-size: 9.6vmin; }
+    .row { flex-wrap: nowrap; }
+    .chip.go { margin-left: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="bg" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="wash"></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""><i class="br a"></i><i class="br b"></i><i class="br c"></i><i class="br d"></i></div>
+  <div class="glass">
+    <div class="top">Studio Oro<span>Soft focus · 소프트</span></div>
+    <h1>In soft<br><em>focus.</em></h1>
+    <p>The new-season edit, gently priced for one week.</p>
+    <div class="row"><span class="chip"><b>−25%</b> until Sunday</span><span class="chip go">Shop the edit →</span></div>
+  </div>
+</div>
+</body>
+</html>

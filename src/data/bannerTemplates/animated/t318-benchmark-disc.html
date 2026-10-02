@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;800;900&family=Red+Hat+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Benchmark Disc — the brass survey marker set into summit granite: a stamped rim legend running round the
+     disc, the triangulation mark and elevation line in the centre with the offer struck as the "elevation",
+     and the headline chiselled into the speckled rock beside it. Granite grey, weathered brass.
+     tall → photo above, rock below · square → photo left, rock right stacked · wide → photo left, words beside the disc */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #77746F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #77746F; color: #1E1D1B; font-family: "Red Hat Display", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 92vmin); object-fit: cover; object-position: 50% 20%; }
+  .rock { position: absolute; left: 0; right: 0; bottom: 0; height: 92vmin; overflow: hidden;
+    background: radial-gradient(120% 80% at 30% 20%, #8D8A84, #77746F 55%, #625F5A); box-shadow: inset 0 1.4vmin 1.6vmin -1vmin rgba(0,0,0,.45); }
+  .speck { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .words { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; flex-direction: column; }
+  .cut { color: #2B2926; text-shadow: 0 .18vmin 0 rgba(255,255,255,.28), 0 -.12vmin 0 rgba(0,0,0,.35); }
+  .kick { font-family: "Red Hat Mono", Menlo, monospace; font-weight: 700; font-size: 1.8vmin; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-weight: 900; font-size: 10.4vmin; line-height: .9; letter-spacing: -.035em; }
+  .sub { margin-top: 1.6vmin; font-weight: 500; font-size: 2.6vmin; }
+  .disc { position: absolute; left: calc(50% - 25vmin); top: 28vmin; width: 50vmin; height: 50vmin; border-radius: 50%; box-shadow: 0 0 0 1.2vmin rgba(40,38,35,.35), .8vmin 1.4vmin 2vmin rgba(0,0,0,.45); }
+  .disc svg { width: 100%; height: 100%; display: block; }
+  .go { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; }
+  .go small { font-family: "Red Hat Mono", Menlo, monospace; font-weight: 700; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .go b { padding: 1.6vmin 2.6vmin; background: #1E1D1B; color: #E9D39A; font-weight: 800; font-size: 2.4vmin; letter-spacing: .04em; white-space: nowrap; text-shadow: none; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 84vmin); }
+    .rock { height: 84vmin; }
+    .words { top: 4.4vmin; }
+    h1 { font-size: 9.4vmin; }
+    .disc { top: 25vmin; left: calc(50% - 22vmin); width: 44vmin; height: 44vmin; }
+    .go { bottom: 4.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .rock { height: 64vmin; }
+    .words { top: 5vmin; right: 54vmin; }
+    h1 { font-size: 7.6vmin; }
+    .disc { left: auto; right: 6vmin; top: 5vmin; width: 46vmin; height: 46vmin; }
+    .go { left: 6vmin; right: auto; bottom: 5vmin; flex-direction: column; align-items: flex-start; }
+  }
+  /* square → photo left, rock right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .rock { left: 50%; top: 0; height: auto; box-shadow: inset 1.4vmin 0 1.6vmin -1vmin rgba(0,0,0,.45); }
+    .words { left: 4.6vmin; right: 4.6vmin; top: 4.6vmin; }
+    .kick { font-size: 1.6vmin; letter-spacing: .12em; }
+    h1 { font-size: 6.4vmin; }
+    .sub { font-size: 2vmin; margin-top: 1.2vmin; }
+    .disc { left: calc(50% - 18vmin); right: auto; top: 35vmin; width: 36vmin; height: 36vmin; box-shadow: 0 0 0 .9vmin rgba(40,38,35,.35), .6vmin 1vmin 1.6vmin rgba(0,0,0,.45); }
+    .go { left: 4.6vmin; right: 4.6vmin; bottom: 4.6vmin; flex-direction: row; justify-content: space-between; align-items: center; }
+    .go small { font-size: 1.6vmin; letter-spacing: .08em; }
+    .go b { padding: 1.3vmin 2vmin; font-size: 2vmin; }
+  }
+  /* wide → photo left, words beside the disc */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .rock { left: 42%; }
+    .words { left: 6vmin; right: auto; width: 26vmin; top: 7vmin; }
+    .kick { font-size: 1.7vmin; letter-spacing: .06em; }
+    h1 { font-size: 7.4vmin; margin-top: 2vmin; }
+    .sub { font-size: 2.2vmin; margin-top: 2vmin; }
+    .disc { left: auto; right: 5vmin; top: calc(50% - 24vmin); width: 48vmin; height: 48vmin; }
+    .go { left: 6vmin; right: auto; bottom: 7vmin; flex-direction: column; align-items: flex-start; gap: 1vmin; }
+    .go small { font-size: 1.7vmin; }
+    .go b { padding: 1.6vmin 2.4vmin; font-size: 2.3vmin; }
+  }
+
+  /* ───────── motion (6s loop, restrained), t=0 = static design ─────────
+     1.0s a slow sun glint rakes across the brass · 2.8s the triangulation station pings (two rings leave the mark) ·
+     4.1s the −30% "elevation" is re-struck: stamp dips, the disc jolts, a brass flash · CTA edge breathes gold (3s) */
+  .disc { overflow: hidden; }
+  .disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
+    background: linear-gradient(115deg, rgba(255,240,200,0) 38%, rgba(255,240,200,.18) 45%, rgba(255,248,225,.6) 50%, rgba(255,240,200,.18) 55%, rgba(255,240,200,0) 62%) 0 0 / 300% 100% no-repeat;
+    background-position: 100% 0; animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 15% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    42%, 100% { background-position: 0% 0; }
+  }
+  .disc svg { animation: jolt 6s linear infinite; }
+  @keyframes jolt {
+    0%, 68% { transform: translate(0,0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    69% { transform: translate(0,.5vmin); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    71% { transform: translate(0,-.2vmin); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    74%, 100% { transform: translate(0,0); }
+  }
+  .disc .elev { transform-box: fill-box; transform-origin: 50% 60%; animation: strike 6s linear infinite; }
+  @keyframes strike {
+    0%, 66% { transform: scale(1); fill: #3A2810; animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    68.5% { transform: scale(.88); fill: #241806; animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    72% { transform: scale(1.05); fill: #7A5418; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    78%, 100% { transform: scale(1); fill: #3A2810; }
+  }
+  .disc .ping { fill: none; stroke: #4A3312; stroke-width: 1.6; transform-box: fill-box; transform-origin: 50% 50%; opacity: 0; animation: ping 6s linear infinite; }
+  .disc .ping.p2 { animation-delay: -5.6s; }
+  @keyframes ping {
+    0%, 45% { transform: scale(1); opacity: 0; }
+    46% { transform: scale(1); opacity: .9; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    62% { transform: scale(9); opacity: 0; }
+    100% { transform: scale(9); opacity: 0; }
+  }
+  .go b { animation: goldedge 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes goldedge { 0%, 100% { box-shadow: 0 0 0 0 rgba(233,211,154,0); color: #E9D39A; } 50% { box-shadow: 0 0 0 .35vmin rgba(233,211,154,.55); color: #FFF0C4; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="rock">
+    <svg class="speck" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true">
+      <filter id="gr"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11"/><feColorMatrix values="0 0 0 0 .12  0 0 0 0 .11  0 0 0 0 .1  0 0 0 -9 4.2"/></filter>
+      <filter id="gw"><feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="1" seed="5"/><feColorMatrix values="0 0 0 0 .95  0 0 0 0 .93  0 0 0 0 .9  0 0 0 -10 4.4"/></filter>
+      <rect width="100%" height="100%" filter="url(#gr)" opacity=".75"/>
+      <rect width="100%" height="100%" filter="url(#gw)" opacity=".55"/>
+    </svg>
+    <div class="words cut">
+      <span class="kick">Survey mark · Season 26</span>
+      <h1>Mark the spot.</h1>
+      <span class="sub">The new edit, set in stone.</span>
+    </div>
+    <div class="disc">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <radialGradient id="br" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#F0D58E"/><stop offset=".45" stop-color="#C69A44"/><stop offset=".85" stop-color="#8E6526"/><stop offset="1" stop-color="#6B4B1C"/></radialGradient>
+          <radialGradient id="pat" cx="70%" cy="75%" r="45%"><stop offset="0" stop-color="#3F7A62" stop-opacity=".35"/><stop offset="1" stop-color="#3F7A62" stop-opacity="0"/></radialGradient>
+          <path id="rim" d="M100 100 m-78 0 a78 78 0 1 1 156 0 a78 78 0 1 1 -156 0"/>
+        </defs>
+        <circle cx="100" cy="100" r="99" fill="url(#br)"/>
+        <circle cx="100" cy="100" r="99" fill="url(#pat)"/>
+        <circle cx="100" cy="100" r="92" fill="none" stroke="#5E4218" stroke-width="1.6"/>
+        <circle cx="100" cy="100" r="92" fill="none" stroke="#F6E2A8" stroke-width=".8" transform="translate(.6 .9)" opacity=".7"/>
+        <circle cx="100" cy="100" r="66" fill="none" stroke="#5E4218" stroke-width="1.4"/>
+        <circle cx="100" cy="100" r="66" fill="none" stroke="#F6E2A8" stroke-width=".7" transform="translate(.5 .8)" opacity=".7"/>
+        <g font-family="Red Hat Mono, monospace" font-weight="700" fill="#4A3312">
+          <text font-size="11.4"><textPath href="#rim" startOffset="0" textLength="484" lengthAdjust="spacing">SEASON SURVEY MARK ✦ DO NOT MISS ✦ ENDS 30.09 ✦ </textPath></text>
+        </g>
+        <!-- triangulation mark -->
+        <path d="M100 52 L114 76 H86 Z" fill="none" stroke="#4A3312" stroke-width="2.4" stroke-linejoin="round"/>
+        <circle cx="100" cy="68" r="2.4" fill="#4A3312"/>
+        <circle class="ping" cx="100" cy="68" r="2.4"/><circle class="ping p2" cx="100" cy="68" r="2.4"/>
+        <path d="M52 110 H148" stroke="#4A3312" stroke-width="1.6"/>
+        <g font-family="Red Hat Display, sans-serif" fill="#3A2810" text-anchor="middle">
+          <text x="100" y="92" font-family="Red Hat Mono, monospace" font-weight="700" font-size="8.4" letter-spacing="2.4">ELEVATION</text>
+          <text class="elev" x="100" y="138" font-weight="900" font-size="30" letter-spacing="-1">−30%</text>
+          <text x="100" y="153" font-family="Red Hat Mono, monospace" font-weight="700" font-size="7.6" letter-spacing="1.8">CODE MARK30</text>
+        </g>
+      </svg>
+    </div>
+    <div class="go cut"><small>Station · Summit</small><b>Find it →</b></div>
+  </div>
+</div>
+</body>
+</html>

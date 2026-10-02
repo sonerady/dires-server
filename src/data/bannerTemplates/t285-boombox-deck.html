@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,500;0,600;0,700;1,700&display=swap" rel="stylesheet">
+<style>
+  /* Boombox Deck — a brushed-silver ghetto blaster: perforated speaker grilles with chrome rims, an amber LCD with the
+     offer, a graphic EQ and piano-key transport buttons (PLAY = shop).
+     tall → photo above, boombox front below · square → photo left, stacked front right ·
+     wide → the photo becomes the cassette deck between the two speakers */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #C6CAD0; }
+  .banner { --ink: #121316; --amb: #FFB23A; --red: #E4322B; --steel: #C6CAD0;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Chakra Petch", "Arial Narrow", Arial, sans-serif;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.2) 0 1px, rgba(0,0,0,0) 1px .5vmin), linear-gradient(180deg, #DDE0E5, #BFC3CA 60%, #B3B7BE); }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 68vmin); overflow: hidden; }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .photo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1.4vmin; background: var(--ink); }
+
+  .front { position: absolute; left: 0; right: 0; bottom: 0; height: 68vmin; box-sizing: border-box; padding: 4vmin 5vmin 4.4vmin;
+    display: grid; grid-template-columns: 27vmin 1fr 27vmin; grid-template-rows: auto auto 1fr auto; column-gap: 3vmin; row-gap: 2.2vmin;
+    grid-template-areas: "hd hd hd" "h h h" "spl mid spr" "code keys keys"; }
+  .hd { grid-area: hd; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; font-weight: 600; font-size: 1.7vmin; letter-spacing: .22em; text-transform: uppercase; color: #3E424A; white-space: nowrap; }
+  .hd b { font-style: italic; font-weight: 700; font-size: 2.6vmin; letter-spacing: .2em; color: var(--ink); }
+  .h { grid-area: h; font-weight: 700; font-style: italic; font-size: 10vmin; line-height: .95; letter-spacing: -.02em; text-transform: uppercase; white-space: nowrap; }
+  .h span { color: var(--red); }
+
+  .spk { position: relative; align-self: center; justify-self: center; width: 27vmin; height: 27vmin; border-radius: 50%;
+    background: conic-gradient(from 20deg, #F4F5F7, #8D929A 12%, #EDEFF2 25%, #7E838B 40%, #F1F2F4 55%, #8A8F97 72%, #E9EBEE 86%, #F4F5F7);
+    box-shadow: 0 .6vmin 1.2vmin rgba(0,0,0,.28); }
+  .spl { grid-area: spl; } .spr { grid-area: spr; }
+  .spk::before { content: ""; position: absolute; inset: 1.6vmin; border-radius: 50%;
+    background: radial-gradient(circle, #0B0B0D 0 34%, rgba(11,11,13,0) 40%) 0 0 / 1.3vmin 1.3vmin, #3A3C41; box-shadow: inset 0 .6vmin 1.2vmin rgba(0,0,0,.7); }
+  .spk::after { content: ""; position: absolute; left: 50%; top: 50%; width: 30%; height: 30%; transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(circle at 38% 34%, #6A6D74, #1A1B1E 60%); box-shadow: 0 0 0 .5vmin rgba(0,0,0,.6), 0 0 0 1vmin rgba(160,164,172,.35); }
+
+  .mid { grid-area: mid; align-self: center; display: flex; flex-direction: column; gap: 1.8vmin; min-width: 0; }
+  .lcd { background: #17130C; box-shadow: inset 0 0 0 .4vmin #2B2E33, inset 0 .8vmin 1.4vmin rgba(0,0,0,.8); padding: 1.6vmin 2vmin 1.8vmin; color: var(--amb); text-shadow: 0 0 1vmin rgba(255,178,58,.55); }
+  .lcd .r { display: flex; justify-content: space-between; font-weight: 600; font-size: 1.7vmin; letter-spacing: .14em; white-space: nowrap; }
+  .lcd .big { font-weight: 700; font-size: 9vmin; line-height: 1; letter-spacing: -.02em; margin: .6vmin 0 .4vmin; white-space: nowrap; }
+  .eq { display: flex; justify-content: space-between; height: 7vmin; }
+  .eq i { position: relative; width: .5vmin; height: 100%; background: #555A62; }
+  .eq i::after { content: ""; position: absolute; left: 50%; top: var(--p); width: 2.6vmin; height: 1.2vmin; transform: translate(-50%, -50%); background: linear-gradient(180deg, #F6F7F9, #9CA1A9); box-shadow: 0 .2vmin .4vmin rgba(0,0,0,.4), inset 0 -.25vmin 0 var(--ink); }
+
+  .code { grid-area: code; align-self: center; justify-self: center; text-align: center; font-weight: 600; font-size: 1.7vmin; letter-spacing: .18em; text-transform: uppercase; color: #3E424A; white-space: nowrap; }
+  .code b { display: block; font-weight: 700; font-size: 3.2vmin; letter-spacing: .08em; color: var(--ink); background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 .3vmin var(--ink); padding: .8vmin 1.4vmin; margin-top: .6vmin; }
+  .keys { grid-area: keys; display: flex; gap: 1vmin; }
+  .key { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4vmin; height: 9vmin; background: linear-gradient(180deg, #F3F4F6, #B6BAC1); box-shadow: 0 .5vmin 0 #7C8189, 0 .8vmin 1vmin rgba(0,0,0,.25); font-weight: 700; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .key svg { width: 3.4vmin; height: 2vmin; }
+  .key.play { flex: 1.9; background: linear-gradient(180deg, #F2554B, #C2231D); color: #fff; box-shadow: 0 .5vmin 0 #7E1511, 0 .8vmin 1vmin rgba(0,0,0,.25); font-size: 2vmin; }
+  .key.play svg path { fill: #fff; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 62vmin); }
+    .front { height: 62vmin; padding: 3.4vmin 10vmin 3.8vmin; grid-template-columns: 24vmin 1fr 24vmin; row-gap: 1.8vmin; }
+    .spk { width: 24vmin; height: 24vmin; }
+    .h { font-size: 9vmin; }
+    .lcd .big { font-size: 8vmin; }
+    .eq { height: 5.6vmin; }
+    .key { height: 8vmin; }
+  }
+
+  /* square: photo left, boombox front stacked on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; bottom: 0; height: 100%; width: 46%; }
+    .photo::after { left: auto; top: 0; width: 1.4vmin; height: 100%; }
+    .front { left: 46%; top: 0; height: 100%; padding: 5vmin 5vmin 5vmin 5vmin; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto 1fr auto; column-gap: 3vmin; row-gap: 2.4vmin;
+      grid-template-areas: "hd hd" "h h" "spl spr" "mid mid" "keys keys"; }
+    .hd .m { display: none; }
+    .h { font-size: 7.4vmin; white-space: normal; }
+    .spk { width: 19vmin; height: 19vmin; }
+    .spk::before { inset: 1.2vmin; }
+    .mid { flex-direction: row; align-items: stretch; gap: 2.4vmin; }
+    .lcd { flex: 1.5; padding: 1.4vmin 1.8vmin; }
+    .lcd .big { font-size: 7.4vmin; }
+    .eq { flex: 1; height: auto; min-height: 12vmin; }
+    .code { display: none; }
+    .key { height: 8vmin; font-size: 1.6vmin; }
+    .key.x { display: none; }
+  }
+  /* wide: the photo is the deck between the speakers */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 29%; right: auto; width: 42%; height: 100%; }
+    .photo::after { display: none; }
+    .photo { box-shadow: 0 0 0 1.4vmin var(--ink); }
+    .front { left: 0; right: 0; top: 0; height: 100%; padding: 5vmin 4.6vmin; grid-template-columns: calc(29% - 7.6vmin) 1fr calc(29% - 7.6vmin); column-gap: 7.6vmin; row-gap: 2.6vmin;
+      grid-template-rows: auto auto 1fr auto; grid-template-areas: "hd . mid" "h . mid" "spl . spr" "code . keys"; }
+    .hd { flex-direction: column; align-items: flex-start; gap: .8vmin; }
+    .hd .m { display: block; font-size: 1.6vmin; letter-spacing: .12em; }
+    .h { font-size: 6.4vmin; line-height: 1; }
+    .spk { width: 29vmin; height: 29vmin; }
+    .spk::before { inset: 1.8vmin; }
+    .mid { flex-direction: column; align-self: start; gap: 1.8vmin; }
+    .lcd .big { font-size: 7vmin; }
+    .eq { height: 5.6vmin; min-height: 0; flex: none; }
+    .code { display: block; justify-self: stretch; text-align: left; }
+    .code b { text-align: center; }
+    .key { height: 7.6vmin; }
+    .key.x, .key.f { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="front">
+    <div class="hd"><b>Soundsystem</b><span class="m">Stereo radio cassette · SS-40</span></div>
+    <div class="h">Turn it <span>up.</span></div>
+    <div class="spk spl"></div>
+    <div class="mid">
+      <div class="lcd">
+        <div class="r"><span>▶ Side A</span><span>Tr 01</span></div>
+        <div class="big">−40%</div>
+        <div class="r"><span>The drop · all week</span></div>
+      </div>
+      <div class="eq"><i style="--p:62%"></i><i style="--p:34%"></i><i style="--p:18%"></i><i style="--p:40%"></i><i style="--p:28%"></i><i style="--p:55%"></i><i style="--p:70%"></i></div>
+    </div>
+    <div class="spk spr"></div>
+    <div class="code">Code<b>BASS40</b></div>
+    <div class="keys">
+      <div class="key x"><svg viewBox="0 0 34 20"><path d="M16 2 L2 10 L16 18 Z M32 2 L18 10 L32 18 Z" fill="#121316"/></svg>Rew</div>
+      <div class="key play"><svg viewBox="0 0 34 20"><path d="M11 1 L27 10 L11 19 Z" fill="#121316"/></svg>Play · shop now</div>
+      <div class="key f"><svg viewBox="0 0 34 20"><path d="M2 2 L16 10 L2 18 Z M18 2 L32 10 L18 18 Z" fill="#121316"/></svg>FF</div>
+      <div class="key"><svg viewBox="0 0 34 20"><path d="M10 3 H24 V17 H10 Z" fill="#121316"/></svg>Stop</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

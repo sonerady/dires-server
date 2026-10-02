@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Fit Lab Report — the collection's fitting sessions filed as a lab test sheet: report number, a grid of
+     eight size boxes all ticked "pass" with the number of fittings each, a totals line, and a round green
+     rubber stamp "Fit Lab · Approved" struck across the sheet. Real people, every size.
+     tall → photo above the report · square / wide → photo left, report right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECF0E8; }
+  .banner { --panel: max(80vmin, 47%); --ink: #123A2E; --stamp: #1E8A5A; position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Space Mono", Menlo, monospace;
+    background: #ECF0E8 repeating-linear-gradient(0deg, transparent 0 3.4vmin, rgba(18,58,46,.07) 3.4vmin calc(3.4vmin + 1px)); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+  .stamp { position: absolute; right: 4vmin; top: calc(100% - var(--panel) + 11vmin); width: 17vmin; height: 17vmin; transform: rotate(-14deg); z-index: 3; mix-blend-mode: multiply; opacity: .92; }
+  .stamp svg { width: 100%; height: 100%; overflow: visible; }
+  .stamp text { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 800; fill: var(--stamp); }
+
+  .panel { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.6vmin; height: calc(var(--panel) - 9vmin); display: flex; flex-direction: column; }
+  .bar { display: flex; justify-content: space-between; gap: 3vmin; background: var(--ink); color: #ECF0E8; padding: 1.2vmin 2vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .meta { display: flex; gap: 4vmin; margin-top: 1.4vmin; font-size: 1.7vmin; color: #3F6357; }
+  h1 { align-self: flex-start; margin: 2.4vmin 0 0; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 12.4vmin; line-height: .86; letter-spacing: .005em; text-transform: uppercase; }
+  h1 em { font-style: normal; color: var(--stamp); }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 3vmin; border-top: 1px solid var(--ink); border-left: 1px solid var(--ink); }
+  .grid div { display: flex; align-items: center; gap: 1.4vmin; padding: 2vmin 1.4vmin; border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink); background: rgba(255,255,255,.4); }
+  .grid i { flex: none; position: relative; width: 3.2vmin; height: 3.2vmin; border: .3vmin solid var(--ink); box-sizing: border-box; }
+  .grid i::after { content: ""; position: absolute; left: .7vmin; top: -.9vmin; width: 1.2vmin; height: 2.6vmin; border-right: .6vmin solid var(--stamp); border-bottom: .6vmin solid var(--stamp); transform: rotate(40deg); }
+  .grid b { display: block; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 800; font-size: 4.2vmin; line-height: .9; }
+  .grid small { display: block; font-size: 1.6vmin; color: #3F6357; white-space: nowrap; }
+  .total { display: flex; justify-content: space-between; gap: 2vmin; margin-top: 1.6vmin; font-size: 1.8vmin; letter-spacing: .04em; }
+  .total b { color: var(--stamp); }
+  .foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .sig { font-size: 1.7vmin; color: #3F6357; line-height: 1.4; }
+  .sig span { display: block; min-width: 26vmin; padding-bottom: .6vmin; margin-bottom: .6vmin; border-bottom: 1px solid var(--ink); font-style: italic; font-size: 2.4vmin; color: var(--ink); }
+  .cta { flex: none; background: var(--stamp); color: #fff; padding: 1.9vmin 2.8vmin; font-weight: 700; font-size: 2.1vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 76vmin; }
+    .panel { bottom: 4vmin; height: calc(var(--panel) - 8vmin); }
+    h1 { margin-top: 2vmin; font-size: 11vmin; }
+    .grid { margin-top: 2.4vmin; }
+    .grid div { padding: 1.1vmin 1.2vmin; }
+    .stamp { width: 16vmin; height: 16vmin; top: calc(100% - var(--panel) + 11vmin); }
+    .grid b { font-size: 3.8vmin; }
+  }
+  /* square → photo left, report right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 45%; height: 100%; }
+    .stamp { right: auto; top: auto; left: calc(45% + 5vmin); bottom: 2vmin; width: 17vmin; height: 17vmin; }
+    .panel { left: calc(45% + 4.6vmin); right: 4.6vmin; top: 4.6vmin; bottom: 4.6vmin; height: auto; }
+    .bar { font-size: 1.6vmin; padding: 1.1vmin 1.6vmin; }
+    .meta { flex-direction: column; gap: .3vmin; font-size: 1.6vmin; }
+    h1 { font-size: 8.6vmin; }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .grid div { padding: 1vmin 1.4vmin; }
+    .grid b { font-size: 3.4vmin; }
+    .total { flex-direction: column; gap: .2vmin; font-size: 1.7vmin; }
+    .foot { justify-content: flex-end; }
+    .sig { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 50% 28%; }
+    .stamp { left: calc(42% + 48vmin); bottom: 17vmin; width: 21vmin; height: 21vmin; }
+    .panel { left: calc(42% + 5.4vmin); right: 5.4vmin; top: 5.4vmin; bottom: 5.4vmin; }
+    .bar { font-size: 1.8vmin; }
+    .meta { flex-direction: row; gap: 4vmin; }
+    h1 { font-size: 11.4vmin; }
+    .grid { grid-template-columns: repeat(4, 1fr); }
+    .total { flex-direction: row; font-size: 1.8vmin; }
+    .sig { display: block; }
+    .foot { justify-content: space-between; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="stamp"><svg viewBox="0 0 100 100">
+    <defs><path id="ring" d="M50 50 m-37 0 a37 37 0 1 1 74 0 a37 37 0 1 1 -74 0"/></defs>
+    <circle cx="50" cy="50" r="47" fill="none" stroke="#1E8A5A" stroke-width="3"/>
+    <circle cx="50" cy="50" r="28" fill="none" stroke="#1E8A5A" stroke-width="1.4"/>
+    <text font-size="10.5" letter-spacing="2.2"><textPath href="#ring">FIT LAB · APPROVED · EVERY SIZE ·</textPath></text>
+    <text x="50" y="49" font-size="15" text-anchor="middle">PASS</text>
+    <text x="50" y="62" font-size="8" text-anchor="middle" letter-spacing="1">XS–4XL</text>
+  </svg></div>
+  <div class="panel">
+    <div class="bar"><span>Fit lab report</span><span>Nº 0426</span></div>
+    <div class="meta"><span>Atelier Nord · AW collection</span><span>Filed 12.10</span></div>
+    <h1>Fit-tested on<br><em>real</em> people.</h1>
+    <div class="grid">
+      <div><i></i><span><b>XS</b><small>14 fittings</small></span></div>
+      <div><i></i><span><b>S</b><small>14 fittings</small></span></div>
+      <div><i></i><span><b>M</b><small>14 fittings</small></span></div>
+      <div><i></i><span><b>L</b><small>14 fittings</small></span></div>
+      <div><i></i><span><b>XL</b><small>14 fittings</small></span></div>
+      <div><i></i><span><b>2XL</b><small>14 fittings</small></span></div>
+      <div><i></i><span><b>3XL</b><small>14 fittings</small></span></div>
+      <div><i></i><span><b>4XL</b><small>14 fittings</small></span></div>
+    </div>
+    <div class="total"><span>112 fittings · 8 sizes</span><span>Result: <b>all pass</b></span></div>
+    <div class="foot"><div class="sig"><span>R. Okafor</span>Head of fit</div><span class="cta">Shop tested fits</span></div>
+  </div>
+</div>
+</body>
+</html>

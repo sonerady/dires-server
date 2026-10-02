@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Studio Week — the studio's weekly class board: pastel class blocks by day and hour, and the launch
+     booked in as one terracotta block spanning two slots. tall → photo above, board below ·
+     3:4/square → photo left, three-day board · wide → photo left, full five-day board */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EFE8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4EFE8; color: #2B2622; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .board { position: absolute; left: 0; right: 0; bottom: 0; height: 86vmin; box-sizing: border-box; padding: 4.4vmin 6vmin 5vmin; display: flex; flex-direction: column; }
+
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .head .live { display: flex; align-items: center; gap: 1vmin; color: #B5543A; }
+  .head .live i { width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #B5543A; box-shadow: 0 0 0 .6vmin rgba(181,84,58,.18); }
+  h1 { margin: 2.4vmin 0 0; font-family: "Young Serif", Georgia, serif; font-weight: 400; font-size: 9.4vmin; line-height: .98; letter-spacing: -.025em; }
+  h1 span { color: #B5543A; }
+
+  .week { flex: 1; min-height: 0; display: flex; gap: 1.2vmin; margin-top: 3.6vmin; }
+  .col { flex: 1; min-width: 0; display: grid; grid-template-rows: 4.6vmin repeat(3, 1fr); gap: 1vmin; }
+  .times { flex: none; width: 7.4vmin; }
+  .dh { display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: .6vmin; border-bottom: .3vmin solid #2B2622; font-size: 1.6vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .dh b { font-family: "Young Serif", Georgia, serif; font-weight: 400; font-size: 2.2vmin; letter-spacing: 0; line-height: 1; }
+  .times .dh { border-bottom-color: transparent; }
+  .t { padding-top: .8vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .04em; color: #6E655D; border-top: 1px solid rgba(43,38,34,.2); }
+  .s { display: flex; flex-direction: column; justify-content: space-between; padding: 1.2vmin 1.3vmin; border-radius: 1.4vmin; font-style: normal; font-size: 1.9vmin; font-weight: 700; line-height: 1.1; overflow: hidden; }
+  .s small { font-size: 1.6vmin; font-weight: 500; color: rgba(43,38,34,.66); }
+  .sage { background: #CDD7C1; } .blush { background: #EDD2C6; } .sand { background: #EADDBE; } .lilac { background: #DAD3E9; }
+  .off { border: 1px dashed rgba(43,38,34,.24); }
+  .launch { grid-row: span 2; background: #B5543A; color: #FBF3EC; position: relative; }
+  .launch small { color: rgba(251,243,236,.82); }
+  .launch em { font-style: normal; font-size: 1.6vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .launch strong { font-family: "Young Serif", Georgia, serif; font-weight: 400; font-size: 2.8vmin; line-height: 1.02; margin-top: auto; margin-bottom: .8vmin; }
+
+  .foot { margin-top: 3.4vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 1.9vmin; line-height: 1.4; color: #4A423B; }
+  .offer b { color: #2B2622; font-weight: 700; }
+  .cta { flex: none; padding: 1.9vmin 3.2vmin; border-radius: 99vmin; background: #2B2622; color: #F4EFE8; font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 78vmin); }
+    .board { height: 78vmin; padding-top: 4vmin; padding-bottom: 4.4vmin; }
+    h1 { font-size: 8.4vmin; margin-top: 2vmin; }
+    .week { margin-top: 3vmin; }
+    .foot { margin-top: 2.8vmin; }
+  }
+  /* ── 3:4 → photo left, three-day board ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 22%; }
+    .board { left: 46%; top: 0; height: auto; padding: 6vmin 5vmin 5.4vmin; }
+    .head span:first-child { display: none; }
+    h1 { font-size: 8vmin; margin-top: 3vmin; }
+    .d1, .d2 { display: none; }
+    .week { margin-top: 4.6vmin; }
+    .col { grid-template-rows: 4.6vmin repeat(3, 1fr); }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; margin-top: 4vmin; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 42%; }
+    .board { left: 42%; padding: 5vmin 5vmin 5vmin 5vmin; }
+    h1 { font-size: 7.4vmin; margin-top: 2.4vmin; }
+    .week { margin-top: 3.4vmin; }
+    .launch strong { font-size: 2.6vmin; }
+    .foot { flex-direction: row; align-items: center; margin-top: 3.2vmin; }
+    .offer { font-size: 1.7vmin; }
+  }
+  /* ── wide → full five-day board ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; object-position: 70% 30%; }
+    .board { left: 40%; padding: 5.6vmin 6vmin 5.6vmin 5.6vmin; }
+    .head span:first-child { display: inline; }
+    h1 { font-size: 8.6vmin; margin-top: 2.4vmin; }
+    .d1, .d2 { display: grid; }
+    .week { margin-top: 3.6vmin; }
+    .foot { margin-top: 3.4vmin; }
+    .offer { font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) — the studio board refreshing for the week ─────────
+     constant: the "Now booking" dot pings every 1.5 s · 0.9 s the class blocks ripple Mon → Fri (a small lift + light
+     catch, cascading across the grid) · 2.6 s the launch block presses forward and a light sweeps across it ·
+     3.3 s the empty dashed slots get "booked" (they fill with a soft terracotta tint and clear again) ·
+     4.3 s "re-dressed." wipes out & back · 5.2 s a glint crosses the CTA */
+  .head .live i { position: relative; animation: dotp 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  .head .live i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #B5543A; opacity: 0; animation: ring 1.5s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes dotp { 0%, 100% { box-shadow: 0 0 0 .6vmin rgba(181,84,58,.18); } 50% { box-shadow: 0 0 0 .3vmin rgba(181,84,58,.1); } }
+  @keyframes ring { 0% { opacity: 0; transform: scale(1); } 8% { opacity: .5; transform: scale(1.2); } 70%, 100% { opacity: 0; transform: scale(3); } }
+
+  .s { animation: ripple 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes ripple { 0%, 8%, 100% { transform: translateY(0); filter: brightness(1); } 3% { transform: translateY(-.7vmin); filter: brightness(1.06); } }
+  .d1 .s:nth-child(2) { animation-delay: -5.1s; }
+  .d1 .s:nth-child(3) { animation-delay: -5.01s; }
+  .d1 .s:nth-child(4) { animation-delay: -4.92s; }
+  .d2 .s:nth-child(2) { animation-delay: -4.98s; }
+  .d2 .s:nth-child(3) { animation-delay: -4.89s; }
+  .d2 .s:nth-child(4) { animation-delay: -4.8s; }
+  .d3 .s:nth-child(2) { animation-delay: -4.86s; }
+  .d3 .s:nth-child(3) { animation-delay: -4.77s; }
+  .d3 .s:nth-child(4) { animation-delay: -4.68s; }
+  .d4 .s:nth-child(2) { animation-delay: -4.74s; }
+  .d4 .s:nth-child(3) { animation-delay: -4.65s; }
+  .d4 .s:nth-child(4) { animation-delay: -4.56s; }
+  .d5 .s:nth-child(2) { animation-delay: -4.62s; }
+  .d5 .s:nth-child(3) { animation-delay: -4.53s; }
+  .d5 .s:nth-child(4) { animation-delay: -4.44s; }
+
+  .s.off { animation-name: book; }
+  @keyframes book {
+    0%, 36%, 100% { transform: translateY(0); background-color: rgba(181,84,58,0); border-color: rgba(43,38,34,.24); }
+    40% { transform: translateY(0); background-color: rgba(181,84,58,.34); border-color: rgba(181,84,58,.7); }
+    48% { transform: translateY(0); background-color: rgba(181,84,58,.26); border-color: rgba(181,84,58,.55); }
+    56% { transform: translateY(0); background-color: rgba(181,84,58,0); border-color: rgba(43,38,34,.24); }
+  }
+  .d1 .s.off { animation-delay: -3.06s; } .d2 .s.off { animation-delay: -3.0s; } .d3 .s.off { animation-delay: -2.88s; } .d5 .s.off { animation-delay: -2.76s; }
+
+  .d4 .s.launch { animation: launch 6s cubic-bezier(.3,0,.3,1) infinite; animation-delay: 0s; }
+  @keyframes launch {
+    0%, 42%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(181,84,58,0); }
+    46% { transform: scale(1.045); box-shadow: 0 1.4vmin 2.8vmin rgba(181,84,58,.38); }
+    52% { transform: scale(.995); box-shadow: 0 .4vmin 1vmin rgba(181,84,58,.2); }
+    58% { transform: scale(1); box-shadow: 0 0 0 rgba(181,84,58,0); }
+  }
+  .s.launch::after { content: ""; position: absolute; inset: -20% 0; pointer-events: none;
+    background: linear-gradient(170deg, transparent 35%, rgba(255,236,222,.35) 50%, transparent 65%); transform: translateY(-110%); animation: sweep 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes sweep { 0%, 43% { transform: translateY(-110%); } 60%, 100% { transform: translateY(110%); } }
+
+  h1 span { display: inline-block; animation: wipe 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes wipe {
+    0%, 70%, 100% { clip-path: inset(-12% -4% -20% 0); transform: translateX(0); }
+    75% { clip-path: inset(-12% 104% -20% 0); transform: translateX(0); }
+    76% { clip-path: inset(-12% -4% -20% 100%); transform: translateX(-1.4vmin); }
+    84% { clip-path: inset(-12% -4% -20% 0); transform: translateX(0); }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; pointer-events: none;
+    background: linear-gradient(100deg, transparent 20%, rgba(244,239,232,.35) 50%, transparent 80%);
+    transform: translateX(-120%); animation: glint 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes glint { 0%, 86%, 100% { transform: translateX(-120%); } 98% { transform: translateX(330%); } 98.1% { transform: translateX(-120%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="board">
+    <div class="head"><span>Studio Nº 4 · Week 41</span><span class="live"><i></i>Now booking</span></div>
+    <h1>Your week,<br><span>re-dressed.</span></h1>
+    <div class="week">
+      <div class="col times"><span class="dh"></span><span class="t">07:00</span><span class="t">12:30</span><span class="t">18:30</span></div>
+      <div class="col d1"><span class="dh">Mon<b>06</b></span><i class="s sage">Vinyasa<small>60 min</small></i><i class="s off"></i><i class="s sand">Yin<small>75 min</small></i></div>
+      <div class="col d2"><span class="dh">Tue<b>07</b></span><i class="s off"></i><i class="s blush">Barre<small>45 min</small></i><i class="s lilac">Hatha<small>60 min</small></i></div>
+      <div class="col d3"><span class="dh">Wed<b>08</b></span><i class="s lilac">Pilates<small>50 min</small></i><i class="s sage">Flow<small>45 min</small></i><i class="s off"></i></div>
+      <div class="col d4"><span class="dh">Thu<b>09</b></span><i class="s launch"><em>10:00</em><strong>The<br>drop</strong><small>Online · all day</small></i><i class="s blush">Restore<small>90 min</small></i></div>
+      <div class="col d5"><span class="dh">Fri<b>10</b></span><i class="s sand">Sculpt<small>45 min</small></i><i class="s off"></i><i class="s sage">Vinyasa<small>60 min</small></i></div>
+    </div>
+    <div class="foot">
+      <div class="offer">New activewear from <b>$38</b><br>Members <b>−15%</b> all week</div>
+      <div class="cta">Book your look →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

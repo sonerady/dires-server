@@ -25,6 +25,7 @@ router.use((req, res, next) => {
 router.use(require('./adminGenerationDetailRoutes')(db));
 router.use(require('./adminUserWorkRoutes')(db));
 router.use(require("./adminBannerRoutes")(db));
+router.use(require("./adminBannerGalleryRoutes")(db));
 router.use(require("./adminAnalyticsRoutes")(db));
 
 // Enrich a kit-style row (product_kits / product_stories / product_unboxing_stories)

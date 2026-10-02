@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Sole Print — a gum-rubber outsole pressed onto paper like an ink stamp: herringbone tread,
+     pivot rings at the forefoot, a separate heel pad, speckled where the ink didn't take, with a
+     measured dimension line. The print runs off the page; the offer is a rubber-stamped box.
+     tall → photo above the print; 3:4 and wider → print panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE9DD; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFE9DD; color: #171512; font-family: "Space Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 86vmin; overflow: hidden; }
+  .sole { position: absolute; width: 128vmin; height: 59.7vmin; left: 4vmin; bottom: -13vmin; transform: rotate(-7deg); transform-origin: 30% 60%; }
+  .sole svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .kick { position: absolute; left: 5vmin; right: 5vmin; top: 4.4vmin; display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .kick b { color: #A5642A; font-weight: 700; }
+  h1 { position: absolute; left: 4.4vmin; top: 8.6vmin; margin: 0; font-family: "Bricolage Grotesque", "Arial Narrow", sans-serif; font-variation-settings: "opsz" 96; font-stretch: 75%; font-weight: 800; font-size: 17vmin; line-height: .8; letter-spacing: -.04em; text-transform: uppercase; }
+  h1 span { display: block; }
+  h1 span + span { margin-left: 13vmin; }
+  .stamp { position: absolute; right: 5vmin; top: 11vmin; transform: rotate(4deg); border: .5vmin solid #A5642A; outline: .25vmin solid #A5642A; outline-offset: .6vmin; color: #A5642A; padding: 1.2vmin 1.8vmin; text-align: center; text-transform: uppercase; background: rgba(239,233,221,.9); }
+  .stamp strong { display: block; font-family: "Bricolage Grotesque", sans-serif; font-stretch: 75%; font-weight: 800; font-size: 6.4vmin; line-height: .9; }
+  .stamp span { display: block; margin-top: .6vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .12em; white-space: nowrap; }
+  .cta { position: absolute; left: 5vmin; top: 37vmin; display: flex; align-items: center; gap: 1.6vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; background: #171512; color: #EFE9DD; padding: 1.4vmin 2vmin; }
+
+  /* 3:4 / 4:5 → print panel left, photo right */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { right: 50%; top: 0; height: auto; }
+    .kick { left: 4vmin; right: 4vmin; flex-direction: column; gap: .6vmin; }
+    h1 { left: 3.6vmin; top: 11vmin; font-size: 13.4vmin; }
+    h1 span + span { margin-left: 0; }
+    .stamp { right: auto; left: 5vmin; top: 42vmin; transform: rotate(-3deg); }
+    .stamp strong { font-size: 5.6vmin; }
+    .cta { left: 4vmin; top: 60vmin; }
+    .sole { width: 110vmin; height: 51.3vmin; left: -24vmin; bottom: 8vmin; transform: rotate(-70deg); transform-origin: 50% 50%; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .kick { font-size: 1.6vmin; }
+    h1 { top: 10.8vmin; font-size: 12.4vmin; }
+    .stamp { left: 4.6vmin; top: 38vmin; transform: rotate(-3deg); padding: 1vmin 1.4vmin; }
+    .stamp strong { font-size: 4.8vmin; }
+    .stamp span { font-size: 1.6vmin; letter-spacing: .06em; }
+    .cta { left: 4vmin; top: 53vmin; font-size: 1.7vmin; padding: 1.2vmin 1.6vmin; }
+    .sole { width: 90vmin; height: 42vmin; left: -4vmin; bottom: -9vmin; transform: rotate(-14deg); }
+  }
+  /* wide → photo 48% right */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 50% 30%; }
+    .panel { right: 48%; }
+    .kick { left: 5vmin; right: 5vmin; font-size: 1.7vmin; flex-direction: row; }
+    h1 { left: 4.6vmin; top: 9vmin; font-size: 15vmin; }
+    h1 span + span { margin-left: 11vmin; }
+    .stamp { left: auto; right: 5vmin; top: 12vmin; transform: rotate(4deg); padding: 1.2vmin 1.8vmin; }
+    .stamp strong { font-size: 5.6vmin; }
+    .stamp span { font-size: 1.7vmin; letter-spacing: .1em; }
+    .cta { left: 5vmin; top: 37vmin; font-size: 1.9vmin; padding: 1.4vmin 2vmin; }
+    .sole { width: 104vmin; height: 48.5vmin; left: -8vmin; bottom: -6vmin; transform: rotate(-8deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="sole">
+      <svg viewBox="0 0 300 140" aria-hidden="true">
+        <defs>
+          <pattern id="hb" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+            <path d="M0 0 L3.5 3.5 L7 0 M0 3.5 L3.5 7 L7 3.5" fill="none" stroke="#EFE9DD" stroke-width="1.3"/>
+          </pattern>
+          <clipPath id="c"><path d="M22 80 C22 50 44 34 72 36 C104 38 124 52 158 48 C198 42 244 30 272 48 C294 62 294 98 272 112 C244 130 198 118 158 112 C124 108 104 124 72 124 C44 126 22 110 22 80 Z" transform="translate(157 80) scale(.93) translate(-157 -80)"/></clipPath>
+          <filter id="ink" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="3" seed="11" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -3 0 0 0 2.45" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter>
+        </defs>
+        <g filter="url(#ink)">
+          <path d="M22 80 C22 50 44 34 72 36 C104 38 124 52 158 48 C198 42 244 30 272 48 C294 62 294 98 272 112 C244 130 198 118 158 112 C124 108 104 124 72 124 C44 126 22 110 22 80 Z" fill="#A8692F"/>
+          <path d="M22 80 C22 50 44 34 72 36 C104 38 124 52 158 48 C198 42 244 30 272 48 C294 62 294 98 272 112 C244 130 198 118 158 112 C124 108 104 124 72 124 C44 126 22 110 22 80 Z" transform="translate(157 80) scale(.955) translate(-157 -80)" fill="none" stroke="#EFE9DD" stroke-width="1.4"/>
+          <g clip-path="url(#c)">
+            <rect x="0" y="0" width="300" height="140" fill="url(#hb)"/>
+            <!-- heel pad -->
+            <rect x="20" y="30" width="78" height="100" fill="#A8692F"/>
+            <path d="M28 52 H96 M28 60 H96 M28 68 H96 M28 76 H96 M28 84 H96 M28 92 H96 M28 100 H96 M28 108 H96" stroke="#EFE9DD" stroke-width="2.2"/>
+            <path d="M98 30 V130" stroke="#EFE9DD" stroke-width="3"/>
+            <!-- arch flex grooves -->
+            <path d="M130 40 V124 M142 40 V124" stroke="#EFE9DD" stroke-width="2.4"/>
+            <!-- pivot at the forefoot -->
+            <circle cx="232" cy="80" r="23" fill="#A8692F"/>
+            <circle cx="232" cy="80" r="23" fill="none" stroke="#EFE9DD" stroke-width="1.6"/>
+            <circle cx="232" cy="80" r="17" fill="none" stroke="#EFE9DD" stroke-width="1.6"/>
+            <circle cx="232" cy="80" r="11" fill="none" stroke="#EFE9DD" stroke-width="1.6"/>
+            <circle cx="232" cy="80" r="5" fill="none" stroke="#EFE9DD" stroke-width="1.6"/>
+          </g>
+        </g>
+        <!-- dimension line -->
+        <g stroke="#171512" stroke-width=".6" fill="none">
+          <path d="M22 16 H286 M22 11 V21 M286 11 V21"/>
+          <path d="M22 16 L27 13.5 M22 16 L27 18.5 M286 16 L281 13.5 M286 16 L281 18.5"/>
+        </g>
+        <text x="154" y="12" text-anchor="middle" font-family="Space Mono, monospace" font-weight="700" font-size="5.4" fill="#171512" style="paint-order:stroke" stroke="#EFE9DD" stroke-width="3">265 MM · EU 41</text>
+      </svg>
+    </div>
+    <div class="kick"><span>Outsole study <b>Nº 26</b></span><span>Herringbone / pivot</span></div>
+    <h1><span>Leave</span><span>a mark.</span></h1>
+    <div class="stamp"><strong>−25%</strong><span>Code MARK25</span></div>
+    <div class="cta">Shop the new season →</div>
+  </div>
+</div>
+</body>
+</html>

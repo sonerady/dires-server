@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,500;0,700;0,900;1,500&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Truchet Loop — a field of Truchet tiles: every square carries two quarter-circle bands, turned at random,
+     so the lines knot into endless loops (a few run in tomato). Photo and copy slab interlock on the pattern:
+     photo flush to one edge, slab flush to the other. tall & 3:4: photo top-right, slab bottom-left · square & wide: photo right, slab bottom-left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E9D8; }
+  .banner { --s: 12.5vmin; --w: 1.9vmin; --ground: #F3E9D8; --line: #1F3A5F; --hot: #E4572E; --slab: #1F3A5F;
+    position: fixed; inset: 0; overflow: hidden; background: var(--ground); color: var(--ground); font-family: "Red Hat Display", "Helvetica Neue", Arial, sans-serif; }
+  .tiles { position: absolute; left: 0; top: 0; display: grid; grid-template-columns: repeat(14, var(--s)); grid-auto-rows: var(--s); }
+  .tiles i { --k: var(--line); display: block;
+    background:
+      radial-gradient(circle at var(--p1), transparent 0 calc(var(--s) / 2 - var(--w)), var(--k) calc(var(--s) / 2 - var(--w)) calc(var(--s) / 2 + var(--w)), transparent calc(var(--s) / 2 + var(--w))),
+      radial-gradient(circle at var(--p2), transparent 0 calc(var(--s) / 2 - var(--w)), var(--k) calc(var(--s) / 2 - var(--w)) calc(var(--s) / 2 + var(--w)), transparent calc(var(--s) / 2 + var(--w))); }
+  .tiles .a { --p1: 0 0; --p2: 100% 100%; }
+  .tiles .b { --p1: 100% 0; --p2: 0 100%; }
+  .tiles .c { --k: var(--hot); }
+  .photo { position: absolute; left: var(--s); top: var(--s); width: calc(100% - var(--s)); height: calc(100% - 85vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .slab { position: absolute; left: 0; bottom: 10vmin; width: calc(100% - var(--s)); height: 50vmin; box-sizing: border-box; background: var(--slab);
+    padding: 4.6vmin 5vmin 4.4vmin 6vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-family: "Red Hat Mono", monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #C9D3E0; }
+  .kick span:last-child { color: var(--hot); }
+  h1 { margin: 2.6vmin 0 0; font-weight: 900; font-size: 10vmin; line-height: .9; letter-spacing: -.04em; }
+  h1 em { font-style: italic; font-weight: 500; color: #F2A541; }
+  .sub { margin-top: 2.2vmin; font-size: 2.1vmin; line-height: 1.42; color: #D6DDE7; max-width: 58vmin; }
+  .row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .price { font-size: 2vmin; font-weight: 500; white-space: nowrap; }
+  .price b { font-weight: 900; font-size: 5.2vmin; letter-spacing: -.03em; margin-right: 1vmin; color: var(--ground); }
+  .cta { padding: 1.7vmin 3vmin; border-radius: 99vmin; background: var(--hot); color: #fff; font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { top: 8vmin; height: calc(100% - 58vmin); }
+    .slab { bottom: 6vmin; height: 36vmin; padding: 3.4vmin 4.4vmin 3.4vmin 5vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 1.8vmin; }
+    .sub { margin-top: 1.6vmin; font-size: 1.9vmin; }
+    .price b { font-size: 4.4vmin; }
+  }
+  /* square & wide: photo flush top-right, slab flush bottom-left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; top: 0; width: 52%; height: calc(100% - 10vmin); }
+    .slab { left: 0; bottom: 0; width: calc(48% - 6vmin); height: 74vmin; padding: 4vmin 3.6vmin 4vmin 5vmin; }
+    .kick { flex-direction: column; gap: .6vmin; }
+    h1 { font-size: 7.4vmin; }
+    .sub { font-size: 1.8vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 60% 30%; }
+    .slab { width: calc(52% - 8vmin); height: 70vmin; padding: 4.4vmin 4.6vmin 4.4vmin 6vmin; }
+    .kick { flex-direction: row; }
+    h1 { font-size: 8.6vmin; }
+    .sub { font-size: 2vmin; }
+    .row { flex-direction: row; align-items: center; }
+  }
+  /* ───────── motion (6s loop) ─────────
+     the knot re-ties itself: three scattered sets of tiles turn a quarter-turn on a springy ease, twice each per loop
+     (2 × 90° = 180°, which maps a Truchet tile onto itself → seamless) · waves at ~0.9s, 2.1s, 3.3s, 4.5s ·
+     2.6s the italic line wipes out and back · CTA gets a light sweep at 5.1s, price nudges on the last wave */
+  .tiles i:nth-child(9n+4) { animation: turnA 6s cubic-bezier(.5,-.35,.3,1.35) infinite; }
+  .tiles i:nth-child(11n+7) { animation: turnB 6s cubic-bezier(.5,-.35,.3,1.35) infinite; }
+  .tiles i:nth-child(13n+2) { animation: turnC 6s cubic-bezier(.5,-.35,.3,1.35) infinite; }
+  .tiles i:nth-child(18n+4) { animation-delay: -.12s; }
+  .tiles i:nth-child(22n+7) { animation-delay: -.12s; }
+  .tiles i:nth-child(26n+2) { animation-delay: -.12s; }
+  @keyframes turnA { 0%, 14% { transform: rotate(0deg); } 24%, 64% { transform: rotate(90deg); } 74%, 100% { transform: rotate(180deg); } }
+  @keyframes turnB { 0%, 34% { transform: rotate(0deg); } 44%, 76% { transform: rotate(-90deg); } 86%, 100% { transform: rotate(-180deg); } }
+  @keyframes turnC { 0%, 4% { transform: rotate(0deg); } 14%, 54% { transform: rotate(90deg); } 64%, 100% { transform: rotate(180deg); } }
+
+  h1 em { display: inline-block; animation: em 6s cubic-bezier(.7,0,.25,1) infinite; }
+  @keyframes em {
+    0%, 40% { clip-path: inset(-12% -4% -18% 0); transform: translateX(0); }
+    46%, 49% { clip-path: inset(-12% 104% -18% 0); transform: translateX(-1.4vmin); }
+    58%, 100% { clip-path: inset(-12% -4% -18% 0); transform: translateX(0); }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.55) 50%, transparent 65%) no-repeat;
+    background-size: 250% 100%; background-position: 160% 0; animation: sweep 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes sweep { 0%, 80% { background-position: 160% 0; } 94%, 100% { background-position: -60% 0; } }
+  .price b { display: inline-block; transform-origin: 0 70%; animation: pop 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pop { 0%, 72%, 84%, 100% { transform: scale(1); } 76% { transform: scale(1.08); } 80% { transform: scale(.99); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="tiles"><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="a c"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="a c"></i><i class="a c"></i><i class="a c"></i><i class="b"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="a"></i><i class="a c"></i><i class="a"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="a c"></i><i class="a c"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a c"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="a"></i><i class="a c"></i><i class="a c"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a c"></i><i class="b c"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a c"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="a c"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a c"></i></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="slab">
+    <div class="kick"><span>Knotwork Goods</span><span>Loop 02</span></div>
+    <h1>Loop <br><em>the look.</em></h1>
+    <div class="sub">Endless combinations from a few good pieces. Turn one, and the whole look changes.</div>
+    <div class="row">
+      <div class="price"><b>2 for €80</b>mix &amp; match</div>
+      <div class="cta">Start looping →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

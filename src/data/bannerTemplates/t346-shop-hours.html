@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Shop Hours — the glass shop door of a Nordic boutique: white cut-vinyl wordmark, headline and an opening-hours
+     table on smoked glass with faint reflections, a brushed-steel pull bar and one round vinyl sticker for the offer
+     (late Thursday). tall → photo above the door; 3:4 and wider → door beside the photo, handle on the seam */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #283033; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #283033; color: #F2F0EA; font-family: "Jost", "Futura", "Century Gothic", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .door { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; background: #283033; box-sizing: border-box; padding: 6vmin 16vmin 5vmin 6vmin; display: flex; flex-direction: column; overflow: hidden;
+          border-top: 1.4vmin solid #16191A; }
+  /* reflections on the glass */
+  .door::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,.05) 18%, rgba(255,255,255,.05) 30%, transparent 30%, transparent 36%, rgba(255,255,255,.035) 36%, rgba(255,255,255,.035) 40%, transparent 40%),
+                linear-gradient(180deg, rgba(170,190,195,.12), transparent 60%); }
+  .bar { position: absolute; right: 6vmin; top: 12%; bottom: 12%; width: 2.6vmin; background: linear-gradient(90deg, #6F7678, #D9DDDC 35%, #9BA1A2 60%, #5D6466); box-shadow: -.6vmin .4vmin 1vmin rgba(0,0,0,.4); }
+  .bar::before, .bar::after { content: ""; position: absolute; left: 50%; width: 4.4vmin; height: 1.6vmin; margin-left: -4.4vmin; background: linear-gradient(180deg, #A9AFB0, #6A7173); }
+  .bar::before { top: 6%; } .bar::after { bottom: 6%; }
+
+  .mark { position: relative; align-self: flex-start; font-weight: 500; font-size: 3.2vmin; letter-spacing: .42em; text-transform: uppercase; white-space: nowrap; }
+  .mark span { display: block; margin-top: 1vmin; font-weight: 300; font-size: 1.8vmin; letter-spacing: .3em; opacity: .8; }
+  h1 { position: relative; margin: auto 0 0; font-weight: 300; font-size: 9.4vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 b { font-weight: 500; }
+
+  .hours { position: relative; margin-top: 4.6vmin; font-size: 2.3vmin; font-weight: 400; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+  .hours div { display: flex; justify-content: space-between; padding: 1vmin 0; border-top: 1px solid rgba(242,240,234,.3); white-space: nowrap; }
+  .hours div span:first-child { text-transform: uppercase; letter-spacing: .2em; font-size: 1.8vmin; align-self: center; }
+  .hours .late { font-weight: 600; }
+  .hours .late span:first-child::after { content: " ●"; color: #D6B25E; letter-spacing: 0; }
+
+  .sticker { position: absolute; right: 13vmin; top: 5vmin; width: 19vmin; height: 19vmin; border-radius: 50%; background: #D6B25E; color: #1F2426; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: rotate(-8deg); z-index: 2; }
+  .sticker small { line-height: 1.1; font-weight: 500; font-size: 1.6vmin; letter-spacing: .18em; text-transform: uppercase; }
+  .sticker strong { margin: .5vmin 0 .4vmin; font-weight: 600; font-size: 5.8vmin; line-height: .8; letter-spacing: -.03em; }
+  .foot { position: relative; margin-top: 3.4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; opacity: .85; }
+
+  /* 3:4 / 4:5 → door on the right, handle on the seam */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .door { left: 50%; top: 0; height: auto; border-top: 0; border-left: 1.2vmin solid #16191A; padding: 6vmin 4.4vmin 5vmin 12vmin; }
+    .bar { right: auto; left: 4vmin; top: 30%; bottom: 30%; }
+    .bar::before, .bar::after { margin-left: 0; left: -1.2vmin; width: 3.2vmin; }
+    .mark { font-size: 2.4vmin; letter-spacing: .3em; }
+    .mark span { font-size: 1.6vmin; letter-spacing: .2em; }
+    h1 { font-size: 7vmin; }
+    .hours { font-size: 2vmin; }
+    .hours div span:first-child { font-size: 1.6vmin; letter-spacing: .12em; }
+    .sticker { right: 4vmin; top: auto; bottom: 46%; width: 16vmin; height: 16vmin; }
+    .sticker strong { font-size: 4.8vmin; }
+    .foot { flex-direction: column; gap: 1vmin; font-size: 1.6vmin; letter-spacing: .14em; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .door { padding: 5vmin 4.4vmin 4.4vmin 10vmin; }
+    .bar { left: 3.6vmin; top: 28%; bottom: 28%; width: 2.2vmin; }
+    h1 { font-size: 6.2vmin; }
+    .hours { margin-top: 3vmin; font-size: 1.9vmin; }
+    .hours div { padding: .8vmin 0; }
+    .sticker { top: 20vmin; bottom: auto; right: 4.4vmin; width: 14vmin; height: 14vmin; }
+    .sticker strong { font-size: 4.2vmin; }
+    .sticker small { font-size: 1.5vmin; }
+    .foot { flex-direction: row; margin-top: 2.4vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 52%; object-position: 50% 28%; }
+    .door { left: 52%; padding: 5.4vmin 5vmin 4.6vmin 12vmin; }
+    .bar { left: 4.4vmin; width: 2.6vmin; }
+    .mark { font-size: 2.8vmin; letter-spacing: .38em; }
+    .mark span { font-size: 1.7vmin; }
+    h1 { font-size: 7.6vmin; }
+    .hours { font-size: 2vmin; margin-top: 3.4vmin; }
+    .hours div span:first-child { font-size: 1.7vmin; }
+    .sticker { right: 5vmin; top: 5vmin; width: 17vmin; height: 17vmin; }
+    .sticker strong { font-size: 5vmin; }
+    .foot { font-size: 1.7vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="door">
+    <div class="bar"></div>
+    <div class="mark">Lind &amp; Holm<span>Clothing · Est. 2011</span></div>
+    <div class="sticker"><small>Late Thu</small><strong>−20%</strong><small>After 18:00</small></div>
+    <h1>Open for<br><b>the new season.</b></h1>
+    <div class="hours">
+      <div><span>Mon – Wed</span><span>10 – 19</span></div>
+      <div class="late"><span>Thursday</span><span>10 – 21</span></div>
+      <div><span>Fri – Sat</span><span>10 – 18</span></div>
+      <div><span>Sunday</span><span>12 – 16</span></div>
+    </div>
+    <div class="foot"><span>Welcome in</span><span>Or shop online →</span></div>
+  </div>
+</div>
+</body>
+</html>

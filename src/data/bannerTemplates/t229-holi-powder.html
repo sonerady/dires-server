@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
+<style>
+  /* Holi Powder — the festival of colours: clouds of gulal (pink, saffron, green, violet) burst across the edge of a
+     clean white panel, with rough, grainy powder edges drawn by an SVG turbulence filter. Heavy grotesk, a pink
+     offer block. tall → photo above the panel; square/wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FBF7F2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FBF7F2; color: #17131A; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 74vmin); object-fit: cover; object-position: 50% 18%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100% - 74vmin); overflow: hidden; }
+  .powder { position: absolute; right: -14vmin; top: -10vmin; width: 74vmin; height: 90vmin; }
+  .powder { overflow: visible; }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; bottom: 6vmin; display: flex; flex-direction: column; align-items: flex-start; }
+  .k { font-size: 1.9vmin; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; background: #FBF7F2; padding: .6vmin 1vmin; margin-left: -1vmin; }
+  .k em { font-style: normal; color: #D6246E; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 800; font-size: 13vmin; line-height: .86; letter-spacing: -.045em; }
+  h1 span { display: block; }
+  .p { display: none; margin-top: 2.2vmin; font-size: 2.4vmin; font-weight: 500; line-height: 1.4; max-width: 44vmin; }
+  .offer { margin-top: auto; display: flex; align-items: stretch; }
+  .offer b { background: #D6246E; color: #fff; font-weight: 800; font-size: 7vmin; line-height: 1; padding: 1.4vmin 2.4vmin; letter-spacing: -.03em; }
+  .offer span { background: #17131A; color: #FBF7F2; font-size: 1.8vmin; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; line-height: 1.5; padding: 1.4vmin 2.2vmin; display: flex; align-items: center; }
+  .foot { margin-top: 2.4vmin; display: flex; align-items: center; gap: 2.4vmin; font-size: 2vmin; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  .foot .code { background: #FBF7F2; padding: .6vmin 0; white-space: nowrap; }
+  .foot .code em { font-style: normal; color: #D6246E; }
+  .foot .cta { border-bottom: .4vmin solid #17131A; padding-bottom: .5vmin; white-space: nowrap; background: #FBF7F2; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 62vmin); }
+    .panel { top: calc(100% - 62vmin); }
+    .copy { top: 4.6vmin; bottom: 4.6vmin; }
+    h1 { font-size: 11vmin; }
+    .p { display: none; }
+    .offer b { font-size: 6vmin; }
+    .powder { right: -12vmin; top: -14vmin; width: 64vmin; height: 80vmin; }
+  }
+  /* square / wide → photo left, panel right; powder bursts from the lower right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 48%; top: 0; }
+    .powder { right: -20vmin; top: auto; bottom: -22vmin; width: 70vmin; height: 80vmin; }
+    .copy { left: 5vmin; right: 5vmin; top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 9.4vmin; }
+    .p { display: block; font-size: 2.1vmin; max-width: 34vmin; }
+    .offer { flex-direction: column; }
+    .offer b { font-size: 6.4vmin; }
+    .offer span { padding: 1vmin 2.2vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.4vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { left: 46%; }
+    .powder { right: -16vmin; bottom: -26vmin; width: 84vmin; height: 90vmin; }
+    .copy { left: 7vmin; right: 7vmin; top: 8vmin; bottom: 8vmin; }
+    h1 { font-size: 11.4vmin; }
+    .p { max-width: 40vmin; font-size: 2.3vmin; }
+    .offer { flex-direction: row; }
+    .offer span { padding: 1.4vmin 2.2vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 2.4vmin; font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <svg class="powder" viewBox="0 0 100 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <filter id="dust" x="-40%" y="-40%" width="180%" height="180%">
+          <feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="3" seed="4" result="n"/>
+          <feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G" result="d"/>
+          <feGaussianBlur in="d" stdDeviation="1.1" result="core"/>
+          <feGaussianBlur in="d" stdDeviation="6" result="halo"/>
+          <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="1" seed="2" result="g"/>
+          <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3 1.75" result="gm"/>
+          <feComposite in="halo" in2="gm" operator="in" result="spray"/>
+          <feMerge><feMergeNode in="spray"/><feMergeNode in="core"/></feMerge>
+        </filter>
+      </defs>
+      <g filter="url(#dust)">
+        <ellipse cx="70" cy="34" rx="20" ry="15" fill="#F6B21C" fill-opacity=".9"/>
+        <ellipse cx="80" cy="60" rx="17" ry="18" fill="#E8347A" fill-opacity=".88"/>
+        <ellipse cx="60" cy="84" rx="18" ry="13" fill="#2DB37A" fill-opacity=".82"/>
+        <ellipse cx="82" cy="96" rx="12" ry="11" fill="#7B4FD1" fill-opacity=".85"/>
+        <ellipse cx="54" cy="56" rx="7" ry="6" fill="#FF7A3D" fill-opacity=".75"/>
+        <ellipse cx="46" cy="30" rx="5" ry="4" fill="#E8347A" fill-opacity=".7"/>
+        <ellipse cx="40" cy="98" rx="6" ry="5" fill="#F6B21C" fill-opacity=".75"/>
+      </g>
+    </svg>
+    <div class="copy">
+      <div class="k">Holi · <em>Festival of colours</em></div>
+      <h1><span>Wear</span><span>every</span><span>colour.</span></h1>
+      <div class="p">Bright pieces for a day of gulal and good company.</div>
+      <div class="offer"><b>25% off</b><span>The colour edit</span></div>
+      <div class="foot"><span class="code">Code <em>GULAL25</em></span><span class="cta">Shop colour</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

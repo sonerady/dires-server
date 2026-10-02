@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Libre+Bodoni:ital,wght@0,400;1,400&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* Second Look — an abandoned-browse nudge email: a "recently viewed" product card with a heart and a pointer cursor,
+     a little viewing-history trail (viewed, viewed again, zoomed in) and a gentle "take another look" CTA.
+     tall → headline, card, trail stacked · 3:4 → card left, trail right · square → card left, copy right · wide → copy left, card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6E3DC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6E3DC; color: #3A1E2A; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 4vmin; display: flex; justify-content: space-between; align-items: center; font-size: 1.7vmin; font-weight: 600; white-space: nowrap; }
+  .logo { font-family: "Libre Bodoni", Georgia, serif; font-size: 3.2vmin; font-weight: 400; letter-spacing: -.01em; }
+  .top span:last-child { color: #9A5B6E; }
+
+  .hl { position: absolute; left: 6vmin; right: 6vmin; top: 11vmin; }
+  h1 { margin: 0; font-family: "Libre Bodoni", Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: .95; letter-spacing: -.035em; }
+  h1 i { color: #B0466A; }
+  .hl p { margin: 1.8vmin 0 0; font-size: 2.3vmin; line-height: 1.45; color: #6E4A57; }
+
+  .card { position: absolute; left: 6vmin; right: 6vmin; top: 37vmin; height: calc(100% - 83vmin); background: #FFFFFF; border-radius: 2.4vmin; padding: 1.8vmin; box-sizing: border-box; display: flex; flex-direction: column; box-shadow: 0 1vmin 3vmin -1vmin rgba(58,30,42,.18); }
+  .card .ph { position: relative; flex: 1; min-height: 0; }
+  .card img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+  .card .foot { flex: none; display: flex; align-items: center; gap: 1.6vmin; padding: 1.8vmin .6vmin .2vmin; }
+  .card .nm { margin-right: auto; font-size: 2.2vmin; font-weight: 600; line-height: 1.25; }
+  .card .nm small { display: block; font-size: 1.6vmin; font-weight: 500; color: #9A7B86; }
+  .card .pr { font-size: 2.2vmin; font-weight: 700; }
+  .heart { position: relative; width: 5vmin; height: 5vmin; border-radius: 50%; background: #FBE7EE; display: flex; align-items: center; justify-content: center; }
+  .heart svg { width: 2.6vmin; height: 2.6vmin; }
+  .cursor { position: absolute; right: -1.6vmin; bottom: -2.6vmin; width: 3.6vmin; height: 4.4vmin; filter: drop-shadow(0 .3vmin .4vmin rgba(0,0,0,.25)); }
+
+  .trail { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.4vmin; height: 40vmin; display: flex; flex-direction: column; }
+  .trail h3 { margin: 0; font-size: 1.6vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #9A5B6E; }
+  .trail ul { list-style: none; margin: 1.6vmin 0 0; padding: 0 0 0 3vmin; position: relative; }
+  .trail ul::before { content: ""; position: absolute; left: .7vmin; top: 1.2vmin; bottom: 1.2vmin; border-left: 1px dashed #C890A2; }
+  .trail li { position: relative; display: flex; justify-content: space-between; gap: 2vmin; padding: .9vmin 0; font-size: 2vmin; white-space: nowrap; }
+  .trail li::before { content: ""; position: absolute; left: -3vmin; top: 50%; width: 1.4vmin; height: 1.4vmin; margin-top: -.7vmin; border-radius: 50%; background: #F6E3DC; border: .25vmin solid #B0466A; box-sizing: border-box; }
+  .trail li:last-child::before { background: #B0466A; }
+  .trail li span { color: #9A7B86; font-size: 1.7vmin; }
+  .act { margin-top: auto; display: flex; align-items: center; gap: 2.4vmin; }
+  .cta { padding: 2vmin 3.8vmin; border-radius: 99vmin; background: #3A1E2A; color: #FFF3EF; font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+  .note { font-size: 1.6vmin; line-height: 1.4; color: #6E4A57; }
+
+  /* ── 3:4 — card left, trail right ── */
+  @media (min-aspect-ratio: 7/10) {
+    h1 { font-size: 8.4vmin; }
+    .hl { right: 20vmin; }
+    .hl p { font-size: 2.1vmin; }
+    .card { right: auto; width: 52vmin; top: 39vmin; bottom: 5vmin; height: auto; }
+    .trail { left: 64vmin; right: 5vmin; top: 41vmin; bottom: 5vmin; height: auto; }
+    .trail li { flex-direction: column; gap: .2vmin; }
+    .act { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .cta { padding: 1.8vmin 3vmin; font-size: 1.8vmin; }
+  }
+  /* ── square — card left, copy right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .card { left: 5vmin; width: calc(50% - 7vmin); top: 5vmin; bottom: 5vmin; }
+    .top { left: 50%; right: 5vmin; }
+    .hl { left: 50%; right: 5vmin; top: 11vmin; }
+    h1 { font-size: 6.8vmin; }
+    .hl p { font-size: 1.9vmin; }
+    .trail { left: 50%; right: 5vmin; top: 44vmin; }
+    .trail li { flex-direction: row; font-size: 1.8vmin; padding: .7vmin 0; }
+    .act { flex-direction: row; align-items: center; }
+  }
+  /* ── wide — copy left, card right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .card { left: auto; right: 5vmin; width: calc(44% - 5vmin); }
+    .top { left: 6vmin; right: calc(44% + 6vmin); }
+    .hl { left: 6vmin; right: calc(44% + 6vmin); top: 12vmin; }
+    h1 { font-size: 8vmin; }
+    .hl p { font-size: 2.1vmin; }
+    .trail { left: 6vmin; right: calc(44% + 6vmin); top: 46vmin; }
+    .trail li { font-size: 1.9vmin; }
+  }
+
+  /* ── animation loop ── */
+  /* 6s — a replay of the browse session: the cursor leaves the heart, glides up over the photo while it zooms in
+     on the details, comes back and clicks — the heart pops. Then the visit trail lights up dot by dot
+     and the CTA breathes a soft ring. */
+  .card .ph { overflow: hidden; border-radius: inherit; }
+  .card img { transform-origin: 50% 40%; animation: zoom 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes zoom { 0%, 12%, 62%, 100% { transform: scale(1); } 30%, 44% { transform: scale(1.04); } }
+
+  .cursor { animation: cur 6s cubic-bezier(.55,0,.35,1) infinite; transform-origin: 10% 5%; }
+  @keyframes cur {
+    0%, 8% { transform: translate(0, 0) scale(1); }
+    24% { transform: translate(-18vmin, -22vmin) scale(1); }
+    36% { transform: translate(-24vmin, -15vmin) scale(1); }
+    50% { transform: translate(0, 0) scale(1); }
+    53% { transform: translate(0, 0) scale(.8); }
+    57%, 100% { transform: translate(0, 0) scale(1); } }
+
+  .heart svg:first-child { animation: love 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes love { 0%, 53%, 70%, 100% { transform: scale(1); } 57% { transform: scale(1.4); } 62% { transform: scale(.9); } 66% { transform: scale(1.08); } }
+  .heart::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .3vmin solid #B0466A; opacity: 0; pointer-events: none;
+    animation: burst 6s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes burst { 0%, 54% { opacity: 0; transform: scale(1); } 56% { opacity: .7; transform: scale(1.05); } 72%, 100% { opacity: 0; transform: scale(1.9); } }
+
+  .trail li::before { animation: step 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .trail li:nth-child(1)::before { animation-delay: -1.5s; }
+  .trail li:nth-child(2)::before { animation-delay: -1.2s; }
+  .trail li:nth-child(3)::before { animation-delay: -.9s; }
+  @keyframes step { 0%, 82%, 96%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(176,70,106,0); }
+                    87% { transform: scale(1.45); box-shadow: 0 0 0 .6vmin rgba(176,70,106,.25); } 92% { transform: scale(1); box-shadow: 0 0 0 1vmin rgba(176,70,106,0); } }
+
+  .cta { animation: ask 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ask { 0%, 100% { box-shadow: 0 0 0 0 rgba(58,30,42,0); } 50% { box-shadow: 0 0 0 .8vmin rgba(58,30,42,.12); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><span class="logo">Maison Rue</span><span>Recently viewed</span></div>
+  <div class="hl">
+    <h1>Still thinking <i>about&nbsp;it?</i></h1>
+    <p>Good things deserve a second look. Your size is still here — for now.</p>
+  </div>
+  <div class="card">
+    <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="foot">
+      <div class="nm">The Soft Line<small>Size M · Sand · viewed 3×</small></div>
+      <div class="pr">$164</div>
+      <div class="heart"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 5 6.4 5c2.1 0 3.6 1.2 4.6 2.7C12 6.2 13.5 5 15.6 5 19 5 21.1 8.4 19.6 11.8 17.5 16.4 12 21 12 21z" fill="#B0466A"/></svg>
+        <svg class="cursor" viewBox="0 0 20 24"><path d="M2 1.5v18.5l5-4.6 3.2 7.4 3.4-1.5-3.2-7.2h6.8z" fill="#FFFFFF" stroke="#3A1E2A" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+    </div>
+  </div>
+  <div class="trail">
+    <h3>Your last few visits</h3>
+    <ul>
+      <li>Viewed it<span>Mon · 21:04</span></li>
+      <li>Came back for another look<span>Tue · 08:12</span></li>
+      <li>Zoomed in on the details<span>Wed · 23:40</span></li>
+    </ul>
+    <div class="act">
+      <div class="cta">Take another look</div>
+      <div class="note">Free returns for 30 days,<br>so there's no risk.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

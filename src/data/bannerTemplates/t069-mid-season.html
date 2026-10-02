@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Mid-Season Sale — the markdown calendar: five desk-calendar tiles, the price falls a little more each day, today circled in red */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E8E4D8; }
+  .banner { --panel: 74vmin; --tw: 16.4vmin; --th: 23vmin; position: fixed; inset: 0; overflow: hidden; background: #E8E4D8; color: #1B1B1B; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 800; font-size: 12.4vmin; line-height: .86; letter-spacing: -.045em; font-variation-settings: "opsz" 96; white-space: nowrap; }
+  .sub { margin: .6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 5.2vmin; line-height: 1.05; color: #C23A22; }
+  .tiles { display: flex; justify-content: space-between; margin-top: 4.4vmin; }
+  .t { position: relative; flex: none; width: var(--tw); height: var(--th); background: #FBFAF6; display: flex; flex-direction: column; box-shadow: 0 .5vmin 0 -.1vmin #CFCABB, 0 1vmin 0 -.2vmin #BFB9A8; }
+  .t::before, .t::after { content: ""; position: absolute; top: -1.1vmin; width: 1.2vmin; height: 2.6vmin; border-radius: .6vmin; background: #4A4A46; }
+  .t::before { left: 26%; } .t::after { right: 26%; }
+  .t .dy { background: #1B1B1B; color: #FBFAF6; text-align: center; font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; padding: 1.1vmin 0 .9vmin; }
+  .t .dt { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: calc(var(--th) * .38); letter-spacing: -.04em; font-variation-settings: "opsz" 96; }
+  .t .pc { text-align: center; font-size: 2.2vmin; font-weight: 700; padding-bottom: 1.3vmin; }
+  .t.past { opacity: .42; }
+  .t.today .dy { background: #C23A22; }
+  .ring { position: absolute; left: -2.6vmin; top: -2.4vmin; width: calc(100% + 5.2vmin); height: calc(100% + 5vmin); overflow: visible; pointer-events: none; }
+  .foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; border-top: 1px solid #1B1B1B; padding-top: 2vmin; }
+  .foot p { margin: 0; font-size: 2.1vmin; line-height: 1.4; max-width: 50vmin; }
+  .cta { flex: none; font-size: 2.1vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; background: #1B1B1B; color: #E8E4D8; padding: 1.8vmin 3vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 64vmin; --tw: 16.4vmin; --th: 19vmin; }
+    .panel { bottom: 4vmin; height: calc(var(--panel) - 8vmin); }
+    h1 { font-size: 10.6vmin; }
+    .sub { font-size: 4.4vmin; }
+    .tiles { margin-top: 3.6vmin; }
+  }
+  /* square — photo right, tiles in a 3 + 2 grid */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --tw: 12.4vmin; --th: 15vmin; }
+    .photo { left: auto; right: 0; width: 48%; height: 100%; }
+    .panel { left: 5vmin; right: calc(48% + 5vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    h1 { font-size: 8.4vmin; margin-top: 2vmin; }
+    .sub { font-size: 4vmin; }
+    .tiles { flex-wrap: wrap; justify-content: flex-start; gap: 3.6vmin 1.6vmin; margin-top: 4.4vmin; }
+    .t .dy { font-size: 1.6vmin; padding: .8vmin 0 .7vmin; }
+    .t .pc { font-size: 1.8vmin; padding-bottom: .9vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; padding-top: 1.8vmin; }
+    .foot p { font-size: 1.8vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.5vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --tw: 12.8vmin; --th: 17vmin; }
+    .photo { width: 46%; }
+    .panel { left: 7vmin; right: calc(46% + 7vmin); top: 7vmin; bottom: 7vmin; }
+    h1 { font-size: 11vmin; }
+    .sub { font-size: 4.6vmin; }
+    .tiles { flex-wrap: nowrap; justify-content: space-between; gap: 0; margin-top: 5vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .foot p { font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><span>The markdown calendar</span><span>5 days</span></div>
+    <h1>Mid-season</h1>
+    <div class="sub">Prices fall daily.</div>
+    <div class="tiles">
+      <div class="t past"><div class="dy">MON</div><div class="dt">14</div><div class="pc">−20%</div></div>
+      <div class="t past"><div class="dy">TUE</div><div class="dt">15</div><div class="pc">−25%</div></div>
+      <div class="t today"><div class="dy">WED</div><div class="dt">16</div><div class="pc">−30%</div>
+        <svg class="ring" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M52 3 C 84 2, 98 22, 97 50 C 96 82, 78 98, 48 97 C 18 96, 3 78, 4 48 C 5 20, 24 5, 58 6" fill="none" stroke="#C23A22" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </div>
+      <div class="t"><div class="dy">THU</div><div class="dt">17</div><div class="pc">−35%</div></div>
+      <div class="t"><div class="dy">FRI</div><div class="dt">18</div><div class="pc">−40%</div></div>
+    </div>
+    <div class="foot"><p>Wait for a better price — or risk your size.</p><div class="cta">Shop today</div></div>
+  </div>
+</div>
+</body>
+</html>

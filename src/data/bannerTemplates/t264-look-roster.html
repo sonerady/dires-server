@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Look Roster — the lookbook's index of looks on black stock: a 24-cell roster grid (01–24) with the pictured
+     look lit in bone, a giant italic look number beside it, running head and "shop look by look" line.
+     tall → photo above the index · square & wide → photo left, index right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #141312; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #141312; color: #EDE8DF; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .serif { font-family: "Instrument Serif", Georgia, "Times New Roman", serif; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 72vmin); object-fit: cover; object-position: 50% 22%; }
+  .idx { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(72vmin - 10vmin); display: flex; flex-direction: column; }
+  .rh { display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(237,232,223,.4); white-space: nowrap;
+    font-size: 1.7vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; }
+  .rh span:last-child { color: #9A9387; font-weight: 500; }
+
+  .mid { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: space-between; gap: 5vmin; }
+  .num { display: flex; flex-direction: column; }
+  .num small { font-size: 1.7vmin; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: #9A9387; }
+  .num b { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; font-size: 30vmin; line-height: .8; letter-spacing: -.04em; margin: 1.4vmin 0 0 -1vmin; }
+  .num span { margin-top: 1.4vmin; font-family: "Instrument Serif", Georgia, serif; font-size: 3vmin; color: #C9C2B6; }
+
+  .grid { display: grid; grid-template-columns: repeat(6, 8.4vmin); grid-auto-rows: 8.4vmin; border-top: 1px solid rgba(237,232,223,.28); border-left: 1px solid rgba(237,232,223,.28); }
+  .grid i { position: relative; font-style: normal; border-right: 1px solid rgba(237,232,223,.28); border-bottom: 1px solid rgba(237,232,223,.28);
+    padding: .8vmin 0 0 .9vmin; font-size: 1.6vmin; font-weight: 500; font-variant-numeric: tabular-nums; color: #8C857A; }
+  .grid i.on { background: #EDE8DF; color: #141312; font-weight: 700; }
+  .grid i.on::after { content: ""; position: absolute; right: 1vmin; bottom: 1vmin; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #C23B22; }
+  .grid i.so { color: rgba(140,133,122,.55); text-decoration: line-through; }
+  .key { margin-top: 1.4vmin; display: flex; gap: 2.4vmin; font-size: 1.6vmin; color: #9A9387; white-space: nowrap; }
+  .key em { font-style: normal; display: inline-flex; align-items: center; gap: .8vmin; }
+  .key em::before { content: ""; width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #C23B22; }
+
+  .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 4vmin; padding-top: 2vmin; border-top: 1px solid rgba(237,232,223,.4); }
+  .foot p { margin: 0; max-width: 46vmin; font-family: "Instrument Serif", Georgia, serif; font-size: 3.4vmin; line-height: 1.12; }
+  .cta { display: flex; flex-direction: column; align-items: flex-end; gap: .8vmin; white-space: nowrap; }
+  .cta b { font-size: 2vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; border-bottom: 1px solid #EDE8DF; padding-bottom: .5vmin; }
+  .cta span { font-size: 1.7vmin; color: #9A9387; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .idx { height: calc(64vmin - 9vmin); bottom: 4.5vmin; }
+    .num b { font-size: 25vmin; }
+    .grid { grid-template-columns: repeat(6, 7.4vmin); grid-auto-rows: 7.4vmin; }
+    .foot p { font-size: 3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 24%; }
+    .idx { left: calc(50% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .rh { font-size: 1.6vmin; letter-spacing: .18em; }
+    .mid { flex-direction: column; align-items: flex-start; justify-content: center; gap: 3vmin; }
+    .num { flex-direction: row; align-items: flex-end; gap: 2vmin; }
+    .num small { order: 2; padding-bottom: 1.2vmin; font-size: 1.6vmin; }
+    .num b { font-size: 17vmin; margin: 0; }
+    .num span { display: none; }
+    .grid { grid-template-columns: repeat(6, 6.6vmin); grid-auto-rows: 5.6vmin; }
+    .grid i { font-size: 1.5vmin; padding: .6vmin 0 0 .7vmin; }
+    .grid i.on::after { width: 1.1vmin; height: 1.1vmin; right: .7vmin; bottom: .7vmin; }
+    .key { font-size: 1.5vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .foot p { font-size: 2.6vmin; }
+    .cta { align-items: flex-start; }
+    .cta b { font-size: 1.7vmin; }
+    .cta span { font-size: 1.55vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .idx { left: calc(48% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .rh { font-size: 1.7vmin; letter-spacing: .22em; }
+    .mid { flex-direction: row; align-items: center; justify-content: space-between; gap: 4vmin; }
+    .num { flex-direction: column; align-items: flex-start; gap: 0; }
+    .num small { order: 0; padding: 0; font-size: 1.7vmin; }
+    .num b { font-size: 25vmin; margin: 1.2vmin 0 0 -1vmin; }
+    .num span { display: block; font-size: 2.8vmin; }
+    .grid { grid-template-columns: repeat(6, 6.8vmin); grid-auto-rows: 6.8vmin; }
+    .grid i { font-size: 1.55vmin; }
+    .key { font-size: 1.55vmin; }
+    .foot { flex-direction: row; align-items: flex-end; gap: 4vmin; }
+    .foot p { font-size: 3vmin; }
+    .cta { align-items: flex-end; }
+    .cta b { font-size: 1.9vmin; }
+    .cta span { font-size: 1.65vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="idx">
+    <div class="rh"><span>Atelier Nord</span><span>Index of looks · AW26</span></div>
+    <div class="mid">
+      <div class="num"><small>Look</small><b>07</b><span>of twenty-four</span></div>
+      <div>
+        <div class="grid"><i>01</i><i>02</i><i class="so">03</i><i>04</i><i>05</i><i>06</i><i class="on">07</i><i>08</i><i>09</i><i>10</i><i class="so">11</i><i>12</i><i>13</i><i>14</i><i>15</i><i>16</i><i>17</i><i class="so">18</i><i>19</i><i>20</i><i>21</i><i>22</i><i>23</i><i>24</i></div>
+        <div class="key"><em>This look</em><span><s>00</s> Sold out</span></div>
+      </div>
+    </div>
+    <div class="foot">
+      <p>The whole collection, look by look.</p>
+      <div class="cta"><b>Shop look 07</b><span>Pieces from €95</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

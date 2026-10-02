@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Shared Capsule — gender-neutral: the frame splits into two duotone halves (sand / ink); the headline
+     and grid cross the split and invert with it; one photo bridges both. tall/square → stacked; wide → 3 columns */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C1E23; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: linear-gradient(90deg, #E7DECF 50%, #1C1E23 50%); font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+  .ink { color: #1C1E23; } .sand { color: #E7DECF; }
+
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; }
+  /* one headline, two colours: text painted with a hard 50/50 gradient that lines up with the split */
+  h1 { position: absolute; left: 0; right: 0; top: 12vmin; margin: 0; text-align: center; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 600; font-size: 11.6vmin; line-height: 1; letter-spacing: -.035em;
+    color: transparent; background: linear-gradient(90deg, #1C1E23 50%, #E7DECF 50%); -webkit-background-clip: text; background-clip: text; }
+
+  .photo { position: absolute; left: 14%; right: 14%; top: 42vmin; bottom: 35vmin; width: 72%; height: calc(100% - 77vmin); object-fit: cover; object-position: 50% 22%; }
+  .mid { position: absolute; left: 50%; width: 1px; background: #8C857A; }
+  .mid.a { top: 36.5vmin; height: 3.5vmin; } .mid.b { bottom: 29.5vmin; height: 3.5vmin; }
+
+  .grid { position: absolute; left: 0; right: 0; bottom: 6vmin; height: 14vmin; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .grid > div { padding: 2vmin 2.4vmin 0 6vmin; border-top: .3vmin solid currentColor; display: flex; flex-direction: column; }
+  .grid > div:nth-child(2) { padding-left: 3vmin; border-left: 1px solid rgba(28,30,35,.25); }
+  .grid > div:nth-child(3) { padding-left: 4vmin; }
+  .grid span { font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; opacity: .72; }
+  .grid b { margin-top: 1vmin; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 500; font-size: 3.4vmin; letter-spacing: -.02em; white-space: nowrap; }
+  .grid .cta { margin: 0 6vmin 0 0; padding: 0 2.6vmin; border-top: 0; background: #E7DECF; color: #1C1E23; justify-content: center; }
+  .grid .cta span { opacity: 1; font-size: 1.7vmin; }
+  .grid .cta b { margin-top: .6vmin; font-size: 3vmin; }
+
+  .grid .rt { display: none; }
+  .grid .rt p { margin: 0; font-size: 2.2vmin; line-height: 1.5; color: #E7DECF; opacity: .85; }
+  .grid .rt p b { font-family: inherit; font-weight: 600; font-size: inherit; letter-spacing: 0; margin: 0; }
+
+  /* ── 3:4 / 4:5 ── */
+  @media (min-aspect-ratio: 7/10) {
+    .top { top: 5vmin; }
+    h1 { top: 10vmin; font-size: 9.6vmin; }
+    .photo { left: 20%; right: 20%; width: 60%; top: 34vmin; height: calc(100% - 67vmin); }
+    .mid.a { top: 29vmin; } .mid.b { bottom: 27vmin; }
+    .grid { bottom: 5vmin; height: 13vmin; }
+  }
+  /* ── square: one-line headline, narrower photo ── */
+  @media (min-aspect-ratio: 9/10) {
+    h1 { top: 10.5vmin; font-size: 7vmin; }
+    h1 br { display: none; }
+    .photo { left: 25%; right: 25%; width: 50%; top: 22vmin; height: calc(100% - 50vmin); }
+    .mid.a { top: 18.5vmin; height: 2.5vmin; } .mid.b { bottom: 25vmin; height: 2.5vmin; }
+    .grid { bottom: 4.5vmin; height: 12vmin; }
+    .grid b { font-size: 3vmin; }
+    .grid .cta b { font-size: 2.6vmin; }
+  }
+  /* ── wide: copy | photo | grid ── */
+  @media (min-aspect-ratio: 6/5) {
+    .top { right: auto; width: calc(50% - 30vmin); flex-direction: column; gap: 1vmin; }
+    .top span + span { display: none; }
+    h1 { left: 6vmin; right: auto; top: auto; bottom: 7vmin; width: calc(50% - 30vmin); text-align: left; font-size: 12.4vmin; line-height: 1; background: none; color: #1C1E23; }
+    h1 br { display: none; }
+    h1 .f { display: block; }
+    .photo { left: calc(50% - 25vmin); right: auto; width: 50vmin; top: 7vmin; bottom: 7vmin; height: calc(100% - 14vmin); }
+    .mid.a { top: 0; height: 4.5vmin; } .mid.b { bottom: 0; height: 4.5vmin; }
+    .grid { left: calc(50% + 30vmin); right: 6vmin; top: 7vmin; bottom: 7vmin; height: auto; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr; row-gap: 3vmin; }
+    .grid > div { padding: 2vmin 0 0; }
+    .grid > div, .grid > div.ink { color: #E7DECF; }
+    .grid > div:nth-child(2) { padding-left: 3vmin; border-left: 1px solid rgba(231,222,207,.25); }
+    .grid > div:nth-child(3) { padding-left: 0; }
+    .grid .rt { display: block; grid-column: 1 / -1; order: -1; padding: 0; border: 0; }
+    .grid .cta { grid-column: 1 / -1; align-self: end; margin: 0; padding: 2.4vmin 3vmin; color: #1C1E23; flex-direction: row; justify-content: space-between; align-items: baseline; }
+    .grid .cta b { margin: 0; }
+    .grid b { font-size: 3.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><span class="ink">Unisex capsule</span><span class="sand">Nº 01 — SS26</span></div>
+  <h1>One <span class="f">for</span><br> all.</h1>
+  <div class="mid a"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="mid b"></div>
+  <div class="grid">
+    <div class="rt"><p><b>Same cut, every body.</b> One capsule designed to be shared, swapped and worn by anyone.</p></div>
+    <div class="ink"><span>Pieces</span><b>12</b></div>
+    <div class="ink"><span>Sizes</span><b>XS–XXL</b></div>
+    <div class="sand"><span>From</span><b>$65</b></div>
+    <div class="cta"><span>Shop the</span><b>Capsule →</b></div>
+  </div>
+</div>
+</body>
+</html>

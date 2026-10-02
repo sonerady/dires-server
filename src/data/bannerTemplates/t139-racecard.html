@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Roboto+Condensed:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Racecard — a race-meeting programme: a racing-green race header (race number, the stakes, off time, going),
+     then the runner entry with its quartered claret/cream silks, cloth number and the offer as the odds —
+     and last season scratched below as a non-runner.
+     tall → header / photo / runner entry stacked; square/wide → photo left, header + entry right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EEE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EEE2; color: #1B1B18; font-family: "Roboto Condensed", "Arial Narrow", Arial, sans-serif; }
+
+  .race { position: absolute; left: 0; right: 0; top: 0; height: 17vmin; box-sizing: border-box; padding: 0 6vmin; display: flex; align-items: center; gap: 3.6vmin; background: #1B4B36; color: #F3EEE2; }
+  .race .no { flex: none; width: 10vmin; height: 10vmin; display: flex; align-items: center; justify-content: center; background: #F3EEE2; color: #1B4B36; font-family: "Old Standard TT", Georgia, serif; font-weight: 700; font-size: 7.4vmin; line-height: 1; }
+  .race .ti { min-width: 0; }
+  .race .ti small { display: block; font-size: 1.8vmin; font-weight: 500; letter-spacing: .26em; text-transform: uppercase; color: #CDBF8E; }
+  .race .ti b { display: block; margin-top: .8vmin; font-family: "Old Standard TT", Georgia, serif; font-style: italic; font-weight: 400; font-size: 5.6vmin; line-height: 1; white-space: nowrap; }
+  .race .ti span { display: block; margin-top: 1vmin; font-size: 1.9vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+
+  .photo { position: absolute; left: 0; top: 17vmin; width: 100%; height: calc(100% - 17vmin - 54vmin); object-fit: cover; object-position: 50% 18%; }
+
+  .card { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 45vmin; display: flex; flex-direction: column; }
+  .th { display: grid; grid-template-columns: 9vmin 14vmin 1fr auto; gap: 2.4vmin; padding-bottom: 1vmin; border-bottom: .3vmin solid #1B1B18; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #5C584C; }
+  .run { display: grid; grid-template-columns: 9vmin 14vmin 1fr auto; gap: 2.4vmin; align-items: center; padding: 2vmin 0; border-bottom: 1px solid rgba(27,27,24,.35); }
+  .cloth { font-family: "Old Standard TT", Georgia, serif; font-weight: 700; font-size: 10vmin; line-height: .85; }
+  .silks { width: 14vmin; height: 14vmin; }
+  .who b { display: block; font-size: 4.6vmin; font-weight: 700; line-height: 1; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
+  .who span { display: block; margin-top: 1vmin; font-size: 1.9vmin; line-height: 1.45; color: #4A473E; }
+  .who em { white-space: nowrap; font-style: normal; font-weight: 700; color: #7C1D2B; letter-spacing: .12em; }
+  .odds { text-align: right; }
+  .odds small { display: block; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #5C584C; }
+  .odds b { display: block; margin-top: .6vmin; font-family: "Old Standard TT", Georgia, serif; font-weight: 700; font-size: 6.4vmin; line-height: .9; color: #7C1D2B; white-space: nowrap; }
+  .who { min-width: 0; }
+  .run.nr { border-bottom: 0; color: #8A857A; }
+  .run.nr .cloth { font-size: 6vmin; }
+  .run.nr .silks { width: 10vmin; height: 10vmin; justify-self: center; opacity: .5; filter: grayscale(1); }
+  .run.nr .who b { font-size: 3.2vmin; text-decoration: line-through; text-decoration-thickness: .3vmin; }
+  .run.nr .who span { color: #8A857A; margin-top: .6vmin; }
+  .run.nr .odds b { font-size: 3.6vmin; color: #8A857A; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; white-space: nowrap; font-size: 2vmin; letter-spacing: .08em; }
+  .foot b { font-weight: 700; letter-spacing: .16em; }
+  .foot .cta { font-weight: 700; letter-spacing: .24em; text-transform: uppercase; background: #1B4B36; color: #F3EEE2; padding: 1.3vmin 2.4vmin 1.2vmin 2.6vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .race { height: 15vmin; }
+    .race .no { width: 9vmin; height: 9vmin; font-size: 6.6vmin; }
+    .race .ti b { font-size: 5vmin; }
+    .photo { top: 15vmin; height: calc(100% - 15vmin - 48vmin); }
+    .card { height: 40vmin; bottom: 4vmin; }
+    .run { padding: 1.4vmin 0; }
+    .silks { width: 12vmin; height: 12vmin; }
+    .cloth { font-size: 9vmin; }
+  }
+  /* square / wide: the look on the left, the programme page on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { top: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .race { left: 46%; height: 22vmin; padding: 0 5vmin; gap: 3vmin; }
+    .race .no { width: 9vmin; height: 9vmin; font-size: 6.6vmin; }
+    .race .ti b { font-size: 4.6vmin; white-space: normal; }
+    .race .ti span { font-size: 1.7vmin; letter-spacing: .06em; white-space: normal; line-height: 1.4; }
+    .card { left: calc(46% + 5vmin); right: 5vmin; top: 28vmin; bottom: 6vmin; height: auto; }
+    .th { grid-template-columns: 7vmin 1fr auto; }
+    .th span:nth-child(2) { display: none; }
+    .run { grid-template-columns: 7vmin 1fr auto; grid-template-areas: "c s o" "w w w"; row-gap: 2vmin; padding: 2.4vmin 0; }
+    .cloth { grid-area: c; font-size: 8.6vmin; }
+    .silks { grid-area: s; width: 13vmin; height: 13vmin; }
+    .who { grid-area: w; }
+    .odds { grid-area: o; }
+    .who b { font-size: 4.2vmin; }
+    .odds b { font-size: 4.6vmin; }
+    .run.nr { padding: 1.4vmin 0; row-gap: .8vmin; }
+    .run.nr .cloth { font-size: 5vmin; }
+    .run.nr .silks { width: 8vmin; height: 8vmin; justify-self: start; }
+    .run.nr .odds b { font-size: 3vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 40% 25%; }
+    .race { left: 44%; height: 20vmin; padding: 0 6vmin; gap: 3.6vmin; }
+    .race .no { width: 11vmin; height: 11vmin; font-size: 8vmin; }
+    .race .ti b { font-size: 5.6vmin; white-space: nowrap; }
+    .race .ti span { font-size: 1.9vmin; letter-spacing: .1em; white-space: nowrap; }
+    .card { left: calc(44% + 6vmin); right: 6vmin; top: 27vmin; bottom: 7vmin; }
+    .th { grid-template-columns: 8vmin 13vmin 1fr auto; }
+    .th span:nth-child(2) { display: block; }
+    .run { grid-template-columns: 8vmin 13vmin 1fr auto; grid-template-areas: "c s w o"; padding: 2.6vmin 0; }
+    .cloth { font-size: 9.4vmin; }
+    .silks { width: 13vmin; height: 13vmin; }
+    .who b { font-size: 4.2vmin; white-space: normal; }
+    .odds b { font-size: 5.4vmin; }
+    .run.nr { padding: 1.6vmin 0; }
+    .run.nr .cloth { font-size: 6vmin; }
+    .run.nr .silks { width: 9vmin; height: 9vmin; justify-self: center; }
+    .run.nr .odds b { font-size: 3.4vmin; }
+    .foot { flex-direction: row; align-items: center; font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="race">
+    <div class="no">4</div>
+    <div class="ti"><small>Race 4 · Class 1</small><b>The Autumn Stakes</b><span>3.10 pm · 1m 2f · Going: good</span></div>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="card">
+    <div class="th"><span>No.</span><span>Silks</span><span>Runner</span><span>Odds</span></div>
+    <div class="run">
+      <div class="cloth">1</div>
+      <svg class="silks" viewBox="0 0 100 100" aria-hidden="true">
+        <defs><clipPath id="jer"><path d="M31 34 L44 29 Q50 35 56 29 L69 34 L89 52 L80 62 L70 54 L70 96 L30 96 L30 54 L20 62 L11 52 Z"/></clipPath></defs>
+        <g clip-path="url(#jer)"><rect x="0" y="0" width="50" height="62" fill="#7C1D2B"/><rect x="50" y="0" width="50" height="62" fill="#F7F1E3"/><rect x="0" y="62" width="50" height="40" fill="#F7F1E3"/><rect x="50" y="62" width="50" height="40" fill="#7C1D2B"/>
+          <rect x="0" y="44" width="30" height="5" fill="#F7F1E3"/><rect x="70" y="44" width="30" height="5" fill="#7C1D2B"/></g>
+        <path d="M31 34 L44 29 Q50 35 56 29 L69 34 L89 52 L80 62 L70 54 L70 96 L30 96 L30 54 L20 62 L11 52 Z" fill="none" stroke="#1B1B18" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M37 22 Q37 6 50 6 Q63 6 63 22 Z" fill="#7C1D2B" stroke="#1B1B18" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M37 22 H70 Q70 25 63 25 H37 Z" fill="#1B1B18"/>
+        <circle cx="50" cy="8" r="2.4" fill="#F7F1E3" stroke="#1B1B18" stroke-width="1"/>
+      </svg>
+      <div class="who"><b>New Season</b><span>Trainer: Atelier Nord · Form <em>1-1-1</em></span></div>
+      <div class="odds"><small>Odds</small><b>25% off</b></div>
+    </div>
+    <div class="run nr">
+      <div class="cloth">2</div>
+      <svg class="silks" viewBox="0 0 100 100" aria-hidden="true">
+        <defs><clipPath id="jer2"><path d="M31 34 L44 29 Q50 35 56 29 L69 34 L89 52 L80 62 L70 54 L70 96 L30 96 L30 54 L20 62 L11 52 Z"/></clipPath></defs>
+        <g clip-path="url(#jer2)"><rect x="0" y="0" width="50" height="62" fill="#7C1D2B"/><rect x="50" y="0" width="50" height="62" fill="#F7F1E3"/><rect x="0" y="62" width="50" height="40" fill="#F7F1E3"/><rect x="50" y="62" width="50" height="40" fill="#7C1D2B"/>
+          <rect x="0" y="44" width="30" height="5" fill="#F7F1E3"/><rect x="70" y="44" width="30" height="5" fill="#7C1D2B"/></g>
+        <path d="M31 34 L44 29 Q50 35 56 29 L69 34 L89 52 L80 62 L70 54 L70 96 L30 96 L30 54 L20 62 L11 52 Z" fill="none" stroke="#1B1B18" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M37 22 Q37 6 50 6 Q63 6 63 22 Z" fill="#7C1D2B" stroke="#1B1B18" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M37 22 H70 Q70 25 63 25 H37 Z" fill="#1B1B18"/>
+        <circle cx="50" cy="8" r="2.4" fill="#F7F1E3" stroke="#1B1B18" stroke-width="1"/>
+      </svg>
+      <div class="who"><b>Last Season</b><span>Non-runner</span></div>
+      <div class="odds"><b>NR</b></div>
+    </div>
+    <div class="foot"><span>Race day, Sat 12 Oct · Code <b>STAKES25</b></span><span class="cta">Shop race day</span></div>
+  </div>
+</div>
+</body>
+</html>

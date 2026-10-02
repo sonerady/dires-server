@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Class Pass — the studio's ten-class punch card turned loyalty offer: seven holes punched clean through
+     (you see the rose ground through them), two to go, the tenth marked −50%, and a blue rubber stamp.
+     tall → photo above, card below on a rose ground · 3:4 and wider → photo left, card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6C5BC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E6C5BC; color: #561D29; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 76vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .zone { position: absolute; left: 0; right: 0; bottom: 0; height: 76vmin; display: flex; align-items: center; justify-content: center; }
+  .card { position: relative; width: 86vmin; box-sizing: border-box; padding: 4.4vmin 5vmin 4.4vmin; border-radius: 2.6vmin; background: #FBF6EE; transform: rotate(-2deg); box-shadow: 0 2vmin 4vmin rgba(86,29,41,.18), 0 .3vmin .6vmin rgba(86,29,41,.12); }
+  .card::before { content: ""; position: absolute; left: 0; right: 0; top: 11.4vmin; border-top: 1px dashed rgba(86,29,41,.35); }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; font-family: "Space Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .top b { font-weight: 700; }
+  .brand { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 3.6vmin; letter-spacing: -.02em; text-transform: none; }
+  h1 { width: fit-content; margin: 4.6vmin 0 0; font-weight: 800; font-size: 7.8vmin; line-height: .92; letter-spacing: -.04em; }
+  h1 span { font-weight: 400; }
+
+  .punch { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2vmin 2.4vmin; margin-top: 3.4vmin; }
+  .h { position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-family: "Space Mono", Menlo, monospace; font-size: 1.9vmin; font-weight: 700; }
+  .h.p { background: #E6C5BC; box-shadow: inset 0 .5vmin .8vmin rgba(86,29,41,.35); }
+  .h.o { border: .3vmin dashed rgba(86,29,41,.5); box-sizing: border-box; color: rgba(86,29,41,.7); }
+  .h.free { background: #561D29; color: #FBF6EE; font-family: "Bricolage Grotesque", sans-serif; font-size: 2.6vmin; font-weight: 800; letter-spacing: -.02em; }
+  .h.free::after { content: ""; position: absolute; inset: -.9vmin; border-radius: 50%; border: 1px solid #561D29; }
+
+  .foot { margin-top: 3.4vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .note { font-family: "Space Mono", Menlo, monospace; font-size: 1.7vmin; line-height: 1.5; letter-spacing: .02em; }
+  .cta { flex: none; padding: 1.8vmin 3vmin; border-radius: 99vmin; background: #561D29; color: #FBF6EE; font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+
+  .stamp { position: absolute; right: 4vmin; top: 13.6vmin; padding: 1.2vmin 2vmin; border: .4vmin solid #34489A; border-radius: 1vmin; color: #34489A; transform: rotate(9deg); text-align: center; font-family: "Space Mono", Menlo, monospace; font-size: 1.6vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; line-height: 1.3; opacity: .9; mix-blend-mode: multiply; white-space: nowrap; }
+  .stamp b { display: block; font-family: "Bricolage Grotesque", sans-serif; font-size: 3.4vmin; font-weight: 800; letter-spacing: -.01em; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 68vmin); }
+    .zone { height: 68vmin; }
+    .card { width: 84vmin; padding: 3.8vmin 4.6vmin; }
+    .card::before { top: 10.4vmin; }
+    h1 { font-size: 7vmin; margin-top: 4.2vmin; }
+    .punch { gap: 1.6vmin 3.4vmin; margin-top: 2.8vmin; padding: 0 2vmin; }
+    .foot { margin-top: 2.8vmin; }
+    .stamp { top: 12.4vmin; }
+  }
+  /* ── 3:4 and wider → photo left, card right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 22%; }
+    .zone { left: 48%; top: 0; height: auto; }
+    .card { width: 44vmin; padding: 3.6vmin 3.6vmin; transform: rotate(2deg); }
+    .card::before { top: 9.4vmin; }
+    .top span:last-child { display: none; }
+    h1 { font-size: 6.2vmin; margin-top: 4.4vmin; }
+    .punch { gap: 1.4vmin 1.4vmin; padding: 0; }
+    .h { font-size: 1.6vmin; }
+    .h.free { font-size: 1.9vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .stamp { right: -2vmin; top: -3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .zone { left: 46%; }
+    .card { width: 46vmin; }
+    h1 { font-size: 6vmin; }
+    .note { font-size: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 70% 30%; }
+    .zone { left: 44%; }
+    .card { width: 70vmin; padding: 4.4vmin 5vmin; transform: rotate(-2deg); }
+    .card::before { top: 11.4vmin; }
+    .top span:last-child { display: inline; }
+    h1 { font-size: 7.6vmin; margin-top: 4.6vmin; }
+    .punch { gap: 1.8vmin 3vmin; padding: 0 1vmin; }
+    .h { font-size: 1.9vmin; }
+    .h.free { font-size: 2.4vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .stamp { right: 4vmin; top: 13.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="zone">
+    <div class="card">
+      <div class="top"><span class="brand">Studio Nord</span><span>Class pass · <b>Nº 0417</b></span></div>
+      <h1>Every tenth<br><span>is on us.</span></h1>
+      <div class="punch">
+        <i class="h p"></i><i class="h p"></i><i class="h p"></i><i class="h p"></i><i class="h p"></i>
+        <i class="h p"></i><i class="h p"></i><i class="h o">08</i><i class="h o">09</i><i class="h free">−50%</i>
+      </div>
+      <div class="foot">
+        <div class="note">One punch per order.<br>Tenth order: half price.</div>
+        <div class="cta">Start your card →</div>
+      </div>
+      <div class="stamp">Member week<b>−15%</b>Code PASS15</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

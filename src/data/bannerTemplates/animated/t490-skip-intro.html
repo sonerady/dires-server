@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Tiny5&family=Albert+Sans:ital,wght@0,400;0,500;1,300&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Skip Intro — the 2001 fashion-house Flash splash page: a cool silver stage, the look framed by hairline crop marks,
+     an extended Syncopate wordmark, a tiny pixel-font sound toggle, a lower-case nav ("collection / lookbook / stores / e-shop"),
+     a segmented spinner and a finished 100 % preload bar, a huge "ENTER" and the obligatory "[ skip intro ]".
+     tall → stage on top, preload + ENTER below · 7/10 → same, shorter foot · square → stage left, column right ·
+     wide → nav column | stage | ENTER column */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E4E6E9; }
+  .banner { --ink: #121417; --mute: #6C727B; --hot: #C8102E; --foot: 60vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Albert Sans", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(120vmin 90vmin at 50% 30%, #F7F8FA 0%, #E4E6E9 60%, #D3D6DB 100%); }
+  .px { font-family: "Tiny5", monospace; font-size: 2vmin; letter-spacing: .08em; white-space: nowrap; }
+
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 4.4vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .logo { font-family: "Syncopate", sans-serif; font-weight: 700; font-size: 2.8vmin; letter-spacing: .32em; white-space: nowrap; }
+  .snd b { font-weight: 400; color: var(--hot); }
+  .nav { position: absolute; left: 6vmin; right: 6vmin; top: 10vmin; display: flex; justify-content: space-between; font-size: 2vmin; font-weight: 500; letter-spacing: .04em; white-space: nowrap; }
+  .nav span { color: var(--mute); }
+  .nav .on { color: var(--ink); }
+  .nav .on::before { content: "▸ "; color: var(--hot); }
+
+  /* the stage: photo with hairline crop marks just outside its corners */
+  .stage { position: absolute; left: 8vmin; right: 8vmin; top: 17vmin; bottom: var(--foot); }
+  .stage img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .cm { position: absolute; width: 3vmin; height: 3vmin; border: 0 solid var(--ink); }
+  .cm.a { left: -2vmin; top: -2vmin; border-width: 1px 0 0 1px; }
+  .cm.b { right: -2vmin; top: -2vmin; border-width: 1px 1px 0 0; }
+  .cm.c { left: -2vmin; bottom: -2vmin; border-width: 0 0 1px 1px; }
+  .cm.d { right: -2vmin; bottom: -2vmin; border-width: 0 1px 1px 0; }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--foot) - 11vmin); display: flex; flex-direction: column; justify-content: flex-end; }
+  .load { display: flex; align-items: center; gap: 1.8vmin; }
+  .spin { flex: none; width: 3.4vmin; height: 3.4vmin; border-radius: 50%;
+    background: repeating-conic-gradient(var(--ink) 0 18deg, transparent 18deg 30deg);
+    -webkit-mask: radial-gradient(circle, transparent 0 48%, #000 50%); mask: radial-gradient(circle, transparent 0 48%, #000 50%); }
+  .load .px:first-of-type { flex: 1; }
+  .meter { margin-top: 1.4vmin; height: .7vmin; background: var(--ink); position: relative; }
+  .meter::after { content: ""; position: absolute; left: 0; right: 0; top: 1.3vmin; border-top: 1px solid rgba(18,20,23,.3); }
+  h1 { margin: 5vmin 0 0; font-family: "Syncopate", sans-serif; font-weight: 700; font-size: 15.4vmin; line-height: .9; letter-spacing: -.02em; white-space: nowrap; }
+  h1 i { font-style: normal; color: var(--hot); }
+  .sub { margin: 2.2vmin 0 0; font-size: 2.4vmin; font-weight: 300; font-style: italic; line-height: 1.35; }
+  .offer { margin-top: 1.2vmin; font-size: 2vmin; font-weight: 500; letter-spacing: .03em; white-space: nowrap; }
+  .offer b { font-weight: 500; padding: .2vmin .9vmin; background: var(--ink); color: #F7F8FA; letter-spacing: .12em; }
+  .bot { margin-top: 3.6vmin; display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; }
+  .skip { font-family: "Syncopate", sans-serif; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; white-space: nowrap; }
+  .bot .px { color: var(--mute); font-size: 1.7vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --foot: 52vmin; }
+    .top, .nav, .foot { left: 9vmin; right: 9vmin; }
+    .stage { left: 12vmin; right: 12vmin; }
+    .foot { bottom: 4.4vmin; height: calc(var(--foot) - 10vmin); }
+    h1 { margin-top: 3.6vmin; font-size: 12.4vmin; }
+    .sub { margin-top: 1.6vmin; font-size: 2.2vmin; }
+    .bot { margin-top: 2.6vmin; }
+  }
+
+  /* square: stage left, everything else in a right-hand column */
+  @media (min-aspect-ratio: 9/10) {
+    .stage { left: 7vmin; right: auto; top: 7vmin; bottom: 7vmin; width: 50%; }
+    .top { left: calc(50% + 13vmin); right: 5vmin; top: 7vmin; flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .logo { font-size: 2.4vmin; letter-spacing: .26em; }
+    .nav { left: calc(50% + 13vmin); right: 5vmin; top: 18vmin; flex-direction: column; gap: 1.4vmin; font-size: 2.1vmin; }
+    .foot { left: calc(50% + 13vmin); right: 5vmin; top: 36vmin; bottom: 7vmin; height: auto; }
+    h1 { margin-top: 3.4vmin; font-size: 7.4vmin; }
+    .sub { font-size: 2vmin; }
+    .offer { font-size: 1.7vmin; letter-spacing: 0; }
+    .offer b { padding: .2vmin .6vmin; letter-spacing: .06em; }
+    .bot { flex-direction: column; gap: 1.2vmin; margin-top: 3vmin; }
+    .bot .px { font-size: 1.6vmin; }
+  }
+  /* wide: nav column | stage | ENTER column */
+  @media (min-aspect-ratio: 6/5) {
+    .stage { left: calc(6vmin + 30vmin); top: 8vmin; bottom: 8vmin; width: auto; right: calc(6vmin + 40vmin); }
+    .top { left: 6vmin; right: auto; width: 26vmin; top: 8vmin; }
+    .logo { font-size: 2vmin; letter-spacing: .24em; }
+    .nav { left: 6vmin; right: auto; width: 26vmin; top: auto; bottom: 8vmin; gap: 1.6vmin; font-size: 2.2vmin; }
+    .foot { left: auto; right: 6vmin; width: 36vmin; top: 8vmin; bottom: 8vmin; }
+    h1 { margin-top: 4vmin; font-size: 7.6vmin; }
+    .sub { font-size: 2.1vmin; }
+    .offer { font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the segmented preloader spins in 12 ticks (1.2s); "[ SKIP INTRO ]" blinks on a 3s cadence
+     beats: 0.5s crop marks breathe out and snap back to the frame · 2.3s the preload bar drops to zero and
+            re-loads to 100 % · 3.7s ENTER swooshes in with Flash-style motion blur, the red dot pops ·
+            4.9s a soft white strobe sweeps across the stage */
+  .spin { animation: spin 1.2s steps(12, end) infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .skip { animation: blinkskip 3s steps(1, end) infinite; }
+  @keyframes blinkskip { 0%, 70%, 80%, 100% { opacity: 1; } 75% { opacity: .25; } }
+
+  .cm { animation: marks 6s cubic-bezier(.6,0,.2,1) infinite; }
+  .cm.a { --mx: -1.4vmin; --my: -1.4vmin; } .cm.b { --mx: 1.4vmin; --my: -1.4vmin; }
+  .cm.c { --mx: -1.4vmin; --my: 1.4vmin; }  .cm.d { --mx: 1.4vmin; --my: 1.4vmin; }
+  @keyframes marks { 0%, 8%, 30%, 100% { transform: translate(0, 0); } 17%, 20% { transform: translate(var(--mx), var(--my)); } 25% { transform: translate(calc(var(--mx) * -.15), calc(var(--my) * -.15)); } }
+
+  .meter { animation: reload 6s cubic-bezier(.3,0,.4,1) infinite; }
+  @keyframes reload {
+    0%, 38% { clip-path: inset(-2vmin 0 -2vmin 0); }
+    38.5% { clip-path: inset(-2vmin 100% -2vmin 0); }
+    46% { clip-path: inset(-2vmin 58% -2vmin 0); }
+    50% { clip-path: inset(-2vmin 44% -2vmin 0); }
+    60%, 100% { clip-path: inset(-2vmin 0 -2vmin 0); }
+  }
+  h1 { animation: enter 6s cubic-bezier(.2,.7,.2,1) infinite; }
+  @keyframes enter {
+    0%, 60%, 74%, 100% { transform: translateX(0) scaleX(1); filter: blur(0); opacity: 1; }
+    61% { transform: translateX(-5vmin) scaleX(1.12); filter: blur(1.4vmin); opacity: 0; }
+    66% { transform: translateX(.6vmin) scaleX(.99); filter: blur(.2vmin); opacity: 1; }
+  }
+  h1 i { display: inline-block; animation: dot 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes dot { 0%, 68%, 80%, 100% { transform: scale(1); } 72% { transform: scale(1.6); } 76% { transform: scale(.9); } }
+
+  .stage::after { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none;
+    background: linear-gradient(100deg, transparent 38%, rgba(255,255,255,.34) 50%, transparent 62%) -160% 0 / 200% 100% no-repeat;
+    animation: strobe 6s cubic-bezier(.5,0,.4,1) infinite; }
+  @keyframes strobe { 0%, 80% { background-position: -160% 0; } 94%, 100% { background-position: 260% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><div class="logo">MAISON LUNE</div><div class="px snd">sound: <b>off</b> / on</div></div>
+  <div class="nav"><span>collection</span><span>lookbook</span><span>stores</span><span class="on">e-shop</span></div>
+  <div class="stage">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <i class="cm a"></i><i class="cm b"></i><i class="cm c"></i><i class="cm d"></i>
+  </div>
+  <div class="foot">
+    <div class="load"><i class="spin"></i><span class="px">loading ss26 collection</span><span class="px">100%</span></div>
+    <div class="meter"></div>
+    <h1>ENTER<i>.</i></h1>
+    <p class="sub">SS26 is ready when you are.</p>
+    <div class="offer">20% off the e-shop · code <b>INTRO20</b></div>
+    <div class="bot"><span class="skip">[ SKIP INTRO ]</span><span class="px">best viewed at 1024×768</span></div>
+  </div>
+</div>
+</body>
+</html>

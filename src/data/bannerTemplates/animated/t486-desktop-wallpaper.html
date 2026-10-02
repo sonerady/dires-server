@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Albert+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Desktop Wallpaper — the look set as the wallpaper ("centred") on a dithered teal desktop, with hand-drawn desktop
+     icons (a lookbook folder, sale_30.txt selected, a cart, "Last season" in the bin), a warm-grey taskbar with a
+     "Shop" start button and clock, and a tray notification balloon that carries the headline and code.
+     tall → icon row / wallpaper / balloon / taskbar · square → icon row, wallpaper left, balloon right · wide → icon column */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C5B59; }
+  .banner { --desk: #1C5B59; --ink: #121212; --tb: 7vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Albert Sans", Tahoma, Verdana, sans-serif;
+    background: repeating-conic-gradient(#1C5B59 0 25%, #1F6260 0 50%) 0 0 / .6vmin .6vmin; }
+
+  /* icons */
+  .icons { position: absolute; left: 4vmin; right: 4vmin; top: 3.6vmin; display: flex; justify-content: space-between; }
+  .ic { width: 20vmin; display: flex; flex-direction: column; align-items: center; gap: 1.2vmin; }
+  .ic .g { position: relative; width: 8vmin; height: 7vmin; }
+  .ic span { max-width: 100%; padding: .2vmin .7vmin; color: #fff; font-size: 1.8vmin; font-weight: 500; line-height: 1.25; text-align: center; text-shadow: 1px 1px 0 rgba(0,0,0,.85); white-space: nowrap; }
+  .ic.sel span { background: #2446B8; text-shadow: none; outline: 1px dotted rgba(255,255,255,.85); }
+  .ic.sel .g { filter: sepia(1) hue-rotate(185deg) saturate(2.4) brightness(.8); }
+  /* folder */
+  .fold::before { content: ""; position: absolute; left: .4vmin; top: .4vmin; width: 3.4vmin; height: 1.6vmin; border-radius: .5vmin .5vmin 0 0; background: #D9A928; box-shadow: inset 0 0 0 1px rgba(0,0,0,.35); }
+  .fold::after { content: ""; position: absolute; left: 0; right: 0; top: 1.4vmin; bottom: .4vmin; border-radius: .3vmin; background: linear-gradient(180deg, #FFE08A, #F2C14A); box-shadow: inset 0 0 0 1px rgba(0,0,0,.4), inset 0 .5vmin 0 rgba(255,255,255,.5); }
+  /* text file */
+  .txt::before { content: ""; position: absolute; left: 1.4vmin; right: 1.4vmin; top: 0; bottom: 0; background: repeating-linear-gradient(180deg, transparent 0 1.6vmin, #7C8AA8 1.6vmin 1.85vmin, transparent 1.85vmin 2.4vmin) 1vmin 0 / calc(100% - 2vmin) 100% no-repeat, #fff;
+    clip-path: polygon(0 0, 68% 0, 100% 26%, 100% 100%, 0 100%); box-shadow: inset 0 0 0 1px #555; }
+  .txt::after { content: ""; position: absolute; right: 1.4vmin; top: 0; width: 1.7vmin; height: 1.8vmin; background: linear-gradient(225deg, transparent 50%, #C9CFDA 50%); }
+  .txt { outline: 0; }
+  .txt i { position: absolute; left: 1.4vmin; right: 1.4vmin; top: 0; bottom: 0; border: 1px solid #333; clip-path: polygon(0 0, 68% 0, 100% 26%, 100% 100%, 0 100%); }
+  /* cart */
+  .cart::before { content: ""; position: absolute; left: 1.4vmin; right: .8vmin; top: 1.4vmin; height: 3.4vmin; background: repeating-linear-gradient(90deg, #E8EDF5 0 .9vmin, #9FB0CC .9vmin 1.1vmin); clip-path: polygon(0 0, 100% 0, 86% 100%, 10% 100%); }
+  .cart::after { content: ""; position: absolute; left: 2.2vmin; bottom: .3vmin; width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: #2A2A2A; box-shadow: 3.6vmin 0 0 #2A2A2A; }
+  .cart i { position: absolute; left: 0; top: .6vmin; width: 1.8vmin; height: 1px; border-top: .45vmin solid #D6DCE6; }
+  /* bin */
+  .bin::before { content: ""; position: absolute; left: 1.6vmin; right: 1.6vmin; top: 1.3vmin; bottom: 0; border-radius: 0 0 .8vmin .8vmin; background: repeating-linear-gradient(90deg, #C9D1DC 0 .8vmin, #8994A6 .8vmin 1vmin); box-shadow: inset 0 0 0 1px #444; clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%); }
+  .bin::after { content: ""; position: absolute; left: 1vmin; right: 1vmin; top: .4vmin; height: 1vmin; border-radius: .3vmin; background: linear-gradient(180deg, #E4E9F0, #A9B3C2); box-shadow: inset 0 0 0 1px #444; }
+
+  /* wallpaper */
+  .wall { position: absolute; left: 6vmin; right: 6vmin; top: 22vmin; height: calc(100% - 22vmin - var(--tb) - 41vmin); overflow: hidden; box-shadow: 0 1.4vmin 3vmin rgba(0,0,0,.28); }
+  .wall img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  /* balloon */
+  .bal { position: absolute; left: 6vmin; right: 6vmin; bottom: calc(var(--tb) + 4.4vmin); padding: 3vmin 3.4vmin 3.2vmin; box-sizing: border-box; background: #FFFDE9; border: 1px solid #1A1A1A; border-radius: 1.8vmin; box-shadow: .8vmin .8vmin 0 rgba(0,0,0,.22); }
+  .bal::after { content: ""; position: absolute; right: 12vmin; bottom: -3.3vmin; width: 4vmin; height: 3.3vmin; background: #FFFDE9; clip-path: polygon(0 0, 100% 0, 88% 100%); }
+  .bal::before { content: ""; position: absolute; right: calc(12vmin - 1px); bottom: calc(-3.3vmin - 1.5px); width: calc(4vmin + 2px); height: calc(3.3vmin + 1.5px); background: #1A1A1A; clip-path: polygon(0 0, 100% 0, 88% 100%); }
+  .bt { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.9vmin; font-weight: 700; white-space: nowrap; }
+  .bt .inf { flex: none; width: 3vmin; height: 3vmin; border-radius: 50%; background: #2446B8; color: #fff; display: flex; align-items: center; justify-content: center; font-family: "DM Serif Display", Georgia, serif; font-style: italic; font-size: 2.2vmin; }
+  .bt .x { margin-left: auto; width: 2.6vmin; height: 2.6vmin; border: 1px solid #1A1A1A; border-radius: .4vmin; display: flex; align-items: center; justify-content: center; font-size: 1.8vmin; font-weight: 500; }
+  .bal h1 { margin: 2vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 8.4vmin; line-height: .95; letter-spacing: -.02em; }
+  .bal h1 i { color: #2446B8; }
+  .bal p { margin: 1.8vmin 0 0; font-size: 2.1vmin; line-height: 1.45; }
+  .bal p b { padding: 0 .8vmin; background: #1A1A1A; color: #FFFDE9; letter-spacing: .08em; font-weight: 700; }
+  .bal p u { white-space: nowrap; color: #2446B8; text-underline-offset: .4vmin; }
+
+  /* taskbar */
+  .task { position: absolute; left: 0; right: 0; bottom: 0; height: var(--tb); display: flex; align-items: center; gap: 1.4vmin; padding: 0 1.2vmin; box-sizing: border-box;
+    background: linear-gradient(180deg, #EFEAE0 0%, #D8D2C6 100%); box-shadow: inset 0 1px 0 #fff, 0 -1px 0 #9A9488; font-size: 1.9vmin; font-weight: 700; white-space: nowrap; }
+  .btn { display: flex; align-items: center; gap: 1vmin; height: 4.8vmin; padding: 0 1.6vmin; box-sizing: border-box; background: linear-gradient(180deg, #FBF8F2, #E2DCD0); box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #7E786C, 1px 1px 0 #3A3630; }
+  .btn.start { font-weight: 700; }
+  .btn.start i { width: 2.6vmin; height: 2.6vmin; border-radius: 50%; background: radial-gradient(circle, #F6C443 0 34%, transparent 36%), repeating-conic-gradient(#E0612E 0 10deg, transparent 10deg 30deg); }
+  .btn.run { flex: 1; min-width: 0; font-weight: 500; background: repeating-conic-gradient(#EFEAE0 0 25%, #FFFFFF 0 50%) 0 0 / .4vmin .4vmin; box-shadow: inset 1px 1px 0 #7E786C, inset -1px -1px 0 #fff, inset 2px 2px 0 #3A3630; overflow: hidden; }
+  .tray { display: flex; align-items: center; gap: 1.4vmin; height: 4.8vmin; padding: 0 1.6vmin; box-shadow: inset 1px 1px 0 #7E786C, inset -1px -1px 0 #fff; font-weight: 500; }
+  .tray i { width: 2vmin; height: 2vmin; border-radius: 50%; background: #2446B8; box-shadow: 0 0 0 .3vmin #FFFDE9, 0 0 0 .5vmin #1A1A1A; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .icons { left: 8vmin; right: 8vmin; }
+    .ic { width: 18vmin; }
+    .wall { left: 10vmin; right: 10vmin; top: 21vmin; height: calc(100% - 21vmin - var(--tb) - 38vmin); }
+    .bal { left: 10vmin; right: 10vmin; padding: 2.6vmin 3vmin 2.8vmin; }
+    .bal h1 { font-size: 7.4vmin; margin-top: 1.6vmin; }
+  }
+
+  /* square: icon row on top, wallpaper left, balloon right */
+  @media (min-aspect-ratio: 9/10) {
+    .icons { left: 3vmin; right: auto; width: 56vmin; }
+    .ic { width: 14vmin; }
+    .ic span { font-size: 1.7vmin; }
+    .wall { left: 5vmin; right: auto; top: 20vmin; width: 50vmin; height: calc(100% - 20vmin - var(--tb) - 4vmin); }
+    .bal { left: 59vmin; right: 4vmin; bottom: calc(var(--tb) + 4.4vmin); padding: 2.6vmin 2.8vmin 2.8vmin; }
+    .bal::after { right: 4vmin; } .bal::before { right: calc(4vmin - 1px); }
+    .bal h1 { font-size: 6.2vmin; }
+    .bal p { font-size: 1.9vmin; }
+    .btn.run span { display: none; }
+  }
+  /* wide: icon column on the left edge */
+  @media (min-aspect-ratio: 6/5) {
+    .icons { left: 2.4vmin; right: auto; top: 3vmin; width: 15vmin; bottom: calc(var(--tb) + 3vmin); flex-direction: column; justify-content: flex-start; gap: 3.4vmin; }
+    .ic { width: 15vmin; }
+    .wall { left: 21vmin; top: 5vmin; width: 58vmin; height: calc(100% - 5vmin - var(--tb) - 5vmin); }
+    .bal { left: 86vmin; right: 5vmin; }
+    .bal::after { right: 7vmin; } .bal::before { right: calc(7vmin - 1px); }
+    .bal h1 { font-size: 7.4vmin; }
+    .bal p { font-size: 2vmin; }
+    .btn.run span { display: inline; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     desktop life: the tray icon blinks for attention, the clock colon ticks, the selected sale_30.txt icon's
+     focus outline pulses, the wallpaper breathes (≤1.03);
+     beats: 1.6 s the "Shop" start button is pressed in · 3.8 s the balloon is dismissed (shrinks to its tail) and
+     4.4 s pops back up with an overshoot · 5 s the "Click here to shop" link flashes */
+  .wall img { transform-origin: 50% 35%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .tray i { animation: tray 1s steps(1, end) infinite; }
+  @keyframes tray { 0%, 50% { background: #2446B8; } 51%, 100% { background: #F6C443; } }
+  .tray .col { font-weight: inherit; animation: colon 2s steps(1, end) infinite; }
+  @keyframes colon { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+  .ic.sel span { animation: focus 1.5s steps(1, end) infinite; }
+  @keyframes focus { 0%, 60% { outline-color: rgba(255,255,255,.85); } 61%, 100% { outline-color: rgba(255,255,255,.2); } }
+
+  .btn.start { animation: press 6s steps(1, end) infinite; }
+  @keyframes press { 0%, 26%, 32%, 100% { box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #7E786C, 1px 1px 0 #3A3630; transform: translate(0, 0); }
+                     27%, 31% { box-shadow: inset 1px 1px 0 #7E786C, inset -1px -1px 0 #fff, inset 2px 2px 0 #3A3630; transform: translate(1px, 1px); } }
+
+  .bal { transform-origin: calc(100% - 13vmin) calc(100% + 3vmin); animation: balloon 6s cubic-bezier(.4,0,.2,1) infinite; }
+  @media (min-aspect-ratio: 9/10) { .bal { transform-origin: calc(100% - 5vmin) calc(100% + 3vmin); } }
+  @media (min-aspect-ratio: 6/5) { .bal { transform-origin: calc(100% - 8vmin) calc(100% + 3vmin); } }
+  @keyframes balloon {
+    0%, 62% { transform: scale(1); opacity: 1; }
+    67% { transform: scale(.2); opacity: 0; }
+    73% { transform: scale(.2); opacity: 0; animation-timing-function: cubic-bezier(.2,.8,.3,1.25); }
+    80% { transform: scale(1.03); opacity: 1; }
+    84%, 100% { transform: scale(1); opacity: 1; }
+  }
+  .bal p u { animation: link 6s steps(1, end) infinite; }
+  @keyframes link { 0%, 86%, 88%, 90%, 100% { color: #2446B8; background: transparent; } 87%, 89% { color: #FFFDE9; background: #2446B8; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="icons">
+    <div class="ic"><div class="g fold"></div><span>SS26 Lookbook</span></div>
+    <div class="ic sel"><div class="g txt"><i></i></div><span>sale_30.txt</span></div>
+    <div class="ic"><div class="g cart"><i></i></div><span>My cart (0)</span></div>
+    <div class="ic"><div class="g bin"></div><span>Last season</span></div>
+  </div>
+  <div class="wall"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="bal">
+    <div class="bt"><span class="inf">i</span>Studio Oro Update<span class="x">✕</span></div>
+    <h1>New season <i>installed.</i></h1>
+    <p>30% off everything with code <b>DESK30</b> until Sunday. <u>Click here to shop.</u></p>
+  </div>
+  <div class="task">
+    <div class="btn start"><i></i>Shop</div>
+    <div class="btn run">▣ <span>new_season.jpg — Wallpaper</span></div>
+    <div class="tray"><i></i><span>10<b class="col">:</b>42</span></div>
+  </div>
+</div>
+</body>
+</html>

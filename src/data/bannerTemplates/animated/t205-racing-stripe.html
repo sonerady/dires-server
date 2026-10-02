@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,600;1,800;1,900&family=Barlow:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Racing Stripe — a 70s downhill race suit: a tricolour speed stripe slashes up through the corner of a cream panel,
+     giant forward-leaning italic "Downhill", and the course card (course / gates / finish) set like race-suit lettering.
+     tall → photo above; square/wide → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1ECE1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1B2A4E; font-family: "Barlow", "Helvetica Neue", Arial, sans-serif; background: #F1ECE1; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; overflow: hidden; }
+  .stripes { position: absolute; right: -1vmin; bottom: -1vmin; width: 74vmin; height: 56vmin; }
+  .rule { position: absolute; left: 0; right: 0; top: 0; height: 2.4vmin; background: linear-gradient(180deg, #1B2A4E 0 33.3%, #D9412B 33.3% 66.6%, #E8A33D 66.6%); }
+  .col { position: absolute; left: 6vmin; right: 6vmin; top: 4.6vmin; bottom: 5vmin; display: flex; flex-direction: column; align-items: flex-start; }
+  .kick { align-self: stretch; display: flex; justify-content: space-between; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-style: italic; font-weight: 800; font-size: 2.4vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .kick b { color: #D9412B; font-weight: 800; }
+  h1 { margin: 2.4vmin 0 0 -1.4vmin; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-style: italic; font-weight: 900; font-size: 23vmin; line-height: .84; letter-spacing: -.02em; text-transform: uppercase; white-space: nowrap; }
+  h1 span { color: #D9412B; }
+  h1 br { display: none; }
+  .sub { margin-top: 2.2vmin; width: 60vmin; font-weight: 700; font-size: 3.4vmin; line-height: 1.12; letter-spacing: -.01em; }
+  .card { margin: 3.4vmin 0 0; width: 40vmin; }
+  .card div { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; padding: 1vmin 0; border-top: .3vmin solid #1B2A4E; }
+  .card dt { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-style: italic; font-weight: 600; font-size: 2.2vmin; letter-spacing: .14em; text-transform: uppercase; opacity: .75; }
+  .card dd { margin: 0; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-style: italic; font-weight: 800; font-size: 3.2vmin; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
+  .cta { margin-top: auto; margin-left: 1vmin; display: flex; align-items: center; padding: 1.8vmin 3.4vmin 1.8vmin 3vmin; background: #1B2A4E; color: #F1ECE1; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-style: italic; font-weight: 800; font-size: 3vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; transform: skewX(-12deg); }
+  .cta span { display: inline-block; transform: skewX(12deg); }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 74vmin); }
+    .panel { height: 74vmin; }
+    .stripes { width: 68vmin; height: 50vmin; }
+  .col { top: 4vmin; bottom: 4.4vmin; }
+    h1 { font-size: 22vmin; }
+    .card { margin-top: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .panel { height: 64vmin; }
+    .stripes { width: 60vmin; height: 44vmin; }
+  .col { top: 3.6vmin; bottom: 3.8vmin; }
+    .kick { font-size: 2.2vmin; }
+    h1 { font-size: 20vmin; margin-top: 1vmin; }
+    .sub { font-size: 3vmin; margin-top: 1.6vmin; }
+    .card { margin-top: 2vmin; width: 36vmin; }
+    .card div { padding: .6vmin 0; }
+    .card div:nth-child(2) { display: none; }
+    .card dd { font-size: 2.8vmin; }
+    .cta { font-size: 2.6vmin; padding: 1.4vmin 3vmin 1.4vmin 2.6vmin; }
+  }
+  /* square / wide → photo left, cream panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 48%; top: 0; height: auto; }
+    .rule { right: auto; bottom: 0; width: 2.4vmin; height: auto; background: linear-gradient(90deg, #1B2A4E 0 33.3%, #D9412B 33.3% 66.6%, #E8A33D 66.6%); }
+    .stripes { width: 50vmin; height: 42vmin; right: -2vmin; }
+  .col { left: 6.4vmin; right: 4vmin; top: 5.4vmin; bottom: 5vmin; }
+    .kick { flex-direction: column; gap: .4vmin; font-size: 2vmin; }
+    h1 { font-size: 17vmin; margin-top: 3vmin; line-height: .8; }
+    h1 br { display: block; }
+    .sub { width: 40vmin; font-size: 2.8vmin; margin-top: 2.6vmin; }
+    .card { width: 30vmin; margin-top: 3vmin; }
+    .card div { padding: .6vmin 0; }
+    .card div:nth-child(2) { display: flex; }
+    .card dt { font-size: 1.9vmin; }
+    .card dd { font-size: 2.5vmin; }
+    .cta { font-size: 2.4vmin; padding: 1.3vmin 2.6vmin 1.3vmin 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { left: 46%; }
+    .stripes { width: 70vmin; height: 56vmin; }
+  .col { left: 7.4vmin; right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .kick { flex-direction: row; font-size: 2.2vmin; }
+    h1 { font-size: 21vmin; }
+    .sub { width: 50vmin; font-size: 3.2vmin; }
+    .card { width: 36vmin; }
+    .card div { padding: .9vmin 0; }
+    .card dt { font-size: 2.1vmin; }
+    .card dd { font-size: 3vmin; }
+    .cta { font-size: 2.8vmin; padding: 1.7vmin 3.2vmin 1.7vmin 2.8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     0.6s the tricolour speed stripes shoot off up their diagonal and rip back in from below, navy → red → amber ·
+     2.2s "Downhill." tucks forward into a racing lean and snaps back · 3.6s the course card updates like a timing board
+     (values flicker in turn) · 4.8s CTA sheen + arrow nudge · constant: photo breathes (≤1.03) */
+  .photo { transform-origin: 50% 20%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .stripes path { animation: zip 6s linear infinite; }
+  .stripes path:nth-child(2) { animation-delay: -5.9s; }
+  .stripes path:nth-child(3) { animation-delay: -5.8s; }
+  @keyframes zip {
+    0%, 10% { transform: translate(0, 0); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    16% { transform: translate(120px, -112px); animation-timing-function: steps(1, end); }
+    16.5% { transform: translate(-120px, 112px); animation-timing-function: cubic-bezier(.15,.75,.25,1); }
+    25% { transform: translate(2px, -1.9px); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    28%, 100% { transform: translate(0, 0); }
+  }
+
+  h1 { transform-origin: 0 100%; animation: lean 6s linear infinite; }
+  @keyframes lean {
+    0%, 36% { transform: translateX(0) skewX(0deg); filter: blur(0); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    40% { transform: translateX(1.6vmin) skewX(-7deg); filter: blur(.12vmin); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    44% { transform: translateX(1.2vmin) skewX(-6deg); filter: blur(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    49% { transform: translateX(-.3vmin) skewX(1deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    53%, 100% { transform: translateX(0) skewX(0deg); filter: blur(0); }
+  }
+
+  .card dd { animation: board 6s steps(1, end) infinite; }
+  .card div:nth-child(2) dd { animation-delay: -5.85s; }
+  .card div:nth-child(3) dd { animation-delay: -5.7s; }
+  @keyframes board {
+    0%, 60% { opacity: 1; color: #1B2A4E; }
+    60.5% { opacity: .1; }
+    61.5% { opacity: 1; color: #D9412B; }
+    62.5% { opacity: .1; }
+    63.5% { opacity: 1; color: #D9412B; }
+    67%, 100% { opacity: 1; color: #1B2A4E; }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.28) 50%, rgba(255,255,255,0));
+    transform: translateX(-180%); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 79% { transform: translateX(-180%); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    92%, 100% { transform: translateX(420%); }
+  }
+  .cta .ar { font-style: normal; display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 81% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    84% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    87% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    90% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    93%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <svg class="stripes" viewBox="0 0 100 80" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M12 100 L112 6 L112 24 L31 100 Z" fill="#1B2A4E"/>
+      <path d="M36 100 L112 29 L112 46 L54 100 Z" fill="#D9412B"/>
+      <path d="M59 100 L112 51 L112 66 L75 100 Z" fill="#E8A33D"/>
+    </svg>
+    <div class="rule"></div>
+    <div class="col">
+      <div class="kick"><span>Team Nord · <b>Winter racing</b></span><span>No. 27</span></div>
+      <h1>Down<br>hill<span>.</span></h1>
+      <div class="sub">Prices race down to 50% off. Full speed till the finish.</div>
+      <dl class="card">
+        <div><dt>Course</dt><dd>Winter edit</dd></div>
+        <div><dt>Gates</dt><dd>48 styles</dd></div>
+        <div><dt>Finish</dt><dd>06 Jan</dd></div>
+      </dl>
+      <div class="cta"><span>Start now <i class="ar">→</i></span>
+</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

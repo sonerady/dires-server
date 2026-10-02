@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Style Steps — a "how to style it" split: the same photo cropped twice (close on the piece → the full look) with an arrow in the gutter.
+     tall / square → title on top, two panels side by side; wide → title column left, panels right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCE0D2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #DCE0D2; color: #1C1E19; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif;
+    display: flex; flex-direction: column; padding: 5vmin 5vmin 5vmin; box-sizing: border-box; }
+
+  .head { flex: none; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .kick { font-size: 1.9vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .kick b { display: inline-block; background: #1C1E19; color: #DCE0D2; padding: .5vmin 1.2vmin; margin-right: 1.2vmin; letter-spacing: .1em; }
+  h1 { margin: 2vmin 0 0; font-family: "Syne", "Helvetica Neue", sans-serif; font-weight: 800; font-size: 12vmin; line-height: .88; letter-spacing: -.035em; }
+  .count { flex: none; text-align: right; font-family: "Syne", sans-serif; font-weight: 700; font-size: 2.2vmin; line-height: 1.3; letter-spacing: .02em; padding-bottom: .6vmin; }
+
+  .pair { flex: 1 1 auto; min-height: 0; display: flex; margin-top: 4.4vmin; }
+  .col { display: flex; flex-direction: column; min-width: 0; }
+  .c1 { flex: 0 0 34%; }
+  .c2 { flex: 1 1 auto; }
+  .pic { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+  .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .c1 .pic img { object-position: 50% 42%; transform: scale(2); transform-origin: 50% 42%; }
+  .gut { flex: 0 0 9vmin; display: flex; align-items: center; justify-content: center; padding-bottom: 7vmin; }
+  .gut i { width: 7vmin; height: 7vmin; border-radius: 50%; background: #1C1E19; display: flex; align-items: center; justify-content: center; }
+  .gut svg { width: 3.6vmin; height: 3.6vmin; }
+  .lab { flex: none; height: 7vmin; display: flex; align-items: flex-end; gap: 1.4vmin; border-bottom: 1px solid #1C1E19; padding-bottom: 1vmin; box-sizing: border-box; }
+  .lab b { font-family: "Syne", sans-serif; font-weight: 800; font-size: 2.6vmin; line-height: 1; }
+  .lab span { font-size: 2.1vmin; font-weight: 600; line-height: 1.1; }
+
+  .foot { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 4vmin; margin-top: 3.4vmin; }
+  .tip { font-size: 2.3vmin; line-height: 1.35; font-weight: 500; }
+  .tip em { font-style: normal; font-weight: 700; }
+  .cta { flex: none; background: #1C1E19; color: #DCE0D2; border-radius: 99vmin; padding: 1.9vmin 3.2vmin; font-size: 2.1vmin; font-weight: 700; letter-spacing: .04em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 5vmin 4.4vmin; }
+    h1 { font-size: 10vmin; margin-top: 1.6vmin; }
+    .pair { margin-top: 3.4vmin; }
+    .c1 { flex-basis: 38%; }
+    .foot { margin-top: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { padding: 5vmin; }
+    h1 { font-size: 9vmin; }
+    h1 br { display: none; }
+    .c1 { flex-basis: 40%; }
+    .pair { margin-top: 3.6vmin; }
+    .foot { margin-top: 2.8vmin; }
+    .tip { font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { display: grid; grid-template-columns: 34% 1fr; grid-template-rows: auto 1fr auto; column-gap: 5vmin; padding: 6vmin; }
+    .head { grid-column: 1; grid-row: 1; display: block; }
+    h1 { font-size: calc((100vw - 17vmin) * .34 / 5.8); margin-top: 2.6vmin; }
+    h1 br { display: inline; }
+    .count { text-align: left; margin-top: 3.4vmin; }
+    .pair { grid-column: 2; grid-row: 1 / span 3; margin: 0; }
+    .c1 { flex-basis: 42%; }
+    .foot { grid-column: 1; grid-row: 3; display: block; margin: 0; }
+    .tip { font-size: 2.3vmin; }
+    .cta { display: inline-block; margin-top: 3vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* the two steps talk to each other: step 01 zooms into the piece, the arrow pushes over, step 02 answers with
+     the full look; the step rules light in order */
+  /* step 01: the close-up leans in, then eases back */
+  .c1 .pic img { animation: zoom1 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes zoom1 { 0%, 100% { transform: scale(2); } 30% { transform: scale(2.1); } 60% { transform: scale(2); } }
+  /* step 02: breathes in counter-phase */
+  .c2 .pic img { animation: zoom2 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes zoom2 { 0%, 40% { transform: scale(1); } 70% { transform: scale(1.035); } 100% { transform: scale(1); } }
+  /* gutter arrow: the dot bumps, the arrow darts across twice (01 → 02) */
+  .gut i { animation: bump 6s linear infinite; }
+  @keyframes bump {
+    0%, 30% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    34% { transform: scale(1.14); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    42%, 100% { transform: scale(1); }
+  }
+  .gut i { overflow: hidden; }
+  .gut svg { animation: dart 6s linear infinite; }
+  @keyframes dart {
+    0%, 32% { transform: translateX(0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    37% { transform: translateX(5vmin); opacity: 1; animation-timing-function: steps(1, end); }
+    37.5% { transform: translateX(-5vmin); opacity: 1; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    44%, 100% { transform: translateX(0); opacity: 1; }
+  }
+  /* step rules: a line races along 01, then along 02 */
+  .lab { position: relative; }
+  .lab::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: .35vmin; background: #1C1E19; transform-origin: 0 50%; transform: scaleX(0); animation: rule 6s linear infinite; }
+  .c2 .lab::after { animation-delay: -5.4s; }
+  @keyframes rule {
+    0%, 20% { transform: scaleX(0); transform-origin: 0 50%; animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    30% { transform: scaleX(1); transform-origin: 0 50%; animation-timing-function: steps(1, end); }
+    50% { transform: scaleX(1); transform-origin: 100% 50%; animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    60%, 100% { transform: scaleX(0); transform-origin: 100% 50%; }
+  }
+  .lab b { display: inline-block; animation: num 6s linear infinite; }
+  .c2 .lab b { animation-delay: -5.4s; }
+  @keyframes num {
+    0%, 26% { transform: translateY(0); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    30% { transform: translateY(-.8vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    36%, 100% { transform: translateY(0); }
+  }
+  /* CTA: sheen at the end */
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,.3) 50%, rgba(255,255,255,.08) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen { 0%, 76% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 92%, 100% { transform: translateX(330%) skewX(-18deg); } }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div>
+      <div class="kick"><b>101</b>Styling notes</div>
+      <h1>How to <br>style it</h1>
+    </div>
+    <div class="count">2 steps<br>1 hero piece</div>
+  </div>
+  <div class="pair">
+    <div class="col c1">
+      <div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="lab"><b>01</b><span>Start with the piece</span></div>
+    </div>
+    <div class="gut"><i><svg viewBox="0 0 24 24"><path d="M3 12h16M13 5l7 7-7 7" fill="none" stroke="#DCE0D2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></i></div>
+    <div class="col c2">
+      <div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="lab"><b>02</b><span>Finish the look</span></div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="tip"><em>Keep one hero piece.</em> Let the rest go quiet.</div>
+    <div class="cta">Shop it →</div>
+  </div>
+</div>
+</body>
+</html>

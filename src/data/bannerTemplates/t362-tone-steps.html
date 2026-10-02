@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Tone Steps — five values of tomato built as a staircase bar chart, blush to brick.
+     The headline sits in the empty triangle above the low steps; the tallest, darkest step carries the offer.
+     tall → photo on top, stairs below; square/wide → photo left, stairs fill the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FDEBE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FDEBE4; color: #7A1C0F; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 56%; object-fit: cover; object-position: 50% 18%; }
+
+  .region { position: absolute; left: 0; right: 0; top: 56%; bottom: 0; }
+  .steps { position: absolute; inset: 0; display: flex; align-items: flex-end; }
+  .s { flex: 1; position: relative; box-sizing: border-box; padding: 2vmin 1.8vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .s1 { height: 20%; background: #F7C2B1; }
+  .s2 { height: 40%; background: #F08D71; }
+  .s3 { height: 60%; background: #E4452A; color: #FFF3EE; }
+  .s4 { height: 80%; background: #B42F1B; color: #FFF3EE; }
+  .s5 { height: 100%; background: #7A1C0F; color: #FFF3EE; }
+  .t { font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; line-height: 1.35; letter-spacing: .04em; white-space: nowrap; }
+  .t b { display: block; font-weight: 500; font-size: 1.9vmin; }
+  .s5 .off { font-weight: 800; font-size: 8.4vmin; line-height: .8; letter-spacing: -.04em; }
+  .s5 .off small { display: block; font-size: 2vmin; font-weight: 600; letter-spacing: .02em; margin-top: 1.2vmin; }
+  .s4 .code { font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; line-height: 1.4; letter-spacing: .06em; }
+  .s4 .code b { display: inline-block; margin-top: .6vmin; font-weight: 500; font-size: 1.8vmin; padding: .5vmin .8vmin; background: #FFF3EE; color: #7A1C0F; }
+
+  .head { position: absolute; left: 6vmin; top: 4.6vmin; }
+  .k { font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { margin: 1.4vmin 0 0; font-weight: 800; font-size: 8.4vmin; line-height: .9; letter-spacing: -.045em; }
+  .cta { margin-top: 1.8vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .01em; }
+  .cta u { text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: .2vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 54%; }
+    .region { top: 54%; }
+    h1 { font-size: 7.4vmin; }
+    .head { top: 4vmin; }
+    .s5 .off { font-size: 7.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 22%; }
+    .region { left: 46%; top: 0; }
+    .s1 { height: 22%; } .s2 { height: 41%; } .s3 { height: 60%; } .s4 { height: 80%; }
+    .s { padding: 1.8vmin 1.2vmin; }
+    .t { font-size: 1.6vmin; } .t b { font-size: 1.7vmin; }
+    .head { left: 4.6vmin; top: 5vmin; }
+    h1 { font-size: 6vmin; }
+    .cta { font-size: 1.8vmin; }
+    .s5 .off { font-size: 5.4vmin; }
+    .s5 .off small { font-size: 1.6vmin; }
+    .s4 .code b { font-size: 1.6vmin; padding: .4vmin .5vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .region { left: 42%; }
+    .s { padding: 2.2vmin 1.8vmin; }
+    .head { left: 5.4vmin; top: 6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .cta { font-size: 2vmin; }
+    .t b { font-size: 1.9vmin; }
+    .s5 .off { font-size: 7.6vmin; }
+    .s5 .off small { font-size: 1.9vmin; }
+    .s4 .code b { font-size: 1.8vmin; padding: .5vmin .8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="region">
+    <div class="steps">
+      <div class="s s1"><div class="t"><b>01</b>Blush</div></div>
+      <div class="s s2"><div class="t"><b>02</b>Coral</div></div>
+      <div class="s s3"><div class="t"><b>03</b>Tomato</div></div>
+      <div class="s s4"><div class="t"><b>04</b>Chilli</div><div class="code">Code<br><b>RED40</b></div></div>
+      <div class="s s5"><div class="t"><b>05</b>Brick</div><div class="off">40%<small>off all reds</small></div></div>
+    </div>
+    <div class="head">
+      <div class="k">Colour study Nº 2</div>
+      <h1>Tomato,<br>five ways.</h1>
+      <div class="cta"><u>Shop the reds</u> →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

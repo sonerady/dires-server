@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Velvet Tray — a jeweller's counter tray in oxblood velvet: the photo lies in the big recessed
+     compartment, the copy sits in the smaller ones (gold-foil headline, a cream price card, the code).
+     tall → photo compartment on top; 3:4 / square / wide → photo compartment on the left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #3E0F1A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F2E6D8; font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(130% 80% at 18% 0%, #74202F 0%, #4F1422 42%, #300A13 100%); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .55; mix-blend-mode: soft-light; }
+  /* the ridges between compartments catch the light */
+  .banner::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(115deg, rgba(255,214,222,0) 30%, rgba(255,214,222,.07) 48%, rgba(255,214,222,0) 66%); }
+
+  .tray { position: absolute; inset: 3.2vmin; display: grid; gap: 2.4vmin;
+    grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 25vmin 25vmin;
+    grid-template-areas: "ph ph" "hd hd" "pr cd"; }
+  .cell { position: relative; min-width: 0; min-height: 0; background: rgba(22,3,8,.42);
+    box-shadow: inset .9vmin 1.2vmin 1.9vmin rgba(0,0,0,.62), inset -.3vmin -.4vmin .9vmin rgba(255,196,206,.08); }
+  .ph { grid-area: ph; overflow: hidden; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  /* the photo sinks into the compartment */
+  .ph::after { content: ""; position: absolute; inset: 0; box-shadow: inset .8vmin 1vmin 1.8vmin rgba(20,2,6,.6), inset -.2vmin -.3vmin .6vmin rgba(255,210,220,.12); }
+  .ph .no { position: absolute; right: 2.2vmin; bottom: 2.2vmin; z-index: 1; padding: .7vmin 1.3vmin; background: #F4EBDD; color: #3B0E18; font-size: 1.6vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; box-shadow: 0 .5vmin 1vmin rgba(0,0,0,.35); }
+
+  .hd { grid-area: hd; padding: 3.4vmin 4vmin; display: flex; flex-direction: column; justify-content: center; }
+  .k { font-size: 1.8vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: #D9B99A; display: flex; align-items: center; gap: 1.6vmin; }
+  .k::before { content: ""; width: 5vmin; height: 1px; background: #C9A266; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 500; font-size: 9.4vmin; line-height: .98; letter-spacing: -.01em;
+    color: #E3C27E; background: linear-gradient(172deg, #F6E2AE 0%, #D6AE62 38%, #F3D99C 55%, #B8883C 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .cta { margin-top: 1.8vmin; align-self: flex-start; font-size: 1.9vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: #F2E6D8; padding-bottom: .6vmin; border-bottom: 1px solid #C9A266; white-space: nowrap; }
+
+  /* a cream price card resting on the velvet */
+  .pr { grid-area: pr; display: flex; align-items: center; justify-content: center; padding: 2.4vmin; }
+  .card { width: 100%; max-width: 40vmin; background: #F4EBDD; color: #3B0E18; padding: 2.2vmin 2.6vmin 2.4vmin; transform: rotate(-2.2deg);
+    box-shadow: 0 1vmin 1.6vmin rgba(0,0,0,.5), 0 .2vmin .3vmin rgba(0,0,0,.3); }
+  .card small { display: block; font-size: 1.6vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #8A5A4A; padding-bottom: 1vmin; border-bottom: 1px solid rgba(59,14,24,.25); }
+  .card b { display: block; margin-top: 1.2vmin; font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 7.4vmin; line-height: 1; }
+  .card span { display: block; margin-top: .8vmin; font-size: 1.8vmin; color: #6E3A33; }
+
+  .cd { grid-area: cd; padding: 3vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .cd small { font-size: 1.7vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: #D9B99A; }
+  .code { margin-top: 1.4vmin; padding: 1.2vmin 2.2vmin; border: 1px dashed #C9A266; font-size: 3.4vmin; font-weight: 500; letter-spacing: .2em; margin-right: -.2em; color: #EBCF92; white-space: nowrap; }
+  .cd span { margin-top: 1.4vmin; font-size: 1.9vmin; color: #F2E6D8; }
+
+  /* ── 3:4 / 4:5 — photo compartment left, three small compartments stacked right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .tray { grid-template-columns: 58% 1fr; grid-template-rows: 1fr 30vmin 26vmin; grid-template-areas: "ph hd" "ph pr" "ph cd"; }
+    .hd { padding: 3vmin; }
+    .k { font-size: 1.6vmin; letter-spacing: .22em; }
+    .k::before { width: 3vmin; }
+    h1 { font-size: 7vmin; }
+    .cta { font-size: 1.7vmin; letter-spacing: .2em; }
+    .card { padding: 2vmin 2.2vmin; }
+    .card b { font-size: 6.4vmin; }
+    .code { font-size: 2.8vmin; padding: 1vmin 1.6vmin; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .tray { grid-template-columns: 52% 1fr; grid-template-rows: 1fr 29vmin 23vmin; }
+    .hd { padding: 3.4vmin 3.6vmin; }
+    h1 { font-size: 7.8vmin; }
+    .card { max-width: 34vmin; }
+    .card b { font-size: 6vmin; }
+    .code { font-size: 3vmin; }
+  }
+  /* ── wide — photo | headline over (price + code) ── */
+  @media (min-aspect-ratio: 6/5) {
+    .tray { grid-template-columns: 40% 1fr 1fr; grid-template-rows: 1fr 40vmin; grid-template-areas: "ph hd hd" "ph pr cd"; }
+    .hd { padding: 4vmin 5vmin; }
+    .k { font-size: 1.8vmin; letter-spacing: .3em; }
+    .k::before { width: 5vmin; }
+    h1 { font-size: 10vmin; }
+    .cta { margin-top: 2.6vmin; font-size: 1.9vmin; letter-spacing: .26em; }
+    .card { max-width: 36vmin; padding: 2.4vmin 2.8vmin; }
+    .card b { font-size: 7vmin; }
+    .code { font-size: 3.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" aria-hidden="true"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.1 -.25"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  <div class="tray">
+    <div class="cell ph"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="no">Nº 07</div></div>
+    <div class="cell hd">
+      <div class="k">Counter Nº 3 · Evening</div>
+      <h1>Kept in velvet.</h1>
+      <div class="cta">Shop the tray →</div>
+    </div>
+    <div class="cell pr">
+      <div class="card"><small>The Evening Pieces</small><b>$240</b><span>or 3 × $80</span></div>
+    </div>
+    <div class="cell cd">
+      <small>Private code</small>
+      <div class="code">VELVET20</div>
+      <span>−20% until Sunday</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

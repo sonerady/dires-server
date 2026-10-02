@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  /* Catalogue Card — a public-library card catalogue: a typed 3×5 catalogue card with call number, red rule and
+     rod hole, standing in a birch drawer in front of a green guide card with an "AW26" tab; a rubber stamp
+     carries the offer. tall → photo above the drawer; 3:4 and wider → drawer beside the photo */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E4D6BA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1F1C17; font-family: "Courier Prime", "Courier New", monospace;
+    background: #E4D6BA repeating-linear-gradient(90deg, rgba(140,110,60,.0) 0 3vmin, rgba(140,110,60,.07) 3vmin 3.3vmin, rgba(140,110,60,0) 3.3vmin 7.1vmin, rgba(140,110,60,.05) 7.1vmin 7.3vmin); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .drawer { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; box-sizing: border-box; padding: 5vmin 6vmin 4vmin; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .95; letter-spacing: -.025em; }
+  h1 i { color: #8E3B2C; }
+
+  .stack { position: relative; margin-top: auto; padding-top: 5vmin; }
+  /* guide card behind, with its tab */
+  .guide { position: absolute; left: 3vmin; right: -2vmin; top: 0; bottom: 3vmin; background: #B9C2A6; box-shadow: 0 .3vmin .6vmin rgba(60,45,20,.25); }
+  .guide b { position: absolute; left: 50%; top: 0; height: 5vmin; padding: 0 3vmin; transform: translateX(-10%); display: flex; align-items: center; background: #B9C2A6; font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 2.6vmin; letter-spacing: .08em; }
+  .guide b::before { content: ""; position: absolute; left: 1vmin; right: 1vmin; bottom: -.1vmin; top: .9vmin; border: 1px solid rgba(31,28,23,.35); border-bottom: 0; pointer-events: none; }
+  .card { position: relative; background: #F8F4EA; box-shadow: 0 .5vmin 1.2vmin rgba(60,45,20,.28); padding: 3.4vmin 4vmin 6.4vmin; font-size: 2.5vmin; line-height: 1.5; }
+  .card::after { content: ""; position: absolute; left: 50%; bottom: 2.2vmin; width: 3vmin; height: 3vmin; margin-left: -1.5vmin; border-radius: 50%; background: #CDBB98; box-shadow: inset 0 .3vmin .5vmin rgba(60,45,20,.45); }
+  .row { display: grid; grid-template-columns: 11ch 1fr; column-gap: 1ch; }
+  .call { font-weight: 700; }
+  .head { display: flex; justify-content: space-between; font-weight: 700; padding-bottom: .8vmin; margin-bottom: 1.2vmin; border-bottom: .3vmin solid #B24A36; }
+  .card p { margin: 0; }
+  .card .ind { padding-left: 2ch; }
+  .card .subj { margin-top: 1.4vmin; }
+  .cfoot { margin-top: 2vmin; display: flex; justify-content: space-between; align-items: flex-end; color: #5A5043; font-size: .85em; line-height: 1.35; }
+  .stamp { flex: none; margin-right: .6vmin; transform: rotate(-7deg); border: .45vmin solid #7A3D8C; outline: 1px solid #7A3D8C; outline-offset: .5vmin; color: #7A3D8C; padding: .6vmin 1.6vmin .7vmin; text-align: center; font-weight: 700; letter-spacing: .08em; opacity: .88; white-space: nowrap; }
+  .stamp strong { display: block; font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 6.4vmin; line-height: .9; margin-bottom: .5vmin; letter-spacing: -.02em; }
+  .stamp span { font-size: 1.7vmin; }
+
+  .foot { margin-top: 3vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; color: #4A4032; }
+  .foot b { color: #1F1C17; border-bottom: .3vmin solid #1F1C17; }
+
+  /* 3:4 / 4:5 → drawer column right */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 22%; }
+    .drawer { left: 48%; top: 0; height: auto; padding: 6vmin 4vmin 4vmin; }
+    h1 { font-size: 8.6vmin; }
+    .card { font-size: 2vmin; padding: 2.6vmin 2.6vmin 6vmin; }
+    .cfoot { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .row { grid-template-columns: 1fr; }
+    .row .call { margin-bottom: .6vmin; }
+    .guide { left: 2vmin; right: -1vmin; }
+    .stamp { margin-left: 1vmin; }
+    .stamp strong { font-size: 5.4vmin; }
+    .foot { flex-direction: column; gap: 1.4vmin; font-size: 1.7vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .drawer { left: 46%; padding: 5vmin 4.4vmin 3.6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .stack { padding-top: 4.4vmin; }
+    .guide b { height: 4.4vmin; font-size: 2.2vmin; }
+    .card { font-size: 1.9vmin; padding: 2.4vmin 2.6vmin 4.6vmin; }
+    .cfoot { flex-direction: row; align-items: flex-end; gap: 0; margin-top: 1.2vmin; }
+    .row { grid-template-columns: 8ch 1fr; }
+    .row .call { margin-bottom: 0; }
+    .card .subj { margin-top: .8vmin; }
+    .card .ext { display: none; }
+    .stamp strong { font-size: 4.4vmin; }
+    .stamp span { font-size: 1.6vmin; }
+    .card::after { bottom: 1.4vmin; width: 2.4vmin; height: 2.4vmin; margin-left: -1.2vmin; }
+    .foot { flex-direction: row; margin-top: 2.4vmin; font-size: 1.6vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; object-position: 50% 28%; }
+    .drawer { left: 50%; padding: 5vmin 5vmin 4vmin; }
+    h1 { font-size: 8.8vmin; }
+    .card { font-size: 2.1vmin; padding: 2.8vmin 3.2vmin 5.4vmin; }
+    .row { grid-template-columns: 10ch 1fr; }
+    .card .ext { display: block; }
+    .stamp strong { font-size: 5.2vmin; }
+    .foot { font-size: 1.7vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="drawer">
+    <h1>Filed under<br><i>new.</i></h1>
+    <div class="stack">
+      <div class="guide"><b>AW26</b></div>
+      <div class="card">
+        <div class="head"><span>746.92</span><span>ATELIER NORD</span></div>
+        <div class="row">
+          <span class="call">NOR<br>2026</span>
+          <div>
+            <p>The autumn edition /</p>
+            <p class="ind">Atelier Nord. — Oslo, 2026.</p>
+            <p class="ind ext">1 collection : all sizes.</p>
+            <p class="subj">1. New season. 2. Sale.</p>
+          </div>
+        </div>
+        <div class="cfoot"><span>Loan: 30 days<br>Returns free</span><div class="stamp"><strong>−30%</strong><span>CODE CARD30</span></div></div>
+      </div>
+    </div>
+    <div class="foot"><span>Until 15 October</span><b>Borrow it for life →</b></div>
+  </div>
+</div>
+</body>
+</html>

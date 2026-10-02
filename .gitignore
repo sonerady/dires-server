@@ -43,3 +43,6 @@ out/
 _to_delete/
 # geçici çıktılar
 temp/
+
+# Betiklerin ara çıktıları (ör. gen-listing-cards.cjs kareleri)
+tmp/

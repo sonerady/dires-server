@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Caveat:wght@600;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Link in Bio — a live teaser built from a generic profile header: gradient story ring, stats, bio and a highlighted link,
+     a hand-drawn arrow + note pointing up at it, the photo as the post with a "LIVE SUN" sticker, and the teaser headline.
+     tall / 3:4 → profile · note · post · headline stacked · square / wide → profile + note + headline left, post right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FAF6F1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FAF6F1; color: #1E1A1A; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    display: flex; flex-direction: column; padding: 5vmin 6vmin 5vmin; box-sizing: border-box; }
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(70vmin 50vmin at 100% 0%, rgba(255,120,90,.14), transparent 70%), radial-gradient(70vmin 50vmin at 0% 100%, rgba(150,90,255,.1), transparent 70%); }
+
+  .prof { position: relative; flex: none; }
+  .hd { display: flex; align-items: center; gap: 3.4vmin; }
+  .ring { flex: none; width: 13vmin; height: 13vmin; border-radius: 50%; padding: .7vmin; box-sizing: border-box;
+    background: conic-gradient(from 200deg, #FF8A3D, #FF3E7F, #9B4DFF, #FF8A3D); }
+  .ring div { width: 100%; height: 100%; border-radius: 50%; border: .7vmin solid #FAF6F1; box-sizing: border-box; background: #1E1A1A; color: #FAF6F1;
+    display: grid; place-items: center; font-weight: 800; font-size: 3.6vmin; letter-spacing: -.02em; }
+  .stats { flex: 1 1 auto; display: flex; justify-content: space-around; text-align: center; }
+  .stats b { display: block; font-weight: 800; font-size: 3.2vmin; line-height: 1.1; }
+  .stats span { display: block; font-size: 1.7vmin; color: #7A7070; }
+  .bio { margin-top: 2.2vmin; font-size: 2vmin; line-height: 1.45; }
+  .bio b { display: block; font-size: 2.4vmin; font-weight: 800; }
+  .bio span { color: #5A5252; }
+  .bio .lk { display: inline-block; margin-top: .4vmin; font-weight: 600; color: #3B2FD6;
+    background: linear-gradient(180deg, transparent 55%, rgba(255,214,58,.8) 55% 92%, transparent 92%); padding: 0 .4vmin; }
+
+  .note { position: relative; flex: none; display: flex; align-items: flex-start; gap: 1.6vmin; margin: .6vmin 0 0 14vmin; }
+  .note svg { flex: none; width: 9vmin; height: 7vmin; display: block; }
+  .note span { padding-top: 2.4vmin; font-family: "Caveat", cursive; font-weight: 700; font-size: 3.6vmin; line-height: 1; color: #E2315F; transform: rotate(-3deg); transform-origin: left; }
+
+  .post { position: relative; flex: 1 1 auto; min-height: 0; margin: 2.4vmin -6vmin 0; }
+  .post img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+  .stk { position: absolute; left: 4vmin; top: 3.4vmin; padding: 1.2vmin 2vmin; border-radius: 1.2vmin; background: #FFFFFF; color: #1E1A1A;
+    font-weight: 800; font-size: 2vmin; letter-spacing: .02em; display: flex; align-items: center; gap: 1vmin; box-shadow: 0 .6vmin 2vmin rgba(0,0,0,.18); transform: rotate(-4deg); }
+  .stk i { width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #FF3E5F; }
+
+  .foot { position: relative; flex: none; margin-top: 3.4vmin; }
+  h1 { margin: 0; font-weight: 800; font-size: 8.6vmin; line-height: .95; letter-spacing: -.045em; }
+  h1 em { font-style: normal; background: linear-gradient(90deg, #FF8A3D, #FF3E7F 50%, #9B4DFF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .row { margin-top: 2.4vmin; display: flex; align-items: center; gap: 2.4vmin; }
+  .cta { flex: none; padding: 1.9vmin 3.2vmin; border-radius: 1.4vmin; background: #1E1A1A; color: #FAF6F1; font-weight: 600; font-size: 2vmin; white-space: nowrap; }
+  .small { font-size: 1.7vmin; line-height: 1.45; color: #7A7070; }
+  .small b { color: #1E1A1A; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.4vmin; }
+    .ring { width: 11vmin; height: 11vmin; }
+    .bio { margin-top: 1.6vmin; font-size: 1.9vmin; }
+    .note span { font-size: 3.2vmin; }
+    .note svg { width: 8vmin; height: 6vmin; }
+    .post { margin-top: 2vmin; }
+    .foot { margin-top: 2.8vmin; }
+    h1 { font-size: 7.4vmin; }
+    .row { margin-top: 2vmin; }
+  }
+  /* ── square: profile + headline left, post right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .post { position: absolute; right: 0; top: 0; bottom: 0; width: 46%; height: 100%; margin: 0; }
+    .prof { position: absolute; left: 5.4vmin; width: calc(54% - 10.4vmin); top: 5.4vmin; }
+    .ring { width: 10vmin; height: 10vmin; }
+    .ring div { font-size: 3vmin; }
+    .hd { gap: 2vmin; }
+    .stats b { font-size: 2.6vmin; }
+    .stats span { font-size: 1.6vmin; }
+    .bio { font-size: 1.8vmin; }
+    .bio b { font-size: 2.2vmin; }
+    .note { position: absolute; left: 12vmin; width: calc(54% - 23vmin); top: 27vmin; margin: 0; }
+    .note span { font-size: 3vmin; }
+    .foot { position: absolute; left: 5.4vmin; width: calc(54% - 10.4vmin); bottom: 5.4vmin; margin: 0; }
+    h1 { font-size: 6.4vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .post { width: 44%; }
+    .prof { left: 7vmin; width: calc(56% - 14vmin); top: 7vmin; }
+    .ring { width: 12vmin; height: 12vmin; }
+    .hd { gap: 3vmin; }
+    .stats b { font-size: 3vmin; }
+    .bio { font-size: 2vmin; }
+    .note { left: 16vmin; width: calc(56% - 23vmin); top: 31vmin; }
+    .note span { font-size: 3.4vmin; }
+    .foot { left: 7vmin; width: calc(56% - 14vmin); bottom: 7vmin; }
+    h1 { font-size: 8vmin; }
+    .row { flex-direction: row; align-items: center; gap: 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="prof">
+    <div class="hd">
+      <div class="ring"><div>SN</div></div>
+      <div class="stats"><div><b>214</b><span>posts</span></div><div><b>48.2K</b><span>followers</span></div><div><b>312</b><span>following</span></div></div>
+    </div>
+    <div class="bio"><b>Studio Noor</b><span>Slow-made essentials · live every Sunday</span><br><span class="lk">noor.shop/live</span></div>
+  </div>
+  <div class="note">
+    <svg viewBox="0 0 90 70" fill="none" stroke="#E2315F" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M84 64C58 64 24 52 16 8"/><path d="M6 20 16 6l11 12"/></svg>
+    <span>tap here — we'll ping you when we're on</span>
+  </div>
+  <div class="post"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="stk"><i></i>LIVE · SUN 6 PM</div></div>
+  <div class="foot">
+    <h1>Going live Sunday.<br><em>Link in bio.</em></h1>
+    <div class="row"><div class="cta">Get the reminder ↑</div><div class="small"><b>First 100 viewers</b> get 20% off<br>everything shown live</div></div>
+  </div>
+</div>
+</body>
+</html>

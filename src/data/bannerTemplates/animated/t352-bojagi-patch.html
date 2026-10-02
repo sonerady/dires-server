@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Bojagi Patch — a Korean patchwork wrapping cloth in sheer ramie: pastel panels overlap and deepen where they
+     cross (multiply), every seam is a white running stitch, and the photo is the one opaque patch sewn into the middle,
+     with a little knotted tie in the corner.
+     tall → photo patch above, copy on the lower patches · square & wide → photo patch left, copy patches right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F8F2EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F8F2EA; color: #2E2A38;
+    font-family: "Outfit", "Helvetica Neue", Arial, sans-serif; }
+
+  .p { position: absolute; mix-blend-mode: multiply; outline: .28vmin dashed rgba(255,255,255,.95); outline-offset: -1.3vmin; }
+  .p1 { left: 0; top: 0; width: 58%; height: 11%; background: rgba(247,193,172,.55); }
+  .p2 { left: 50%; top: 0; width: 50%; height: 17%; background: rgba(182,224,206,.62); }
+  .p3 { left: 86%; top: 13%; width: 14%; height: 50%; background: rgba(204,192,236,.6); }
+  .p4 { left: 0; top: 8%; width: 11%; height: 46%; background: rgba(250,224,150,.6); }
+  .p5 { left: 0; top: 64%; width: 66%; height: 36%; background: rgba(188,214,242,.55); }
+  .p6 { left: 56%; top: 58%; width: 44%; height: 42%; background: rgba(246,196,212,.58); }
+  .p7 { left: 0; top: 50%; width: 22%; height: 22%; background: rgba(214,232,196,.55); }
+  .p8 { left: 76%; top: 86%; width: 24%; height: 14%; background: rgba(250,224,150,.5); }
+
+  .ph { position: absolute; left: 11%; width: 75%; top: 12.5%; height: 55%; outline: .3vmin dashed rgba(255,255,255,.95); outline-offset: 1.1vmin; box-shadow: 0 1.4vmin 3vmin rgba(90,70,90,.12); }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .tie { position: absolute; right: 4.5vmin; top: 3vmin; width: 11vmin; height: 7vmin; fill: none; stroke: #8FBFAA; stroke-width: 2.4; stroke-linecap: round; }
+  .lbl { position: absolute; left: 5.5vmin; top: 3.6vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .lbl span { letter-spacing: .1em; margin-left: 1.2vmin; color: #6B6278; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; }
+  .no { font-size: 1.8vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #5D5670; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Gowun Batang", Georgia, serif; font-weight: 400; font-size: 9vmin; line-height: 1.08; letter-spacing: -.02em; }
+  h1 i { font-style: normal; color: #B0587A; }
+  .row { margin-top: 2.6vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .row p { margin: 0; font-size: 2.2vmin; line-height: 1.4; font-weight: 300; max-width: 36vmin; }
+  .offer { flex: none; text-align: right; white-space: nowrap; }
+  .offer b { display: block; font-family: "Gowun Batang", Georgia, serif; font-weight: 700; font-size: 4.8vmin; line-height: 1; }
+  .offer span { display: inline-block; margin-top: 1.2vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .12em; background: #fff; border-radius: 3vmin; padding: .8vmin 1.8vmin; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .ph { top: 12%; height: 51%; left: 13%; width: 71%; }
+    .p5 { top: 60%; height: 40%; }
+    .p6 { top: 54%; height: 46%; }
+    .p7 { top: 46%; }
+    h1 { font-size: 7vmin; }
+    .copy { bottom: 5vmin; }
+    .row { margin-top: 2vmin; }
+  }
+  /* SQUARE — photo patch left, copy patches right */
+  @media (min-aspect-ratio: 9/10) {
+    .p1 { left: 0; top: 0; width: 40%; height: 10%; }
+    .p2 { left: 46%; top: 0; width: 54%; height: 21%; }
+    .p3 { left: 0; top: 18%; width: 8%; height: 82%; }
+    .p4 { left: 30%; top: 90%; width: 40%; height: 10%; }
+    .p5 { left: 55%; top: 19%; width: 45%; height: 50%; }
+    .p6 { left: 62%; top: 64%; width: 38%; height: 36%; }
+    .p7 { left: 0; top: 0; width: 14%; height: 24%; }
+    .p8 { left: 0; top: 84%; width: 22%; height: 16%; }
+    .ph { left: 9%; top: 11%; width: 42%; height: 76%; }
+    .lbl { left: calc(55% + 4vmin); top: 5vmin; }
+    .lbl span { display: block; margin: .8vmin 0 0; }
+    .tie { right: 4vmin; top: 4vmin; }
+    .copy { left: calc(55% + 4vmin); right: 5vmin; top: 25vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+    h1 { font-size: 6vmin; }
+    .row { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+    .row p { font-size: 2vmin; }
+    .offer { text-align: left; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .p1 { width: 34%; }
+    .p2 { left: 40%; width: 60%; height: 22%; }
+    .p5 { left: 48%; top: 20%; width: 40%; height: 52%; }
+    .p6 { left: 70%; top: 58%; width: 30%; height: 42%; }
+    .p4 { left: 26%; width: 34%; }
+    .p8 { left: 0; width: 18%; top: 82%; height: 18%; }
+    .ph { left: 7%; top: 10%; width: 36%; height: 80%; }
+    .lbl { left: calc(48% + 5vmin); top: 6vmin; }
+    .lbl span { display: inline; margin-left: 1.2vmin; }
+    .copy { left: calc(48% + 5vmin); right: 7vmin; top: 25vmin; bottom: 7vmin; }
+    h1 { font-size: 7.4vmin; }
+    .row { flex-direction: row; align-items: flex-end; }
+    .row p { max-width: 34vmin; }
+    .offer { text-align: right; }
+  }
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     sheer ramie in a breeze: the patches breathe one after another, the knotted tie sways,
+     "softly." exhales and settles back, and a light passes over the code chip */
+  .ph { overflow: hidden; outline-offset: 1.1vmin; }
+  .ph img { transform-origin: 50% 30%; animation: bj-push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bj-push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .p { animation: bj-breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .p1 { transform-origin: 0 0; } .p2 { transform-origin: 100% 0; } .p3 { transform-origin: 100% 50%; } .p4 { transform-origin: 0 50%; }
+  .p5 { transform-origin: 0 100%; } .p6 { transform-origin: 100% 100%; } .p7 { transform-origin: 0 50%; } .p8 { transform-origin: 100% 100%; }
+  @keyframes bj-breathe { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.035); opacity: .82; } }
+  /* staggered swells (scale ≥ 1 so edge patches never uncover the frame edge) */
+  .p2 { animation-name: bj-b2; } .p3 { animation-name: bj-b3; } .p4 { animation-name: bj-b4; } .p5 { animation-name: bj-b5; }
+  .p6 { animation-name: bj-b6; } .p7 { animation-name: bj-b7; } .p8 { animation-name: bj-b8; }
+  @keyframes bj-b2 { 0%, 8%, 100% { transform: scale(1); opacity: 1; } 54% { transform: scale(1.035); opacity: .82; } }
+  @keyframes bj-b3 { 0%, 14%, 100% { transform: scale(1); opacity: 1; } 58% { transform: scale(1.03); opacity: .84; } }
+  @keyframes bj-b4 { 0%, 20%, 100% { transform: scale(1); opacity: 1; } 62% { transform: scale(1.035); opacity: .82; } }
+  @keyframes bj-b5 { 0%, 26%, 100% { transform: scale(1); opacity: 1; } 66% { transform: scale(1.025); opacity: .84; } }
+  @keyframes bj-b6 { 0%, 32%, 100% { transform: scale(1); opacity: 1; } 70% { transform: scale(1.03); opacity: .82; } }
+  @keyframes bj-b7 { 0%, 38%, 100% { transform: scale(1); opacity: 1; } 74% { transform: scale(1.04); opacity: .84; } }
+  @keyframes bj-b8 { 0%, 44%, 100% { transform: scale(1); opacity: 1; } 78% { transform: scale(1.035); opacity: .82; } }
+
+  .tie { transform-origin: 50% 50%; animation: bj-tie 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bj-tie { 0%, 100% { transform: rotate(0deg); } 30% { transform: rotate(-7deg); } 70% { transform: rotate(5deg); } }
+
+  h1 i { display: inline-block; animation: bj-soft 6s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes bj-soft {
+    0%, 34%, 72%, 100% { opacity: 1; filter: blur(0); transform: translateY(0); }
+    46%, 52% { opacity: 0; filter: blur(1.2vmin); transform: translateY(1.2vmin); }
+  }
+
+  .offer span { background-image: linear-gradient(105deg, rgba(246,196,212,0) 38%, rgba(246,196,212,.9) 50%, rgba(246,196,212,0) 62%);
+    background-color: #fff; background-size: 300% 100%; background-repeat: no-repeat; background-position: 100% 0;
+    animation: bj-sheen 6s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes bj-sheen { 0%, 70% { background-position: 100% 0; } 92%, 100% { background-position: 0% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="p p1"></div><div class="p p2"></div><div class="p p3"></div><div class="p p4"></div>
+  <div class="p p5"></div><div class="p p6"></div><div class="p p7"></div><div class="p p8"></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <svg class="tie" viewBox="0 0 44 28"><path d="M22 14c-6-9-16-10-17-4s11 5 17 4c6 1 18 2 17-4s-11-5-17 4M22 14c-3 5-6 9-11 12M22 14c3 5 7 9 12 11"/><circle cx="22" cy="14" r="2.4" fill="#8FBFAA" stroke="none"/></svg>
+  <div class="lbl">Patchwork edit<span>조각보 · SS27</span></div>
+  <div class="copy">
+    <div class="no">Pieces 01 — 08</div>
+    <h1>Pieced together,<br><i>softly.</i></h1>
+    <div class="row"><p>Sheer layers and quiet colour for the new season.</p><div class="offer"><b>Up to 30% off</b><span>CODE PATCH30</span></div></div>
+  </div>
+</div>
+</body>
+</html>

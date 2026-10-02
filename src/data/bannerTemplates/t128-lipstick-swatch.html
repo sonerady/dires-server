@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400;1,500&family=Big+Shoulders+Display:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  /* Lipstick Swatch — the beauty-counter arm-swatch test on warm paper: three lipstick smears with
+     dry-brush tails, shade numbers above each; the hero red swatch carries the offer.
+     tall → photo above, swatches below; square/wide → swatches left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3ECE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2B1A1C; font-family: "Playfair Display", "Didot", Georgia, serif;
+    background: radial-gradient(110% 80% at 30% 80%, #F7F1EA 0%, #F3ECE4 55%, #ECE2D8 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 52%; object-fit: cover; object-position: 50% 22%; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: calc(52% + 5vmin); bottom: 4.6vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 600; font-size: 2.2vmin; letter-spacing: .24em; text-transform: uppercase; color: #7A4A4C; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-style: italic; font-weight: 400; font-size: 8.4vmin; line-height: 1; letter-spacing: -.015em; white-space: nowrap; }
+  .sws { margin: auto 0; padding: 2vmin 0; display: flex; flex-direction: column; gap: 2.2vmin; }
+  .sw { position: relative; }
+  .sw .lab { display: flex; align-items: baseline; gap: 1.4vmin; margin-bottom: .6vmin; font-style: italic; font-size: 2.4vmin; color: #4E3436; }
+  .sw .lab b { font-family: "Big Shoulders Display", sans-serif; font-style: normal; font-weight: 800; font-size: 2.2vmin; letter-spacing: .12em; color: #2B1A1C; }
+  .sw svg { display: block; width: 100%; height: 7.6vmin; overflow: visible; }
+  .sw.hero svg { height: 13.4vmin; }
+  .on { position: absolute; left: 5vmin; bottom: 0; height: 13.4vmin; display: flex; align-items: center; font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 800; font-size: 9.4vmin; line-height: 1; letter-spacing: .01em; text-transform: uppercase; color: #FFF1E8; white-space: nowrap; }
+  .on small { margin-left: 2vmin; font-size: 2.4vmin; font-weight: 600; letter-spacing: .2em; line-height: 1.2; }
+  .foot { display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; padding-top: 2vmin; border-top: 1px solid #D5C4B8; font-family: "Big Shoulders Display", sans-serif; font-weight: 600; font-size: 2.3vmin; letter-spacing: .2em; text-transform: uppercase; color: #5A3E40; white-space: nowrap; }
+  .foot b { font-weight: 800; color: #B0152B; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 50%; }
+    .copy { top: calc(50% + 4vmin); bottom: 4vmin; }
+    h1 { font-size: 7.4vmin; }
+    .sws { gap: 1.6vmin; padding: 1.4vmin 0; }
+    .sw svg { height: 6.4vmin; }
+    .sw.hero svg, .on { height: 11.6vmin; }
+    .on { font-size: 8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; top: 0; width: 48%; height: 100%; object-position: 50% 25%; }
+    .copy { left: 5.5vmin; right: calc(48% + 5.5vmin); top: 6vmin; bottom: 5.5vmin; }
+    .kick span + span { display: none; }
+    h1 { font-size: 6.6vmin; white-space: normal; line-height: 1.02; }
+    .sws { gap: 1.8vmin; }
+    .sw .lab { font-size: 2.1vmin; }
+    .sw .lab b { font-size: 2vmin; }
+    .sw svg { height: 6.4vmin; }
+    .sw.hero svg, .on { height: 11.6vmin; }
+    .on { left: 3.4vmin; font-size: 7.4vmin; }
+    .on small { display: none; }
+    .foot { flex-direction: column; gap: 1vmin; font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .copy { left: 7vmin; right: calc(46% + 7vmin); top: 7vmin; bottom: 6.5vmin; }
+    .kick span + span { display: inline; }
+    h1 { font-size: 7.6vmin; white-space: nowrap; }
+    .sws { gap: 2vmin; }
+    .sw svg { height: 7.2vmin; }
+    .sw.hero svg, .on { height: 13.4vmin; }
+    .on { left: 4.4vmin; font-size: 8.8vmin; }
+    .on small { display: block; }
+    .foot { flex-direction: row; font-size: 2.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <filter id="drag" x="-5%" y="-30%" width="110%" height="160%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.42" numOctaves="2" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <linearGradient id="gRose" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7E3440"/><stop offset=".35" stop-color="#A2515C"/><stop offset=".7" stop-color="#8C3E49"/><stop offset="1" stop-color="#6E2A35"/></linearGradient>
+      <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9E0F24"/><stop offset=".3" stop-color="#D0182F"/><stop offset=".72" stop-color="#BC1229"/><stop offset="1" stop-color="#8E0C20"/></linearGradient>
+      <linearGradient id="gNude" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B07A66"/><stop offset=".35" stop-color="#CE9C88"/><stop offset=".7" stop-color="#BF8A75"/><stop offset="1" stop-color="#A06A57"/></linearGradient>
+    </defs>
+  </svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="kick"><span>Rouge Atelier</span><span>The swatch test</span></div>
+    <h1>Swatch the season.</h1>
+    <div class="sws">
+      <div class="sw">
+        <div class="lab"><b>Nº 12</b>Rosewood</div>
+        <svg viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true"><g filter="url(#drag)"><path d="M4 12 Q2 4 14 3 L210 6 Q250 8 292 16 Q262 22 296 27 Q240 34 200 36 L14 37 Q3 36 4 26 Z" fill="url(#gRose)"/><path d="M200 12 L292 16 M190 24 L290 25 M206 31 L270 32" stroke="#F3ECE4" stroke-width="1.4" opacity=".7"/><path d="M16 9 L180 10" stroke="#fff" stroke-width="2" opacity=".22"/></g></svg>
+      </div>
+      <div class="sw hero">
+        <div class="lab"><b>Nº 07</b>Rouge — this season’s red</div>
+        <svg viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true"><g filter="url(#drag)"><path d="M3 10 Q2 2 14 2 L214 4 Q256 6 294 13 Q266 20 298 27 Q246 36 204 38 L12 38 Q2 37 3 28 Z" fill="url(#gRed)"/><path d="M212 9 L294 13 M200 20 L292 21 M210 30 L280 31" stroke="#F3ECE4" stroke-width="1.2" opacity=".7"/><path d="M16 8 L190 9" stroke="#fff" stroke-width="1.6" opacity=".2"/></g></svg>
+        <div class="on">30% off<small>on everything<br>new</small></div>
+      </div>
+      <div class="sw">
+        <div class="lab"><b>Nº 03</b>Bare</div>
+        <svg viewBox="0 0 300 40" preserveAspectRatio="none" aria-hidden="true"><g filter="url(#drag)"><path d="M4 13 Q3 4 14 4 L196 6 Q236 9 284 15 Q256 22 290 28 Q232 34 190 36 L14 36 Q4 35 4 27 Z" fill="url(#gNude)"/><path d="M190 12 L284 15 M184 24 L282 25" stroke="#F3ECE4" stroke-width="1.4" opacity=".7"/><path d="M16 9 L170 10" stroke="#fff" stroke-width="2" opacity=".25"/></g></svg>
+      </div>
+    </div>
+    <div class="foot"><span>Code <b>ROUGE30</b></span><span>Ends Sunday</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Charm Bracelet — a gold chain swags across the blush panel and each charm carries part of the offer:
+     an engraved gold disc (the discount), an enamel heart (new in), a padlock (gift).
+     tall → photo above, bracelet along the seam; 3:4 / square / wide → photo left, bracelet over the copy */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E3DC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3A2320; font-family: "Outfit", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(80% 60% at 70% 100%, #F8ECE6 0%, #F2E0D8 60%, #EDD6CD 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 66vmin); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 66vmin; }
+  .chain { position: absolute; left: 0; top: -2.4vmin; width: 100%; height: auto; display: block; filter: drop-shadow(0 .8vmin .8vmin rgba(90,50,30,.22)); }
+  .chain text { font-family: "DM Serif Display", Georgia, serif; }
+  .chain .sans { font-family: "Outfit", sans-serif; font-weight: 600; letter-spacing: 3px; }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; bottom: 6vmin; }
+  .k { font-size: 1.8vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #B4452F; }
+  h1 { margin: 1.4vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 10vmin; line-height: .95; letter-spacing: -.015em; }
+  h1 i { color: #B4452F; }
+  .row { margin-top: 3vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 4vmin; }
+  .body { margin: 0; font-size: 2.2vmin; line-height: 1.5; color: #5C4540; max-width: 50vmin; }
+  .body b { color: #3A2320; font-weight: 600; letter-spacing: .06em; }
+  .cta { padding: 1.9vmin 3vmin; border-radius: 99vmin; background: #3A2320; color: #F8ECE6; font-size: 1.9vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
+  /* ── 3:4 / square / wide — photo left, bracelet + copy right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; }
+    .panel { left: 50%; top: 0; height: auto; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+    .chain { position: relative; top: auto; width: 124%; margin: -2vmin 0 0 -12%; flex: none; }
+    .copy { position: relative; left: auto; right: auto; bottom: auto; margin: 4vmin 5vmin 2vmin; }
+    .k { font-size: 1.6vmin; letter-spacing: .22em; }
+    h1 { font-size: 7.6vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+    .body { font-size: 1.9vmin; }
+    .cta { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .panel { left: 46%; }
+    .copy { margin-top: 2.6vmin; }
+    h1 { font-size: 7vmin; }
+    .row { margin-top: 2.2vmin; gap: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .panel { left: 42%; }
+    .chain { width: 104%; margin-left: -2%; }
+    .copy { margin: 4vmin 7vmin 2vmin; }
+    .k { font-size: 1.8vmin; letter-spacing: .3em; }
+    h1 { font-size: 9vmin; }
+    .row { flex-direction: row; align-items: flex-end; margin-top: 3vmin; }
+    .body { font-size: 2vmin; }
+    .cta { font-size: 1.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <svg class="chain" viewBox="0 0 1000 270" aria-hidden="true">
+      <defs>
+        <radialGradient id="gd" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FFF3CB"/><stop offset=".45" stop-color="#E2B964"/><stop offset="1" stop-color="#A2762A"/></radialGradient>
+        <linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6DC98"/><stop offset=".5" stop-color="#C39342"/><stop offset="1" stop-color="#E9C77C"/></linearGradient>
+        <radialGradient id="en" cx=".35" cy=".3" r=".85"><stop offset="0" stop-color="#F7967C"/><stop offset=".55" stop-color="#D24A30"/><stop offset="1" stop-color="#9C2C1B"/></radialGradient>
+      </defs>
+      <!-- chain -->
+      <path d="M-20 14 Q500 166 1020 14" fill="none" stroke="#8C6424" stroke-width="10" stroke-dasharray="18 7" stroke-linecap="round"/>
+      <path d="M-20 14 Q500 166 1020 14" fill="none" stroke="#F1D38D" stroke-width="4.5" stroke-dasharray="18 7" stroke-linecap="round"/>
+      <path d="M-20 14 Q500 166 1020 14" fill="none" stroke="#B88A3A" stroke-width="4" stroke-dasharray="7 18" stroke-dashoffset="-18"/>
+      <!-- disc -->
+      <circle cx="250" cy="86" r="11" fill="none" stroke="url(#gl)" stroke-width="5"/>
+      <circle cx="250" cy="168" r="72" fill="url(#gd)" stroke="#9A6E26" stroke-width="2"/>
+      <circle cx="250" cy="168" r="60" fill="none" stroke="#8A6020" stroke-width="1.2" stroke-dasharray="2 4" opacity=".7"/>
+      <text x="250" y="184" text-anchor="middle" font-size="46" fill="#5A3A10">−25%</text>
+      <!-- heart -->
+      <circle cx="500" cy="104" r="11" fill="none" stroke="url(#gl)" stroke-width="5"/>
+      <path d="M500 115 V150" stroke="#B88A3A" stroke-width="5"/>
+      <path transform="translate(420 102) scale(1.6)" d="M50 30 C50 12 30 5 18 12 C3 20 3 42 18 56 L50 90 L82 56 C97 42 97 20 82 12 C70 5 50 12 50 30Z" fill="url(#en)" stroke="#D9B062" stroke-width="3.2"/>
+      <text class="sans" x="500" y="190" text-anchor="middle" font-size="30" fill="#FFF1E8">NEW</text>
+      <!-- padlock -->
+      <circle cx="750" cy="86" r="11" fill="none" stroke="url(#gl)" stroke-width="5"/>
+      <path d="M720 160 V128 A30 30 0 0 1 780 128 V160" fill="none" stroke="url(#gl)" stroke-width="12"/>
+      <rect x="688" y="148" width="124" height="100" rx="14" fill="url(#gd)" stroke="#9A6E26" stroke-width="2"/>
+      <text class="sans" x="750" y="208" text-anchor="middle" font-size="30" fill="#5A3A10">GIFT</text>
+    </svg>
+    <div class="copy">
+      <div class="k">The Charm Edit</div>
+      <h1>Add a little <i>charm.</i></h1>
+      <div class="row">
+        <p class="body">Take 25% off when you buy two, plus free gift wrap. Code <b>CHARM25</b></p>
+        <div class="cta">Shop the edit →</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

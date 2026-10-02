@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Render Grid — the drop as a 3D viewport: a cyan wireframe floor running to a magenta horizon, a wire globe
+     and an XYZ axis gizmo floating in the dark, the photo framed as the live viewport (glowing rim, corner ticks,
+     "VIEWPORT 01 · PERSP" header, a poly-count / fps readout and a render bar at 100%). Neon headline, neon price,
+     outlined CTA. tall → viewport above, grid + copy below · 3:4 → viewport above, split copy row · square & wide → viewport right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #07061A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #E9F6FF; font-family: "Oxanium", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(90vmin 30vmin at 50% 100%, rgba(255,43,214,.28), rgba(255,43,214,0) 70%), linear-gradient(180deg, #07061A 0%, #0D0830 100%); }
+  .mono { font-family: "JetBrains Mono", monospace; }
+
+  .floor { position: absolute; left: -60%; width: 220%; bottom: -2vmin; height: 64vmin; transform-origin: 50% 100%; transform: perspective(36vmin) rotateX(62deg);
+    background: repeating-linear-gradient(90deg, rgba(0,236,255,.55) 0 1px, transparent 1px 7vmin), repeating-linear-gradient(0deg, rgba(0,236,255,.55) 0 1px, transparent 1px 7vmin);
+    -webkit-mask-image: linear-gradient(0deg, #000 30%, transparent 100%); mask-image: linear-gradient(0deg, #000 30%, transparent 100%); }
+
+  .vp { position: absolute; left: 6vmin; right: 6vmin; top: 10vmin; height: calc(100% - 74vmin); }
+  .vp img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block;
+    box-shadow: 0 0 0 1px #00ECFF, 0 0 2.4vmin rgba(0,236,255,.55), 0 0 7vmin rgba(0,236,255,.2); }
+  .tick { position: absolute; width: 3vmin; height: 3vmin; border: 0 solid #FF2BD6; }
+  .t1 { left: -1.4vmin; top: -1.4vmin; border-width: .2vmin 0 0 .2vmin; } .t2 { right: -1.4vmin; top: -1.4vmin; border-width: .2vmin .2vmin 0 0; }
+  .t3 { left: -1.4vmin; bottom: -1.4vmin; border-width: 0 0 .2vmin .2vmin; } .t4 { right: -1.4vmin; bottom: -1.4vmin; border-width: 0 .2vmin .2vmin 0; }
+  .hud { position: absolute; left: 0; right: 0; bottom: calc(100% + 1.8vmin); display: flex; justify-content: space-between; font-size: 1.6vmin; letter-spacing: .14em; color: #7FEFFF; white-space: nowrap; }
+  .hud b { color: #FF5FE1; font-weight: 600; }
+  .stats { position: absolute; left: 0; right: 0; top: calc(100% + 1.8vmin); display: flex; align-items: center; gap: 2vmin; font-size: 1.6vmin; letter-spacing: .1em; color: #7FEFFF; white-space: nowrap; }
+  .bar { flex: 1; height: .8vmin; background: rgba(0,236,255,.18); position: relative; }
+  .bar::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #00ECFF, #FF2BD6); box-shadow: 0 0 1.4vmin rgba(255,43,214,.7); }
+
+  .globe { position: absolute; right: 7vmin; bottom: 34vmin; width: 20vmin; height: 20vmin; border-radius: 50%; border: 1px solid #FF2BD6; box-shadow: 0 0 2vmin rgba(255,43,214,.35), inset 0 0 2vmin rgba(255,43,214,.25); }
+  .globe i { position: absolute; left: 50%; top: 50%; border: 1px solid rgba(255,95,225,.8); border-radius: 50%; transform: translate(-50%, -50%); }
+  .g1 { width: 66%; height: 100%; } .g2 { width: 30%; height: 100%; } .g3 { width: 100%; height: 60%; } .g4 { width: 100%; height: 22%; }
+  .gizmo { position: absolute; right: 10vmin; bottom: 14vmin; width: 12vmin; height: 12vmin; }
+  .gizmo i { position: absolute; left: 30%; bottom: 30%; height: .2vmin; transform-origin: 0 50%; }
+  .gx { width: 8vmin; background: #FF4D6D; box-shadow: 0 0 1vmin #FF4D6D; }
+  .gy { width: 8vmin; background: #3DFF9A; box-shadow: 0 0 1vmin #3DFF9A; transform: rotate(-90deg); }
+  .gz { width: 5.4vmin; background: #3D8BFF; box-shadow: 0 0 1vmin #3D8BFF; transform: rotate(145deg); }
+  .gizmo b { position: absolute; font-family: "JetBrains Mono", monospace; font-size: 1.6vmin; font-weight: 600; }
+  .lx { left: 100%; bottom: 23%; color: #FF4D6D; } .ly { left: 25%; top: -18%; color: #3DFF9A; } .lz { left: -10%; bottom: -8%; color: #3D8BFF; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5.4vmin; height: 52vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; letter-spacing: .24em; text-transform: uppercase; color: #7FEFFF; white-space: nowrap; }
+  h1 { margin: 2vmin 0 0; font-weight: 800; font-size: 11.6vmin; line-height: .9; letter-spacing: -.03em; text-transform: uppercase; color: #F4FDFF;
+    text-shadow: 0 0 .6vmin rgba(0,236,255,.9), 0 0 3vmin rgba(0,236,255,.6), .5vmin .4vmin 0 rgba(255,43,214,.75); }
+  .sub { margin-top: 2.4vmin; font-size: 2.2vmin; line-height: 1.45; color: #B8C8E6; max-width: 56vmin; }
+  .buy { margin-top: auto; display: flex; align-items: center; gap: 3.4vmin; }
+  .price { font-weight: 800; font-size: 6.4vmin; line-height: 1; color: #FFE3FA; text-shadow: 0 0 .6vmin #FF2BD6, 0 0 2.4vmin rgba(255,43,214,.8); white-space: nowrap; }
+  .cta { padding: 1.8vmin 3.4vmin; border: .2vmin solid #00ECFF; color: #E9FDFF; font-size: 2.1vmin; font-weight: 600; letter-spacing: .06em; white-space: nowrap;
+    box-shadow: 0 0 1.6vmin rgba(0,236,255,.6), inset 0 0 1.6vmin rgba(0,236,255,.35); background: rgba(0,236,255,.08); }
+  .fine { margin-top: 2.2vmin; font-size: 1.6vmin; color: #7D8BB0; white-space: nowrap; }
+
+  /* ── 3:4 — viewport above, headline left / buy right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .vp { top: 9vmin; height: calc(100% - 56vmin); }
+    .copy { height: 36vmin; bottom: 5vmin; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto 1fr auto; column-gap: 4vmin; }
+    .kick { grid-column: 1; grid-row: 1; }
+    h1 { grid-column: 1; grid-row: 2; font-size: 9.4vmin; }
+    .sub { grid-column: 1; grid-row: 3; margin-top: 1.8vmin; font-size: 2vmin; max-width: 50vmin; }
+    .buy { grid-column: 2; grid-row: 2 / 4; flex-direction: column; align-items: flex-end; justify-content: center; gap: 2.4vmin; margin: 0; }
+    .fine { grid-column: 1 / 3; grid-row: 4; }
+    .floor { height: 44vmin; }
+    .globe { width: 11vmin; height: 11vmin; right: 7vmin; bottom: auto; top: calc(100% - 45vmin); display: none; }
+    .gizmo { display: none; }
+  }
+  /* ── square — viewport right, copy left with the globe and gizmo ── */
+  @media (min-aspect-ratio: 9/10) {
+    .vp { left: auto; right: 6vmin; top: 10vmin; width: 48%; height: calc(100% - 20vmin); }
+    .copy { display: flex; left: 6vmin; right: auto; width: calc(52% - 18vmin); top: 7vmin; bottom: 6vmin; height: auto; }
+    .kick { white-space: normal; line-height: 1.6; }
+    h1 { font-size: 6.6vmin; }
+    .sub { font-size: 2vmin; margin-top: 2vmin; }
+    .buy { flex-direction: column; align-items: flex-start; gap: 2.4vmin; margin-top: auto; }
+    .price { font-size: 6vmin; }
+    .floor { height: 40vmin; }
+    .globe { display: block; width: 13vmin; height: 13vmin; right: auto; top: auto; left: calc(50% - 26vmin); bottom: 34vmin; }
+    .gizmo { display: block; right: auto; left: calc(52% - 17vmin); bottom: 18vmin; width: 10vmin; height: 10vmin; }
+    .gx, .gy { width: 6vmin; } .gz { width: 4vmin; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .vp { width: 46%; right: 7vmin; }
+    .copy { left: 7vmin; width: calc(54% - 30vmin); top: 8vmin; bottom: 7vmin; }
+    h1 { font-size: min(9.6vmin, calc((54vw - 30vmin) / 5)); }
+    .sub { font-size: 2.2vmin; }
+    .buy { flex-direction: row; align-items: center; }
+    .globe { width: 16vmin; height: 16vmin; left: calc(54% - 30vmin); bottom: 40vmin; }
+    .gizmo { left: calc(54% - 22vmin); bottom: 24vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     constant: the wire floor streams toward the camera (one 7vmin cell per 1.5s), the wire globe spins (half turn / 3s),
+               the gizmo floats, LIVE dot blinks
+     beats: 1.8s a scan line sweeps down the viewport · 3.0s the render bar re-renders 0→100% and the corner ticks snap ·
+            4.5s the headline glitches (RGB split jitter) · CTA glow breathes */
+  .floor { animation: stream 1.5s linear infinite; }
+  @keyframes stream { from { background-position: 0 0, 0 0; } to { background-position: 0 0, 0 7vmin; } }
+
+  .globe .g1 { animation: m1 3s linear infinite; }
+  .globe .g2 { animation: m2 3s linear infinite; }
+  @keyframes m1 { 0%, 100% { transform: translate(-50%,-50%) scaleX(1); } 13.3% { transform: translate(-50%,-50%) scaleX(.45); }
+    23% { transform: translate(-50%,-50%) scaleX(0); } 33.3% { transform: translate(-50%,-50%) scaleX(.49); } 50% { transform: translate(-50%,-50%) scaleX(1.14); }
+    73% { transform: translate(-50%,-50%) scaleX(1.515); } 86% { transform: translate(-50%,-50%) scaleX(1.3); } }
+  @keyframes m2 { 0%, 100% { transform: translate(-50%,-50%) scaleX(1); } 9.7% { transform: translate(-50%,-50%) scaleX(0); } 25% { transform: translate(-50%,-50%) scaleX(1.54); }
+    43% { transform: translate(-50%,-50%) scaleX(2.8); } 59.7% { transform: translate(-50%,-50%) scaleX(3.33); } 83.3% { transform: translate(-50%,-50%) scaleX(2.46); } }
+  .globe { animation: gpulse 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes gpulse { 0%, 100% { box-shadow: 0 0 2vmin rgba(255,43,214,.35), inset 0 0 2vmin rgba(255,43,214,.25); }
+    50% { box-shadow: 0 0 3.4vmin rgba(255,43,214,.55), inset 0 0 2.6vmin rgba(255,43,214,.4); } }
+
+  .gizmo { animation: bob 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.2vmin); } }
+
+  .hud b { display: inline-block; animation: blink 1.5s steps(1, end) infinite; }
+  @keyframes blink { 0%, 60% { opacity: 1; } 60.01%, 100% { opacity: .2; } }
+
+  .vp::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 18%; pointer-events: none;
+    background: linear-gradient(180deg, rgba(0,236,255,0) 0%, rgba(0,236,255,.1) 80%, rgba(170,250,255,.55) 99%, rgba(0,236,255,0) 100%);
+    opacity: 0; transform: translateY(-100%); animation: scan 6s cubic-bezier(.5,0,.5,1) infinite; }
+  @keyframes scan { 0%, 30% { opacity: 0; transform: translateY(-20%); } 32% { opacity: 1; transform: translateY(0%); }
+    48% { opacity: 1; transform: translateY(460%); } 50%, 100% { opacity: 0; transform: translateY(460%); } }
+
+  .bar::after { animation: rerender 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes rerender { 0%, 50% { clip-path: inset(0 0 0 0); } 51% { clip-path: inset(0 100% 0 0); } 53% { clip-path: inset(0 100% 0 0); }
+    62% { clip-path: inset(0 55% 0 0); } 66% { clip-path: inset(0 40% 0 0); } 74%, 100% { clip-path: inset(0 0 0 0); } }
+
+  .t1 { animation: snap1 6s cubic-bezier(.3,1.6,.5,1) infinite; } .t2 { animation: snap2 6s cubic-bezier(.3,1.6,.5,1) infinite; }
+  .t3 { animation: snap3 6s cubic-bezier(.3,1.6,.5,1) infinite; } .t4 { animation: snap4 6s cubic-bezier(.3,1.6,.5,1) infinite; }
+  @keyframes snap1 { 0%, 72%, 84%, 100% { transform: translate(0,0); } 76% { transform: translate(-1vmin,-1vmin); } }
+  @keyframes snap2 { 0%, 72%, 84%, 100% { transform: translate(0,0); } 76% { transform: translate(1vmin,-1vmin); } }
+  @keyframes snap3 { 0%, 72%, 84%, 100% { transform: translate(0,0); } 76% { transform: translate(-1vmin,1vmin); } }
+  @keyframes snap4 { 0%, 72%, 84%, 100% { transform: translate(0,0); } 76% { transform: translate(1vmin,1vmin); } }
+
+  h1 { animation: glitch 6s linear infinite; }
+  @keyframes glitch {
+    0%, 75%, 77.4%, 78.4%, 100% { transform: translate(0,0); text-shadow: 0 0 .6vmin rgba(0,236,255,.9), 0 0 3vmin rgba(0,236,255,.6), .5vmin .4vmin 0 rgba(255,43,214,.75); }
+    75.3% { transform: translate(.5vmin,0); text-shadow: -.8vmin 0 0 rgba(0,236,255,.9), 0 0 3vmin rgba(0,236,255,.6), 1.2vmin .2vmin 0 rgba(255,43,214,.9); }
+    75.9% { transform: translate(-.4vmin,0); text-shadow: .7vmin 0 0 rgba(0,236,255,.9), 0 0 3vmin rgba(0,236,255,.6), -1vmin .4vmin 0 rgba(255,43,214,.9); }
+    76.6% { transform: translate(.2vmin,0); text-shadow: -.4vmin 0 0 rgba(0,236,255,.9), 0 0 3vmin rgba(0,236,255,.6), 1.4vmin .6vmin 0 rgba(255,43,214,.85); }
+    77.8% { transform: translate(-.3vmin,0); text-shadow: .5vmin 0 0 rgba(0,236,255,.9), 0 0 3vmin rgba(0,236,255,.6), -.6vmin .4vmin 0 rgba(255,43,214,.85); }
+  }
+
+  .cta { animation: ctaglow 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ctaglow { 0%, 100% { box-shadow: 0 0 1.6vmin rgba(0,236,255,.6), inset 0 0 1.6vmin rgba(0,236,255,.35); }
+    50% { box-shadow: 0 0 3vmin rgba(0,236,255,.85), inset 0 0 2.4vmin rgba(0,236,255,.55); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="floor"></div>
+  <div class="globe"><i class="g1"></i><i class="g2"></i><i class="g3"></i><i class="g4"></i></div>
+  <div class="gizmo"><i class="gx"></i><i class="gy"></i><i class="gz"></i><b class="lx">X</b><b class="ly">Y</b><b class="lz">Z</b></div>
+  <div class="vp">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <i class="tick t1"></i><i class="tick t2"></i><i class="tick t3"></i><i class="tick t4"></i>
+    <div class="hud mono"><span>VIEWPORT 01 · PERSP</span><span><b>●</b> LIVE</span></div>
+    <div class="stats mono"><span>1.2M POLYS · 60 FPS</span><i class="bar"></i><span>RENDER 100%</span></div>
+  </div>
+  <div class="copy">
+    <div class="kick mono">Vektor Lab · Digital twin SS26</div>
+    <h1>Rendered<br>real.</h1>
+    <div class="sub">Designed in 3D, cut in cloth. The piece you saw on screen, now at your door.</div>
+    <div class="buy">
+      <div class="price">$120</div>
+      <div class="cta">Enter the drop →</div>
+    </div>
+    <div class="fine mono">Ships in 3 days · Free returns</div>
+  </div>
+</div>
+</body>
+</html>

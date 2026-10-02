@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Wanted: This Look — a frontier "wanted" bill, torn and nailed to barn boards. The look is the fugitive,
+     the reward is the offer, a red rubber stamp says it is still at large.
+     tall → poster stacked (WANTED · portrait · reward) · square & wide → WANTED across the top, portrait left, reward right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #3A2517; }
+  .banner { --ink: #2B1B10; --paper: #EBDDBC; --red: #B3261E;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Old Standard TT", Georgia, "Times New Roman", serif;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.55) 0 .35vmin, transparent .35vmin 21vmin),
+      repeating-linear-gradient(90deg, rgba(255,220,170,.05) 0 .2vmin, transparent .2vmin 1.7vmin, rgba(0,0,0,.07) 1.7vmin 2.1vmin, transparent 2.1vmin 3.9vmin),
+      linear-gradient(180deg, #4B3020 0%, #3A2517 55%, #2C1B10 100%); }
+
+  /* the bill: torn edge, stains, tooth */
+  .sheet { position: absolute; left: 4vmin; right: 4vmin; top: 3.4vmin; bottom: 3.4vmin; box-sizing: border-box; padding: 5.4vmin 6vmin 5vmin;
+    display: grid; grid-template-columns: 100%; grid-template-rows: auto auto auto 1fr auto; grid-template-areas: "top" "h" "sub" "photo" "reward";
+    background:
+      radial-gradient(40% 22% at 12% 8%, rgba(140,86,30,.22), transparent 70%),
+      radial-gradient(38% 26% at 90% 94%, rgba(140,86,30,.26), transparent 70%),
+      radial-gradient(30% 16% at 88% 30%, rgba(140,86,30,.12), transparent 70%),
+      radial-gradient(120% 90% at 50% 45%, #F1E5C8 35%, #DFC897 100%);
+    clip-path: polygon(0 1.2%, 7% 0, 16% .9%, 27% .2%, 38% 1%, 51% 0, 63% .8%, 74% .1%, 86% .9%, 100% 0, 99.2% 9%, 100% 21%, 99.1% 34%, 100% 47%, 99.3% 60%, 100% 73%, 99.1% 86%, 100% 100%, 88% 99.1%, 76% 100%, 62% 99.2%, 49% 100%, 37% 99.1%, 24% 100%, 12% 99.2%, 0 100%, .8% 88%, 0 75%, .9% 62%, 0 49%, .8% 36%, 0 23%, .9% 11%);
+    box-shadow: 0 0 0 rgba(0,0,0,0); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; }
+  .nail { position: absolute; top: 1.8vmin; width: 2.2vmin; height: 2.2vmin; border-radius: 50%; z-index: 3;
+    background: radial-gradient(circle at 38% 32%, #A99C8C 0%, #5B5048 45%, #25201C 100%); box-shadow: .3vmin .5vmin .6vmin rgba(40,20,5,.45); }
+  .n1 { left: 3vmin; } .n2 { right: 3vmin; }
+
+  .top { grid-area: top; position: relative; display: flex; align-items: center; gap: 2vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; white-space: nowrap; }
+  .top::before, .top::after { content: ""; flex: 1; height: 0; border-top: .35vmin solid var(--ink); border-bottom: 1px solid var(--ink); padding-top: .5vmin; }
+  h1 { grid-area: h; position: relative; margin: 1.6vmin 0 0; font-family: "Rye", "Rockwell Extra Bold", Georgia, serif; font-weight: 400; font-size: 17.6vmin; line-height: .92; letter-spacing: .01em; text-align: center; white-space: nowrap; }
+  .sub { grid-area: sub; position: relative; display: flex; align-items: center; justify-content: center; gap: 2.4vmin; margin-top: .6vmin; font-style: italic; font-size: 5vmin; line-height: 1.1; white-space: nowrap; }
+  .sub::before, .sub::after { content: "✦"; font-style: normal; font-size: 2.2vmin; }
+
+  .photo { grid-area: photo; position: relative; margin: 3.2vmin 0 0; min-height: 0; }
+  .photo .pic { position: absolute; inset: 0; border: .45vmin solid var(--ink); padding: .9vmin; box-sizing: border-box; }
+  .photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .photo .cap { position: absolute; left: 0; right: 0; bottom: -3.6vmin; display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+
+  .reward { grid-area: reward; position: relative; margin-top: 6.2vmin; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "lbl st" "amt st" "p p" "foot foot"; column-gap: 3vmin; align-items: end; }
+   .reward .lbl { grid-area: lbl; font-family: "Rye", Georgia, serif; font-size: 4.6vmin; line-height: 1; letter-spacing: .06em; padding-bottom: 1.4vmin; }
+  .reward .amt { grid-area: amt; font-family: "Rye", Georgia, serif; font-size: 13.4vmin; line-height: .86; letter-spacing: -.01em; white-space: nowrap; margin-top: .6vmin; }
+  .reward .amt small { font-size: .42em; letter-spacing: .02em; }
+  .reward p { grid-area: p; margin: 2.4vmin 0 0; padding-top: 2vmin; border-top: 1px solid var(--ink); font-size: 2.7vmin; line-height: 1.34; text-align: center; }
+  .reward p b { font-weight: 700; white-space: nowrap; }
+  .reward .foot { grid-area: foot; display: flex; justify-content: space-between; align-items: center; margin-top: 2.4vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .reward .code { border: .35vmin solid var(--ink); padding: .9vmin 1.6vmin .8vmin; letter-spacing: .18em; }
+  .reward .code b { font-size: 2.2vmin; letter-spacing: .12em; }
+
+  /* red rubber stamp */
+  .stamp { grid-area: st; align-self: center; justify-self: end; position: relative; z-index: 2; margin-right: 1vmin; transform: rotate(-9deg); padding: 1vmin 2vmin .9vmin; border: .55vmin solid var(--red); color: var(--red);
+    font-family: "Old Standard TT", Georgia, serif; font-weight: 700; font-size: 2.6vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; opacity: .9; mix-blend-mode: multiply;
+    outline: 1px solid var(--red); outline-offset: .5vmin; }
+
+  /* 3:4 – 4:5 : same poster, a touch tighter */
+  @media (min-aspect-ratio: 7/10) {
+    .sheet { padding: 4.6vmin 6vmin 4.4vmin; }
+    h1 { font-size: 16.4vmin; }
+    .sub { font-size: 4.4vmin; }
+    .photo { margin-top: 2.6vmin; }
+    .reward { margin-top: 5.6vmin; }
+    .reward .amt { font-size: 11.6vmin; }
+    .reward p { margin-top: 1.8vmin; padding-top: 1.6vmin; font-size: 2.4vmin; }
+    .reward .foot { margin-top: 1.8vmin; }
+  }
+  /* square : WANTED spans the bill, portrait left, reward right */
+  @media (min-aspect-ratio: 9/10) {
+    .sheet { left: 3.4vmin; right: 3.4vmin; padding: 4.4vmin 5vmin 4.6vmin; column-gap: 4.4vmin;
+      grid-template-columns: 52% 1fr; grid-template-rows: auto auto auto 1fr; grid-template-areas: "top top" "h h" "sub sub" "photo reward"; }
+    h1 { font-size: 15.4vmin; margin-top: 1.2vmin; }
+    .sub { font-size: 3.8vmin; }
+    .photo { margin: 2.6vmin 0 3.4vmin; }
+    .reward { margin-top: 2.6vmin; align-self: stretch; grid-template-columns: 100%; align-content: start; }
+    .reward .lbl { font-size: 3.6vmin; padding: 0; }
+    .reward { grid-template-areas: "lbl" "amt" "p" "foot" "st"; }
+    .photo .cap span + span { display: none; }
+    .reward .amt { font-size: 9.6vmin; text-align: left; margin-top: 1vmin; }
+    .reward p { margin-top: 2vmin; padding-top: 1.6vmin; font-size: 2.2vmin; text-align: left; }
+    .reward .foot { flex-direction: column; align-items: flex-start; gap: 1.6vmin; margin-top: 2vmin; font-size: 1.7vmin; }
+    .stamp { justify-self: start; margin: 3.4vmin 0 0 1vmin; font-size: 2.1vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .sheet { left: 4vmin; right: 4vmin; padding: 4.6vmin 6vmin 4.8vmin; column-gap: 6vmin; grid-template-columns: 50% 1fr; }
+    h1 { font-size: 17vmin; letter-spacing: .08em; }
+    .sub { font-size: 4.2vmin; }
+    .top { font-size: 1.9vmin; }
+    .reward { margin-top: 3vmin; }
+    .reward .lbl { font-size: 4vmin; }
+    .reward .amt { font-size: 12.4vmin; }
+    .reward p { font-size: 2.4vmin; }
+    .reward .foot { flex-direction: row; align-items: center; font-size: 1.7vmin; }
+    .stamp { justify-self: end; margin: 4vmin 1vmin 0 0; font-size: 2.2vmin; }
+    .photo .cap span + span { display: inline; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static bill) ─────────
+     constant: the bill sways on its nails in a draught (6s), lantern light drifts across the boards, portrait slow push-in
+     beats: 2.4s the stamp lifts off the paper… 3.1s SLAMS back (bill jolts, ink ring puffs) · 4.2s WANTED ink re-darkens in a sweep ·
+            5.0s the reward figure gets a brass glint */
+  .banner::after { content: ""; position: absolute; inset: -20%; pointer-events: none; mix-blend-mode: soft-light;
+    background: radial-gradient(35% 30% at 50% 50%, rgba(255,200,120,.35), transparent 70%);
+    animation: lantern 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes lantern { 0%, 100% { transform: translate(-6%, -4%); opacity: .5; } 50% { transform: translate(8%, 5%); opacity: .9; } }
+
+  .sheet { transform-origin: 50% 0; animation: sway 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sway {
+    0%, 100% { transform: rotate(0deg); }
+    22% { transform: rotate(.35deg); }
+    44% { transform: rotate(-.25deg); }
+    51.5% { transform: rotate(0deg) translateY(0); }
+    52.5% { transform: rotate(0deg) translateY(.35vmin); }
+    54% { transform: rotate(.05deg) translateY(-.1vmin); }
+    56% { transform: rotate(0deg) translateY(0); }
+    78% { transform: rotate(-.3deg); }
+  }
+
+  .photo img { transform-origin: 50% 25%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .photo .pic { overflow: hidden; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+
+  .stamp { animation: slam 6s linear infinite; }
+  @keyframes slam {
+    0%, 38%, 100% { transform: rotate(-9deg) scale(1); opacity: .9; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    44% { transform: rotate(-4deg) scale(1.55) translate(1vmin, -1.4vmin); opacity: 0; animation-timing-function: cubic-bezier(.5,0,.9,.4); }
+    49% { transform: rotate(-12deg) scale(1.35) translate(.6vmin, -.8vmin); opacity: .25; animation-timing-function: cubic-bezier(.6,0,1,.6); }
+    52% { transform: rotate(-9deg) scale(.96); opacity: 1; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    56% { transform: rotate(-9deg) scale(1.02); opacity: .95; }
+    60% { transform: rotate(-9deg) scale(1); opacity: .9; }
+  }
+  .stamp::after { content: ""; position: absolute; inset: -1.2vmin; border: .4vmin solid var(--red); opacity: 0; pointer-events: none;
+    animation: puff 6s cubic-bezier(.2,.7,.3,1) infinite; }
+  @keyframes puff { 0%, 51.8% { opacity: 0; transform: scale(1); } 52.3% { opacity: .55; transform: scale(1); } 64%, 100% { opacity: 0; transform: scale(1.35); } }
+
+  h1 { background: linear-gradient(100deg, var(--ink) 0 42%, #8A5A2E 50%, var(--ink) 58% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; color: transparent; padding: 0 4vmin; margin-left: -4vmin; margin-right: -4vmin; animation: inked 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes inked { 0%, 66% { background-position: 100% 0; } 84% { background-position: 0% 0; } 84.1%, 100% { background-position: 100% 0; } }
+
+  .reward .amt { background: linear-gradient(105deg, var(--ink) 0 43%, #C99A4B 50%, var(--ink) 57% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; color: transparent; animation: glint 6s cubic-bezier(.4,0,.3,1) infinite; }
+  @keyframes glint { 0%, 80% { background-position: 100% 0; } 94% { background-position: 0% 0; } 94.1%, 100% { background-position: 100% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sheet">
+    <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" seed="4"/><feColorMatrix values="0 0 0 0 .42  0 0 0 0 .27  0 0 0 0 .12  0 0 0 -1.6 1.02"/></filter><rect width="100%" height="100%" filter="url(#g)" opacity=".5"/></svg>
+    <i class="nail n1"></i><i class="nail n2"></i>
+    <div class="top">Public Notice · Nº 26</div>
+    <h1>WANTED</h1>
+    <div class="sub">this look, on sight</div>
+    <div class="photo">
+      <div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="cap"><span>Last seen: the new season</span><span>Atelier Nord</span></div>
+    </div>
+    <div class="reward">
+      <div class="lbl">Reward</div>
+      <div class="amt">30%<small> OFF</small></div>
+      <p>Paid to anyone who takes it home <b>before Sunday, Sept 28.</b></p>
+      <div class="foot"><span class="code">Code <b>WANTED30</b></span><span>Shop now →</span></div>
+      <div class="stamp">Still at large</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

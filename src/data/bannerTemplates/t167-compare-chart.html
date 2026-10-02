@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Compare Chart — the listing's comparison table as the pitch: "this piece" in a sage column with its own thumbnail,
+     "the usual" beside it, ticks and crosses row by row. tall → photo above the chart; square / wide → photo left, chart right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DDD9D1; }
+  .banner { --panel: 86vmin; position: fixed; inset: 0; overflow: hidden; background: #DDD9D1; color: #151515; font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - var(--panel) + 5.4vmin); bottom: 5vmin; display: flex; flex-direction: column; }
+  .top { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .kick { font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #5C5A55; }
+  h1 { margin: 1.2vmin 0 0; font-family: "Libre Caslon Text", Georgia, serif; font-weight: 400; font-size: 8.4vmin; line-height: .98; letter-spacing: -.025em; white-space: nowrap; }
+  h1 i { color: #4F6B3A; }
+  .vs { flex: none; font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-size: 2.4vmin; color: #5C5A55; padding-bottom: 1vmin; }
+
+  .tbl { margin-top: 3.6vmin; display: grid; grid-template-columns: .9fr 1.15fr 1fr; flex: 1; min-height: 0; grid-auto-rows: auto; align-content: stretch; }
+  .tbl > div { display: flex; align-items: center; gap: 1.2vmin; padding: 1.55vmin 1.6vmin; border-top: 1px solid rgba(21,21,21,.22); font-size: 2vmin; line-height: 1.2; min-width: 0; }
+  .tbl .h { border-top: 0; padding-top: 1.4vmin; padding-bottom: 1.4vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .tbl .l { padding-left: 0; font-size: 1.8vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #5C5A55; }
+  .tbl .y { background: #BCC9A8; font-weight: 600; border-top-color: rgba(21,21,21,.14); }
+  .tbl .n { color: #5C5A55; }
+  .tbl .h.y { background: #4F6B3A; color: #F2F0EA; align-items: center; }
+  .tbl .h.y .th { flex: none; width: 5.2vmin; height: 5.2vmin; overflow: hidden; border: 1px solid rgba(242,240,234,.7); }
+  .tbl .h.y .th img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+  .tbl .h.n { color: #151515; }
+  .tbl svg { flex: none; width: 2.4vmin; height: 2.4vmin; }
+  .tbl .last { padding-bottom: 2vmin; }
+  .tbl .pr { font-family: "Libre Caslon Text", Georgia, serif; font-size: 3.2vmin; font-weight: 700; }
+  .tbl .n.pr { font-weight: 400; font-size: 2.6vmin; text-decoration: line-through; text-decoration-thickness: 1px; }
+
+  .cta { margin-top: 3vmin; display: flex; align-items: center; justify-content: space-between; background: #151515; color: #F2F0EA; padding: 2.1vmin 2.8vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .cta span:last-child { font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; letter-spacing: 0; text-transform: none; font-size: 2.4vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 76vmin; }
+    .panel { top: calc(100% - var(--panel) + 4.6vmin); bottom: 4.4vmin; }
+    h1 { font-size: 7.4vmin; }
+    .tbl { margin-top: 2.8vmin; }
+    .tbl > div { padding-top: 1.3vmin; padding-bottom: 1.3vmin; }
+    .tbl .r-made { display: none; }
+    .cta { margin-top: 2.4vmin; padding: 1.8vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 40%; }
+    .photo { width: var(--pw); height: 100%; }
+    .panel { left: calc(var(--pw) + 5vmin); right: 5vmin; top: 5.4vmin; bottom: 5vmin; }
+    .vs { display: none; }
+    h1 { font-size: 7vmin; }
+    .tbl .r-made { display: flex; }
+    .tbl > div { padding: 1.25vmin 1.3vmin; font-size: 1.8vmin; }
+    .tbl .l { padding-left: 0; font-size: 1.6vmin; letter-spacing: .06em; }
+    .tbl .h { font-size: 1.6vmin; letter-spacing: .08em; }
+    .tbl .h.y .th { width: 4.4vmin; height: 4.4vmin; }
+    .tbl svg { width: 2.1vmin; height: 2.1vmin; }
+    .tbl .pr { font-size: 2.8vmin; }
+    .tbl .n.pr { font-size: 2.2vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.8vmin 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 40%; }
+    .panel { left: calc(var(--pw) + 7vmin); right: 7vmin; top: 6.4vmin; bottom: 6vmin; }
+    .vs { display: block; }
+    h1 { font-size: 7.4vmin; }
+    .tbl .r-made { display: none; }
+    .tbl > div { padding: 1.3vmin 1.8vmin; font-size: 2vmin; }
+    .tbl .l { font-size: 1.7vmin; letter-spacing: .1em; }
+    .tbl .h { font-size: 1.7vmin; letter-spacing: .14em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="panel">
+    <div class="top">
+      <div><div class="kick">Side by side</div><h1>Why this <i>one?</i></h1></div>
+      <div class="vs">compared honestly</div>
+    </div>
+
+    <div class="tbl">
+      <div class="h"></div>
+      <div class="h y"><span class="th"><img src="{{PRODUCT_IMAGE}}" alt=""></span>This piece</div>
+      <div class="h n">The usual</div>
+
+      <div class="l">Fabric</div>
+      <div class="y"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#4F6B3A"/><path d="M7 12.3l3.2 3.1L17 8.8" fill="none" stroke="#F2F0EA" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Natural fibres</div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.4" fill="none" stroke="#8C8981" stroke-width="1.4"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#8C8981" stroke-width="1.6" stroke-linecap="round"/></svg>Synthetic mix</div>
+
+      <div class="l r-made">Made in</div>
+      <div class="y r-made"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#4F6B3A"/><path d="M7 12.3l3.2 3.1L17 8.8" fill="none" stroke="#F2F0EA" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Portugal</div>
+      <div class="n r-made"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.4" fill="none" stroke="#8C8981" stroke-width="1.4"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#8C8981" stroke-width="1.6" stroke-linecap="round"/></svg>Unlisted</div>
+
+      <div class="l">Rating</div>
+      <div class="y"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#4F6B3A"/><path d="M7 12.3l3.2 3.1L17 8.8" fill="none" stroke="#F2F0EA" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>4.9 ★</div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.4" fill="none" stroke="#8C8981" stroke-width="1.4"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#8C8981" stroke-width="1.6" stroke-linecap="round"/></svg>3.6 ★</div>
+
+      <div class="l">Delivery</div>
+      <div class="y"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#4F6B3A"/><path d="M7 12.3l3.2 3.1L17 8.8" fill="none" stroke="#F2F0EA" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Tomorrow</div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.4" fill="none" stroke="#8C8981" stroke-width="1.4"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#8C8981" stroke-width="1.6" stroke-linecap="round"/></svg>5–7 days</div>
+
+      <div class="l">Returns</div>
+      <div class="y"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#4F6B3A"/><path d="M7 12.3l3.2 3.1L17 8.8" fill="none" stroke="#F2F0EA" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>60 days, free</div>
+      <div class="n"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.4" fill="none" stroke="#8C8981" stroke-width="1.4"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="#8C8981" stroke-width="1.6" stroke-linecap="round"/></svg>14 days, paid</div>
+
+      <div class="l last">Price</div>
+      <div class="y pr last">€129</div>
+      <div class="n pr last">€160</div>
+    </div>
+
+    <div class="cta"><span>Choose better</span><span>Shop now →</span></div>
+  </div>
+</div>
+</body>
+</html>

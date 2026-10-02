@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anybody:ital,wdth,wght@1,150,800;1,150,900&family=Fraunces:ital,opsz,wght@1,9..144,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Corner Bounce — the idle-screen moment everyone waited for: a sale logo bouncing across a black screensaver,
+     its ghost trail changing colour at every wall (dotted trajectory drawn in), until the last one lands flush
+     in the corner. Serif headline "It hit the corner." tall → photo above, screensaver field below ·
+     square & wide → photo left, field right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #07070B; }
+  .banner { --bg: #07070B; --ivory: #F4EFE4; --field: 84vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ivory); font-family: "Space Mono", "Courier New", monospace;
+    background: radial-gradient(ellipse 80% 60% at 50% 80%, #14142A 0%, rgba(20,20,42,0) 70%), var(--bg); }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--field)); overflow: hidden; }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - var(--field) + 5.5vmin); }
+  .k { display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: rgba(244,239,228,.62); white-space: nowrap; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 400; font-size: 10.6vmin; line-height: .92; letter-spacing: -.03em; }
+  .sub { margin-top: 2.4vmin; font-size: 2vmin; line-height: 1.5; }
+  .sub b { display: inline-block; padding: 0 1vmin; background: var(--ivory); color: var(--bg); letter-spacing: .08em; }
+
+  .field { position: absolute; left: 6vmin; right: 6vmin; bottom: 8.5vmin; height: 36vmin; }
+  .field svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .field polyline { fill: none; stroke: rgba(244,239,228,.4); stroke-width: 1.4; stroke-dasharray: .1 5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .logo { position: absolute; width: 21%; aspect-ratio: 2.1 / 1; transform: translate(-50%, -50%); box-sizing: border-box; border-radius: 1.2vmin; border: .45vmin solid var(--c);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--c); font-family: "Anybody", "Arial Black", sans-serif; font-style: italic; font-stretch: 150%; line-height: 1; }
+  .logo b { font-weight: 900; font-size: 4vmin; letter-spacing: -.02em; }
+  .logo small { margin-top: .5vmin; padding-top: .4vmin; border-top: .3vmin solid currentColor; font-weight: 800; font-size: 1.6vmin; letter-spacing: .08em; }
+  .l1 { --c: #FF4FA3; left: 11%; top: 55%; opacity: .28; }
+  .l2 { --c: #3FE0FF; left: 30%; top: 17%; opacity: .42; }
+  .l3 { --c: #FFE14D; left: 50%; top: 80%; opacity: .58; }
+  .l4 { --c: #8CFF6B; left: 70%; top: 24%; opacity: .76; }
+  .l5 { --c: var(--ivory); left: auto; top: auto; right: 0; bottom: 0; transform: none; background: var(--ivory); color: var(--bg); border-color: var(--ivory);
+    box-shadow: 0 0 3vmin rgba(244,239,228,.45), 0 0 8vmin rgba(160,140,255,.35); }
+  .hit { position: absolute; right: -2.4vmin; bottom: -2.4vmin; width: 4.8vmin; height: 4.8vmin; }
+  .hit i { position: absolute; left: 50%; top: 50%; width: 1.6vmin; height: .35vmin; margin: -.175vmin 0 0 0; background: var(--ivory); transform-origin: 0 50%; }
+  .hit i:nth-child(1) { transform: rotate(-8deg) translateX(.9vmin); }
+  .hit i:nth-child(2) { transform: rotate(45deg) translateX(.9vmin); }
+  .hit i:nth-child(3) { transform: rotate(98deg) translateX(.9vmin); }
+  .field .ps { display: none; }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 3.2vmin; display: flex; justify-content: space-between; font-size: 1.6vmin; letter-spacing: .08em; color: rgba(244,239,228,.62); white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --field: 78vmin; }
+    .head, .foot { left: 10vmin; right: 10vmin; }
+    .field { left: 10vmin; right: 10vmin; height: 32vmin; }
+    h1 { font-size: 9.4vmin; }
+    .logo b { font-size: 3.4vmin; }
+    .logo small { font-size: 1.6vmin; }
+  }
+
+  /* square & wide: photo left, the screensaver takes the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; bottom: 0; width: 46%; height: 100%; }
+    .head { left: calc(46% + 5vmin); right: 5vmin; top: 5vmin; }
+    h1 { font-size: 9vmin; margin-top: 2vmin; }
+    .sub { font-size: 1.8vmin; margin-top: 2vmin; }
+    .field { left: calc(46% + 5vmin); right: 5vmin; bottom: 9vmin; height: 46vmin; }
+    .k span + span { display: none; }
+    .logo { width: 30%; }
+    .logo b { font-size: 3.4vmin; }
+    .logo small { font-size: 1.6vmin; margin-top: .3vmin; }
+    .field .pt { display: none; } .field .ps { display: block; }
+    .l1 { left: 15%; top: 66%; } .l2 { display: none; } .l3 { left: 40%; top: 16%; } .l4 { left: 64%; top: 60%; }
+    .foot { left: calc(46% + 5vmin); right: 5vmin; bottom: 3.6vmin; }
+    .foot span + span { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .head { left: calc(42% + 6vmin); right: 6vmin; top: 6vmin; }
+    h1 { font-size: 8.4vmin; }
+    .field { left: calc(42% + 6vmin); right: 6vmin; height: 50vmin; }
+    .k span + span { display: inline; }
+    .logo { width: 21%; }
+    .logo b { font-size: 3.6vmin; }
+    .field .pt { display: block; } .field .ps { display: none; }
+    .l1 { left: 11%; top: 55%; } .l2 { display: flex; left: 30%; top: 17%; } .l3 { left: 50%; top: 80%; } .l4 { left: 70%; top: 24%; }
+    .foot { left: calc(42% + 6vmin); right: 6vmin; }
+    .foot span + span { display: inline; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     the bounce replayed: the dotted trajectory marches toward the corner, the ghost logos light up one after
+     another (0.9 → 2.1 s) as if the logo were passing through, then 2.5 s the corner logo lands — punch, glow burst,
+     impact sparks flare out; 3.2 s CORNER30 blinks inverse; the idle photo breathes (≤1.03) */
+  .photo img { transform-origin: 50% 35%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .field polyline { animation: march 1.5s linear infinite; }
+  @keyframes march { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -5.1; } }
+
+  .l1 { animation: g1 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .l2 { animation: g2 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .l3 { animation: g3 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .l4 { animation: g4 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes g1 { 0%, 14%, 30%, 100% { opacity: .28; } 16% { opacity: 1; } }
+  @keyframes g2 { 0%, 20%, 36%, 100% { opacity: .42; } 22% { opacity: 1; } }
+  @keyframes g3 { 0%, 27%, 43%, 100% { opacity: .58; } 29% { opacity: 1; } }
+  @keyframes g4 { 0%, 34%, 50%, 100% { opacity: .76; } 36% { opacity: 1; } }
+
+  .l5 { transform-origin: 100% 100%; animation: land 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes land {
+    0%, 40%, 58%, 100% { transform: scale(1); box-shadow: 0 0 3vmin rgba(244,239,228,.45), 0 0 8vmin rgba(160,140,255,.35); }
+    42% { transform: scale(1.08); box-shadow: 0 0 5vmin rgba(244,239,228,.8), 0 0 14vmin rgba(160,140,255,.7); }
+    46% { transform: scale(.98); }
+    50% { transform: scale(1.02); }
+  }
+  .hit { animation: burst 6s cubic-bezier(.2,.7,.3,1) infinite; }
+  @keyframes burst { 0%, 41%, 60%, 100% { transform: scale(1); opacity: 1; } 44% { transform: scale(1.7); opacity: 1; } 50% { transform: scale(1.3); opacity: .5; } }
+
+  .sub b { animation: code 6s steps(1, end) infinite; }
+  @keyframes code { 0%, 53%, 57%, 61%, 100% { background: var(--ivory); color: var(--bg); } 54%, 58% { background: transparent; color: var(--ivory); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="head">
+    <div class="k"><span>Studio Oro · screensaver</span><span>idle 00:04:12</span></div>
+    <h1>It hit the<br>corner.</h1>
+    <div class="sub">30% off the new season with <b>CORNER30</b><br>Worth the wait — until Sunday.</div>
+  </div>
+  <div class="field">
+    <svg class="pt" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="11,55 30,17 50,80 70,24 89.5,88"/></svg>
+    <svg class="ps" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="15,66 40,16 64,60 85,87"/></svg>
+    <div class="logo l1"><b>SALE</b><small>30% OFF</small></div>
+    <div class="logo l2"><b>SALE</b><small>30% OFF</small></div>
+    <div class="logo l3"><b>SALE</b><small>30% OFF</small></div>
+    <div class="logo l4"><b>SALE</b><small>30% OFF</small></div>
+    <div class="logo l5"><b>SALE</b><small>30% OFF</small><span class="hit"><i></i><i></i><i></i></span></div>
+  </div>
+  <div class="foot"><span>Press any key to shop</span><span>✦ corner hit, 1 of 1</span></div>
+</div>
+</body>
+</html>

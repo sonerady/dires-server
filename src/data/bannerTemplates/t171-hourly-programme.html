@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* The Hourly — hourly drops printed as a day programme: past slots struck out, the live slot inked in,
+     the next one counting down. tall → photo above the paper; square / wide → photo left, programme right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1ECE2; }
+  .banner { --panel: 74vmin; position: fixed; inset: 0; overflow: hidden; background: #F1ECE2; color: #1C1B18; font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--panel)); overflow: hidden; }
+  .shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 12vmin; background: linear-gradient(to top, rgba(241,236,226,1.0) 0.0%, rgba(241,236,226,0.985) 7.69%, rgba(241,236,226,0.943) 15.38%, rgba(241,236,226,0.874) 23.08%, rgba(241,236,226,0.784) 30.77%, rgba(241,236,226,0.677) 38.46%, rgba(241,236,226,0.56) 46.15%, rgba(241,236,226,0.44) 53.85%, rgba(241,236,226,0.323) 61.54%, rgba(241,236,226,0.216) 69.23%, rgba(241,236,226,0.126) 76.92%, rgba(241,236,226,0.057) 84.62%, rgba(241,236,226,0.015) 92.31%, rgba(241,236,226,0.0) 100.0%); }
+  .tag { position: absolute; left: 5vmin; top: 5vmin; display: flex; align-items: center; gap: 1.2vmin; background: #D6452C; color: #FFF6EE; padding: 1.3vmin 2.1vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .tag i { width: 1.1vmin; height: 1.1vmin; border-radius: 50%; background: #FFF6EE; box-shadow: 0 0 0 .5vmin rgba(255,246,238,.3); }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 7vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; padding-bottom: 1.3vmin; border-bottom: 1px solid #1C1B18; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Newsreader", Georgia, "Times New Roman", serif; font-weight: 400; font-size: 12.5vmin; line-height: .9; letter-spacing: -.03em; }
+  h1 em { font-style: italic; color: #D6452C; }
+  h1 br { display: none; }
+  .lede { margin: 1.6vmin 0 0; font-family: "Newsreader", Georgia, serif; font-size: 2.6vmin; line-height: 1.3; color: #4A463F; }
+  .sched { list-style: none; margin: 2.8vmin 0 0; padding: 0; border-top: 1px solid #1C1B18; }
+  .sched li { display: grid; grid-template-columns: 11vmin 1fr auto; align-items: center; padding: 1.2vmin 1.4vmin; border-bottom: 1px solid rgba(28,27,24,.22); font-size: 2vmin; letter-spacing: .04em; }
+  .sched b { font-weight: 700; }
+  .sched li > :last-child { text-align: right; text-transform: uppercase; letter-spacing: .12em; font-size: 1.8vmin; }
+  .gone { color: #9A9489; }
+  .gone b, .gone span:nth-child(2) { text-decoration: line-through; text-decoration-thickness: 1px; }
+  .now { background: #1C1B18; color: #F1ECE2; border-bottom-color: #1C1B18 !important; }
+  .now em { font-style: normal; font-weight: 700; color: #FF8C70; display: flex; align-items: center; justify-content: flex-end; gap: 1vmin; }
+  .now em::before { content: ""; width: 1vmin; height: 1vmin; border-radius: 50%; background: #FF8C70; }
+  .next i { font-style: normal; font-weight: 700; color: #C73A22; }
+  .later { color: #6F695F; }
+  .count { display: none; margin-top: auto; padding-top: 3vmin; }
+  .count small { display: block; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; color: #6F695F; }
+  .count strong { display: block; margin-top: 1vmin; font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .9; letter-spacing: -.02em; font-variant-numeric: tabular-nums lining-nums; }
+  .count strong span { color: #C9C2B4; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 2.4vmin; }
+  .cta { background: #1C1B18; color: #F1ECE2; padding: 2vmin 3vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .note { font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 2.5vmin; line-height: 1.2; color: #4A463F; text-align: right; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 66vmin; }
+    h1 { font-size: 10.5vmin; margin-top: 2vmin; }
+    .lede { font-size: 2.3vmin; margin-top: 1.2vmin; }
+    .sched { margin-top: 2.2vmin; }
+    .sched li { padding: 1vmin 1.4vmin; font-size: 1.9vmin; }
+    .sched li.later { display: none; }
+    .foot { padding-top: 2vmin; }
+    .cta { padding: 1.7vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .shot { right: auto; width: 48%; height: 100%; }
+    .fade { left: auto; top: 0; width: 8vmin; height: auto; background: linear-gradient(to left, rgba(241,236,226,1.0) 0.0%, rgba(241,236,226,0.985) 7.69%, rgba(241,236,226,0.943) 15.38%, rgba(241,236,226,0.874) 23.08%, rgba(241,236,226,0.784) 30.77%, rgba(241,236,226,0.677) 38.46%, rgba(241,236,226,0.56) 46.15%, rgba(241,236,226,0.44) 53.85%, rgba(241,236,226,0.323) 61.54%, rgba(241,236,226,0.216) 69.23%, rgba(241,236,226,0.126) 76.92%, rgba(241,236,226,0.057) 84.62%, rgba(241,236,226,0.015) 92.31%, rgba(241,236,226,0.0) 100.0%); }
+    .tag { left: 4vmin; top: 4vmin; }
+    .panel { left: calc(48% + 4vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    h1 { font-size: 11vmin; line-height: .88; margin-top: 2.4vmin; }
+    h1 br { display: inline; }
+    .lede { font-size: 2.2vmin; }
+    .sched li { grid-template-columns: 9vmin 1fr auto; padding: 1.05vmin 1.2vmin; font-size: 1.8vmin; }
+    .sched li.later { display: grid; }
+    .sched li > :last-child { font-size: 1.6vmin; letter-spacing: .08em; }
+    .count { display: block; }
+    .foot { margin-top: 0; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .note { text-align: left; font-size: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 44%; }
+    .shot img { object-position: 65% 25%; }
+    .panel { left: calc(44% + 6vmin); right: 7vmin; top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 12.5vmin; margin-top: 2.6vmin; }
+    h1 br { display: none; }
+    .lede { font-size: 2.4vmin; }
+    .sched { margin-top: 2.6vmin; }
+    .sched li { grid-template-columns: 11vmin 1fr auto; padding: 1.1vmin 1.4vmin; font-size: 1.9vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .note { text-align: right; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="fade"></div></div>
+  <div class="tag"><i></i>Drop 03 · live</div>
+  <div class="panel">
+    <div class="kick"><span>Atelier Nord</span><span>Thu 25.09</span></div>
+    <h1>The<br> <em>Hourly</em></h1>
+    <p class="lede">A new piece every hour, 10:00–21:00. When it's gone, it's gone.</p>
+    <ol class="sched">
+      <li class="gone"><b>10:00</b><span>Drop 01</span><span>Sold out</span></li>
+      <li class="gone"><b>11:00</b><span>Drop 02</span><span>Sold out</span></li>
+      <li class="now"><b>12:00</b><span>Drop 03</span><em>Live −30%</em></li>
+      <li class="next"><b>13:00</b><span>Drop 04</span><i>In 42 min</i></li>
+      <li class="later"><b>14:00</b><span>Drop 05</span><span>Sealed</span></li>
+    </ol>
+    <div class="count"><small>Drop 04 unlocks in</small><strong>00<span>:</span>42<span>:</span>18</strong></div>
+    <div class="foot"><span class="cta">Shop the live drop</span><span class="note">12 drops, 12 hours.</span></div>
+  </div>
+</div>
+</body>
+</html>

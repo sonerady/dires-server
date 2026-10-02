@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;1,400&family=Albert+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Moon Sighting — Ramadan to Eid al-Fitr told by the moon: a strip of lunar phases waxes and wanes across the
+     dusk sky, night by night, until the thin new crescent (the hilal) is ringed in gold and marked "Eid".
+     Amiri, a classical naskh-derived serif, sets the headline. tall → photo above the sky panel;
+     square/wide → photo left, sky panel right (square shows every other night) */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #151B3E; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #151B3E; color: #F3E6C8; font-family: "Albert Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 18%; }
+  .sky { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100% - 80vmin); overflow: hidden;
+    background: radial-gradient(circle at 30% 20%, rgba(243,230,200,.5) 0 .12vmin, transparent .2vmin) 0 0 / 7vmin 6vmin,
+                radial-gradient(circle at 70% 60%, rgba(243,230,200,.35) 0 .1vmin, transparent .18vmin) 0 0 / 5vmin 9vmin,
+                linear-gradient(180deg, #151B3E 0%, #1E2350 45%, #3A2B58 80%, #5A3858 100%); }
+  .strip { position: absolute; left: 7vmin; right: 7vmin; top: 5vmin; display: flex; justify-content: space-between; padding-bottom: 1.6vmin; border-bottom: 1px solid rgba(243,230,200,.3); }
+  .m { display: flex; flex-direction: column; align-items: center; gap: 1vmin; }
+  .m svg { width: 4.2vmin; height: 4.2vmin; }
+  .m span { font-size: 1.6vmin; font-weight: 500; letter-spacing: .04em; color: rgba(243,230,200,.7); }
+  .m.eid svg { width: 5.6vmin; height: 5.6vmin; margin-top: -1.4vmin; }
+  .m.eid span { color: #E2B45E; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 20vmin; bottom: 6vmin; display: flex; flex-direction: column; }
+  .k { font-size: 1.8vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #E2B45E; }
+  h1 { margin: 1.8vmin 0 0; font-family: "Amiri", Georgia, serif; font-weight: 400; font-size: 12vmin; line-height: 1; letter-spacing: -.005em; }
+  h1 i { color: #F6CD7A; display: inline-block; line-height: 1; }
+  .p { margin-top: 2.4vmin; font-size: 2.3vmin; line-height: 1.45; color: #D9CDE0; }
+  .ar { display: none; margin-top: auto; align-self: flex-start; font-family: "Amiri", serif; font-size: 7vmin; line-height: 1.5; color: #E2B45E; }
+  .foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .offer { display: flex; flex-direction: column; gap: 1vmin; }
+  .offer b { font-family: "Amiri", Georgia, serif; font-weight: 400; font-size: 6.6vmin; line-height: 1; }
+  .offer span { font-size: 1.8vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #D9CDE0; white-space: nowrap; }
+  .offer span em { font-style: normal; color: #F3E6C8; border-bottom: 1px solid #E2B45E; }
+  .cta { flex: none; font-size: 2vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; background: #F3E6C8; color: #151B3E; padding: 1.6vmin 3vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .sky { top: calc(100% - 66vmin); }
+    .strip { top: 3.6vmin; }
+    .m svg { width: 3.8vmin; height: 3.8vmin; }
+    .copy { top: 17vmin; bottom: 4.4vmin; }
+    h1 { font-size: 10vmin; }
+    .p { display: none; }
+    .offer b { font-size: 5.8vmin; }
+  }
+  /* square / wide → photo left, sky right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .sky { left: 48%; top: 0; }
+    .strip { left: 5vmin; right: 5vmin; top: 7vmin; }
+    .m:nth-child(odd):not(.eid) { display: none; }
+    .m svg { width: 3.8vmin; height: 3.8vmin; }
+    .copy { left: 5vmin; right: 5vmin; top: 22vmin; bottom: 6vmin; }
+    .k { letter-spacing: .2em; }
+    h1 { font-size: 8.8vmin; }
+    .p { display: block; font-size: 2.1vmin; }
+    .ar { display: block; font-size: 6vmin; }
+    .foot { margin-top: 1.4vmin; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .offer b { font-size: 5.6vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.4vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .sky { left: 46%; }
+    .strip { left: 7vmin; right: 7vmin; top: 8vmin; }
+    .m:nth-child(odd):not(.eid) { display: flex; }
+    .m svg { width: 3.4vmin; height: 3.4vmin; }
+    .m.eid svg { width: 5vmin; height: 5vmin; }
+    .copy { left: 7vmin; right: 7vmin; top: 25vmin; bottom: 8vmin; }
+    h1 { font-size: 10.6vmin; }
+    .p { font-size: 2.3vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .offer b { font-size: 6.2vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.5vmin 2.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sky">
+    <div class="strip">
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A9.11 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>2</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A6.59 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>4</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A2.89 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>6</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A1.33 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>8</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A5.30 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>10</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A8.33 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>12</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A9.87 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>14</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A9.65 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>16</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A7.70 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>18</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A4.37 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>20</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A0.27 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>22</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A3.89 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>24</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A7.35 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>26</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A9.49 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>28</span></div>
+        <div class="m eid"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="11.4" fill="none" stroke="#E2B45E" stroke-width=".8"/><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A9.42 10 0 0 0 0 -10 Z" fill="#F6CD7A"/></svg><span>Eid</span></div>
+    </div>
+    <div class="copy">
+      <div class="k">Ramadan to Eid al-Fitr</div>
+      <h1>Until the<br><i>new moon.</i></h1>
+      <div class="p">From the first iftar to Eid morning.</div>
+      <div class="ar" lang="ar" dir="rtl">عيد مبارك</div>
+      <div class="foot">
+        <div class="offer"><b>Up to 30% off</b><span>The Eid edit · Code <em>HILAL30</em></span></div>
+        <div class="cta">Shop Eid</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

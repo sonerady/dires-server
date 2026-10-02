@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Yellowtail&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Surf Shack — the hand-painted sign nailed over a beach surf shop: four sun-bleached teal planks, a sign-painter
+     script for the shop name, a slab SALE painted right across the plank seams with a red drop shade, nail heads,
+     chipped paint and a little red OPEN board. All lettering wobbles slightly like a brush.
+     tall → photo above, sign below · square/wide → photo left, sign right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #4E9994; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #4E9994; color: #FFF4DC; font-family: "Oswald", "Arial Narrow", sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; }
+  .sign { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; overflow: hidden;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 calc(25% - .8vmin), rgba(20,40,40,.55) calc(25% - .8vmin) calc(25% - .3vmin), rgba(255,255,255,.18) calc(25% - .3vmin) 25%),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 .3vmin, transparent .3vmin 2.3vmin, rgba(255,255,255,.05) 2.3vmin 2.6vmin, transparent 2.6vmin 5.1vmin),
+      linear-gradient(180deg, #5AA6A0, #4A928D); box-shadow: inset 0 1.2vmin 1.4vmin -1vmin rgba(0,0,0,.45); }
+  .chips { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .nail { position: absolute; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #B9B2A6, #4F4A43 70%); }
+  .n1 { left: 3vmin; top: 10%; } .n2 { right: 3vmin; top: 10%; } .n3 { left: 3vmin; top: 35%; } .n4 { right: 3vmin; top: 35%; }
+  .n5 { left: 3vmin; top: 60%; } .n6 { right: 3vmin; top: 60%; } .n7 { left: 3vmin; top: 85%; } .n8 { right: 3vmin; top: 85%; }
+  .paint { position: absolute; inset: 0; display: grid; grid-template-rows: 1fr 2fr 1fr; filter: url(#brush); }
+  .row { display: flex; align-items: center; justify-content: center; padding: 0 7vmin; min-width: 0; }
+  .r1 { justify-content: space-between; gap: 3vmin; }
+  .script { font-family: "Yellowtail", "Brush Script MT", cursive; font-size: 10vmin; line-height: 1; color: #FFF4DC; text-shadow: .5vmin .5vmin 0 #1F4B4A; white-space: nowrap; }
+  .brand { display: flex; flex-direction: column; min-width: 0; }
+  .est { font-size: 2vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; line-height: 1.35; color: #FFE08A; margin-top: .8vmin; white-space: nowrap; }
+  .sale { font-family: "Alfa Slab One", Rockwell, serif; font-size: 30vmin; line-height: .8; letter-spacing: .02em; color: #FFF4DC; text-shadow: 1.2vmin 1.2vmin 0 #D8452B, 1.6vmin 1.6vmin 0 #1F4B4A; margin-top: -1vmin; }
+  .r3 { flex-direction: column; gap: 1.2vmin; }
+  .offer { font-size: 4.6vmin; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .offer b { color: #FFE08A; font-weight: 600; }
+  .sub { font-size: 2.2vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #FFF4DC; opacity: .92; white-space: nowrap; }
+  .open { position: relative; flex: none; width: 15vmin; padding: 1vmin 0 1.2vmin; background: #D8452B; color: #FFF4DC; text-align: center; transform: rotate(7deg); box-shadow: .5vmin .7vmin 0 rgba(20,40,40,.4); }
+  .open b { display: block; font-family: "Alfa Slab One", Rockwell, serif; font-weight: 400; font-size: 4vmin; line-height: 1; letter-spacing: .06em; }
+  .open small { display: block; font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; margin-top: .5vmin; }
+  .open::before, .open::after { content: ""; position: absolute; top: .7vmin; width: 1vmin; height: 1vmin; border-radius: 50%; background: #3E3A35; }
+  .open::before { left: 1vmin; } .open::after { right: 1vmin; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 78vmin); }
+    .sign { height: 78vmin; }
+    .sale { font-size: 27vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .sign { height: 66vmin; }
+    .script { font-size: 8.4vmin; }
+    .est { font-size: 1.8vmin; }
+    .sale { font-size: 22vmin; }
+    .offer { font-size: 3.8vmin; }
+    .sub { font-size: 1.9vmin; }
+    .r3 { gap: .6vmin; }
+    .open { width: 13vmin; }
+    .open b { font-size: 3.4vmin; }
+    .open small { font-size: 1.6vmin; }
+  }
+  /* square / wide → photo left, sign right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .sign { left: 50%; top: 0; height: auto; box-shadow: inset 1.2vmin 0 1.4vmin -1vmin rgba(0,0,0,.45); }
+    .row { padding: 0 5vmin; }
+    .script { font-size: 7vmin; }
+    .est { font-size: 1.6vmin; letter-spacing: .14em; }
+    .sale { font-size: 13vmin; }
+    .offer { font-size: 3vmin; }
+    .sub { font-size: 1.7vmin; }
+    .r3 { gap: .8vmin; }
+    .open { width: 11vmin; }
+    .open b { font-size: 2.8vmin; }
+    .open small { font-size: 1.6vmin; letter-spacing: .1em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .sign { left: 46%; }
+    .row { padding: 0 7vmin; }
+    .script { font-size: 9vmin; }
+    .est { font-size: 1.9vmin; letter-spacing: .22em; }
+    .sale { font-size: 21.5vmin; }
+    .offer { font-size: 4vmin; }
+    .sub { font-size: 2vmin; }
+    .open { width: 14vmin; }
+    .open b { font-size: 3.6vmin; }
+    .open small { font-size: 1.7vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="brush" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="3" xChannelSelector="R" yChannelSelector="G"/></filter>
+  </svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sign">
+    <svg class="chips" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="c"><feTurbulence type="fractalNoise" baseFrequency=".5 .025" numOctaves="3" seed="12"/><feColorMatrix values="0 0 0 0 .93  0 0 0 0 .88  0 0 0 0 .78  0 0 0 -11 5.4"/></filter><rect width="100%" height="100%" filter="url(#c)" opacity=".26"/></svg>
+    <i class="nail n1"></i><i class="nail n2"></i><i class="nail n3"></i><i class="nail n4"></i><i class="nail n5"></i><i class="nail n6"></i><i class="nail n7"></i><i class="nail n8"></i>
+    <div class="paint">
+      <div class="row r1"><div class="brand"><span class="script">Salt Pier</span><span class="est">Surf shop · since 1978</span></div><div class="open"><b>OPEN</b><small>7AM – 7PM</small></div></div>
+      <div class="row r2"><span class="sale">SALE</span></div>
+      <div class="row r3"><span class="offer">Up to <b>40% off</b> the rack</span><span class="sub">Code PIER40 · Shop now →</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

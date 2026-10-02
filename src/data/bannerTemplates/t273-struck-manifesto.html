@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Struck Manifesto — a three-line brand manifesto in big display serif, edited in public:
+     the old habit is struck through with a heavy red rule, the new word follows in italic.
+     TALL → manifesto panel on top, photo below · 7/10+ → manifesto column left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F1EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4F1EA; color: #161412; font-family: "Instrument Serif", "Times New Roman", Georgia, serif; display: flex; flex-direction: column; }
+  .mono { font-family: "Geist Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .06em; text-transform: uppercase; }
+
+  .txt { flex: none; box-sizing: border-box; padding: 4.6vmin 5vmin 4vmin; display: flex; flex-direction: column; }
+  .hd { display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid #161412; }
+  .hd b { font-weight: 500; color: #D4271B; }
+  .man { margin: 3.4vmin 0 0; font-weight: 400; font-size: 11.2vmin; line-height: .98; letter-spacing: -.028em; }
+  .man div { white-space: nowrap; }
+  .man s { text-decoration: none; position: relative; color: rgba(22,20,18,.4); }
+  .man s::after { content: ""; position: absolute; left: -.06em; right: -.06em; top: 52%; height: .085em; background: #D4271B; transform: rotate(-2.5deg); }
+  .man em { font-style: italic; }
+  .man i { font-style: normal; color: #D4271B; }
+  .sub { margin-top: 3.4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .sub p { margin: 0; font-size: 1.8vmin; line-height: 1.55; }
+  .sub p b { font-weight: 500; }
+  .cta { flex: none; font-family: "Geist Mono", Menlo, monospace; font-size: 2vmin; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; background: #161412; color: #F4F1EA; padding: 1.8vmin 2.6vmin; white-space: nowrap; }
+
+  .ph { position: relative; flex: 1; min-height: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+  .fig { position: absolute; right: 0; top: 0; background: #F4F1EA; padding: .9vmin 1.4vmin; }
+
+  /* SHORTER PORTRAIT — manifesto column left, photo right */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { flex-direction: row; }
+    .txt { width: 50%; height: 100%; padding: 5vmin 4.4vmin 5vmin 5vmin; }
+    .man { font-size: 11.6vmin; line-height: 1.0; margin-top: 5vmin; }
+    .man div { white-space: normal; }
+    .man div + div { margin-top: 1.6vmin; }
+    .sub { margin-top: auto; flex-direction: column; align-items: stretch; gap: 2.4vmin; }
+    .cta { text-align: center; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .txt { width: 48%; padding: 4.4vmin 4vmin 4.4vmin 4.6vmin; }
+    .man { font-size: 9.8vmin; margin-top: 4vmin; }
+    .man div + div { margin-top: 1.2vmin; }
+    .sub p { font-size: 1.7vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.6vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .txt { width: 56%; padding: 5vmin 5vmin 5vmin 5.4vmin; }
+    .man { font-size: 12.6vmin; line-height: .98; margin-top: 6vmin; }
+    .man div { white-space: nowrap; }
+    .man div + div { margin-top: 0; }
+    .sub { flex-direction: row; align-items: flex-end; }
+    .sub p { font-size: 1.8vmin; }
+    .cta { font-size: 2vmin; padding: 1.8vmin 2.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="txt">
+    <div class="hd mono"><span>Atelier Nord — <b>Manifesto</b></span><span>SS26</span></div>
+    <div class="man">
+      <div>Buy <s>more</s> <em>less.</em></div>
+      <div>Wear <s>once</s> <em>often.</em></div>
+      <div>Keep <s>up</s> <em>forever</em><i>.</i></div>
+    </div>
+    <div class="sub">
+      <p class="mono">The considered collection<br><b>25% off this week · code KEEP25</b></p>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+  <div class="ph">
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="fig mono">Fig. 01 — Worn often</div>
+  </div>
+</div>
+</body>
+</html>

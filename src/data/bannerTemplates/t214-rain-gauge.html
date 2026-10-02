@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Rain Gauge — a graduated glass rain gauge with a funnel, filled to 40 mm; the overnight reading becomes the
+     markdown ("40 mm → 40% off"), logged on a station reading card with hairline rows.
+     tall → photo above, gauge + card below · square/wide → photo left, gauge standing on the seam, card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E7ECE7; }
+  .banner { --panel: 88vmin; position: fixed; inset: 0; overflow: hidden; background: #E7ECE7; color: #17282B; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; }
+  .mono { font-family: "DM Mono", Menlo, monospace; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); }
+
+  /* gauge */
+  .gauge { position: absolute; left: 7vmin; top: 5vmin; bottom: 5vmin; width: 13vmin; }
+  .funnel { position: absolute; left: -2.6vmin; right: -2.6vmin; top: 0; height: 6vmin; background: linear-gradient(90deg, rgba(23,40,43,.16), rgba(255,255,255,.7) 45%, rgba(23,40,43,.12)); clip-path: polygon(0 0, 100% 0, 72% 100%, 28% 100%); }
+  .funnel::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .6vmin; background: #17282B; }
+  .tube { position: absolute; left: 0; right: 0; top: 6vmin; bottom: 0; border: 1px solid rgba(23,40,43,.55); border-top: 0; border-radius: 0 0 6.5vmin 6.5vmin / 0 0 3vmin 3vmin; overflow: hidden;
+    background: linear-gradient(90deg, rgba(255,255,255,.35), rgba(255,255,255,.85) 30%, rgba(255,255,255,.4) 60%, rgba(23,40,43,.06)); }
+  .water { position: absolute; left: 0; right: 0; bottom: 0; height: calc(3vmin + (100% - 13vmin) * .8); background: linear-gradient(90deg, #2D6A9C, #5A9ACB 35%, #3E7CB1 70%, #2A5F8C); }
+  .water::before { content: ""; position: absolute; left: 0; right: 0; top: -1.2vmin; height: 2.4vmin; border-radius: 50%; background: #7FB5DC; border-bottom: 1px solid rgba(255,255,255,.7); }
+  .scale { position: absolute; left: 0; right: 0; top: 16vmin; bottom: 3vmin; }
+  .scale::before { content: ""; position: absolute; left: 0; width: 3vmin; top: 0; bottom: 0; background: repeating-linear-gradient(0deg, rgba(23,40,43,.8) 0 1px, transparent 1px 2%); }
+  .scale span { position: absolute; left: 0; width: 5vmin; height: 1px; background: #17282B; transform: translateY(50%); }
+  .scale span b { position: absolute; left: calc(100% + 1.6vmin); top: -1vmin; font-family: "DM Mono", Menlo, monospace; font-weight: 500; font-size: 1.7vmin; line-height: 2vmin; color: #17282B; }
+  .scale span { width: 100%; background: linear-gradient(90deg, #17282B 5vmin, transparent 5vmin); }
+  .scale span.on b { color: #D8452B; font-weight: 500; }
+  .scale span.on b::before { content: "◂ "; }
+
+  .card { position: absolute; left: 31vmin; right: 6vmin; top: 5vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #52666A; display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid #17282B; }
+  .read { display: flex; align-items: flex-start; margin-top: 2.6vmin; }
+  .big { font-weight: 800; font-size: 25vmin; line-height: .78; letter-spacing: -.06em; font-variation-settings: "opsz" 96; }
+  .unit { margin: .6vmin 0 0 1.4vmin; font-family: "DM Mono", Menlo, monospace; font-size: 3.4vmin; color: #3E7CB1; }
+  h2 { margin: 3vmin 0 0; font-weight: 600; font-size: 5vmin; line-height: 1.02; letter-spacing: -.025em; }
+  h2 em { font-style: normal; color: #D8452B; }
+  .log { margin-top: 4vmin; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.4vmin; align-items: end; height: 13vmin; }
+  .log div { display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; height: 100%; font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; text-align: center; color: #52666A; }
+  .log i { display: block; background: rgba(62,124,177,.35); margin: .6vmin 0; }
+  .log div.on { color: #17282B; }
+  .log div.on i { background: #3E7CB1; }
+  .rows { margin-top: auto; }
+  .rows div { display: flex; justify-content: space-between; gap: 2vmin; padding: 1.2vmin 0; border-top: 1px solid rgba(23,40,43,.3); font-family: "DM Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .06em; text-transform: uppercase; color: #52666A; }
+  .rows div b { font-weight: 500; color: #17282B; }
+  .cta { margin-top: 1.8vmin; padding: 1.9vmin 2.6vmin; display: flex; justify-content: space-between; align-items: center; background: #17282B; color: #E7ECE7; font-weight: 600; font-size: 2.1vmin; letter-spacing: .06em; text-transform: uppercase; }
+  .cta i { font-style: normal; font-family: "DM Mono", Menlo, monospace; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --panel: 80vmin; }
+    .big { font-size: 22vmin; }
+    h2 { font-size: 4.5vmin; margin-top: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 66vmin; }
+    .gauge { top: 4vmin; bottom: 4vmin; width: 11vmin; }
+    .funnel { height: 5vmin; }
+    .tube { top: 5vmin; }
+    .water { height: calc(3vmin + (100% - 11vmin) * .8); }
+    .scale { top: 13vmin; }
+    .card { left: 28vmin; top: 4vmin; bottom: 4vmin; }
+    .read { margin-top: 2vmin; }
+    .big { font-size: 17vmin; }
+    h2 { font-size: 3.9vmin; margin-top: 2vmin; }
+    .rows div:nth-child(2) { display: none; }
+    .log { display: none; }
+    .cta { padding: 1.6vmin 2.4vmin; }
+  }
+  /* square / wide → photo left, gauge on the seam, card right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .panel { left: 50%; top: 0; height: auto; }
+    .gauge { left: 5vmin; top: 5vmin; bottom: 5vmin; width: 10vmin; }
+    .card { left: 24vmin; right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    .kick { flex-direction: column; gap: .4vmin; }
+    .big { font-size: 16vmin; }
+    .unit { font-size: 2.6vmin; }
+    h2 { font-size: 3.4vmin; }
+    .rows div { font-size: 1.6vmin; }
+    .rows div:nth-child(2) { display: flex; }
+    .log { display: grid; margin-top: 3vmin; height: 11vmin; gap: .8vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { left: 46%; }
+    .gauge { left: 7vmin; top: 6vmin; bottom: 6vmin; width: 12vmin; }
+    .card { left: 31vmin; right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .kick { flex-direction: row; }
+    .big { font-size: 21vmin; }
+    .unit { font-size: 3vmin; }
+    h2 { font-size: 4.3vmin; }
+    .rows div { font-size: 1.7vmin; }
+    .log { height: 14vmin; gap: 1.4vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.7vmin 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="gauge" aria-hidden="true">
+      <div class="funnel"></div>
+      <div class="tube">
+        <div class="water"></div>
+      </div>
+      <div class="scale">
+          <span style="bottom:0%"><b>0</b></span><span style="bottom:20%"><b>10</b></span><span style="bottom:40%"><b>20</b></span>
+          <span style="bottom:60%"><b>30</b></span><span class="on" style="bottom:80%"><b>40</b></span><span style="bottom:100%"><b>50</b></span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kick mono"><span>Station 07 · Atelier Nord</span><span>Read 07:00</span></div>
+      <div class="read"><span class="big">40</span><span class="unit">mm</span></div>
+      <h2>Fell overnight.<br>So it’s <em>40% off</em> today.</h2>
+      <div class="log" aria-hidden="true">
+        <div><b>4</b><i style="height:10%"></i>Sun</div><div><b>12</b><i style="height:30%"></i>Mon</div><div><b>7</b><i style="height:18%"></i>Tue</div><div><b>26</b><i style="height:52%"></i>Wed</div><div class="on"><b>40</b><i style="height:80%"></i>Thu</div>
+      </div>
+      <div class="rows">
+        <div><span>Code</span><b>GAUGE40</b></div>
+        <div><span>Valid</span><b>While it rains</b></div>
+      </div>
+      <div class="cta"><span>Shop now</span><i>→</i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Iso Plinth — a pastel isometric void (faint 30° grid) where the photo stands like an artwork on a two-tier
+     isometric plinth: lilac clay base, butter-yellow top plate, flat-shaded faces. The base's faces carry the copy
+     in true isometric perspective (NEW IN on the left face, the price on the right), with a floating clay cube and
+     sphere around it. tall → headline above, photo on the plinth below · 3:4 and wider → copy left, plinth right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E4DDF8; }
+  .banner { --cx: 50%; --B: 14vmin; --pt: 44vmin; --pw: 56vmin; --s1: 54vmin; --h1: 10vmin; --s2: 46vmin; --h2: 3.5vmin;
+    position: fixed; inset: 0; overflow: hidden; color: #2B2352; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    background:
+      repeating-linear-gradient(30deg, rgba(88,70,170,.07) 0 1px, transparent 1px 6vmin),
+      repeating-linear-gradient(150deg, rgba(88,70,170,.07) 0 1px, transparent 1px 6vmin),
+      linear-gradient(165deg, #D8D1FA 0%, #E9DDF7 52%, #F9E3DA 100%); }
+
+  /* isometric prism: --s = footprint square side, --h = height */
+  .tier { position: absolute; width: calc(var(--s) * 1.4142); height: calc(var(--s) * .8165 + var(--h)); }
+  .tier i { position: absolute; display: flex; align-items: center; justify-content: center; font-style: normal; box-sizing: border-box; }
+  .tier .top { left: calc(var(--s) * .2071); top: calc(var(--s) * -.0918); width: var(--s); height: var(--s); transform: scaleY(.57735) rotate(45deg); }
+  .tier .lf { left: 0; top: calc(var(--s) * .4082); width: calc(var(--s) * .7071); height: var(--h); transform-origin: 0 0; transform: skewY(30deg); }
+  .tier .rf { left: calc(var(--s) * .7071); top: calc(var(--s) * .8165); width: calc(var(--s) * .7071); height: var(--h); transform-origin: 0 0; transform: skewY(-30deg); }
+
+  .stage { position: absolute; bottom: var(--B); left: calc(var(--cx) - var(--s1) * .7071); width: calc(var(--s1) * 1.4142); height: calc(var(--s1) * .8165 + var(--h1)); }
+  .base { --s: var(--s1); --h: var(--h1); left: 0; top: 0; }
+  .base .top { background: #F8F5FF; }
+  .base .lf { background: linear-gradient(180deg, #DCD4FA, #CFC5F4); }
+  .base .rf { background: linear-gradient(180deg, #B6A9F0, #A597E8); }
+  .plate { --s: var(--s2); --h: var(--h2); left: calc((var(--s1) - var(--s2)) * .7071); top: calc(var(--s1) * .4082 - var(--s2) * .4082 - var(--h2)); }
+  .plate .top { background: #FFF1BF; }
+  .plate .lf { background: #F7D983; }
+  .plate .rf { background: #E8BC52; }
+  .lf span { font-family: "DM Mono", monospace; font-weight: 500; font-size: 2vmin; letter-spacing: .24em; text-transform: uppercase; color: #564A92; white-space: nowrap; }
+  .rf span { font-weight: 800; font-size: 5.4vmin; letter-spacing: -.03em; color: #231B4A; white-space: nowrap; }
+  .rf span small { font-family: "DM Mono", monospace; font-weight: 500; font-size: 1.7vmin; letter-spacing: .1em; margin-right: .8vmin; color: #3C3170; }
+
+  .contact { position: absolute; left: calc(var(--cx) - var(--pw) * .62); width: calc(var(--pw) * 1.24); height: 5vmin;
+    bottom: calc(var(--B) + var(--s1) * .4082 + var(--h1) + var(--h2) - 3vmin);
+    background: radial-gradient(50% 50% at 50% 50%, rgba(120,84,20,.34) 0%, rgba(120,84,20,0) 100%); }
+  .photo { position: absolute; top: var(--pt); left: calc(var(--cx) - var(--pw) / 2); width: var(--pw);
+    height: calc(100% - var(--pt) - var(--B) - var(--s1) * .4082 - var(--h1) - var(--h2));
+    object-fit: cover; object-position: 50% 22%; display: block; box-shadow: 2.4vmin -1vmin 4vmin rgba(70,50,140,.2); }
+
+  .cube { position: absolute; }
+  .cube .top { background: #FFF6D8; } .cube .lf { background: #F4D27B; } .cube .rf { background: #DDAF45; }
+  .cube.lil .top { background: #FFFFFF; } .cube.lil .lf { background: #D6CCF7; } .cube.lil .rf { background: #AFA1EC; }
+  .c1 { --s: 7vmin; --h: 7vmin; right: 6vmin; top: 8vmin; }
+  .c2 { --s: 4vmin; --h: 4vmin; left: 5vmin; bottom: 46vmin; }
+  .ball { position: absolute; width: 8vmin; height: 8vmin; border-radius: 50%; right: 5vmin; bottom: 50vmin;
+    background: radial-gradient(circle at 34% 30%, #FFD8CC 0%, #FFB29C 30%, #F08C74 64%, #C9654F 100%); box-shadow: 1.6vmin 1.4vmin 2.4vmin rgba(110,60,90,.22); }
+
+  .copy { position: absolute; left: 6vmin; top: 6vmin; right: 20vmin; }
+  .kick { font-family: "DM Mono", monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #6A5DA8; white-space: nowrap; }
+  h1 { margin: 2vmin 0 0; font-weight: 800; font-size: 11.4vmin; line-height: .9; letter-spacing: -.045em; }
+  h1 em { font-style: normal; font-weight: 400; color: #6A5DA8; }
+  .sub { margin-top: 2.2vmin; font-size: 2.2vmin; line-height: 1.4; color: #4C4378; }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .cta { padding: 1.9vmin 3.6vmin; border-radius: 99vmin; background: #2B2352; color: #FFF1BF; font-size: 2.1vmin; font-weight: 600; white-space: nowrap;
+    box-shadow: inset 0 .5vmin 0 rgba(255,255,255,.18), 0 1vmin 0 #17122F, 0 2vmin 3vmin rgba(43,35,82,.28); }
+  .fine { font-family: "DM Mono", monospace; font-size: 1.6vmin; color: #5A4F8C; text-align: right; line-height: 1.5; white-space: nowrap; }
+
+  /* ── 3:4 — copy column left, the plinth right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --cx: 63%; --B: 7vmin; --pt: 7vmin; --pw: 44vmin; --s1: 42vmin; --h1: 9vmin; --s2: 36vmin; --h2: 3vmin; }
+    .copy { right: auto; width: 32vmin; top: 7vmin; }
+    h1 { font-size: 7vmin; }
+    .sub { font-size: 2vmin; }
+    .foot { right: auto; width: 32vmin; bottom: 7vmin; flex-direction: column; align-items: flex-start; }
+    .fine { text-align: left; }
+    .c1 { --s: 5vmin; --h: 5vmin; right: auto; left: 6vmin; top: auto; bottom: calc(50% - 6vmin); }
+    .c2 { --s: 3vmin; --h: 3vmin; left: 16vmin; bottom: calc(50% - 12vmin); }
+    .ball { width: 5.6vmin; height: 5.6vmin; right: 3vmin; bottom: 4vmin; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --cx: 66%; --B: 5vmin; --pt: 6vmin; --pw: 40vmin; --s1: 38vmin; --h1: 8vmin; --s2: 33vmin; --h2: 2.6vmin; }
+    .copy { width: 34vmin; top: 6vmin; left: 5.6vmin; }
+    h1 { font-size: 7.4vmin; }
+    .foot { width: 34vmin; left: 5.6vmin; bottom: 6vmin; }
+    .c1 { left: 6vmin; bottom: calc(50% - 10vmin); }
+    .c2 { left: 15vmin; bottom: calc(50% - 16vmin); }
+    .ball { right: 3.4vmin; bottom: 34vmin; }
+  }
+  /* ── wide — plinth sits right of centre, copy has its own column ── */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --cx: calc(100% - 38vmin); --B: 5vmin; --pt: 6vmin; --pw: 42vmin; --s1: 40vmin; --h1: 8vmin; --s2: 35vmin; --h2: 2.6vmin; }
+    .copy { width: calc(100% - 88vmin); max-width: 58vmin; left: 7vmin; top: 8vmin; }
+    h1 { font-size: min(9vmin, calc((100vw - 88vmin) / 4.4)); }
+    .sub { font-size: 2.2vmin; }
+    .foot { width: calc(100% - 88vmin); max-width: 58vmin; left: 7vmin; bottom: 8vmin; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 2vmin 4vmin; }
+    .fine { text-align: left; }
+    .c1 { --s: 6vmin; --h: 6vmin; left: calc(100% - 78vmin); bottom: 50vmin; }
+    .c2 { --s: 3.4vmin; --h: 3.4vmin; left: calc(100% - 70vmin); bottom: 40vmin; }
+    .ball { width: 7vmin; height: 7vmin; right: 5vmin; bottom: 44vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="tier cube c1"><i class="top"></i><i class="lf"></i><i class="rf"></i></div>
+  <div class="tier cube lil c2"><i class="top"></i><i class="lf"></i><i class="rf"></i></div>
+  <i class="ball"></i>
+  <div class="stage">
+    <div class="tier base"><i class="top"></i><i class="lf"><span>New in</span></i><i class="rf"><span><small>from</small>€89</span></i></div>
+    <div class="tier plate"><i class="top"></i><i class="lf"></i><i class="rf"></i></div>
+  </div>
+  <i class="contact"></i>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="kick">Isomer · Objects SS26</div>
+    <h1>Put it on<br>a <em>pedestal.</em></h1>
+    <div class="sub">The season's pieces, raised a level.</div>
+  </div>
+  <div class="foot">
+    <div class="cta">Shop new in →</div>
+    <div class="fine">Free delivery over €60<br>30-day returns</div>
+  </div>
+</div>
+</body>
+</html>

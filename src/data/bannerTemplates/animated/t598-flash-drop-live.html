@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="4">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Flash Drop Live — a limited drop that only exists during the stream: electric-blue field, a giant FLASH DROP with a lightning bolt,
+     a segmented claimed-stock meter (38 of 50), a huge acid-yellow drop price and a claim-in-the-live CTA.
+     tall / 3:4 → headline · photo · meter + price stacked · square / wide → headline + meter + price left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2233FF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #FFFFFF; font-family: "Space Mono", ui-monospace, monospace;
+    background: #2233FF; display: flex; flex-direction: column; padding: 5vmin 5.6vmin 5vmin; box-sizing: border-box; }
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(-45deg, rgba(255,255,255,.035) 0 1.2vmin, transparent 1.2vmin 2.4vmin); }
+
+  .top { position: relative; flex: none; }
+  .meta { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .meta .lv { display: flex; align-items: center; gap: .9vmin; padding: .7vmin 1.4vmin; background: #FF2E4D; font-weight: 700; letter-spacing: .16em; }
+  .meta .lv i { width: 1vmin; height: 1vmin; border-radius: 50%; background: #fff; }
+  .meta .n { color: #C9CEFF; }
+  h1 { margin: 2.4vmin 0 0; display: flex; align-items: center; gap: 2vmin; font-family: "Archivo Black", Impact, sans-serif; font-weight: 400; font-size: 13.4vmin; line-height: .86; letter-spacing: -.04em; text-transform: uppercase; }
+  h1 span { display: block; }
+  h1 span em { font-style: normal; color: #E8FF3A; }
+  h1 svg { flex: none; width: 10vmin; height: 16vmin; display: block; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 3.6vmin; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .bot { position: relative; flex: none; margin-top: 3.4vmin; }
+  .mhead { display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .06em; text-transform: uppercase; }
+  .mhead b { color: #E8FF3A; }
+  .meter { margin-top: 1.2vmin; display: grid; grid-template-columns: repeat(25, 1fr); gap: .5vmin; }
+  .meter i { display: block; height: 2.4vmin; background: #E8FF3A; }
+  .meter i.e { background: rgba(255,255,255,.2); }
+  .row { margin-top: 3vmin; display: flex; align-items: flex-end; gap: 3vmin; }
+  .price { font-family: "Archivo Black", Impact, sans-serif; font-size: 12vmin; line-height: .8; letter-spacing: -.05em; color: #E8FF3A; }
+  .was { padding-bottom: .4vmin; font-size: 1.8vmin; line-height: 1.5; color: #C9CEFF; }
+  .was s { color: #fff; }
+  .cta { margin-left: auto; flex: none; padding: 2.2vmin 3.4vmin; background: #fff; color: #2233FF; font-family: "Archivo Black", Impact, sans-serif; font-size: 2.2vmin; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; box-shadow: .8vmin .8vmin 0 #0B0F66; }
+  .small { margin-top: 2.6vmin; font-size: 1.6vmin; color: #C9CEFF; letter-spacing: .02em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 5.6vmin 4.4vmin; }
+    h1 { font-size: 11vmin; margin-top: 2vmin; }
+    h1 svg { width: 8vmin; height: 13vmin; }
+    .photo { margin-top: 3vmin; }
+    .bot { margin-top: 2.8vmin; }
+    .row { margin-top: 2.4vmin; }
+    .price { font-size: 10vmin; }
+    .small { margin-top: 2vmin; }
+  }
+  /* ── square: copy left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .photo { position: absolute; right: 0; top: 0; bottom: 0; width: 44%; height: 100%; margin: 0; }
+    .top { position: absolute; left: 5.6vmin; width: calc(56% - 11vmin); top: 5.6vmin; }
+    .meta { white-space: normal; flex-wrap: wrap; row-gap: 1vmin; }
+    h1 { font-size: 10.4vmin; gap: 1.6vmin; }
+    h1 svg { width: 7vmin; height: 12vmin; }
+    .bot { position: absolute; left: 5.6vmin; width: calc(56% - 11vmin); bottom: 5.6vmin; margin: 0; }
+    .meter { grid-template-columns: repeat(25, 1fr); gap: .4vmin; }
+    .row { flex-wrap: wrap; row-gap: 2.6vmin; }
+    .price { font-size: 11vmin; }
+    .cta { margin-left: 0; flex-basis: 100%; text-align: center; box-sizing: border-box; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .top { left: 7vmin; width: calc(58% - 14vmin); top: 7vmin; }
+    h1 { font-size: 12.6vmin; }
+    h1 svg { width: 9vmin; height: 15vmin; }
+    .bot { left: 7vmin; width: calc(58% - 14vmin); bottom: 7vmin; }
+    .row { flex-wrap: nowrap; }
+    .price { font-size: 12vmin; }
+    .cta { margin-left: auto; flex-basis: auto; }
+  }
+  /* ───────────── motion (4 s loop · t=0 = static design) ───────────── */
+  /* lightning strike every loop: bolt flashes, DROP flickers, price punches; stripes race; the meter's next cell is being claimed */
+  .banner::before { animation: stripes 1s linear infinite; }
+  @keyframes stripes { from { background-position: 0 0; } to { background-position: 3.3941vmin 0; } }
+
+  .meta .lv i { animation: blink 1s steps(1, end) infinite; }
+  @keyframes blink { 0%, 50% { opacity: 1; } 50.01%, 100% { opacity: .25; } }
+
+  h1 svg { transform-origin: 50% 50%; animation: bolt 4s linear infinite; }
+  @keyframes bolt {
+    0%, 8%, 30%, 100% { opacity: 1; transform: none; filter: drop-shadow(0 0 0 rgba(232,255,58,0)); }
+    10% { opacity: .15; transform: translateY(-.6vmin) rotate(-4deg); }
+    12% { opacity: 1; transform: scale(1.16) rotate(3deg); filter: drop-shadow(0 0 2.4vmin rgba(232,255,58,.9)); }
+    14% { opacity: .3; }
+    16% { opacity: 1; transform: scale(1.08); filter: drop-shadow(0 0 1.6vmin rgba(232,255,58,.7)); }
+  }
+  h1 span em { animation: zap 4s linear infinite; }
+  @keyframes zap {
+    0%, 11%, 19%, 100% { color: #E8FF3A; text-shadow: 0 0 0 rgba(232,255,58,0); }
+    12%, 14% { color: #FFFFFF; text-shadow: 0 0 3vmin rgba(232,255,58,.8); }
+    13% { color: #E8FF3A; }
+    16% { color: #F4FFA0; text-shadow: 0 0 2vmin rgba(232,255,58,.5); }
+  }
+
+  /* meter: a brightness chase runs through the claimed cells, the next empty cell flickers as it gets claimed */
+  .meter i { animation: chase 4s cubic-bezier(.3,0,.3,1) infinite; animation-delay: 0s; }
+  @keyframes chase { 0%, 44%, 60%, 100% { filter: brightness(1); } 50% { filter: brightness(1.45) drop-shadow(0 0 .8vmin rgba(232,255,58,.8)); } }
+
+  .meter i:nth-child(1) { animation-delay: -0.630s; }
+  .meter i:nth-child(2) { animation-delay: -0.595s; }
+  .meter i:nth-child(3) { animation-delay: -0.560s; }
+  .meter i:nth-child(4) { animation-delay: -0.525s; }
+  .meter i:nth-child(5) { animation-delay: -0.490s; }
+  .meter i:nth-child(6) { animation-delay: -0.455s; }
+  .meter i:nth-child(7) { animation-delay: -0.420s; }
+  .meter i:nth-child(8) { animation-delay: -0.385s; }
+  .meter i:nth-child(9) { animation-delay: -0.350s; }
+  .meter i:nth-child(10) { animation-delay: -0.315s; }
+  .meter i:nth-child(11) { animation-delay: -0.280s; }
+  .meter i:nth-child(12) { animation-delay: -0.245s; }
+  .meter i:nth-child(13) { animation-delay: -0.210s; }
+  .meter i:nth-child(14) { animation-delay: -0.175s; }
+  .meter i:nth-child(15) { animation-delay: -0.140s; }
+  .meter i:nth-child(16) { animation-delay: -0.105s; }
+  .meter i:nth-child(17) { animation-delay: -0.070s; }
+  .meter i:nth-child(18) { animation-delay: -0.035s; }
+  .meter i:nth-child(19) { animation-delay: 0.000s; }
+  .meter i.e { animation: none; }
+  .meter i.e:nth-child(20) { animation: claim 4s steps(1, end) infinite; }
+  @keyframes claim { 0%, 62% { background: rgba(255,255,255,.2); } 62.01%, 66% { background: #E8FF3A; } 66.01%, 70% { background: rgba(255,255,255,.2); } 70.01%, 80% { background: #E8FF3A; } 80.01%, 100% { background: rgba(255,255,255,.2); } }
+  .mhead b { animation: left 4s steps(1, end) infinite; }
+  @keyframes left { 0%, 70% { opacity: 1; } 70.01%, 74% { opacity: .2; } 74.01%, 100% { opacity: 1; } }
+
+  .price { transform-origin: 0 100%; animation: punch 4s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes punch { 0%, 14%, 34%, 100% { transform: scale(1); } 19% { transform: scale(1.09) rotate(-1.5deg); } 25% { transform: scale(.98); } 29% { transform: scale(1.02); } }
+
+  /* CTA gets "pressed" into its hard shadow */
+  .cta { animation: press 4s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes press { 0%, 82%, 94%, 100% { transform: translate(0,0); box-shadow: .8vmin .8vmin 0 #0B0F66; } 86% { transform: translate(.6vmin,.6vmin); box-shadow: .2vmin .2vmin 0 #0B0F66; } }
+  .cta .ar { display: inline-block; animation: nudge 2s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 30%, 60%, 100% { transform: translateX(0); } 45% { transform: translateX(.7vmin); } }
+
+  .photo { overflow: hidden; }
+  .photo img { animation: push 4s cubic-bezier(.45,0,.55,1) infinite; transform-origin: 50% 30%; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <div class="meta"><span class="lv"><i></i>Live</span><span class="n">Drop 3 of tonight · Voltaire Lab</span></div>
+    <h1><span>Flash<br><em>drop</em></span><svg viewBox="0 0 40 64"><path d="M26 0 2 36h15l-5 28 26-38H22z" fill="#E8FF3A"/></svg></h1>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="bot">
+    <div class="mhead"><span>38 / 50 claimed</span><b>12 left</b></div>
+    <div class="meter"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="e"></i><i class="e"></i><i class="e"></i><i class="e"></i><i class="e"></i><i class="e"></i></div>
+    <div class="row">
+      <div class="price">$39</div>
+      <div class="was">Drop price<br>was <s>$72</s></div>
+      <div class="cta">Claim it live <span class="ar">→</span></div>
+    </div>
+    <div class="small">Only while we're on air · one per customer · ships in 48 h</div>
+  </div>
+</div>
+</body>
+</html>

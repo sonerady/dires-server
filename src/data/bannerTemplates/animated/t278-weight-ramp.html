@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,100..900&family=Martian+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  /* Weight Ramp — "From light to bold." set in one variable serif whose weight climbs letter by letter,
+     hairline 100 at the first F to black 900 at the full stop, with a measured wght axis beneath.
+     TALL → photo above, the ramp across the panel below · 7/10+ → photo left, one word per line right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3ECDF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3ECDF; color: #2B1D12; font-family: "Fraunces", Georgia, "Times New Roman", serif; display: flex; flex-direction: column; }
+  .mono { font-family: "Martian Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .02em; text-transform: uppercase; }
+  .ph { position: relative; flex: 1; min-height: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .txt { flex: none; box-sizing: border-box; padding: 3.6vmin 5vmin 4.4vmin; display: flex; flex-direction: column; }
+  .hd { display: flex; justify-content: space-between; gap: 2vmin; color: #B9532C; }
+  .ramp { margin-top: 2.4vmin; font-size: 17.4vmin; line-height: .92; letter-spacing: -.035em; font-variation-settings: "opsz" 144; }
+  .ramp .wd { display: inline; }
+  .ln { display: block; white-space: nowrap; }
+  .g1{font-weight:100}.g2{font-weight:153}.g3{font-weight:207}.g4{font-weight:260}.g5{font-weight:313}.g6{font-weight:367}.g7{font-weight:420}.g8{font-weight:473}
+  .g9{font-weight:527}.g10{font-weight:580}.g11{font-weight:633}.g12{font-weight:687}.g13{font-weight:740}.g14{font-weight:793}.g15{font-weight:847}.g16{font-weight:900;color:#B9532C}
+  .axis { margin-top: 2.6vmin; position: relative; height: 3.6vmin; }
+  .axis::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: #2B1D12; }
+  .axis::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.2vmin;
+    background: repeating-linear-gradient(90deg, #2B1D12 0 1px, transparent 1px 12.5%); }
+  .axis span { position: absolute; top: 1.8vmin; line-height: 1; }
+  .axis span:nth-child(1) { left: 0; } .axis span:nth-child(2) { left: 50%; transform: translateX(-50%); } .axis span:nth-child(3) { right: 0; }
+  .ft { margin-top: 3vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .ft p { margin: 0; font-size: 2.6vmin; line-height: 1.25; font-weight: 400; font-variation-settings: "opsz" 24; }
+  .ft p em { font-style: normal; font-weight: 700; }
+  .cta { flex: none; background: #2B1D12; color: #F3ECDF; padding: 1.8vmin 2.6vmin; white-space: nowrap; font-size: 1.8vmin; }
+
+  /* SHORTER PORTRAIT — photo left, one word per line */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { flex-direction: row; }
+    .txt { order: 2; width: 48%; height: 100%; padding: 4.6vmin 4.6vmin 4.6vmin 4.4vmin; }
+    .ramp { margin-top: auto; font-size: 14vmin; line-height: .9; }
+    .ramp .wd { display: block; }
+    .ln { display: contents; }
+    .ft { flex-direction: column; align-items: stretch; gap: 2.4vmin; }
+    .cta { text-align: center; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .txt { padding: 3.8vmin 3.8vmin 3.8vmin 4vmin; }
+    .ramp { font-size: 12.6vmin; }
+    .ft { margin-top: 2.4vmin; gap: 1.8vmin; }
+    .ft p { font-size: 2.3vmin; }
+    .cta { padding: 1.5vmin 2vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .txt { width: 52%; padding: 5vmin 5.4vmin; }
+    .ramp { font-size: 13.4vmin; margin-top: auto; }
+    .ramp .wd { display: inline; }
+    .ln { display: block; }
+    .ft { flex-direction: row; align-items: flex-end; }
+    .ft p { font-size: 2.6vmin; }
+    .cta { padding: 1.8vmin 2.6vmin; font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the finished ramp) ─────────
+     0.8s  a wave drains every letter to hairline 100, left to right
+     2.2s  the ramp is rebuilt letter by letter, each climbing back to its own weight (100 → 900),
+           while a marker travels the wght axis beneath it · 4.2s the price pops · constant: slow photo push-in */
+  .g1 { --w: 100; }
+  .g2 { --w: 153; }
+  .g3 { --w: 207; }
+  .g4 { --w: 260; }
+  .g5 { --w: 313; }
+  .g6 { --w: 367; }
+  .g7 { --w: 420; }
+  .g8 { --w: 473; }
+  .g9 { --w: 527; }
+  .g10 { --w: 580; }
+  .g11 { --w: 633; }
+  .g12 { --w: 687; }
+  .g13 { --w: 740; }
+  .g14 { --w: 793; }
+  .g15 { --w: 847; }
+  .g16 { --w: 900; }
+  .ramp [class^="g"] { animation: ramp 6s linear infinite; }
+  @keyframes ramp {
+    0%, 13.3% { font-weight: var(--w); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    18.3%, 36.7% { font-weight: 100; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    46.7%, 100% { font-weight: var(--w); }
+  }
+  .g2 { animation-delay: -5.92s; }
+  .g3 { animation-delay: -5.84s; }
+  .g4 { animation-delay: -5.76s; }
+  .g5 { animation-delay: -5.68s; }
+  .g6 { animation-delay: -5.60s; }
+  .g7 { animation-delay: -5.52s; }
+  .g8 { animation-delay: -5.44s; }
+  .g9 { animation-delay: -5.36s; }
+  .g10 { animation-delay: -5.28s; }
+  .g11 { animation-delay: -5.20s; }
+  .g12 { animation-delay: -5.12s; }
+  .g13 { animation-delay: -5.04s; }
+  .g14 { animation-delay: -4.96s; }
+  .g15 { animation-delay: -4.88s; }
+  .g16 { animation-delay: -4.80s; }
+  .knob { position: absolute; left: 0; top: -1.1vmin; width: 0; height: 0; border-left: .9vmin solid transparent; border-right: .9vmin solid transparent;
+    border-top: 1.1vmin solid #B9532C; margin-left: -.9vmin; opacity: 0; animation: knob 6s linear infinite; }
+  @keyframes knob {
+    0%, 35% { left: 0; opacity: 0; animation-timing-function: linear; }
+    36.7% { left: 0; opacity: 1; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    66% { left: 100%; opacity: 1; animation-timing-function: linear; }
+    69%, 100% { left: 100%; opacity: 0; }
+  }
+  .ft p em { display: inline-block; animation: pop 6s linear infinite; transform-origin: 0 70%; }
+  @keyframes pop {
+    0%, 71% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    74% { transform: scale(1.12); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    79%, 100% { transform: scale(1); }
+  }
+  .ph { overflow: hidden; }
+  .photo { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="txt">
+    <div class="hd mono"><span>Maison Vale · SS26</span><span>wght 100 → 900</span></div>
+    <div class="ramp">
+      <span class="ln"><span class="wd"><span class="g1">F</span><span class="g2">r</span><span class="g3">o</span><span class="g4">m</span></span> <span class="wd"><span class="g5">l</span><span class="g6">i</span><span class="g7">g</span><span class="g8">h</span><span class="g9">t</span></span></span>
+      <span class="ln"><span class="wd"><span class="g10">t</span><span class="g11">o</span></span> <span class="wd"><span class="g12">b</span><span class="g13">o</span><span class="g14">l</span><span class="g15">d</span><span class="g16">.</span></span></span>
+    </div>
+    <div class="axis mono"><span>100</span><span>500</span><span>900</span><i class="knob" aria-hidden="true"></i></div>
+    <div class="ft">
+      <p>Every weight of the new collection,<br><em>from $39.</em></p>
+      <div class="cta mono">Discover →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

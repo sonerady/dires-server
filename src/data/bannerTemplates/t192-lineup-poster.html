@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Line-Up Poster — the collection billed like a festival line-up: header strip, the look as poster art, then a strict
+     billing hierarchy (headliner → second tier → small print), alternating ink colours, star dividers, "tickets" footer.
+     tall → header / photo / billing · square & wide → billing left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1E6D2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F1E6D2; color: #0E3B36; font-family: "Big Shoulders Display", "Arial Narrow", Arial, sans-serif; text-transform: uppercase; }
+  .serif { font-family: "Instrument Serif", Georgia, serif; text-transform: none; }
+  .t { color: #E8472B; }
+
+  .head { position: absolute; left: 0; right: 0; top: 0; height: 8vmin; box-sizing: border-box; padding: 0 5vmin; display: flex; justify-content: space-between; align-items: center; font-size: 2.6vmin; font-weight: 800; letter-spacing: .14em; border-bottom: .5vmin solid #0E3B36; }
+  .head b { font-weight: 900; letter-spacing: .06em; font-size: 3.4vmin; }
+  .photo { position: absolute; left: 0; top: 8vmin; width: 100%; height: calc(50% - 8vmin); object-fit: cover; object-position: 50% 18%; }
+
+  .bill { position: absolute; left: 0; right: 0; top: 50%; bottom: 0; box-sizing: border-box; padding: 3.4vmin 5vmin 4.4vmin; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; border-top: .5vmin solid #0E3B36; }
+  .days { display: flex; gap: 2.4vmin; font-size: 2.6vmin; font-weight: 800; letter-spacing: .18em; }
+  .days span:nth-child(2) { color: #E8472B; }
+  .pres { font-size: 3vmin; font-style: italic; margin-bottom: -.6vmin; }
+  .head1 { font-size: 16.5vmin; font-weight: 900; line-height: .84; letter-spacing: -.005em; }
+  .tier2 { font-size: 6.4vmin; font-weight: 800; line-height: 1; letter-spacing: .01em; }
+  .tier2 i, .tier3 i { font-style: normal; color: #E8472B; font-size: .6em; vertical-align: .22em; margin: 0 .5em; }
+  .tier3 { font-size: 3.6vmin; font-weight: 600; letter-spacing: .06em; line-height: 1.25; }
+  .tier3 i { color: #0E3B36; }
+  .guest { font-size: 4.2vmin; line-height: 1; }
+  .guest b { font-family: "Big Shoulders Display", sans-serif; font-weight: 900; font-size: 1.5em; color: #E8472B; text-transform: uppercase; vertical-align: -.08em; margin-left: .15em; }
+  .tix { width: 100%; display: flex; justify-content: space-between; align-items: center; padding-top: 2vmin; border-top: 1px solid rgba(14,59,54,.45); font-size: 2.4vmin; font-weight: 800; letter-spacing: .12em; }
+  .tix .cta { background: #0E3B36; color: #F1E6D2; padding: 1.3vmin 2.6vmin; letter-spacing: .16em; }
+  .grp { display: flex; flex-direction: column; align-items: center; gap: 1.2vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .head { height: 7vmin; }
+    .photo { top: 7vmin; height: calc(47% - 7vmin); }
+    .bill { top: 47%; padding: 2.6vmin 5vmin 3.4vmin; }
+    .head1 { font-size: 14vmin; }
+    .tier2 { font-size: 5.4vmin; }
+    .tier3 { font-size: 3vmin; }
+    .guest { font-size: 3.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .head { right: 46%; height: 8vmin; padding: 0 4vmin; }
+    .photo { left: auto; right: 0; top: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .bill { top: 8vmin; right: 46%; border-top: .5vmin solid #0E3B36; padding: 4vmin 4vmin 4vmin; }
+    .head1 { font-size: 11vmin; }
+    .tier2 { font-size: 4.6vmin; }
+    .tier3 { font-size: 2.7vmin; }
+    .guest { font-size: 3.4vmin; }
+    .days { font-size: 2.2vmin; gap: 1.8vmin; }
+    .tix { font-size: 2vmin; }
+    .tix .cta { padding: 1.2vmin 2vmin; }
+    .tix .x { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .head { right: 42%; padding: 0 5vmin; }
+    .photo { width: 42%; object-position: 50% 30%; }
+    .bill { right: 42%; padding: 4vmin 5vmin 4.4vmin; }
+    .head1 { font-size: 15vmin; }
+    .tier2 { font-size: 5.8vmin; }
+    .tier3 { font-size: 3.2vmin; }
+    .guest { font-size: 4vmin; }
+    .days { font-size: 2.6vmin; }
+    .tix { font-size: 2.4vmin; }
+    .tix .x { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head"><b>Oro Fields ’26</b><span>The line-up</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="bill">
+    <div class="days"><span>Fri 03</span><span>Sat 04</span><span>Sun 05 July</span></div>
+    <div class="grp">
+      <div class="pres serif">Studio Oro presents</div>
+      <div class="head1">The Summer<br>Edit</div>
+    </div>
+    <div class="tier2">Linen<i>✶</i><span class="t">Swim</span><i>✶</i>Denim</div>
+    <div class="tier3">Sandals · <span class="t">Knits</span> · Totes · Shades<br>Shirts · <span class="t">Hats</span> · Shorts · Jewellery</div>
+    <div class="guest serif">+ special guest <b>30% off</b></div>
+    <div class="tix"><span>Code LINEUP30<span class="x"> · Ends Sun</span></span><span class="cta">Get tickets →</span></div>
+  </div>
+</div>
+</body>
+</html>

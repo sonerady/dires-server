@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Piste Map — the collection drawn as a resort trail map: a painted panorama with green/blue/red/black runs,
+     numbered markers, a chairlift line and a legend where every run is a part of the offer.
+     tall → photo above, map below; square/wide → photo left, map right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F1EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1C2433; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; background: #F4F1EA; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; }
+  .map { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; }
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 4.4vmin; }
+  .kick { display: flex; justify-content: space-between; font-weight: 700; font-size: 2vmin; letter-spacing: .2em; text-transform: uppercase; color: #5A6478; }
+  .kick b { color: #C9302C; font-weight: 700; }
+  h1 { margin: 1.6vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .92; letter-spacing: -.015em; }
+  h1 em { font-style: italic; color: #1F5FA8; }
+  .pano { position: absolute; left: 0; right: 0; top: 24vmin; height: 31vmin; }
+  .pano svg { width: 100%; height: 100%; display: block; }
+  .pano text { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; }
+  .legend { position: absolute; left: 6vmin; right: 6vmin; top: 57.5vmin; display: grid; grid-template-columns: 1fr 1fr; column-gap: 4vmin; row-gap: 0; margin: 0; padding: 0; list-style: none; }
+  .legend li { display: flex; align-items: center; gap: 1.8vmin; padding: 1.5vmin 0; border-top: 1px solid rgba(28,36,51,.22); font-size: 2.7vmin; font-weight: 600; letter-spacing: .02em; min-width: 0; }
+  .legend li span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .legend i { flex: none; width: 2.8vmin; height: 2.8vmin; }
+  .g { background: #2E8B57; border-radius: 50%; }
+  .b { background: #1F5FA8; }
+  .r { background: #C9302C; transform: rotate(45deg) scale(.86); }
+  .k { background: #1C2433; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .cta { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .cta .when { font-size: 2.1vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #5A6478; }
+  .cta .btn { display: flex; align-items: center; gap: 2vmin; padding: 1.7vmin 3vmin; background: #C9302C; color: #fff; font-weight: 700; font-size: 2.4vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 80vmin); }
+    .map { height: 80vmin; }
+    .head { top: 3.6vmin; }
+    h1 { font-size: 10vmin; }
+    .pano { top: 21.5vmin; height: 30vmin; }
+    .legend { top: 53vmin; }
+    .cta { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 70vmin); }
+    .map { height: 70vmin; }
+    .head { top: 3.2vmin; }
+    h1 { font-size: 8.6vmin; margin-top: 1vmin; }
+    .pano { top: 17.5vmin; height: 26vmin; }
+    .legend { top: 45vmin; }
+    .pano .alt { display: none; }
+    .legend li { padding: 1vmin 0; font-size: 2.3vmin; }
+    .legend i { width: 2.4vmin; height: 2.4vmin; }
+    .cta { bottom: 3.4vmin; }
+    .cta .btn { padding: 1.3vmin 2.6vmin; font-size: 2.1vmin; }
+  }
+  /* square / wide */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .map { left: 48%; top: 0; height: auto; }
+    .head { left: 4.6vmin; right: 4.6vmin; top: 5vmin; }
+    .kick span:last-child { display: none; }
+    h1 { font-size: 8.4vmin; margin-top: 1.4vmin; }
+    .pano { top: 25vmin; height: 34vmin; }
+    .legend { left: 4.6vmin; right: 4.6vmin; top: 61.5vmin; grid-template-columns: 1fr; }
+    .legend li { padding: .9vmin 0; font-size: 2.3vmin; }
+    .legend i { width: 2.4vmin; height: 2.4vmin; }
+    .cta { left: 4.6vmin; right: 4.6vmin; bottom: 4.6vmin; }
+    .cta .when { display: none; }
+    .cta .btn { flex: 1; justify-content: space-between; padding: 1.4vmin 2.4vmin; font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .map { left: 46%; }
+    .head { left: 6vmin; right: 6vmin; top: 6vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { font-size: 9.2vmin; }
+    .pano { top: 26vmin; height: 42vmin; }
+    .legend { left: 6vmin; right: 6vmin; top: 70vmin; grid-template-columns: 1fr 1fr; }
+    .legend li { font-size: 2.5vmin; padding: 1.2vmin 0; }
+    .cta { left: 6vmin; right: 6vmin; bottom: 5.4vmin; }
+    .cta .when { display: block; }
+    .cta .btn { flex: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="map">
+    <div class="head">
+      <div class="kick"><span>Trail map · <b>Winter 26/27</b></span><span>Vallée Nord</span></div>
+      <h1>Pick your <em>run.</em></h1>
+    </div>
+    <div class="pano">
+      <svg viewBox="0 0 300 100" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4F1EA"/><stop offset="1" stop-color="#DCE6EE"/></linearGradient>
+          <linearGradient id="snow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E4ECF2"/></linearGradient>
+          <linearGradient id="shade" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#AFC0D2"/><stop offset="1" stop-color="#C9D6E2"/></linearGradient>
+        </defs>
+        <rect width="300" height="100" fill="url(#sky)"/>
+        <!-- far range -->
+        <path d="M0 62 L24 44 L40 52 L62 30 L80 44 L96 38 L118 50 L150 58 L178 40 L204 48 L232 26 L252 40 L276 34 L300 46 L300 100 L0 100 Z" fill="#CBD7E2"/>
+        <!-- main massif, lit + shaded faces -->
+        <path d="M-10 100 L40 64 L70 48 L98 20 L118 34 L140 12 L164 38 L190 30 L222 56 L256 52 L310 80 L310 100 Z" fill="url(#snow)"/>
+        <path d="M98 20 L104 44 L92 70 L118 34 Z M140 12 L146 40 L136 72 L164 38 Z M190 30 L196 52 L186 78 L222 56 Z" fill="url(#shade)" opacity=".75"/>
+        <path d="M140 12 L164 38 L190 30 L222 56 L256 52 L310 80 L310 100 L150 100 L150 70 Z" fill="#DCE5EE" opacity=".55"/>
+        <!-- snow hatching -->
+        <g stroke="#9FB1C4" stroke-width=".35" opacity=".7"><path d="M104 30 l-6 10 M106 36 l-7 11 M108 42 l-7 12 M146 20 l-6 11 M148 28 l-7 12 M150 36 l-7 13 M196 38 l-6 10 M198 45 l-7 11 M200 52 l-6 10"/></g>
+        <!-- rocks -->
+        <path d="M130 26 l4 -6 l3 8 z M178 36 l5 -5 l2 7 z M86 38 l4 -4 l2 6 z" fill="#8B98A8"/>
+        <!-- chairlift -->
+        <path d="M44 90 L118 36" stroke="#1C2433" stroke-width=".5" fill="none"/>
+        <g fill="#1C2433"><rect x="60" y="77" width="1" height="7"/><rect x="80" y="63" width="1" height="7"/><rect x="100" y="48" width="1" height="7"/></g>
+        <!-- runs -->
+        <path d="M140 14 C 150 34, 128 46, 150 62 S 168 80, 176 94" stroke="#1C2433" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M100 22 C 84 40, 108 52, 90 66 S 70 84, 66 94" stroke="#C9302C" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M190 32 C 204 46, 186 60, 206 72 S 226 86, 232 95" stroke="#1F5FA8" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M118 36 C 118 54, 104 70, 120 82 S 122 92, 116 96" stroke="#2E8B57" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-dasharray="3 1.6"/>
+        <!-- pines -->
+        <g fill="#2F4A3C">
+          <path d="M8 100 l4 -10 l4 10z M16 100 l3 -8 l3 8z M24 100 l4 -11 l4 11z M34 100 l3 -7 l3 7z M250 100 l4 -10 l4 10z M258 100 l3 -8 l3 8z M266 100 l4 -12 l4 12z M276 100 l3 -8 l3 8z M284 100 l4 -10 l4 10z M140 100 l3 -7 l3 7z M148 100 l3 -9 l3 9z M196 100 l3 -8 l3 8z"/>
+        </g>
+        <!-- markers -->
+        <g font-size="6.4" text-anchor="middle">
+          <circle cx="120" cy="82" r="5" fill="#2E8B57"/><text x="120" y="84.3" fill="#fff">1</text>
+          <rect x="201" y="67" width="10" height="10" fill="#1F5FA8"/><text x="206" y="74.3" fill="#fff">2</text>
+          <rect x="85.5" y="61.5" width="9" height="9" fill="#C9302C" transform="rotate(45 90 66)"/><text x="90" y="68.3" fill="#fff">3</text>
+          <path d="M150 55 l6.4 11 h-12.8z" fill="#1C2433"/><text x="150" y="64.8" fill="#fff" font-size="5.4">4</text>
+        </g>
+        <text class="alt" x="148" y="9" font-size="4.2" fill="#5A6478" letter-spacing=".4">3020 M</text>
+        <!-- summit flag -->
+        <path d="M140 12 v-8" stroke="#1C2433" stroke-width=".6"/><path d="M140.3 4 h6 l-2 2 l2 2 h-6z" fill="#C9302C"/>
+      </svg>
+    </div>
+    <ul class="legend">
+      <li><i class="g"></i><span>1 · New season</span></li>
+      <li><i class="b"></i><span>2 · Best sellers</span></li>
+      <li><i class="r"></i><span>3 · Up to 40% off</span></li>
+      <li><i class="k"></i><span>4 · Last sizes</span></li>
+    </ul>
+    <div class="cta"><span class="when">Lifts open till 06.01</span><span class="btn">Ski the sale <span>→</span></span></div>
+  </div>
+</div>
+</body>
+</html>

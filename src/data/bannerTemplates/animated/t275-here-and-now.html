@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..700&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Here & Now — one colossal Didone italic ampersand is the whole graphic; two words hang on it.
+     TALL / 7-10 / SQUARE → type column left, photo right · WIDE → the lockup reads across */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EEE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4EEE4; color: #1A1512; font-family: "Jost", "Futura", "Helvetica Neue", sans-serif; display: flex; }
+  .col { position: relative; overflow: hidden; flex: none; width: 44%; height: 100%; box-sizing: border-box; padding: 4.6vmin 4.4vmin 4.6vmin 4.8vmin; display: flex; flex-direction: column; }
+  .ph { position: relative; flex: 1; min-width: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .top, .meta { font-size: 1.7vmin; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; }
+  .top { display: flex; justify-content: space-between; gap: 2vmin; }
+  .lock { position: relative; flex: 1; min-height: 0; margin: 2vmin 0; display: flex; flex-direction: column; justify-content: center; }
+  .amp { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -52%); font-family: "Bodoni Moda", "Didot", "Bodoni 72", serif; font-style: italic; font-weight: 500;
+    font-variation-settings: "opsz" 96; font-size: 50vmin; line-height: 1; color: #D9432B; white-space: nowrap; }
+  .w { position: relative; font-family: "Bodoni Moda", "Didot", serif; font-variation-settings: "opsz" 96; font-weight: 400; font-size: 13vmin; line-height: .9; letter-spacing: -.035em; }
+  .w1 { align-self: flex-start; margin-bottom: 38vmin; }
+  .w2 { align-self: flex-end; font-style: italic; }
+  .meta { display: flex; flex-direction: column; gap: 1.6vmin; }
+  .meta p { margin: 0; font-size: 1.8vmin; letter-spacing: .04em; text-transform: none; font-weight: 400; line-height: 1.5; }
+  .cta { display: flex; justify-content: space-between; align-items: center; padding-top: 1.6vmin; border-top: 1px solid #1A1512; }
+  .cta b { font-weight: 500; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .col { width: 46%; }
+    .amp { font-size: 56vmin; }
+    .w { font-size: 11.4vmin; }
+    .w1 { margin-bottom: 26vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .col { width: 46%; padding: 4vmin 3.8vmin 4vmin 4.2vmin; }
+    .amp { font-size: 50vmin; }
+    .w { font-size: 10vmin; }
+    .w1 { margin-bottom: 22vmin; }
+    .top span:last-child { display: none; }
+  }
+  /* WIDE — Here  &  Now across the column */
+  @media (min-aspect-ratio: 6/5) {
+    .col { width: 50%; padding: 4.6vmin 5vmin; }
+    .top span:last-child { display: inline; }
+    .lock { flex-direction: row; justify-content: space-between; align-items: center; }
+    .amp { font-size: 74vmin; transform: translate(-50%, -54%); }
+    .w { font-size: 12vmin; }
+    .w1 { margin-bottom: 0; align-self: flex-start; margin-top: 4vmin; }
+    .w2 { align-self: flex-end; margin-bottom: 4vmin; }
+    .meta { flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 4vmin; }
+    .cta { border-top: 0; padding: 1.4vmin 0 .6vmin; border-bottom: 1px solid #1A1512; gap: 3vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the lockup) — slow, restrained ─────────
+     constant: the ampersand sways a breath; slow photo push-in
+     2.0s  an ink curtain falls through the ampersand: wiped away top→down, then re-inked top→down
+     3.4s  "Here" and "now." rise back into place through their own masks, one after the other
+     4.8s  the CTA arrow glides out and back */
+  .amp { animation: amp 6s linear infinite; }
+  @keyframes amp {
+    0% { transform: translate(-50%, -52%) rotate(0); clip-path: inset(-20% -10% -20% -10%); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    30% { transform: translate(-50%, -52%) rotate(-2deg); clip-path: inset(-20% -10% -20% -10%); animation-timing-function: cubic-bezier(.65,0,.35,1); }
+    40% { transform: translate(-50%, -52%) rotate(-1.4deg); clip-path: inset(120% -10% -20% -10%); animation-timing-function: steps(1, end); }
+    40.5% { transform: translate(-50%, -52%) rotate(-1.4deg); clip-path: inset(-20% -10% 120% -10%); animation-timing-function: cubic-bezier(.65,0,.35,1); }
+    55% { transform: translate(-50%, -52%) rotate(0); clip-path: inset(-20% -10% -20% -10%); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    78% { transform: translate(-50%, -52%) rotate(1.5deg); clip-path: inset(-20% -10% -20% -10%); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    100% { transform: translate(-50%, -52%) rotate(0); clip-path: inset(-20% -10% -20% -10%); }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .amp { animation-name: ampW; }
+    @keyframes ampW {
+      0% { transform: translate(-50%, -54%) rotate(0); clip-path: inset(-20% -10% -20% -10%); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+      30% { transform: translate(-50%, -54%) rotate(-2deg); clip-path: inset(-20% -10% -20% -10%); animation-timing-function: cubic-bezier(.65,0,.35,1); }
+      40% { transform: translate(-50%, -54%) rotate(-1.4deg); clip-path: inset(120% -10% -20% -10%); animation-timing-function: steps(1, end); }
+      40.5% { transform: translate(-50%, -54%) rotate(-1.4deg); clip-path: inset(-20% -10% 120% -10%); animation-timing-function: cubic-bezier(.65,0,.35,1); }
+      55% { transform: translate(-50%, -54%) rotate(0); clip-path: inset(-20% -10% -20% -10%); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+      78% { transform: translate(-50%, -54%) rotate(1.5deg); clip-path: inset(-20% -10% -20% -10%); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+      100% { transform: translate(-50%, -54%) rotate(0); clip-path: inset(-20% -10% -20% -10%); }
+    }
+  }
+  .w { animation: rise 6s linear infinite; }
+  @keyframes rise {
+    0%, 52% { transform: translateY(0); clip-path: inset(-15% -6% -25% -6%); animation-timing-function: cubic-bezier(.6,0,.85,.4); }
+    57% { transform: translateY(-.35em); clip-path: inset(-15% -6% 125% -6%); animation-timing-function: steps(1, end); }
+    57.5% { transform: translateY(.45em); clip-path: inset(125% -6% -25% -6%); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    68%, 100% { transform: translateY(0); clip-path: inset(-15% -6% -25% -6%); }
+  }
+  .w2 { animation-delay: -5.7s; }
+  .cta span { display: inline-block; animation: glide 6s linear infinite; }
+  @keyframes glide {
+    0%, 78% { transform: translateX(0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    83% { transform: translateX(2vmin); opacity: 0; animation-timing-function: steps(1, end); }
+    83.5% { transform: translateX(-2vmin); opacity: 0; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    90%, 100% { transform: translateX(0); opacity: 1; }
+  }
+  .ph { overflow: hidden; }
+  .photo { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="col">
+    <div class="top"><span>Studio Oro</span><span>Nº 26</span></div>
+    <div class="lock">
+      <div class="amp">&amp;</div>
+      <div class="w w1">Here</div>
+      <div class="w w2">now.</div>
+    </div>
+    <div class="meta">
+      <p>The new collection —<br>in store &amp; online today.</p>
+      <div class="cta"><b>Shop now</b><span>→</span></div>
+    </div>
+  </div>
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+</div>
+</body>
+</html>

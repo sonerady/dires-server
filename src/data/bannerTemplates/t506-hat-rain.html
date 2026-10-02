@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Hat Rain — after Golconda: a quiet cream façade under a pale sky where it is raining bowler hats in neat,
+     staggered rows. The photo is the tall shuttered window of the house; a few stray hats drift down past the
+     shutters. Copy is a dry "weather forecast" for new arrivals.
+     tall → headline on the façade, window below, offer at the foot · 3:4 → one-line headline, offer column
+     beside the window · square / wide → window left, copy column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E9DDC7; }
+  .banner { --sky: 24vmin; --wx: 22vmin; --ww: 56vmin; --wt: 60vmin; --wb: 22vmin;
+    position: fixed; inset: 0; overflow: hidden; color: #232A36; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #E9DDC7 0%, #E4D6BD 100%); }
+  /* sky with rows of bowler hats (crown + brim ellipses, two staggered layers) */
+  .sky { position: absolute; left: 0; right: 0; top: 0; height: var(--sky);
+    background:
+      radial-gradient(1.5vmin 1.35vmin at 4vmin 4.2vmin, #1F2632 97%, transparent 100%),
+      radial-gradient(2.5vmin .5vmin at 4vmin 5.4vmin, #1F2632 96%, transparent 100%),
+      radial-gradient(1.5vmin 1.35vmin at 12vmin 12.2vmin, #1F2632 97%, transparent 100%),
+      radial-gradient(2.5vmin .5vmin at 12vmin 13.4vmin, #1F2632 96%, transparent 100%),
+      radial-gradient(.9vmin .8vmin at 8vmin 8.6vmin, #56657B 97%, transparent 100%),
+      radial-gradient(1.5vmin .32vmin at 8vmin 9.3vmin, #56657B 96%, transparent 100%),
+      linear-gradient(180deg, #8FB0CF 0%, #AFC7DC 60%, #CCDCE6 100%);
+    background-size: 16vmin 16vmin, 16vmin 16vmin, 16vmin 16vmin, 16vmin 16vmin, 16vmin 16vmin, 16vmin 16vmin, 100% 100%;
+    background-position: 1vmin -2vmin, 1vmin -2vmin, 1vmin -2vmin, 1vmin -2vmin, 1vmin -2vmin, 1vmin -2vmin, 0 0; }
+  .cornice { position: absolute; left: 0; right: 0; top: var(--sky); height: 3.4vmin;
+    background: linear-gradient(180deg, #D3C3A5 0%, #F2E8D6 30%, #CDBB9B 70%, #B7A381 100%); box-shadow: 0 1.2vmin 2vmin rgba(60,44,20,.16); }
+  .cornice::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 1.4vmin; background: repeating-linear-gradient(90deg, #D8C9AE 0 1.4vmin, transparent 1.4vmin 3vmin); }
+  .plaster { position: absolute; inset: 0; opacity: .5; background: radial-gradient(120% 60% at 30% 70%, rgba(255,255,255,.4), transparent 60%), radial-gradient(80% 50% at 80% 90%, rgba(150,120,80,.14), transparent 70%); }
+  .ground { position: absolute; left: 0; right: 0; bottom: 0; height: 3vmin; background: #B9A583; }
+
+  /* window: casing, shutters, sill, the photo */
+  .casing { position: absolute; left: calc(var(--wx) - 1.6vmin); top: calc(var(--wt) - 1.6vmin); width: calc(var(--ww) + 3.2vmin); bottom: calc(var(--wb) - 1.6vmin);
+    background: #F6EFE2; box-shadow: .6vmin .8vmin 1.6vmin rgba(60,44,20,.22); }
+  .sill { position: absolute; left: calc(var(--wx) - 3.4vmin); width: calc(var(--ww) + 6.8vmin); bottom: calc(var(--wb) - 3.6vmin); height: 2vmin; background: linear-gradient(180deg, #FBF6EC, #D8C8AA); box-shadow: 0 1vmin 1.4vmin rgba(60,44,20,.25); }
+  .shutter { position: absolute; top: calc(var(--wt) - 1.6vmin); bottom: calc(var(--wb) - 1.6vmin); width: calc(var(--ww) * .2);
+    background: repeating-linear-gradient(180deg, #5E7468 0 1.3vmin, #4B5F55 1.3vmin 1.6vmin), #5E7468; box-shadow: inset 0 0 0 .7vmin #6E8578, .6vmin .8vmin 1.6vmin rgba(60,44,20,.22); }
+  .sl { left: calc(var(--wx) - 2.6vmin - var(--ww) * .2); }
+  .sr { left: calc(var(--wx) + var(--ww) + 2.6vmin); }
+  .photo { position: absolute; left: var(--wx); top: var(--wt); width: var(--ww); height: calc(100% - var(--wt) - var(--wb)); object-fit: cover; object-position: 50% 25%; display: block; }
+
+  /* stray hats in front of the façade */
+  .hat { position: absolute; width: 5vmin; height: 3vmin; }
+  .hat::before { content: ""; position: absolute; left: 20%; right: 20%; top: 0; height: 80%; border-radius: 50% 50% 18% 18% / 70% 70% 30% 30%; background: #1F2632; }
+  .hat::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; border-radius: 50%; background: #1F2632; }
+  .h1x { left: 3vmin; top: calc(var(--wt) + 6vmin); transform: rotate(-12deg); }
+  .h2x { right: 3vmin; top: calc(var(--wt) + 24vmin); transform: rotate(9deg) scale(.8); }
+  .h3x { left: 5vmin; bottom: calc(var(--wb) + 10vmin); transform: rotate(6deg) scale(.7); }
+
+  /* type */
+  .mast { position: absolute; left: 7vmin; right: 7vmin; top: calc(var(--sky) + 7vmin); display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; white-space: nowrap; }
+  .mast span + span { font-weight: 500; color: #5A6272; }
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: calc(var(--sky) + 11.4vmin); }
+  h1 { margin: 0; font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 10vmin; line-height: .95; letter-spacing: -.015em; white-space: nowrap; }
+  h1 i { font-style: normal; color: #4B5F55; }
+  .sub { display: none; margin-top: 2vmin; font-size: 2vmin; line-height: 1.45; color: #3E4656; }
+  .foot { position: absolute; left: 7vmin; right: 7vmin; bottom: 3vmin; height: calc(var(--wb) - 7vmin); display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 2vmin; line-height: 1.35; font-weight: 500; }
+  .offer b { font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 4.6vmin; line-height: 1; margin-right: 1vmin; }
+  .offer small { display: block; margin-top: .6vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #4B5F55; }
+  .cta { flex: none; padding: 1.7vmin 3.2vmin; background: #232A36; color: #F4EBDA; font-size: 1.9vmin; font-weight: 600; letter-spacing: .06em; white-space: nowrap; }
+
+  /* 3:4 / 4:5 → one-line headline, offer column beside the window */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --sky: 17vmin; --wx: 12vmin; --ww: 48vmin; --wt: calc(var(--sky) + 26vmin); --wb: 10vmin; }
+    .mast { left: 6vmin; right: 6vmin; top: calc(var(--sky) + 6vmin); }
+    .head { left: 6vmin; right: 6vmin; top: calc(var(--sky) + 10vmin); }
+    h1 { font-size: 7.6vmin; }
+    h1 br { display: none; }
+    .foot { left: 74vmin; right: 5vmin; top: var(--wt); bottom: var(--wb); height: auto; flex-direction: column; align-items: flex-start; justify-content: space-between; }
+    .sub { display: block; margin: 0; font-size: 1.8vmin; }
+    .offer b { display: block; margin: 0 0 .6vmin; font-size: 5vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2.6vmin; }
+    .h2x { display: none; }
+    .h3x { left: 3vmin; }
+  }
+  /* square → window left, copy column right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --sky: 15vmin; --wx: 11vmin; --ww: 38%; --wt: calc(var(--sky) + 11vmin); --wb: 9vmin; }
+    .mast { left: calc(38% + 24vmin); right: 5vmin; top: calc(var(--sky) + 8vmin); flex-direction: column; gap: 1vmin; }
+    .head { left: calc(38% + 24vmin); right: 5vmin; top: calc(var(--sky) + 16vmin); }
+    h1 { font-size: 7vmin; white-space: normal; }
+    h1 br { display: inline; }
+    .foot { left: calc(38% + 24vmin); right: 5vmin; top: calc(var(--sky) + 44vmin); }
+    .sub { display: block; }
+    .h1x { left: 2vmin; }
+    .h2x { display: block; right: 4vmin; top: calc(var(--sky) + 4vmin); }
+    .h3x { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --sky: 20vmin; --wx: 13vmin; --ww: 38%; --wt: calc(var(--sky) + 11vmin); --wb: 9vmin; }
+    .mast { left: calc(38% + 30vmin); right: 7vmin; top: calc(var(--sky) + 8vmin); flex-direction: row; }
+    .head { left: calc(38% + 30vmin); right: 7vmin; top: calc(var(--sky) + 14vmin); }
+    h1 { font-size: 8.4vmin; white-space: nowrap; }
+    .foot { left: calc(38% + 30vmin); right: 7vmin; top: calc(var(--sky) + 38vmin); bottom: var(--wb); flex-direction: row; flex-wrap: wrap; align-items: flex-end; align-content: space-between; }
+    .sub { flex: 0 0 100%; font-size: 2vmin; }
+    .h2x { right: 6vmin; top: calc(var(--sky) + 2vmin); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="plaster"></div>
+  <div class="sky"></div>
+  <div class="cornice"></div>
+  <div class="ground"></div>
+  <div class="casing"></div>
+  <div class="shutter sl"></div>
+  <div class="shutter sr"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sill"></div>
+  <i class="hat h1x"></i><i class="hat h2x"></i><i class="hat h3x"></i>
+  <div class="mast"><span>Pluvier &amp; Fils</span><span>Week 42</span></div>
+  <div class="head"><h1>Forecast: <br><i>new arrivals.</i></h1></div>
+  <div class="foot">
+    <div class="sub">Scattered showers of new pieces, all week long. Bring a hat.</div>
+    <div class="offer"><b>−25%</b>while it pours<small>Code RAIN25</small></div>
+    <span class="cta">Step out →</span>
+  </div>
+</div>
+</body>
+</html>

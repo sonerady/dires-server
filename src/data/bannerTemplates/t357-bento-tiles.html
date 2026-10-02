@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Bento Tiles — the drop laid out as a soft bento box: the look as the big tile (sharp, the only hard edge),
+     around it rounded pastel compartments that each hold one fact — the name, the price, the colourways,
+     a close-up crop of the same photo, the first-order offer, and (when wide) the rating.
+     tall → photo on top, two-column tiles below · square → photo left, 2×3 tiles · wide → photo left, 3×3 tiles */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1F0EC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; box-sizing: border-box; padding: 4vmin; background: #F1F0EC; color: #1F1F26;
+    font-family: "Geist", "Helvetica Neue", Arial, sans-serif;
+    display: grid; gap: 1.8vmin; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr) auto auto auto;
+    grid-template-areas: "ph ph" "head head" "price dots" "offer det"; }
+
+  .t { border-radius: 2.8vmin; padding: 2.6vmin 2.8vmin; box-sizing: border-box; position: relative; overflow: hidden; min-width: 0; }
+  .mono { font-family: "Geist Mono", ui-monospace, monospace; font-size: 1.7vmin; letter-spacing: .04em; color: #6F6E78; white-space: nowrap; }
+
+  .ph { grid-area: ph; position: relative; overflow: hidden; min-height: 0; background: #E3E1DB; }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+
+  .head { grid-area: head; background: #fff; display: flex; justify-content: space-between; align-items: flex-end; gap: 2vmin; }
+  .chip { display: inline-block; font-weight: 600; font-size: 1.6vmin; letter-spacing: .12em; color: #3F6FD6; background: #E4EDFF; border-radius: 2vmin; padding: .5vmin 1.2vmin; margin-bottom: 1.4vmin; white-space: nowrap; }
+  h1 { margin: 0; font-weight: 600; font-size: 7.4vmin; line-height: .98; letter-spacing: -.045em; }
+  .head .mono { text-align: right; line-height: 1.5; }
+
+  .price { grid-area: price; background: #D7F1E4; }
+  .price b { display: block; font-weight: 600; font-size: 8vmin; letter-spacing: -.05em; line-height: 1; margin-top: 1.2vmin; color: #174D37; }
+  .price .mono, .dots .mono, .rate .mono { color: #3F5A4E; }
+  .price small { display: block; font-size: 1.8vmin; margin-top: 1vmin; color: #2F6B52; }
+
+  .dots { grid-area: dots; background: #E7E1FA; }
+  .dots .mono { color: #54497A; }
+  .dots b { display: block; font-weight: 600; font-size: 3.6vmin; letter-spacing: -.03em; margin-top: 1.2vmin; color: #3A2E66; white-space: nowrap; }
+  .sw { display: flex; gap: 1vmin; margin-top: 1.8vmin; }
+  .sw i { width: 3.8vmin; height: 3.8vmin; border-radius: 50%; box-shadow: inset 0 0 0 .3vmin rgba(255,255,255,.7); }
+  .sw i:first-child { box-shadow: 0 0 0 .35vmin #E7E1FA, 0 0 0 .6vmin #3A2E66; }
+
+  .offer { grid-area: offer; background: #22222A; color: #fff; display: flex; flex-direction: column; justify-content: space-between; gap: 1.4vmin; }
+  .offer .mono { color: #B9B8C6; }
+  .offer b { font-weight: 600; font-size: 8.4vmin; letter-spacing: -.05em; line-height: .95; }
+  .offer span { font-size: 2vmin; line-height: 1.4; color: #E4E3EC; }
+  .offer span em { font-style: normal; font-family: "Geist Mono", monospace; font-weight: 500; color: #22222A; background: #FFE9A3; border-radius: 1.4vmin; padding: .2vmin 1vmin; }
+
+  .det { grid-area: det; padding: 0; border-radius: 0; background: #E3E1DB; min-height: 18vmin; }
+  .det img { position: absolute; width: 240%; height: 240%; left: -70%; top: -55%; object-fit: cover; object-position: 50% 30%; }
+  .det .lbl { position: absolute; left: 1.4vmin; bottom: 1.4vmin; font-weight: 600; font-size: 1.6vmin; letter-spacing: .1em; background: rgba(255,255,255,.94); border-radius: 2vmin; padding: .5vmin 1.2vmin; }
+
+  .rate { grid-area: rate; background: #FFF0BF; display: none; }
+  .rate .mono { color: #6D5A1E; }
+  .rate b { display: block; font-weight: 600; font-size: 6vmin; letter-spacing: -.05em; line-height: 1; margin-top: 1.2vmin; color: #4A3B0B; }
+  .rate .st { margin-top: 1vmin; font-size: 2.2vmin; letter-spacing: .1em; color: #E0A400; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 3.6vmin; gap: 1.6vmin; }
+    .t { padding: 2.2vmin 2.6vmin; }
+    h1 { font-size: 5.6vmin; }
+    .price b { font-size: 6vmin; }
+    .offer b { font-size: 6.2vmin; }
+    .det { min-height: 15vmin; }
+  }
+  /* SQUARE — photo left, 2×3 tiles right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { padding: 3.6vmin; gap: 1.6vmin; grid-template-columns: 44% repeat(2, minmax(0, 1fr)); grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas: "ph head head" "ph price dots" "ph offer det"; }
+    .head { flex-direction: column; align-items: flex-start; justify-content: flex-start; }
+    .head .mono { text-align: left; }
+    h1 { font-size: 6.2vmin; }
+    .price, .dots { display: flex; flex-direction: column; justify-content: space-between; }
+    .price b { font-size: 6.6vmin; }
+    .offer b { font-size: 6.6vmin; }
+    .det { min-height: 0; }
+  }
+  /* WIDE — photo left, 3×3 tiles */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { padding: 4vmin; gap: 1.8vmin; grid-template-columns: 36% repeat(3, minmax(0, 1fr)); grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas: "ph head head det" "ph price dots det" "ph offer offer rate"; }
+    .rate { display: flex; flex-direction: column; justify-content: space-between; }
+    .head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    .head .mono { text-align: right; }
+    h1 { font-size: 6.8vmin; }
+    .offer { flex-direction: row; align-items: flex-end; }
+    .offer b { font-size: 9vmin; }
+    .offer span { max-width: 26vmin; text-align: right; }
+    .det img { width: 300%; height: 180%; left: -100%; top: -30%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="t head"><div><span class="chip">NEW · 신상</span><h1>The daily<br>edit.</h1></div><div class="mono">DROP 11<br>12 pieces</div></div>
+  <div class="t price"><div class="mono">FROM</div><div><b>€49</b><small>Free returns</small></div></div>
+  <div class="t dots"><div class="mono">COLOURWAYS</div><div><b>4 shades</b><div class="sw"><i style="background:#EDE3D2"></i><i style="background:#BFD9F2"></i><i style="background:#F3C9D6"></i><i style="background:#C9E4CE"></i></div></div></div>
+  <div class="t offer"><div class="mono">FIRST ORDER</div><b>−15%</b><span>with code <em>HELLO15</em></span></div>
+  <div class="t det"><img src="{{PRODUCT_IMAGE}}" alt=""><span class="lbl">DETAIL</span></div>
+  <div class="t rate"><div class="mono">RATED</div><div><b>4.9</b><div class="st">★★★★★</div></div><div class="mono">2.1k reviews</div></div>
+</div>
+</body>
+</html>

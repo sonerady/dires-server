@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Murecho:wght@500;700;900&family=M+PLUS+1+Code:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Metro Platform — the station-name board on a tiled subway platform: line roundel S·04, the station "New Season",
+     previous / next stops on the line-colour band, a line map of the season's drops, and the next stop is the sale.
+     tall → photo above the platform wall · square & wide → photo left, platform wall right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E9E6DD; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1B1B1B; font-family: "Murecho", "Hiragino Sans", "Helvetica Neue", sans-serif; --line: #0B9A6D;
+    background:
+      linear-gradient(90deg, rgba(40,36,28,.07) 1px, transparent 1px) 0 0 / 9vmin 4.5vmin,
+      linear-gradient(0deg, rgba(40,36,28,.07) 1px, transparent 1px) 0 0 / 9vmin 4.5vmin,
+      #ECE9E1; }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 70vmin); overflow: hidden; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .photo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1.4vmin; background: var(--line); }
+
+  .wall { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.6vmin; height: 60vmin; display: flex; flex-direction: column; justify-content: space-between; }
+
+  /* station-name board */
+  .board { background: #FFFFFF; box-shadow: 0 .8vmin 2vmin rgba(40,36,28,.16); border-top: 1.4vmin solid #2A2B2D; }
+  .sign { display: flex; align-items: center; gap: 3.4vmin; padding: 3vmin 3.4vmin 2.6vmin; }
+  .roundel { flex: none; width: 13vmin; height: 13vmin; border-radius: 50%; box-shadow: inset 0 0 0 1.5vmin var(--line); background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 900; line-height: .9; }
+  .roundel b { font-size: 4.4vmin; }
+  .roundel span { font-size: 4.4vmin; }
+  .name { min-width: 0; }
+  .name h1 { margin: 0; font-weight: 900; font-size: 10.4vmin; line-height: .95; letter-spacing: -.03em; white-space: nowrap; }
+  .name .alt { margin-top: 1.2vmin; display: flex; gap: 2vmin; align-items: baseline; font-weight: 700; font-size: 2.6vmin; color: #3C3C3C; white-space: nowrap; }
+  .name .alt i { font-style: normal; font-family: "M PLUS 1 Code", monospace; font-weight: 500; font-size: 1.8vmin; letter-spacing: .12em; color: #6B6B6B; text-transform: uppercase; }
+  .band { display: flex; justify-content: space-between; align-items: center; background: var(--line); color: #fff; padding: 1.3vmin 3.4vmin; font-weight: 700; font-size: 2.2vmin; white-space: nowrap; gap: 2vmin; }
+  .band span { display: flex; align-items: center; gap: 1.2vmin; }
+  .band em { font-style: normal; font-family: "M PLUS 1 Code", monospace; font-size: 1.7vmin; background: #fff; color: var(--line); padding: .2vmin .8vmin; font-weight: 700; }
+
+  /* line map */
+  .map { position: relative; height: 12vmin; }
+  .map::before { content: ""; position: absolute; left: 8.33%; right: 8.33%; top: 2.2vmin; height: 1.2vmin; background: var(--line); border-radius: .6vmin; }
+  .map::after { content: ""; position: absolute; left: 8.33%; width: 50%; top: 2.2vmin; height: 1.2vmin; background: #BDB9AF; border-radius: .6vmin 0 0 .6vmin; }
+  .stops { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .stop { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1vmin; }
+  .stop i { width: 3.2vmin; height: 3.2vmin; margin-top: 1.2vmin; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 .7vmin var(--line); box-sizing: border-box; }
+  .stop.past i { box-shadow: inset 0 0 0 .7vmin #BDB9AF; }
+  .stop.here i { width: 5.6vmin; height: 5.6vmin; margin-top: 0; background: var(--line); box-shadow: 0 0 0 .6vmin #fff, 0 0 0 1vmin var(--line); }
+  .stop b { font-family: "M PLUS 1 Code", monospace; font-weight: 700; font-size: 1.6vmin; letter-spacing: .06em; color: #6B6B6B; }
+  .stop span { font-weight: 700; font-size: 1.8vmin; line-height: 1.15; }
+  .stop.past span { color: #8A8780; }
+  .stop.next span { color: #D6362B; }
+
+  /* offer */
+  .deal { display: flex; align-items: stretch; background: #1C1D1F; color: #fff; }
+  .deal .k { background: #FFD21F; color: #1C1D1F; padding: 1.8vmin 2.4vmin; font-weight: 900; font-size: 2vmin; line-height: 1.15; display: flex; align-items: center; letter-spacing: .02em; }
+  .deal .v { flex: 1; min-width: 0; padding: 1.4vmin 2.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .deal .v b { font-weight: 900; font-size: 5.6vmin; line-height: 1; letter-spacing: -.02em; white-space: nowrap; }
+  .deal .v span { font-family: "M PLUS 1 Code", monospace; font-weight: 500; font-size: 1.8vmin; letter-spacing: .08em; line-height: 1.4; text-align: right; white-space: nowrap; }
+  .deal .v span strong { color: #FFD21F; font-weight: 700; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 62vmin); }
+    .wall { height: 53vmin; bottom: 4vmin; }
+    .sign { padding: 2.4vmin 3vmin 2vmin; }
+    .roundel { width: 11vmin; height: 11vmin; box-shadow: inset 0 0 0 1.3vmin var(--line); }
+    .roundel b, .roundel span { font-size: 3.8vmin; }
+    .name h1 { font-size: 9.4vmin; }
+    .map { height: 11vmin; }
+  }
+  /* SQUARE — photo left, platform wall right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; width: 46%; height: 100%; }
+    .photo::after { left: auto; top: 0; width: 1.2vmin; height: auto; }
+    .wall { left: calc(46% + 5vmin); right: 4.6vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .sign { flex-direction: column; align-items: flex-start; gap: 2vmin; padding: 2.6vmin 2.8vmin 2.2vmin; }
+    .roundel { width: 10vmin; height: 10vmin; box-shadow: inset 0 0 0 1.2vmin var(--line); }
+    .roundel b, .roundel span { font-size: 3.4vmin; }
+    .name h1 { font-size: 7.6vmin; }
+    .name .alt { font-size: 2.2vmin; flex-direction: column; gap: .6vmin; }
+    .band { font-size: 1.8vmin; padding: 1.1vmin 2.8vmin; }
+    .band em { font-size: 1.6vmin; }
+    .map { height: 13vmin; }
+    .stops { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .stop.far { display: none; }
+    .map::before { left: 12.5%; right: 12.5%; }
+    .map::after { left: 12.5%; width: 50%; }
+    .deal { flex-direction: column; }
+    .deal .k { padding: 1.2vmin 2.4vmin; }
+    .deal .v { padding: 1.6vmin 2.4vmin; }
+    .deal .v b { font-size: 5vmin; }
+    .deal .v span { font-size: 1.6vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; }
+    .wall { left: calc(50% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .sign { flex-direction: row; align-items: center; gap: 2.8vmin; }
+    .name h1 { font-size: 8.4vmin; }
+    .name .alt { flex-direction: row; gap: 2vmin; font-size: 2.3vmin; }
+    .band { font-size: 2vmin; }
+    .stops { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .stop.far { display: flex; }
+    .map::before { left: 8.33%; right: 8.33%; }
+    .map::after { left: 8.33%; width: 50%; }
+    .map { height: 12vmin; }
+    .deal { flex-direction: row; }
+    .deal .k { padding: 1.8vmin 2.4vmin; }
+    .deal .v b { font-size: 5.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="wall">
+    <div class="board">
+      <div class="sign">
+        <div class="roundel"><b>S</b><span>04</span></div>
+        <div class="name"><h1>New Season</h1><div class="alt">新しい季節 <i>Line S · Drop 04</i></div></div>
+      </div>
+      <div class="band"><span>◀ <em>S03</em> Preview</span><span>Sale <em>S05</em> ▶</span></div>
+    </div>
+    <div class="map">
+      <div class="stops">
+        <div class="stop past far"><i></i><b>S01</b><span>Look&shy;book</span></div>
+        <div class="stop past"><i></i><b>S02</b><span>Early</span></div>
+        <div class="stop past"><i></i><b>S03</b><span>Preview</span></div>
+        <div class="stop here"><i></i><b>S04</b><span>New in</span></div>
+        <div class="stop next"><i></i><b>S05</b><span>−30%</span></div>
+        <div class="stop far"><i></i><b>S06</b><span>Last call</span></div>
+      </div>
+    </div>
+    <div class="deal">
+      <div class="k">Next<br>stop</div>
+      <div class="v"><b>30% off</b><span>Code <strong>LINE30</strong><br>Arriving 03.10</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

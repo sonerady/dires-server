@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Half Scale — mini-me as a technical drawing: the same look drawn twice on graph paper, at 1:1 and at 1:2,
+     standing on one ground line with red dimension lines. The copy lives in the empty space above the mini.
+     All figure sizes come from --h (big figure height) and --a (figure width/height) so the 1:2 is exact. */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3F1EB; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3F1EB; color: #17171A; font-family: "JetBrains Mono", Menlo, monospace;
+    --h: 100vmin; --a: .54; --x: 9vmin; --gap: 6vmin; --base: 18vmin; }
+  .grid { position: absolute; inset: 0; background:
+    repeating-linear-gradient(0deg, rgba(23,23,26,.06) 0 1px, transparent 1px 5vmin),
+    repeating-linear-gradient(90deg, rgba(23,23,26,.06) 0 1px, transparent 1px 5vmin); }
+
+  .fig { position: absolute; bottom: var(--base); }
+  .fig img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .big { left: var(--x); height: var(--h); width: calc(var(--h) * var(--a)); }
+  .small { left: calc(var(--x) + var(--h) * var(--a) + var(--gap)); height: calc(var(--h) / 2); width: calc(var(--h) * var(--a) / 2); }
+  .fig .no { position: absolute; left: 0; top: 100%; margin-top: 1.6vmin; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .fig .no b { color: #D23C27; font-weight: 600; }
+
+  /* red dimension lines */
+  .dim { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px solid #D23C27; }
+  .dim::before, .dim::after { content: ""; position: absolute; left: -1.1vmin; width: 2.2vmin; border-top: 1px solid #D23C27; }
+  .dim::before { top: 0; } .dim::after { bottom: 0; }
+  .big .dim { left: -4.6vmin; }
+  .small .dim { left: -3.2vmin; }
+  .dim span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); background: #F3F1EB; padding: .4vmin 1vmin; color: #D23C27; font-size: 1.8vmin; font-weight: 600; letter-spacing: .08em; white-space: nowrap; }
+  .ext { position: absolute; left: -5.6vmin; width: 5vmin; border-top: 1px dashed rgba(210,60,39,.6); }
+  .ext.t { top: 0; } .ext.b { bottom: 0; }
+
+  .ground { position: absolute; left: 0; right: 0; bottom: var(--base); height: 2vmin; border-top: .35vmin solid #17171A;
+    background: repeating-linear-gradient(90deg, #17171A 0 1px, transparent 1px 2.5vmin) top / 100% 1.2vmin no-repeat; }
+
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; }
+  .k { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .k b { color: #D23C27; font-weight: 600; }
+  h1 { margin: 3vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .88; letter-spacing: -.02em; }
+  h1 i { color: #D23C27; }
+  .sub { margin-top: 3.4vmin; max-width: 60vmin; font-family: "Instrument Serif", Georgia, serif; font-size: 3.4vmin; line-height: 1.25; }
+  .sub::before { content: ""; display: block; width: 8vmin; border-top: .3vmin solid #D23C27; margin-bottom: 2vmin; }
+
+  .spec { position: absolute; font-size: 1.7vmin; line-height: 1.55; }
+  .spec div { display: flex; justify-content: space-between; gap: 2vmin; border-bottom: 1px solid rgba(23,23,26,.2); padding: .5vmin 0; white-space: nowrap; }
+  .spec div b { font-weight: 600; }
+  .spec div.hl b { color: #D23C27; }
+  .spec { left: calc(var(--x) + var(--h) * var(--a) + var(--gap)); right: 6vmin; bottom: calc(var(--base) + var(--h) / 2 + 5vmin); }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot .t { font-size: 1.8vmin; letter-spacing: .06em; line-height: 1.45; text-transform: uppercase; }
+  .foot .t b { color: #D23C27; font-weight: 600; }
+  .cta { flex: none; background: #17171A; color: #F3F1EB; padding: 1.9vmin 3vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 2:3 → slightly smaller figure */
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --h: 84vmin; --a: .6; --x: 9vmin; --gap: 6vmin; }
+    h1 { font-size: 11.6vmin; }
+    .sub { margin-top: 2.6vmin; font-size: 3vmin; }
+  }
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --h: 76vmin; --a: .6; --x: 11vmin; --gap: 8vmin; --base: 16vmin; }
+    .head { top: 5vmin; }
+    h1 { margin-top: 2.2vmin; font-size: 10vmin; }
+    .sub { display: none; }
+    .spec { font-size: 1.7vmin; }
+  }
+  /* square: copy in the space above the mini */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --h: 70vmin; --a: .6; --x: 10vmin; --gap: 8vmin; --base: 16vmin; }
+    .head { left: calc(10vmin + 42vmin + 8vmin); right: 5vmin; top: 6vmin; }
+    .k span:last-child { display: none; }
+    h1 { margin-top: 2.4vmin; font-size: 7.6vmin; }
+    .spec { display: none; }
+    .foot { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --h: 72vmin; --a: .64; --x: 12vmin; --gap: 9vmin; --base: 16vmin; }
+    .head { left: calc(12vmin + 46.08vmin + 9vmin + 23.04vmin + 8vmin); right: 6vmin; top: 8vmin; }
+    .k span:last-child { display: inline; }
+    .k { flex-direction: column; gap: .8vmin; }
+    h1 { margin-top: 3vmin; font-size: 9.2vmin; }
+    .sub { display: block; font-size: 2.8vmin; margin-top: 2.6vmin; }
+    .spec { display: block; left: calc(12vmin + 46.08vmin + 9vmin + 23.04vmin + 8vmin); right: 6vmin; bottom: calc(16vmin + 5vmin); }
+    .foot { left: 6vmin; right: 6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="grid"></div>
+  <div class="head">
+    <div class="k"><span>Sheet 02 · <b>Mini me</b></span><span>Studio Oro</span></div>
+    <h1>Same look,<br><i>half the size.</i></h1>
+    <div class="sub">One drop, cut twice — for grown-ups and the ones who copy them.</div>
+  </div>
+  <div class="ground"></div>
+  <div class="fig big">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <i class="ext t"></i><i class="ext b"></i>
+    <div class="dim"><span>Scale 1:1</span></div>
+    <div class="no">Fig. 1 — <b>Grown-up</b></div>
+  </div>
+  <div class="fig small">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="dim"><span>1:2</span></div>
+    <div class="no">Fig. 2 — <b>Mini</b></div>
+  </div>
+  <div class="spec">
+    <div><span>Grown-up</span><b>XS–XL</b></div>
+    <div><span>Mini</span><b>2–12Y</b></div>
+    <div class="hl"><span>Pair price</span><b>−20%</b></div>
+  </div>
+  <div class="foot">
+    <div class="t">Matching sets · <b>20% off the pair</b><br>Code MINIME · until 30.10</div>
+    <div class="cta">Shop pairs →</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Daylight Chart — a Scandinavian year in one functional graphic: hours of daylight at 59° N, straw daylight
+     under slate night, hairline gridlines at 6 / 12 / 18 h, and a rust "today" marker where the days start to
+     shrink. The dark half of the year is the pitch for the new season.
+     tall → photo above the chart panel; 3:4 and wider → panel beside the photo */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECEAE5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECEAE5; color: #1E2427; font-family: "Albert Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 86vmin; box-sizing: border-box; padding: 5vmin 5vmin 4.4vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #5B6266; white-space: nowrap; }
+  .meta b { font-family: "Albert Sans", Arial, sans-serif; font-weight: 800; font-size: 2.4vmin; letter-spacing: .02em; color: #1E2427; text-transform: none; }
+  h1 { margin: 2.6vmin 0 0; font-weight: 300; font-size: 9.4vmin; line-height: .95; letter-spacing: -.035em; }
+  h1 b { font-weight: 800; }
+
+  .fig { margin-top: auto; margin-right: 5vmin; }
+  .chart { position: relative; height: 30vmin; }
+  .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .ax { position: absolute; right: -.4vmin; transform: translate(100%, 50%); font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.6vmin; color: #5B6266; padding-left: 1vmin; white-space: nowrap; }
+  .mk { position: absolute; left: 73.4%; top: -2vmin; bottom: 0; width: 0; border-left: .35vmin solid #B0532E; }
+  .mk i { position: absolute; left: 0; bottom: 49.2%; width: 2.2vmin; height: 2.2vmin; margin: 0 0 -1.1vmin -1.1vmin; border-radius: 50%; background: #B0532E; box-shadow: 0 0 0 .5vmin #ECEAE5; transform: translateX(-.17vmin); }
+  .mk span { position: absolute; right: 1.6vmin; top: 0; background: #B0532E; color: #F6F2EA; padding: .6vmin 1.2vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .06em; white-space: nowrap; }
+  .months { display: grid; grid-template-columns: repeat(12, 1fr); margin-top: 1.2vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.7vmin; color: #5B6266; text-align: center; }
+  .months span:nth-child(n+10), .months span:first-child, .months span:nth-child(2) { color: #1E2427; font-weight: 500; }
+
+  .offer { margin-top: 3.6vmin; padding-top: 2.4vmin; border-top: 1px solid #1E2427; display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; white-space: nowrap; }
+  .offer strong { font-weight: 800; font-size: 5.4vmin; letter-spacing: -.04em; color: #B0532E; }
+  .offer span { font-size: 2vmin; }
+  .offer em { font-style: normal; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; border: 1px solid #1E2427; padding: .7vmin 1.2vmin; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 22%; }
+    .panel { left: 48%; top: 0; height: auto; padding: 5vmin 7vmin 4.4vmin 4vmin; }
+    .meta { flex-direction: column; gap: .8vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 3.4vmin; }
+    .chart { height: 34vmin; }
+    .fig { margin-right: 0; }
+    .months { font-size: 1.6vmin; }
+    .offer { flex-direction: column; align-items: flex-start; gap: 1.2vmin; }
+    .offer strong { font-size: 6vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .panel { left: 46%; padding: 4.4vmin 6.6vmin 4vmin 4.4vmin; }
+    .meta { flex-direction: row; justify-content: space-between; }
+    .meta b { font-size: 2.2vmin; }
+    h1 { font-size: 6.8vmin; margin-top: 2.4vmin; }
+    .chart { height: 26vmin; }
+    .mk span { font-size: 1.6vmin; }
+    .offer { margin-top: 2.6vmin; padding-top: 1.8vmin; flex-direction: row; align-items: center; gap: 2vmin; }
+    .offer strong { font-size: 4.6vmin; }
+    .offer span { display: none; }
+    .offer em { font-size: 1.6vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; object-position: 50% 28%; }
+    .panel { left: 50%; padding: 5vmin 8vmin 4.4vmin 5vmin; }
+    h1 { font-size: 8vmin; }
+    .chart { height: 30vmin; }
+    .offer span { display: inline; font-size: 1.9vmin; }
+    .offer strong { font-size: 5vmin; }
+    .offer em { font-size: 1.7vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* 1 · the year is re-plotted: daylight + curve retract to January, then sweep back across the months */
+  .chart .day, .chart .curve { animation: plot 6s linear infinite; }
+  @keyframes plot {
+    0%, 5% { clip-path: inset(-10% 0 -10% 0); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    10% { clip-path: inset(-10% 100% -10% 0); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    26%, 100% { clip-path: inset(-10% 0 -10% 0); }
+  }
+  /* the dark half shades itself back in once the curve has passed the marker */
+  .chart .night { animation: night 6s linear infinite; }
+  @keyframes night { 0%, 5% { opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); } 9%, 22% { opacity: 0; animation-timing-function: cubic-bezier(.3,0,.3,1); } 34%, 100% { opacity: 1; } }
+  /* 2 · "today" is marked: the rule drops from the tag, the dot lands and keeps a slow pulse */
+  .mk { animation: mark 6s linear infinite; }
+  @keyframes mark {
+    0%, 7% { clip-path: inset(-4vmin -60vmin -4vmin -60vmin); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    10% { clip-path: inset(-4vmin -60vmin -4vmin -60vmin); opacity: 0; animation-timing-function: steps(1, end); }
+    22% { clip-path: inset(-4vmin -60vmin 100% -60vmin); opacity: 1; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    31%, 100% { clip-path: inset(-4vmin -60vmin -4vmin -60vmin); opacity: 1; }
+  }
+  .mk i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .3vmin solid #B0532E; opacity: 0; animation: ring 1.5s linear infinite; }
+  @keyframes ring { 0% { transform: scale(1); opacity: 0; } 6% { opacity: .8; animation-timing-function: cubic-bezier(.15,.6,.35,1); } 70%, 100% { transform: scale(2.6); opacity: 0; } }
+  /* 3 · "the dark half." is written in as the night shade returns */
+  h1 b { display: inline-block; animation: dark 6s linear infinite; }
+  @keyframes dark {
+    0%, 30% { clip-path: inset(-10% 0 -25% 0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    34% { clip-path: inset(-10% 0 -25% 0); opacity: 0; animation-timing-function: steps(1, end); }
+    34.5% { clip-path: inset(-10% 100% -25% 0); opacity: 1; animation-timing-function: cubic-bezier(.35,0,.2,1); }
+    47%, 100% { clip-path: inset(-10% 0 -25% 0); opacity: 1; }
+  }
+  /* 4 · the offer punches, the code box answers */
+  .offer strong { display: inline-block; transform-origin: 0 80%; animation: offer 6s linear infinite; }
+  @keyframes offer {
+    0%, 58% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1.3); }
+    62% { transform: scale(1.14); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    68%, 100% { transform: scale(1); }
+  }
+  .offer em { animation: code 6s linear infinite; }
+  @keyframes code { 0%, 64% { background-color: rgba(30,36,39,0); color: #1E2427; } 67%, 74% { background-color: #1E2427; color: #ECEAE5; } 78%, 100% { background-color: rgba(30,36,39,0); color: #1E2427; } }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="meta"><b>Mörk &amp; Ljus</b><span>Daylight · 59.3° N</span></div>
+    <h1>Dressed for<br><b>the dark half.</b></h1>
+    <div class="fig">
+      <div class="chart">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <rect width="100" height="100" fill="#2F3B41"/>
+          <polygon class="day" points="0,100 0,73.3 2,72.6 4,71.5 6,70.0 8,68.1 10,66.0 12,63.6 14,61.0 16,58.1 18,55.2 20,52.1 22,48.9 24,45.8 26,42.7 28,39.7 30,36.9 32,34.2 34,31.8 36,29.6 38,27.7 40,26.2 42,25.0 44,24.2 46,23.8 48,23.8 50,24.2 52,24.9 54,26.0 56,27.5 58,29.4 60,31.5 62,33.9 64,36.5 66,39.4 68,42.3 70,45.4 72,48.6 74,51.7 76,54.8 78,57.8 80,60.6 82,63.3 84,65.7 86,67.9 88,69.8 90,71.3 92,72.5 94,73.3 96,73.7 98,73.7 100,73.3 100,100" fill="#DCC996"/>
+          <path d="M0 25H100M0 50H100M0 75H100" stroke="#ECEAE5" stroke-width="1" stroke-opacity=".45" stroke-dasharray="1.2 1.2" vector-effect="non-scaling-stroke"/>
+          <polyline class="curve" points="0,73.3 2,72.6 4,71.5 6,70.0 8,68.1 10,66.0 12,63.6 14,61.0 16,58.1 18,55.2 20,52.1 22,48.9 24,45.8 26,42.7 28,39.7 30,36.9 32,34.2 34,31.8 36,29.6 38,27.7 40,26.2 42,25.0 44,24.2 46,23.8 48,23.8 50,24.2 52,24.9 54,26.0 56,27.5 58,29.4 60,31.5 62,33.9 64,36.5 66,39.4 68,42.3 70,45.4 72,48.6 74,51.7 76,54.8 78,57.8 80,60.6 82,63.3 84,65.7 86,67.9 88,69.8 90,71.3 92,72.5 94,73.3 96,73.7 98,73.7 100,73.3" fill="none" stroke="#1E2427" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <rect class="night" x="73.4" y="0" width="26.6" height="100" fill="#10171A" fill-opacity=".22"/>
+        </svg>
+        <span class="ax" style="bottom:100%">24 h</span>
+        <span class="ax" style="bottom:50%">12 h</span>
+        <span class="ax" style="bottom:0">0 h</span>
+        <div class="mk"><i></i><span>Today · 11 h 49</span></div>
+      </div>
+      <div class="months"><span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div>
+    </div>
+    <div class="offer"><strong>−20%</strong><span>until the clocks change</span><em>Code DARK20</em></div>
+  </div>
+</div>
+</body>
+</html>

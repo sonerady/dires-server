@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Libre+Franklin:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Chalet Sign — a painted Alpine chalet façade: a carved bargeboard with scallops and heart cut-outs hangs along the
+     photo's edge, green planks below carry Fraktur sign-painting, a folk edelweiss ornament and the offer.
+     tall → photo above; square/wide → photo left, bargeboard down the seam */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #22402F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F3E9D4; font-family: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,.16) 0 1px, transparent 1px 12.5vmin),
+                repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 .3vmin, transparent .3vmin 3.1vmin),
+                linear-gradient(180deg, #274835, #1C3527); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 82vmin); object-fit: cover; object-position: 50% 20%; }
+  .eave { position: absolute; left: 0; right: 0; top: calc(100% - 82vmin); width: 100%; height: 9vmin; display: block; filter: drop-shadow(0 .8vmin .8vmin rgba(0,0,0,.35)); }
+  .eave-v { display: none; }
+  .sign { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 66vmin; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .kick { display: flex; align-items: center; gap: 2vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .32em; text-transform: uppercase; color: #E7C98A; white-space: nowrap; }
+  .kick i { width: 6vmin; height: 1px; background: currentColor; opacity: .7; }
+  h1 { margin: 2vmin 0 0; font-family: "Pirata One", "Old English Text MT", Georgia, serif; font-weight: 400; font-size: 21vmin; line-height: .82; letter-spacing: .005em; color: #F3E9D4; text-shadow: 0 .5vmin 0 rgba(0,0,0,.25); }
+  h1 span { display: block; font-size: .56em; color: #E0574A; margin-top: .12em; }
+  .orn { width: 44vmin; height: 9vmin; margin-top: 2.6vmin; flex: none; }
+  .offer { margin-top: 2.2vmin; font-weight: 800; font-size: 4.4vmin; letter-spacing: -.01em; line-height: 1.05; }
+  .offer small { display: block; margin-top: 1vmin; font-weight: 500; font-size: 2.2vmin; letter-spacing: .08em; color: #D9CCB0; }
+  .cta { margin-top: auto; display: flex; align-items: center; gap: 2.4vmin; padding: 1.8vmin 3.6vmin; background: #F3E9D4; color: #22402F; font-weight: 800; font-size: 2.2vmin; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap;
+    box-shadow: 0 0 0 .5vmin #22402F, 0 0 0 .8vmin #E7C98A; }
+  .cta b { color: #B8322A; font-weight: 800; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 76vmin); }
+    .eave { top: calc(100% - 76vmin); }
+    .sign { height: 61vmin; bottom: 4.4vmin; }
+    h1 { font-size: 19vmin; }
+    .orn { height: 8vmin; margin-top: 2vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .eave { top: calc(100% - 66vmin); height: 8vmin; }
+    .sign { height: 52vmin; bottom: 4vmin; }
+    h1 { font-size: 16vmin; margin-top: 1.6vmin; }
+    .orn { width: 36vmin; height: 6.4vmin; margin-top: 1.6vmin; }
+    .offer { font-size: 3.8vmin; margin-top: 1.6vmin; }
+    .offer small { font-size: 2vmin; }
+    .cta { padding: 1.5vmin 3vmin; font-size: 2vmin; }
+  }
+  /* square / wide → photo left, bargeboard hangs down the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .eave { display: none; }
+    .eave-v { display: block; position: absolute; top: 0; bottom: 0; left: 48%; width: 8vmin; height: 100%; filter: drop-shadow(.8vmin 0 .8vmin rgba(0,0,0,.35)); }
+    .sign { left: calc(48% + 11vmin); right: 4vmin; top: 7vmin; bottom: 6vmin; height: auto; }
+    .kick { gap: 1.4vmin; letter-spacing: .24em; font-size: 1.7vmin; }
+    .kick i { width: 3vmin; }
+    h1 { font-size: 18vmin; margin-top: 3.4vmin; }
+    .orn { width: 34vmin; height: 7.4vmin; margin: auto 0; }
+    .offer { margin-top: 0; margin-bottom: 4vmin; }
+    .cta { margin-top: 0; }
+    .offer { font-size: 3.6vmin; }
+    .offer small { font-size: 1.9vmin; }
+    .cta { padding: 1.5vmin 2.6vmin; font-size: 1.9vmin; letter-spacing: .14em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .eave-v { left: 46%; width: 9vmin; }
+    .sign { left: calc(46% + 14vmin); right: 6vmin; top: 8vmin; bottom: 7vmin; }
+    .kick { gap: 2vmin; letter-spacing: .32em; font-size: 1.8vmin; }
+    .kick i { width: 6vmin; }
+    h1 { font-size: 22vmin; margin-top: 3.6vmin; }
+    .orn { width: 46vmin; height: 9vmin; }
+    .offer { font-size: 4.2vmin; }
+    .offer small { font-size: 2.1vmin; }
+    .cta { padding: 1.8vmin 3.4vmin; font-size: 2.1vmin; letter-spacing: .18em; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design (restrained, fireside pace) ─────────
+     constant: the painted edelweiss turns one petal-step (72°) per loop · photo breathes (≤1.03)
+     beats: 0.9s the gilt rules beside "Gasthaus" retract into the text and draw back out ·
+            1.4–4.8s a warm fireside glow swells up the planks and flickers, then dies back ·
+            2.4s "Season" warms with a soft ember glow · 4.7s the ✦ in the sign twinkles */
+  .photo { transform-origin: 50% 20%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(90% 55% at 50% 108%, rgba(255,150,60,.34), rgba(255,120,40,.12) 45%, rgba(255,120,40,0) 70%);
+    opacity: 0; animation: fire 6s linear infinite; }
+  @media (min-aspect-ratio: 9/10) {
+    .banner::before { background: radial-gradient(60% 60% at 74% 108%, rgba(255,150,60,.34), rgba(255,120,40,.12) 45%, rgba(255,120,40,0) 70%); }
+  }
+  @keyframes fire {
+    0%, 23% { opacity: 0; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    33% { opacity: .85; } 36% { opacity: .62; } 39% { opacity: 1; } 43% { opacity: .7; } 46% { opacity: .92; }
+    50% { opacity: .66; } 54% { opacity: 1; } 58% { opacity: .78; } 62% { opacity: .95; } 66% { opacity: .7; }
+    70% { opacity: .82; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    80%, 100% { opacity: 0; }
+  }
+
+  .orn .fl { transform-origin: 0 0; animation: turn 6s linear infinite; }
+  @keyframes turn { from { transform: rotate(0deg); } to { transform: rotate(72deg); } }
+
+  .kick i { animation: rule 6s linear infinite; }
+  .kick i:first-child { transform-origin: 100% 50%; }
+  .kick i:last-child { transform-origin: 0 50%; }
+  @keyframes rule {
+    0%, 15% { transform: scaleX(1); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    19.5% { transform: scaleX(0); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    29%, 100% { transform: scaleX(1); }
+  }
+
+  h1 span { animation: ember 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ember {
+    0%, 40% { text-shadow: 0 .5vmin 0 rgba(0,0,0,.25), 0 0 0 rgba(255,140,70,0); color: #E0574A; }
+    52% { text-shadow: 0 .5vmin 0 rgba(0,0,0,.25), 0 0 3vmin rgba(255,140,70,.55); color: #EE6A55; }
+    68%, 100% { text-shadow: 0 .5vmin 0 rgba(0,0,0,.25), 0 0 0 rgba(255,140,70,0); color: #E0574A; }
+  }
+
+  .cta b { display: inline-block; animation: twinkle 6s linear infinite; }
+  @keyframes twinkle {
+    0%, 77% { transform: rotate(0deg) scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    82% { transform: rotate(90deg) scale(1.45); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    88%, 100% { transform: rotate(180deg) scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <svg class="eave" viewBox="0 0 400 12" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <defs>
+      <pattern id="bh" width="10" height="12" patternUnits="userSpaceOnUse">
+        <rect width="10" height="6.2" fill="#5A3823"/>
+        <rect width="10" height=".7" fill="#7A5236"/>
+        <rect y="5.6" width="10" height=".6" fill="#3F2617"/>
+        <circle cx="5" cy="6" r="4.6" fill="#5A3823"/>
+        <path d="M5 8.6 C 3.2 7.2, 3.1 5.6, 4.1 5.2 C 4.6 5, 5 5.4, 5 5.8 C 5 5.4, 5.4 5, 5.9 5.2 C 6.9 5.6, 6.8 7.2, 5 8.6 Z" fill="#EAD9B4"/>
+        <circle cx="0" cy="3" r=".45" fill="#2E1B10"/><circle cx="10" cy="3" r=".45" fill="#2E1B10"/>
+      </pattern>
+    </defs>
+    <rect width="400" height="12" fill="url(#bh)"/>
+  </svg>
+  <svg class="eave-v" viewBox="0 0 12 400" preserveAspectRatio="xMinYMid slice" aria-hidden="true">
+    <defs>
+      <pattern id="bv" width="12" height="10" patternUnits="userSpaceOnUse">
+        <rect width="6.2" height="10" fill="#5A3823"/>
+        <rect width=".7" height="10" fill="#7A5236"/>
+        <rect x="5.6" width=".6" height="10" fill="#3F2617"/>
+        <circle cx="6" cy="5" r="4.6" fill="#5A3823"/>
+        <path d="M8.6 5 C 7.2 3.2, 5.6 3.1, 5.2 4.1 C 5 4.6, 5.4 5, 5.8 5 C 5.4 5, 5 5.4, 5.2 5.9 C 5.6 6.9, 7.2 6.8, 8.6 5 Z" fill="#EAD9B4"/>
+        <circle cx="3" cy="0" r=".45" fill="#2E1B10"/><circle cx="3" cy="10" r=".45" fill="#2E1B10"/>
+      </pattern>
+    </defs>
+    <rect width="12" height="400" fill="url(#bv)"/>
+  </svg>
+  <div class="sign">
+    <div class="kick"><i></i><span>Gasthaus · Est. 1926</span><i></i></div>
+    <h1>Chalet<span>Season</span></h1>
+    <svg class="orn" viewBox="0 0 220 44" aria-hidden="true">
+      <path d="M0 22 H78 M142 22 H220" stroke="#E7C98A" stroke-width="1.2"/>
+      <g fill="#E0574A"><path d="M70 22 l4 -4 l4 4 l-4 4z"/><path d="M142 22 l4 -4 l4 4 l-4 4z"/></g>
+      <g transform="translate(110 22)">
+        <g class="fl" fill="#F3E9D4">
+          <ellipse rx="4.2" ry="12" cy="-10"/><ellipse rx="4.2" ry="12" cy="-10" transform="rotate(72)"/><ellipse rx="4.2" ry="12" cy="-10" transform="rotate(144)"/><ellipse rx="4.2" ry="12" cy="-10" transform="rotate(216)"/><ellipse rx="4.2" ry="12" cy="-10" transform="rotate(288)"/>
+        </g>
+        <g class="fl" fill="#22402F" opacity=".35">
+<ellipse rx="1.2" ry="7" cy="-11"/><ellipse rx="1.2" ry="7" cy="-11" transform="rotate(72)"/><ellipse rx="1.2" ry="7" cy="-11" transform="rotate(144)"/><ellipse rx="1.2" ry="7" cy="-11" transform="rotate(216)"/><ellipse rx="1.2" ry="7" cy="-11" transform="rotate(288)"/></g>
+        <circle r="5" fill="#E7C98A"/><circle r="2" fill="#B8322A"/>
+      </g>
+      <g fill="none" stroke="#E7C98A" stroke-width="1.2" stroke-linecap="round"><path d="M86 22 c6 -8 12 -8 12 -2"/><path d="M86 22 c6 8 12 8 12 2"/><path d="M134 22 c-6 -8 -12 -8 -12 -2"/><path d="M134 22 c-6 8 -12 8 -12 2"/></g>
+    </svg>
+    <div class="offer">25% off warm layers<small>Fireside days · until 06 January</small></div>
+    <div class="cta"><span>Come in</span><b>✦</b><span>Code CHALET25</span></div>
+  </div>
+</div>
+</body>
+</html>

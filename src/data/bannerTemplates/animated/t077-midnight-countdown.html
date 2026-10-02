@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Midnight Countdown — New Year's Eve: black-tie night, a silver-foil 23:59 clock, a 10→1 countdown rail,
+     confetti drawn in the dark. tall → photo melts into the night below; square/wide → photo right, night left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0A0B12; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0A0B12; color: #EDEEF2; font-family: "Big Shoulders Display", "Arial Narrow", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 60%; object-fit: cover; object-position: 50% 16%; }
+  .melt { position: absolute; left: 0; right: 0; top: 49%; height: 11.2%; background: linear-gradient(0deg, rgba(10,11,18,1.0) 0.0%, rgba(10,11,18,0.985) 7.7%, rgba(10,11,18,0.943) 15.4%, rgba(10,11,18,0.874) 23.1%, rgba(10,11,18,0.784) 30.8%, rgba(10,11,18,0.677) 38.5%, rgba(10,11,18,0.56) 46.2%, rgba(10,11,18,0.44) 53.8%, rgba(10,11,18,0.323) 61.5%, rgba(10,11,18,0.216) 69.2%, rgba(10,11,18,0.126) 76.9%, rgba(10,11,18,0.057) 84.6%, rgba(10,11,18,0.015) 92.3%, rgba(10,11,18,0.0) 100.0%); }
+  .night { position: absolute; left: 0; right: 0; top: 60%; bottom: 0; }
+  .confetti { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .rail { position: absolute; left: 6vmin; right: 6vmin; top: 1.6vmin; display: flex; justify-content: space-between; align-items: baseline; font-weight: 800; font-size: 3.4vmin; letter-spacing: .02em; }
+  .rail span { color: rgba(237,238,242,.28); }
+  .rail span:nth-child(n+6) { color: rgba(237,238,242,.5); }
+  .rail span:nth-child(n+9) { color: #EDEEF2; }
+  .rail span:last-child { color: #FF6FB1; font-size: 4.6vmin; }
+  .k { position: absolute; left: 6vmin; top: 9vmin; font-weight: 600; font-size: 2vmin; letter-spacing: .34em; text-transform: uppercase; color: #BFC3CC; }
+  .clock { position: absolute; left: 5vmin; top: 11.4vmin; font-weight: 900; font-size: 27vmin; line-height: .9; letter-spacing: -.01em; font-variant-numeric: tabular-nums;
+    background: linear-gradient(172deg, #FFFFFF 0%, #C9CDD6 22%, #7E8491 40%, #F4F5F8 55%, #9EA3AE 70%, #E6E8EE 86%, #8A8F9B 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h1 { position: absolute; left: 6vmin; top: max(37vmin, calc(11.4vmin + 24.5vmin + (100% - 60vmin) * .3)); margin: 0; font-family: "DM Serif Display", Didot, Georgia, serif; font-weight: 400; font-style: italic; font-size: 6.4vmin; line-height: 1; }
+  h1 br { display: none; }
+  .offer { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .offer p { margin: 0; font-family: "DM Serif Display", Georgia, serif; font-size: 3vmin; line-height: 1.25; color: #D9DBE1; }
+  .offer p b { font-family: "Big Shoulders Display", sans-serif; font-weight: 800; font-size: 3.6vmin; letter-spacing: .06em; color: #FF6FB1; }
+  .cta { flex: none; padding: 1.5vmin 2.8vmin; border: 1px solid #EDEEF2; font-weight: 800; font-size: 2.6vmin; letter-spacing: .2em; text-transform: uppercase; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 56%; }
+    .melt { top: 45%; }
+    .night { top: 56%; }
+    .clock { font-size: 24vmin; }
+    h1 { top: 35vmin; font-size: 5.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 54%; height: 100%; object-position: 50% 30%; }
+    .melt { top: 0; bottom: 0; height: auto; left: 46%; width: 12%; background: linear-gradient(90deg, rgba(10,11,18,1.0) 0.0%, rgba(10,11,18,0.985) 7.7%, rgba(10,11,18,0.943) 15.4%, rgba(10,11,18,0.874) 23.1%, rgba(10,11,18,0.784) 30.8%, rgba(10,11,18,0.677) 38.5%, rgba(10,11,18,0.56) 46.2%, rgba(10,11,18,0.44) 53.8%, rgba(10,11,18,0.323) 61.5%, rgba(10,11,18,0.216) 69.2%, rgba(10,11,18,0.126) 76.9%, rgba(10,11,18,0.057) 84.6%, rgba(10,11,18,0.015) 92.3%, rgba(10,11,18,0.0) 100.0%); }
+    .night { top: 0; left: 0; right: 54%; }
+    .rail { left: 5vmin; right: 3vmin; top: 5vmin; font-size: 2.6vmin; }
+    .rail span:last-child { font-size: 3.4vmin; }
+    .k { left: 5vmin; top: 13vmin; }
+    .clock { left: 4vmin; top: 16vmin; font-size: 19vmin; }
+    h1 { left: 5vmin; right: 3vmin; top: 37vmin; font-size: 7vmin; }
+    h1 br { display: inline; }
+    .offer { left: 5vmin; right: 3vmin; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .offer p { font-size: 2.7vmin; }
+    .cta { font-size: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .melt { left: 52%; width: 10%; }
+    .night { right: 48%; }
+    .rail { left: 6vmin; right: 12vmin; top: 6vmin; font-size: 3.2vmin; }
+    .rail span:last-child { font-size: 4.4vmin; }
+    .k { left: 6vmin; top: 16vmin; }
+    .clock { left: 5vmin; top: 19vmin; font-size: 27vmin; }
+    h1 { left: 6vmin; right: 10vmin; top: 45vmin; font-size: 7.4vmin; }
+    .offer { left: 6vmin; right: 12vmin; bottom: 6vmin; flex-direction: row; align-items: flex-end; }
+    .offer p { font-size: 2.9vmin; }
+    .cta { font-size: 2.4vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* the countdown rail: 10 → 1 light up in turn, 1 detonates in pink */
+  .rail span { --rc: rgba(237,238,242,.28); display: inline-block; animation: count 6s linear infinite; }
+  .rail span:nth-child(n+6) { --rc: rgba(237,238,242,.5); }
+  .rail span:nth-child(n+9) { --rc: #EDEEF2; }
+  .rail span:nth-child(2) { animation-delay: -5.76s; } .rail span:nth-child(3) { animation-delay: -5.52s; }
+  .rail span:nth-child(4) { animation-delay: -5.28s; } .rail span:nth-child(5) { animation-delay: -5.04s; }
+  .rail span:nth-child(6) { animation-delay: -4.8s; }  .rail span:nth-child(7) { animation-delay: -4.56s; }
+  .rail span:nth-child(8) { animation-delay: -4.32s; } .rail span:nth-child(9) { animation-delay: -4.08s; }
+  @keyframes count {
+    0%, 4% { color: var(--rc); transform: translateY(0); text-shadow: 0 0 0 rgba(255,255,255,0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    6% { color: #FFFFFF; transform: translateY(-.5vmin); text-shadow: 0 0 1.6vmin rgba(255,255,255,.75); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    12%, 100% { color: var(--rc); transform: translateY(0); text-shadow: 0 0 0 rgba(255,255,255,0); }
+  }
+  .rail span:last-child { transform-origin: 50% 70%; animation: one 6s linear infinite; }
+  @keyframes one {
+    0%, 40% { transform: scale(1); text-shadow: 0 0 0 rgba(255,111,177,0); animation-timing-function: cubic-bezier(.2,.9,.3,1.2); }
+    43% { transform: scale(1.5); text-shadow: 0 0 2.4vmin rgba(255,111,177,.9); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    52% { transform: scale(.95); text-shadow: 0 0 1vmin rgba(255,111,177,.4); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    60%, 100% { transform: scale(1); text-shadow: 0 0 0 rgba(255,111,177,0); }
+  }
+  /* 23:59 — a specular sweep across the silver foil at "midnight" */
+  .clock { background: linear-gradient(100deg, rgba(255,255,255,0) 0 42%, rgba(255,255,255,.95) 50%, rgba(255,255,255,0) 58% 100%) 0 0 / 300% 100% no-repeat,
+      linear-gradient(172deg, #FFFFFF 0%, #C9CDD6 22%, #7E8491 40%, #F4F5F8 55%, #9EA3AE 70%, #E6E8EE 86%, #8A8F9B 100%);
+    -webkit-background-clip: text; background-clip: text; animation: foil 6s linear infinite; }
+  @keyframes foil {
+    0%, 42% { background-position: 0% 0, 0 0; animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    60% { background-position: 100% 0, 0 0; animation-timing-function: steps(1, end); }
+    60.5%, 100% { background-position: 0% 0, 0 0; }
+  }
+  /* confetti: sparks twinkle, strips drift */
+  .confetti circle { animation: twinkle 3s cubic-bezier(.45,0,.55,1) infinite; }
+  .confetti circle:nth-of-type(2) { animation-delay: -.6s; } .confetti circle:nth-of-type(3) { animation-delay: -1.2s; }
+  .confetti circle:nth-of-type(4) { animation-delay: -1.8s; } .confetti circle:nth-of-type(5) { animation-delay: -2.4s; }
+  @keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .15; } }
+  .confetti rect { animation: drift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .confetti rect:nth-of-type(2) { animation-delay: -1.5s; } .confetti rect:nth-of-type(3) { animation-delay: -3s; }
+  .confetti rect:nth-of-type(4) { animation-delay: -4.5s; } .confetti rect:nth-of-type(5) { animation-delay: -2.2s; }
+  @keyframes drift { 0%, 100% { translate: 0 0; } 50% { translate: .8px 2.2px; } }
+  /* CTA: the outline fills with a quick sheen */
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.35), rgba(255,255,255,0));
+    transform: translateX(-150%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    93%, 100% { transform: translateX(380%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="melt"></div>
+  <div class="night">
+    <svg class="confetti" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <g opacity=".9">
+                <rect x="93" y="12" width="1.1" height="2.4" fill="#FF6FB1" transform="rotate(-30 93 12)"/>
+        <rect x="88" y="44" width="1.2" height="2.6" fill="#C9CDD6" transform="rotate(50 88 44)"/>
+                <rect x="70" y="70" width="1.1" height="2.4" fill="#FF6FB1" transform="rotate(70 70 70)"/>
+        <rect x="3" y="66" width="1" height="2.2" fill="#7FA6FF" transform="rotate(-40 3 66)"/>
+        <rect x="97" y="80" width="1" height="2.2" fill="#E9D8B4" transform="rotate(-60 97 80)"/>
+        <circle cx="76" cy="26" r=".7" fill="#E9D8B4"/>
+        <circle cx="96" cy="60" r=".6" fill="#7FA6FF"/><circle cx="42" cy="76" r=".55" fill="#C9CDD6"/>
+        <circle cx="84" cy="94" r=".6" fill="#FF6FB1"/><circle cx="12" cy="92" r=".6" fill="#C9CDD6"/>
+      </g>
+    </svg>
+    <div class="rail"><span>10</span><span>9</span><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span></div>
+    <div class="k">Countdown sale · 31.12</div>
+    <div class="clock">23:59</div>
+    <h1>Dress for <br>midnight.</h1>
+    <div class="offer">
+      <p>26% off party pieces<br>with code <b>MIDNIGHT</b></p>
+      <div class="cta">Shop now</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Save the Date — a modern save-the-date card on blush stock: a big serif "Save the date.", the month set as a crisp
+     calendar grid, and one Saturday ringed by hand in red lipstick. tall → card on top, photo below;
+     square/wide → card left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2E4DA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2A1F1C; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; background: #F2E4DA; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 22%; }
+  .card { position: absolute; left: 0; right: 0; top: 0; height: 84vmin; box-sizing: border-box; padding: 5.5vmin 7vmin 5vmin; display: flex; flex-direction: column; }
+  .micro { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: 3vmin 0 0; font-family: "Gloock", "Didot", Georgia, serif; font-weight: 400; font-size: 16vmin; line-height: .86; letter-spacing: -.035em; }
+  h1 i { color: #C4122F; font-style: normal; }
+  .low { flex: 1; display: flex; gap: 6vmin; align-items: flex-end; margin-top: 3vmin; }
+  .det { flex: 1; min-width: 0; }
+  .det .day { font-family: "Gloock", Georgia, serif; font-size: 5vmin; line-height: 1.05; }
+  .det p { margin: 1.4vmin 0 0; font-size: 2.1vmin; line-height: 1.5; color: #5C4B45; }
+  .det p b { color: #2A1F1C; font-weight: 600; }
+  .det .cta { margin-top: 2.2vmin; display: inline-block; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; padding-bottom: .6vmin; border-bottom: .3vmin solid #C4122F; white-space: nowrap; }
+
+  .cal { flex: none; width: 44vmin; }
+  .cal .mo { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; padding-bottom: 1vmin; border-bottom: 1px solid #2A1F1C; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 1vmin; }
+  .grid span { position: relative; height: 5vmin; line-height: 5vmin; text-align: center; font-size: 2.1vmin; font-variant-numeric: tabular-nums; }
+  .grid .dow { height: 3.4vmin; line-height: 3.4vmin; font-size: 1.6vmin; font-weight: 600; color: #8A766E; }
+  .grid .off { color: #B9A59C; }
+  .grid .on { font-weight: 600; color: #C4122F; }
+  .grid .on svg { position: absolute; left: -35%; top: -25%; width: 170%; height: 150%; overflow: visible; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .card { height: 70vmin; padding: 4.5vmin 7vmin 4vmin; }
+    .photo { height: calc(100% - 70vmin); }
+    h1 { font-size: 14vmin; margin-top: 2.4vmin; }
+    .grid span { height: 4.4vmin; line-height: 4.4vmin; font-size: 1.9vmin; }
+    .grid .dow { height: 3vmin; line-height: 3vmin; }
+    .cal { width: 40vmin; }
+    .det .day { font-size: 4.2vmin; }
+    .det p { font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; top: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .card { right: 46%; height: auto; bottom: 0; padding: 5.5vmin 5.5vmin 5vmin; }
+    .micro span:last-child { display: none; }
+    h1 { font-size: 11.4vmin; }
+    .low { flex-direction: column; align-items: stretch; gap: 3.4vmin; margin-top: 2.4vmin; justify-content: flex-end; }
+    .cal { width: 100%; }
+    .det .day br { display: none; }
+    .grid span { height: 4vmin; line-height: 4vmin; font-size: 1.8vmin; }
+    .grid .dow { height: 2.8vmin; line-height: 2.8vmin; font-size: 1.6vmin; }
+    .det { flex: none; }
+    .det .day { font-size: 3.8vmin; }
+    .det p { font-size: 1.8vmin; margin-top: .8vmin; }
+    .det p br { display: none; }
+    .det .cta { font-size: 1.6vmin; letter-spacing: .14em; margin-top: 1.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; }
+    .card { right: 45%; padding: 6vmin 7vmin 6vmin; }
+    .micro span:last-child { display: inline; }
+    h1 { font-size: 17vmin; }
+    .low { flex-direction: row; align-items: flex-end; gap: 6vmin; margin-top: 3vmin; }
+    .cal { width: 40vmin; }
+    .grid span { height: 4.6vmin; line-height: 4.6vmin; font-size: 1.9vmin; }
+    .det { flex: 1; }
+    .det .day br, .det p br { display: inline; }
+    .det .day { font-size: 4.4vmin; }
+    .det p { font-size: 1.9vmin; margin-top: 1.2vmin; }
+    .det .cta { font-size: 1.7vmin; letter-spacing: .2em; margin-top: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="card">
+    <div class="micro"><span>Studio Oro</span><span>The Occasion Sale</span></div>
+    <h1>Save<br>the date<i>.</i></h1>
+    <div class="low">
+      <div class="det">
+        <div class="day">Saturday, <br>13 June</div>
+        <p><b>Up to 30% off</b> the guest edit. <br>Doors open at 9 am.</p>
+        <div class="cta">Set a reminder</div>
+      </div>
+      <div class="cal">
+        <div class="mo"><span>June</span><span>2026</span></div>
+        <div class="grid">
+          <span class="dow">M</span><span class="dow">T</span><span class="dow">W</span><span class="dow">T</span><span class="dow">F</span><span class="dow">S</span><span class="dow">S</span>
+          <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
+          <span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span class="on">13<svg viewBox="0 0 60 44" aria-hidden="true"><path d="M44 6 C 30 0, 8 4, 5 20 C 2 36, 26 42, 42 38 C 58 33, 58 12, 40 7 C 32 5, 24 6, 18 9" fill="none" stroke="#C4122F" stroke-width="3" stroke-linecap="round" opacity=".92"/></svg></span><span>14</span>
+          <span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
+          <span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span>
+          <span>29</span><span>30</span><span class="off">1</span><span class="off">2</span><span class="off">3</span><span class="off">4</span><span class="off">5</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Live Now — a stream in progress: the photo is the video feed with a red LIVE pill, viewer count and running timecode
+     on a thin top scrim; host header above, live-only price, floating hearts and a join CTA below.
+     tall / 3:4 → header · feed · copy stacked · square / wide → feed left, host + copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0D0D10; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0D0D10; color: #F5F3F0;
+    font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column;
+    padding: 4.6vmin 5.6vmin 5vmin; box-sizing: border-box; }
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(80vmin 60vmin at 100% 100%, rgba(255,45,61,.16), transparent 70%); }
+
+  .bar { position: relative; flex: none; display: flex; align-items: center; gap: 1.8vmin; }
+  .av { flex: none; width: 7vmin; height: 7vmin; border-radius: 50%; display: grid; place-items: center;
+    background: linear-gradient(135deg, #FF5A4E, #FFB36B); color: #1A0B09; font-weight: 800; font-size: 2.4vmin; letter-spacing: .02em;
+    box-shadow: 0 0 0 .5vmin #0D0D10, 0 0 0 .9vmin #FF2D3D; }
+  .who { min-width: 0; }
+  .who b { display: block; font-size: 2.4vmin; font-weight: 700; white-space: nowrap; }
+  .who span { display: block; margin-top: .4vmin; font-size: 1.7vmin; color: #9C98A3; white-space: nowrap; }
+  .follow { margin-left: auto; flex: none; padding: 1.3vmin 2.4vmin; border-radius: 99vmin; border: 1px solid rgba(245,243,240,.4);
+    font-size: 1.8vmin; font-weight: 700; white-space: nowrap; }
+
+  .stage { position: relative; flex: 1 1 auto; min-height: 0; margin: 3.6vmin -5.6vmin 0; }
+  .stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+  .stage .scrim { position: absolute; left: 0; right: 0; top: 0; height: 13vmin;
+    background: linear-gradient(180deg, rgba(8,8,10,1) 0%, rgba(8,8,10,.985) 7.69%, rgba(8,8,10,.943) 15.38%, rgba(8,8,10,.874) 23.08%, rgba(8,8,10,.784) 30.77%, rgba(8,8,10,.677) 38.46%, rgba(8,8,10,.56) 46.15%, rgba(8,8,10,.44) 53.85%, rgba(8,8,10,.323) 61.54%, rgba(8,8,10,.216) 69.23%, rgba(8,8,10,.126) 76.92%, rgba(8,8,10,.057) 84.62%, rgba(8,8,10,.015) 92.31%, rgba(8,8,10,0) 100%); }
+  .status { position: absolute; left: 3.4vmin; top: 3vmin; display: flex; gap: 1.2vmin; }
+  .live { display: flex; align-items: center; gap: 1vmin; background: #FF2D3D; color: #fff; font-weight: 800; font-size: 1.9vmin;
+    letter-spacing: .14em; padding: 1vmin 1.8vmin 1vmin 1.6vmin; border-radius: .8vmin; }
+  .live i { width: 1.1vmin; height: 1.1vmin; border-radius: 50%; background: #fff; box-shadow: 0 0 0 .5vmin rgba(255,255,255,.3); }
+  .eye { display: flex; align-items: center; gap: .9vmin; background: rgba(20,20,24,.55); padding: 1vmin 1.6vmin; border-radius: .8vmin;
+    font-weight: 700; font-size: 1.9vmin; }
+  .eye svg { width: 2.6vmin; height: 2.6vmin; display: block; }
+  .tc { position: absolute; right: 3.4vmin; top: 3.8vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .08em; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.88); }
+
+  .copy { position: relative; flex: none; padding-top: 4vmin; }
+  .kick { font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #FF6A5C; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 9.4vmin; line-height: .94; letter-spacing: -.02em; }
+  h1 i { color: #FF5A4E; }
+  .row { display: flex; align-items: flex-end; gap: 3vmin; margin-top: 3.4vmin; }
+  .price small { display: block; margin-bottom: 1vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #9C98A3; }
+  .price b { font-size: 7vmin; font-weight: 800; letter-spacing: -.04em; line-height: .9; }
+  .price s { margin-left: 1vmin; font-size: 2.4vmin; color: #77737E; }
+  .hearts { margin-left: auto; position: relative; flex: none; width: 10vmin; height: 10vmin; }
+  .hearts svg { position: absolute; display: block; }
+  .h1 { width: 3.6vmin; left: 5.4vmin; bottom: 0; }
+  .h2 { width: 2.8vmin; left: 1.6vmin; bottom: 3vmin; opacity: .75; transform: rotate(-14deg); }
+  .h3 { width: 2.2vmin; left: 6.2vmin; bottom: 5.4vmin; opacity: .5; transform: rotate(12deg); }
+  .h4 { width: 1.6vmin; left: 3vmin; bottom: 7.8vmin; opacity: .3; }
+  .cta { flex: none; padding: 2.2vmin 3.6vmin; border-radius: 99vmin; background: #F5F3F0; color: #0D0D10; font-weight: 800; font-size: 2.2vmin; white-space: nowrap; }
+  .small { margin-top: 2.6vmin; font-size: 1.7vmin; color: #77737E; letter-spacing: .03em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4vmin 5.6vmin 4.4vmin; }
+    .stage { margin-top: 3vmin; }
+    .copy { padding-top: 3.2vmin; }
+    h1 { font-size: 8vmin; }
+    .row { margin-top: 2.6vmin; }
+    .price b { font-size: 6vmin; }
+    .small { margin-top: 2vmin; }
+  }
+  /* ── square: feed left, host + copy right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .stage { position: absolute; left: 0; top: 0; bottom: 0; width: 52%; height: 100%; margin: 0; }
+    .bar { position: absolute; left: calc(52% + 5vmin); right: 5vmin; top: 5.4vmin; }
+    .follow { display: none; }
+    .copy { position: absolute; left: calc(52% + 5vmin); right: 5vmin; bottom: 5.4vmin; padding: 0; }
+    h1 { font-size: 7vmin; }
+    .row { flex-wrap: wrap; gap: 2.4vmin; }
+    .price { flex: 1 1 auto; }
+    .price b { font-size: 6vmin; }
+    .hearts { margin-left: 0; width: 9vmin; height: 9vmin; }
+    .cta { flex: 1 1 100%; text-align: center; box-sizing: border-box; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .stage { width: 50%; }
+    .bar { left: calc(50% + 7vmin); right: 7vmin; top: 7vmin; }
+    .follow { display: block; }
+    .copy { left: calc(50% + 7vmin); right: 7vmin; bottom: 7vmin; }
+    h1 { font-size: 8.6vmin; }
+    .row { flex-wrap: nowrap; gap: 3vmin; margin-top: 3.4vmin; }
+    .price { flex: none; }
+    .hearts { margin-left: auto; }
+    .cta { flex: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="bar">
+    <div class="av">AV</div>
+    <div class="who"><b>atelier.vane</b><span>The Autumn Edit · episode 12</span></div>
+    <div class="follow">+ Follow</div>
+  </div>
+  <div class="stage">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="scrim"></div>
+    <div class="status">
+      <div class="live"><i></i>LIVE</div>
+      <div class="eye"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M1.5 12S5.5 5 12 5s10.5 7 10.5 7-4 7-10.5 7S1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3.2" fill="#fff"/></svg>12.4K</div>
+    </div>
+    <div class="tc">00:42:18</div>
+  </div>
+  <div class="copy">
+    <div class="kick">Streaming now · try-on by try-on</div>
+    <h1>We're <i>live</i> —<br>come see it move.</h1>
+    <div class="row">
+      <div class="price"><small>Live-only price</small><b>$68</b><s>$95</s></div>
+      <div class="hearts">
+        <svg class="h1" viewBox="0 0 24 22"><path d="M12 21.5 10.3 20C4.2 14.5 0 10.8 0 6.4 0 2.8 2.8 0 6.4 0 8.5 0 10.5 1 12 2.5 13.5 1 15.5 0 17.6 0 21.2 0 24 2.8 24 6.4c0 4.4-4.2 8.1-10.3 13.6z" fill="#FF2D3D"/></svg>
+        <svg class="h2" viewBox="0 0 24 22"><path d="M12 21.5 10.3 20C4.2 14.5 0 10.8 0 6.4 0 2.8 2.8 0 6.4 0 8.5 0 10.5 1 12 2.5 13.5 1 15.5 0 17.6 0 21.2 0 24 2.8 24 6.4c0 4.4-4.2 8.1-10.3 13.6z" fill="#FF8A6B"/></svg>
+        <svg class="h3" viewBox="0 0 24 22"><path d="M12 21.5 10.3 20C4.2 14.5 0 10.8 0 6.4 0 2.8 2.8 0 6.4 0 8.5 0 10.5 1 12 2.5 13.5 1 15.5 0 17.6 0 21.2 0 24 2.8 24 6.4c0 4.4-4.2 8.1-10.3 13.6z" fill="#FF2D3D"/></svg>
+        <svg class="h4" viewBox="0 0 24 22"><path d="M12 21.5 10.3 20C4.2 14.5 0 10.8 0 6.4 0 2.8 2.8 0 6.4 0 8.5 0 10.5 1 12 2.5 13.5 1 15.5 0 17.6 0 21.2 0 24 2.8 24 6.4c0 4.4-4.2 8.1-10.3 13.6z" fill="#FFB36B"/></svg>
+      </div>
+      <div class="cta">Join the live →</div>
+    </div>
+    <div class="small">Price holds until the stream ends · free returns</div>
+  </div>
+</div>
+</body>
+</html>

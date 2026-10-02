@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Hanken+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Vertical Cover — a masthead-less minimalist cover: one oversized word runs up a flat spine, the look fills the rest.
+     every ratio → spine left (narrower as the frame widens), photo right; the word scales with the frame height */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE7DE; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE7DE; color: #121110; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; }
+
+  .photo { position: absolute; top: 0; right: 0; width: 68%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 32%; }
+  .word { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(180deg); writing-mode: vertical-rl; white-space: nowrap;
+    font-family: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif; font-weight: 900; text-transform: uppercase;
+    font-size: min(30vmin, 16vh); line-height: .8; letter-spacing: -.005em; }
+  .tl, .bl { position: absolute; left: 0; right: 0; text-align: center; font-size: 1.8vmin; line-height: 1.45; letter-spacing: .24em; text-transform: uppercase; }
+  .tl { top: 4vmin; font-weight: 700; }
+  .tl span { display: block; font-weight: 400; }
+  .bl { bottom: 4vmin; }
+  .bl b { display: block; font-size: 3.4vmin; letter-spacing: .02em; font-weight: 700; margin-top: .6vmin; }
+  .dot { display: inline-block; width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #B8452A; margin-bottom: 1.2vmin; }
+
+  .tag { position: absolute; right: 0; bottom: 0; background: #121110; color: #ECE7DE; padding: 2vmin 3vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; display: flex; align-items: center; gap: 1.6vmin; }
+  .tag i { display: block; width: 5vmin; height: 1px; background: #ECE7DE; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 70%; }
+    .spine { width: 30%; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 74%; }
+    .spine { width: 26%; }
+    .word { font-size: 16.4vh; }
+    .tl, .bl { font-size: 1.6vmin; letter-spacing: .2em; }
+    .tl { top: 3.4vmin; }
+    .bl { bottom: 3.4vmin; }
+    .bl b { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 79%; }
+    .spine { width: 21%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="spine">
+    <div class="tl">Vol. 09<span>AW 26</span></div>
+    <div class="word">Essentials</div>
+    <div class="bl"><span class="dot"></span><br>New season<b>from $89</b></div>
+  </div>
+  <div class="tag">Shop now<i></i></div>
+</div>
+</body>
+</html>

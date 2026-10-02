@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* Red Pen Memo — the merchandiser's markdown instruction behind every outlet: a typed form, old prices struck in red marker, new ones scrawled beside them, "final" circled */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FAF9F5; }
+  .banner { --panel: 84vmin; position: fixed; inset: 0; overflow: hidden; background: #FAF9F5; color: #1C1C1A; font-family: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .clip { position: absolute; right: 8vmin; top: calc(100% - var(--panel) - 5vmin); width: 4.2vmin; height: 11vmin; overflow: visible; z-index: 2; }
+
+  .memo { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; top: calc(100% - var(--panel) + 5vmin); display: flex; flex-direction: column; }
+  .hd { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: .5vmin solid #1C1C1A; padding-bottom: 1.4vmin; }
+  h1 { margin: 0; font-weight: 800; font-size: 10.4vmin; line-height: .84; letter-spacing: -.01em; text-transform: uppercase; }
+  .form { text-align: right; font-size: 1.9vmin; font-weight: 500; line-height: 1.35; letter-spacing: .06em; text-transform: uppercase; }
+  .form b { font-weight: 800; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid #1C1C1A; }
+  .fields div { padding: 1.2vmin 0 1vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #6B6A64; }
+  .fields div + div { padding-left: 2vmin; border-left: 1px solid #C9C7BF; }
+  .fields span { display: block; margin-top: .3vmin; font-family: "Caveat", "Bradley Hand", cursive; font-size: 3.4vmin; font-weight: 700; letter-spacing: 0; text-transform: none; color: #1F3F9E; line-height: 1; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 1.6vmin; }
+  th { text-align: left; font-size: 1.6vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #6B6A64; padding: 0 0 .8vmin; border-bottom: 1px solid #1C1C1A; }
+  td { font-size: 3vmin; font-weight: 500; padding: 1.7vmin 0 1.3vmin; border-bottom: 1px solid #DAD8D0; white-space: nowrap; vertical-align: middle; }
+  td.ref { font-weight: 600; color: #6B6A64; font-size: 2.3vmin; letter-spacing: .06em; width: 18%; }
+  .was { position: relative; display: inline-block; }
+  .was svg { position: absolute; left: -.8vmin; top: 10%; width: calc(100% + 1.6vmin); height: 80%; overflow: visible; }
+  td.now { font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 5vmin; line-height: .8; color: #CF2A1F; text-align: right; }
+  th:last-child { text-align: right; }
+
+  .bottom { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .note { position: relative; margin-left: 3.4vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 15vmin; line-height: .8; color: #CF2A1F; transform: rotate(-5deg); transform-origin: 0 100%; padding: 1vmin 1vmin 0; white-space: nowrap; }
+  .note small { display: block; font-size: .3em; line-height: 1; margin: 0 0 2.6vmin 0; }
+  .note .n { position: relative; display: inline-block; padding: 0 1vmin; }
+  .note svg { position: absolute; left: -3.4vmin; top: -2.6vmin; width: calc(100% + 6.8vmin); height: calc(100% + 4.6vmin); overflow: visible; }
+  .cta { flex: none; font-weight: 800; font-size: 2.6vmin; letter-spacing: .12em; text-transform: uppercase; background: #1C1C1A; color: #FAF9F5; padding: 1.4vmin 2.8vmin 1.2vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .memo { top: calc(100% - var(--panel) + 4vmin); bottom: 4.4vmin; }
+    h1 { font-size: 9vmin; }
+    .fields span { font-size: 3vmin; }
+    table { margin-top: 1vmin; }
+    td { font-size: 2.7vmin; padding: .7vmin 0 .5vmin; }
+    td.now { font-size: 4.4vmin; }
+    .note { font-size: 13vmin; }
+  }
+  /* square / wide — the look clipped on the left, the memo on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .clip { right: auto; left: calc(48% - 7vmin); top: -1.6vmin; }
+    .memo { left: calc(48% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    .hd { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .form { text-align: left; font-size: 1.7vmin; }
+    h1 { font-size: 7.4vmin; }
+    .fields { grid-template-columns: 1fr 1fr; }
+    .fields div:nth-child(3) { display: none; }
+    .fields span { font-size: 2.8vmin; }
+    td { font-size: 2.4vmin; padding: .8vmin 0 .5vmin; }
+    td.ref { font-size: 1.9vmin; }
+    td.now { font-size: 4vmin; }
+    .bottom { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .note { font-size: 12vmin; }
+    .cta { font-size: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 64% 25%; }
+    .clip { left: calc(44% - 7vmin); }
+    .memo { left: calc(44% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .hd { flex-direction: row; align-items: flex-end; }
+    .form { text-align: right; }
+    h1 { font-size: 9vmin; }
+    .fields { grid-template-columns: 1fr 1fr 1fr; }
+    .fields div:nth-child(3) { display: block; }
+    td { font-size: 2.7vmin; }
+    td.now { font-size: 4.4vmin; }
+    .bottom { flex-direction: row; align-items: flex-end; }
+    .note { font-size: 14vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <svg class="clip" viewBox="0 0 12 32"><path d="M3 30 V6 a3 3 0 0 1 6 0 V26 a1.8 1.8 0 0 1 -3.6 0 V9" fill="none" stroke="#8D8C87" stroke-width="1.3" stroke-linecap="round"/></svg>
+  <div class="memo">
+    <div class="hd"><h1>Final<br>markdown</h1><div class="form">Memo <b>Nº 39</b><br>All stores · Online</div></div>
+    <div class="fields">
+      <div>Effective<span>Mon 29.09</span></div>
+      <div>Reason<span>End of season</span></div>
+      <div>Approved<span>A. Nord ✓</span></div>
+    </div>
+    <table>
+      <tr><th>Ref</th><th>Line</th><th>Was</th><th>Now</th></tr>
+      <tr><td class="ref">0142</td><td>Look 01</td><td><span class="was">€240<svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 14 C30 9 70 7 100 4" stroke="#CF2A1F" stroke-width="3" fill="none" stroke-linecap="round"/></svg></span></td><td class="now">€120</td></tr>
+      <tr><td class="ref">0157</td><td>Look 02</td><td><span class="was">€180<svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 12 C35 10 65 8 100 6" stroke="#CF2A1F" stroke-width="3" fill="none" stroke-linecap="round"/></svg></span></td><td class="now">€72</td></tr>
+      <tr><td class="ref">0163</td><td>Look 03</td><td><span class="was">€150<svg viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 13 C30 11 70 6 100 5" stroke="#CF2A1F" stroke-width="3" fill="none" stroke-linecap="round"/></svg></span></td><td class="now">€45</td></tr>
+    </table>
+    <div class="bottom">
+      <div class="note"><small>final — up to</small><span class="n">−70%<svg viewBox="0 0 100 40" preserveAspectRatio="none"><path d="M8 30 C2 14 30 3 58 4 C88 5 99 16 95 27 C90 38 55 40 30 37 C14 35 4 30 12 20" fill="none" stroke="#CF2A1F" stroke-width="1.8" stroke-linecap="round"/></svg></span></div>
+      <div class="cta">Shop the markdowns</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

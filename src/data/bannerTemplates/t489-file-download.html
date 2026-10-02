@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400;1,9..144,600&family=Pixelify+Sans:wght@400;600&family=Work+Sans:wght@400;500;600&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* File Download — the new season arriving over a 56k line: a classic grey "File Download" dialog with a two-tone
+     title bar, two folders with a sheet flying between them, a segmented blue progress bar stuck at 87 %, a
+     time-left / download-to / transfer-rate table and bevelled Open · Open Folder · Cancel buttons —
+     under a soft Fraunces "Almost yours." on periwinkle.
+     tall → photo above, headline + dialog below · square & wide → photo left, headline + dialog right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #C8CDEA; }
+  .banner { --sky: #C8CDEA; --ink: #16172B; --grey: #D6D3CB; --blue: #0B2A8C; --panel: 84vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--sky); color: var(--ink); font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif; }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--panel)); overflow: hidden; }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; justify-content: flex-end; }
+  .kick { font-family: "Pixelify Sans", monospace; font-size: 1.9vmin; letter-spacing: .06em; white-space: nowrap; color: var(--blue); }
+  h1 { margin: 2.6vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 13.4vmin; line-height: .9; letter-spacing: -.035em; white-space: nowrap; }
+  h1 i { font-weight: 600; color: var(--blue); }
+  .sub { margin: 2.2vmin 0 0; max-width: 70vmin; font-size: 2.1vmin; line-height: 1.4; }
+  .sub b { font-weight: 600; }
+
+  /* the dialog */
+  .win { margin-top: 3.6vmin; background: var(--grey); box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #404040, inset 2px 2px 0 #EFEDE8, inset -2px -2px 0 #8A877F, 0 2.4vmin 4vmin rgba(22,23,43,.22); padding: .5vmin; font-family: "Pixelify Sans", monospace; }
+  .bar { height: 4.4vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; padding: 0 .6vmin 0 1.4vmin; background: linear-gradient(90deg, #0A246A, #3A6EA5 60%, #A6CAF0); color: #fff; font-weight: 600; font-size: 1.9vmin; white-space: nowrap; }
+  .ctl { display: flex; gap: .4vmin; }
+  .ctl span { width: 3vmin; height: 2.7vmin; display: flex; align-items: center; justify-content: center; background: var(--grey); color: #111; font-size: 1.6vmin; line-height: 1;
+    box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #404040; }
+  .body { padding: 2.2vmin 2.4vmin 2.2vmin; font-size: 1.9vmin; line-height: 1.35; }
+  .fly { display: flex; align-items: center; gap: 2.4vmin; }
+  .anim { flex: none; position: relative; width: 20vmin; height: 5.6vmin; }
+  .fold { position: absolute; bottom: 0; width: 5.6vmin; height: 4.2vmin; background: linear-gradient(180deg, #F7D66A, #E0AE2C); box-shadow: inset 0 0 0 1px #9B7412; }
+  .fold::before { content: ""; position: absolute; left: 0; top: -.9vmin; width: 2.4vmin; height: 1vmin; background: #E9BF45; box-shadow: inset 0 0 0 1px #9B7412; }
+  .fold.a { left: 0; } .fold.b { right: 0; }
+  .sheet { position: absolute; left: 9.6vmin; top: 0; width: 2.8vmin; height: 3.4vmin; background: #fff; box-shadow: inset 0 0 0 1px #6D6A62; transform: rotate(-16deg);
+    background-image: repeating-linear-gradient(180deg, transparent 0 .7vmin, #A9B6DA .7vmin calc(.7vmin + 1px)); }
+  .anim i { position: absolute; left: 6.4vmin; right: 6.4vmin; top: 3.8vmin; border-top: 1px dashed #6D6A62; }
+  .fly p { margin: 0; min-width: 0; }
+  .fly p span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prog { margin-top: 1.8vmin; height: 3.4vmin; padding: .5vmin; box-sizing: border-box; background: #fff; box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040; }
+  .prog div { width: 87%; height: 100%; background: repeating-linear-gradient(90deg, var(--blue) 0 1.4vmin, transparent 1.4vmin 1.8vmin); }
+  .tbl { margin: 1.8vmin 0 0; display: grid; grid-template-columns: auto 1fr; gap: .5vmin 2.4vmin; }
+  .tbl dt { white-space: nowrap; }
+  .tbl dd { margin: 0; white-space: nowrap; }
+  .tbl dd b { font-weight: 600; background: var(--blue); color: #fff; padding: 0 .7vmin; }
+  .chk { margin-top: 1.6vmin; display: flex; align-items: center; gap: 1.2vmin; white-space: nowrap; }
+  .chk i { flex: none; width: 2vmin; height: 2vmin; background: #fff; box-shadow: inset 1px 1px 0 #808080, inset 2px 2px 0 #404040; position: relative; }
+  .chk i::after { content: ""; position: absolute; left: .55vmin; top: .2vmin; width: .6vmin; height: 1.1vmin; border: solid #111; border-width: 0 .35vmin .35vmin 0; transform: rotate(40deg); }
+  .btns { margin-top: 2vmin; display: flex; justify-content: flex-end; gap: 1.4vmin; }
+  .btns span { min-width: 12vmin; height: 4.2vmin; padding: 0 1.4vmin; box-sizing: border-box; display: flex; align-items: center; justify-content: center; white-space: nowrap;
+    background: var(--grey); box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #404040, inset -2px -2px 0 #8A877F; }
+  .btns .go { box-shadow: 0 0 0 1px #000, inset 1px 1px 0 #fff, inset -1px -1px 0 #404040, inset -2px -2px 0 #8A877F; font-weight: 600; }
+  .btns .go em { font-style: normal; outline: 1px dotted #111; outline-offset: .4vmin; }
+  .btns .off { color: #8A877F; text-shadow: 1px 1px 0 #fff; }
+  .note { margin-top: 2vmin; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.6vmin; letter-spacing: .04em; white-space: nowrap; opacity: .75; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .panel { left: 9vmin; right: 9vmin; bottom: 4.4vmin; height: calc(var(--panel) - 8vmin); }
+    h1 { font-size: 11vmin; }
+    .sub { margin-top: 1.8vmin; }
+    .win { margin-top: 3vmin; }
+    .body { padding: 1.8vmin 2.2vmin; }
+    .note { display: none; }
+  }
+
+  /* square & wide: photo left, headline + dialog right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; bottom: 0; width: 50%; height: 100%; }
+    .panel { left: calc(50% + 4.4vmin); right: 4.4vmin; top: 5vmin; bottom: 5vmin; height: auto; justify-content: space-between; }
+    h1 { font-size: 10.6vmin; white-space: normal; }
+    .sub { font-size: 1.9vmin; }
+    .win { margin-top: auto; }
+    .bar { font-size: 1.7vmin; gap: 1vmin; }
+    .body { padding: 1.8vmin 1.8vmin; font-size: 1.7vmin; }
+    .anim { width: 13vmin; }
+    .fold { width: 4.4vmin; height: 3.4vmin; }
+    .sheet { left: 5.2vmin; width: 2.4vmin; height: 3vmin; }
+    .anim i { left: 4.8vmin; right: 4.8vmin; top: 3.8vmin; }
+    .tbl { grid-template-columns: 1fr; gap: 0; }
+    .tbl dt { opacity: .7; }
+    .tbl dd + dt { margin-top: .7vmin; }
+    .btns { gap: 1vmin; }
+    .btns span { min-width: 0; flex: 1; padding: 0 .8vmin; height: 3.9vmin; }
+    .note { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .panel { left: calc(44% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 12vmin; white-space: nowrap; }
+    .sub { font-size: 2vmin; max-width: 62vmin; }
+    .bar { font-size: 1.9vmin; }
+    .body { padding: 2vmin 2.4vmin; font-size: 1.85vmin; }
+    .anim { width: 20vmin; }
+    .fold { width: 5.6vmin; height: 4.2vmin; }
+    .sheet { left: 9.6vmin; width: 2.8vmin; height: 3.4vmin; }
+    .anim i { left: 6.4vmin; right: 6.4vmin; }
+    .tbl { grid-template-columns: auto 1fr; gap: .5vmin 2.4vmin; }
+    .tbl dt { opacity: 1; }
+    .tbl dd + dt { margin-top: 0; }
+    .btns span { flex: none; min-width: 12vmin; padding: 0 1.4vmin; height: 4.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="panel">
+    <div class="kick">Connected at 56.0 Kbps · Maison Lune</div>
+    <h1>Almost <i>yours.</i></h1>
+    <p class="sub">The new season is 87% downloaded. <b>30% off everything</b> while it finishes — until Sunday.</p>
+    <div class="win">
+      <div class="bar"><span>87% of new_season.jpg Completed</span><div class="ctl"><span>_</span><span>□</span><span>×</span></div></div>
+      <div class="body">
+        <div class="fly">
+          <div class="anim"><div class="fold a"></div><i></i><div class="sheet"></div><div class="fold b"></div></div>
+          <p><span>Saving:</span><span>new_season.jpg · 4.2 MB</span></p>
+        </div>
+        <div class="prog"><div></div></div>
+        <dl class="tbl">
+          <dt>Estimated time left:</dt><dd>3 sec — sale ends Sunday</dd>
+          <dt>Download to:</dt><dd>C:\My Wardrobe\SS26</dd>
+          <dt>Transfer rate:</dt><dd>code <b>DIALUP30</b> · 30% off</dd>
+        </dl>
+        <div class="chk"><i></i><span>Close this box when my order ships</span></div>
+        <div class="btns"><span class="go"><em>Shop now</em></span><span>Open Folder</span><span class="off">Cancel</span></div>
+      </div>
+    </div>
+    <div class="note"><span>Free returns · 30 days</span><span>Do not hang up the phone</span></div>
+  </div>
+</div>
+</body>
+</html>

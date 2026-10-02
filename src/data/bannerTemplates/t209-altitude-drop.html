@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Altitude Drop — a race-descent elevation profile in technical sportswear style: graphite panel, a filled
+     altitude line falling from summit to valley, and checkpoints where the markdown deepens as the altitude drops.
+     tall → photo above; square/wide → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #131518; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F2F2EE; font-family: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif; background: #131518; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; padding: 4.4vmin 6vmin 5vmin; box-sizing: border-box; display: flex; flex-direction: column; }
+  .mono { font-family: "DM Mono", Menlo, monospace; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-family: "DM Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; color: #A6A9AE; }
+  .kick b { color: #FF5A1F; font-weight: 500; }
+  h1 { margin: 2vmin 0 0; font-weight: 700; font-size: 10.4vmin; line-height: .92; letter-spacing: -.035em; }
+  h1 span { color: #FF5A1F; }
+  .chart { position: relative; flex: 1; min-height: 0; margin: 6vmin 13vmin 0 7vmin; }
+  .chart svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .chart .grid { vector-effect: non-scaling-stroke; }
+  .ax { position: absolute; font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; color: #7E8288; white-space: nowrap; }
+  .ax.y { left: -7vmin; transform: translateY(-50%); }
+  .ax.x { bottom: -3.2vmin; transform: translateX(-50%); }
+  .cp { position: absolute; width: 1.8vmin; height: 1.8vmin; margin: -.9vmin 0 0 -.9vmin; border-radius: 50%; background: #131518; border: .45vmin solid #FF5A1F; box-sizing: border-box; }
+  .a0 { top: 0; } .a50 { top: 50%; } .a100 { top: 100%; } .b0 { left: 0; } .b50 { left: 50%; } .b100 { left: 100%; }
+  .c1 { left: 6%; top: 9%; } .c2 { left: 36%; top: 38%; } .c3 { left: 64%; top: 58%; } .c4 { left: 92%; top: 84%; }
+  .lb { position: absolute; font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; line-height: 1.25; color: #A6A9AE; white-space: nowrap; }
+  .lb b { display: block; font-family: "Familjen Grotesk", Arial, sans-serif; font-weight: 700; font-size: 3.6vmin; letter-spacing: -.02em; color: #F2F2EE; }
+  .lb.last b { color: #FF5A1F; font-size: 5.4vmin; }
+  .l1 { left: calc(6% + 1.4vmin); bottom: calc(91% + .4vmin); }
+  .l2 { left: calc(36% + 1.4vmin); bottom: calc(62% + .4vmin); }
+  .l3 { right: calc(36% + 1.4vmin); top: calc(58% + .8vmin); text-align: right; }
+  .l4 { left: calc(100% + 1.4vmin); bottom: calc(12% - 1.2vmin); }
+  .foot { display: flex; align-items: stretch; margin-top: 6.4vmin; }
+  .foot .code { display: flex; align-items: center; padding: 0 2.4vmin; border: 1px solid #5A5E64; font-family: "DM Mono", Menlo, monospace; font-size: 1.9vmin; letter-spacing: .08em; white-space: nowrap; }
+  .foot .go { flex: 1; display: flex; justify-content: space-between; align-items: center; padding: 1.8vmin 2.6vmin; background: #FF5A1F; color: #131518; font-weight: 700; font-size: 2.5vmin; letter-spacing: .02em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 78vmin); }
+    .panel { height: 78vmin; padding-top: 4vmin; padding-bottom: 4.4vmin; }
+    h1 { font-size: 9.6vmin; }
+    .chart { margin-top: 5.6vmin; }
+    .foot { margin-top: 5.8vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 68vmin); }
+    .panel { height: 68vmin; padding: 3.4vmin 6vmin 3.8vmin; }
+    h1 { font-size: 8vmin; margin-top: 1.4vmin; }
+    h1 br { display: none; }
+    .chart { margin-top: 5vmin; margin-right: 11vmin; }
+    .lb b { font-size: 3vmin; }
+    .lb.last b { font-size: 4.4vmin; }
+    .foot { margin-top: 5.4vmin; }
+    .foot .go { padding: 1.4vmin 2.4vmin; font-size: 2.2vmin; }
+  }
+  /* square / wide → photo left, graphite panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 48%; top: 0; height: auto; padding: 5vmin 4.6vmin 4.6vmin; }
+    .kick { flex-direction: column; gap: .6vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 2.6vmin; }
+    h1 br { display: block; }
+    .chart { margin: 6vmin 9.4vmin 0 6.4vmin; }
+    .ax.y { left: -6.4vmin; }
+    .lb b { font-size: 2.6vmin; }
+    .lb.last b { font-size: 3.8vmin; }
+    .l2 .t, .l3 .t { display: none; }
+    .foot { margin-top: 5.4vmin; flex-direction: column; }
+    .foot .code { justify-content: center; padding: 1.1vmin 2vmin; font-size: 1.7vmin; border-bottom: 0; }
+    .foot .go { padding: 1.3vmin 2vmin; font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; }
+    .panel { left: 45%; padding: 6vmin 6vmin 5.6vmin; }
+    .kick { flex-direction: row; }
+    h1 { font-size: 9.4vmin; }
+    h1 br { display: none; }
+    .chart { margin: 7vmin 12vmin 0 7vmin; }
+    .ax.y { left: -7vmin; }
+    .lb b { font-size: 3.2vmin; }
+    .lb.last b { font-size: 4.8vmin; }
+    .l2 .t, .l3 .t { display: inline; }
+    .foot { flex-direction: row; margin-top: 6vmin; }
+    .foot .code { border-bottom: 1px solid #5A5E64; padding: 0 2.4vmin; font-size: 1.9vmin; }
+    .foot .go { padding: 1.7vmin 2.6vmin; font-size: 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><span>Stage 04 · <b>Winter descent</b></span><span>18.4 km · −2 400 m</span></div>
+    <h1>Prices go <br><span>downhill.</span></h1>
+    <div class="chart">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF5A1F" stop-opacity=".42"/><stop offset=".077" stop-color="#FF5A1F" stop-opacity=".414"/><stop offset=".154" stop-color="#FF5A1F" stop-opacity=".396"/><stop offset=".231" stop-color="#FF5A1F" stop-opacity=".367"/><stop offset=".308" stop-color="#FF5A1F" stop-opacity=".329"/><stop offset=".385" stop-color="#FF5A1F" stop-opacity=".284"/><stop offset=".462" stop-color="#FF5A1F" stop-opacity=".235"/><stop offset=".538" stop-color="#FF5A1F" stop-opacity=".185"/><stop offset=".615" stop-color="#FF5A1F" stop-opacity=".136"/><stop offset=".692" stop-color="#FF5A1F" stop-opacity=".091"/><stop offset=".769" stop-color="#FF5A1F" stop-opacity=".053"/><stop offset=".846" stop-color="#FF5A1F" stop-opacity=".024"/><stop offset=".923" stop-color="#FF5A1F" stop-opacity=".006"/><stop offset="1" stop-color="#FF5A1F" stop-opacity="0"/></linearGradient></defs>
+        <g stroke="#F2F2EE" stroke-opacity=".12" stroke-width="1" class="grid"><path class="grid" d="M0 0 H100 M0 25 H100 M0 50 H100 M0 75 H100 M0 100 H100"/><path class="grid" d="M0 0 V100 M50 0 V100 M100 0 V100" stroke-dasharray="2 3"/></g>
+        <path d="M0 10 L6 9 L10 14 L14 12 L20 22 L26 26 L30 24 L36 38 L42 44 L48 42 L54 52 L60 56 L64 58 L70 66 L76 70 L80 68 L86 78 L92 84 L100 88 L100 100 L0 100 Z" fill="url(#fill)"/>
+        <path class="grid" d="M0 10 L6 9 L10 14 L14 12 L20 22 L26 26 L30 24 L36 38 L42 44 L48 42 L54 52 L60 56 L64 58 L70 66 L76 70 L80 68 L86 78 L92 84 L100 88" fill="none" stroke="#FF5A1F" stroke-width="2.4" stroke-linejoin="round"/>
+      </svg>
+      <div class="ax y a0">3 450</div>
+      <div class="ax y a50">2 250</div>
+      <div class="ax y a100">1 050</div>
+      <div class="ax x b0">0 km</div>
+      <div class="ax x b50">9.2</div>
+      <div class="ax x b100">18.4</div>
+      <i class="cp c1"></i>
+      <i class="cp c2"></i>
+      <i class="cp c3"></i>
+      <i class="cp c4"></i>
+      <div class="lb l1"><b>−10%</b><span class="t">Summit</span></div>
+      <div class="lb l2"><b>−25%</b><span class="t">2 600 m</span></div>
+      <div class="lb l3"><b>−40%</b><span class="t">1 800 m</span></div>
+      <div class="lb l4 last"><b>−60%</b><span class="t">Valley</span></div>
+    </div>
+    <div class="foot"><span class="code">CODE DESCENT</span><span class="go">Drop in now <span>↘</span></span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Riso Run — two-colour risograph zine: fluoro pink + blue inks, misregistered overprint, paper grain */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EDE1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EDE1; color: #2F4FA8; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; isolation: isolate; }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; mix-blend-mode: multiply; z-index: 0; }
+
+  /* the photo prints in full colour; a pink plate sits misregistered behind it */
+  .plate { position: absolute; background: #FF5AA8; mix-blend-mode: multiply; z-index: 1; }
+  .photo { position: absolute; object-fit: cover; object-position: 50% 22%; z-index: 2; }
+  .plate, .photo { top: 6vmin; left: 6vmin; right: 6vmin; height: 54%; width: calc(100% - 12vmin); }
+  .plate { transform: translate(2vmin, 2vmin); }
+
+  .reg { position: absolute; width: 4vmin; height: 4vmin; z-index: 3; }
+  .reg::before, .reg::after { content: ""; position: absolute; background: #2F4FA8; }
+  .reg::before { left: 50%; top: 0; bottom: 0; width: .25vmin; margin-left: -.125vmin; }
+  .reg::after { top: 50%; left: 0; right: 0; height: .25vmin; margin-top: -.125vmin; }
+  .reg i { position: absolute; inset: .9vmin; border: .25vmin solid #2F4FA8; border-radius: 50%; }
+  .reg.r1 { top: 1vmin; left: 1vmin; }
+  .reg.r2 { bottom: 1vmin; right: 1vmin; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; top: calc(54% + 11vmin); bottom: 6vmin; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "kick kick" "head duo" "lede duo" "foot foot"; column-gap: 4vmin; }
+  .kick { grid-area: kick; display: flex; justify-content: space-between; gap: 2vmin; font-family: "Space Mono", "Courier New", monospace; font-size: 1.8vmin; letter-spacing: .06em; text-transform: uppercase; color: #2F4FA8; padding-bottom: 1.4vmin; border-bottom: .3vmin dashed #2F4FA8; }
+  .kick span:last-child { color: #E6388C; }
+  h1 { grid-area: head; position: relative; margin: 2.6vmin 0 0; font-weight: 800; font-variation-settings: "wdth" 84, "opsz" 96; font-size: 14vmin; line-height: .84; letter-spacing: -.012em; text-transform: uppercase; }
+  h1 span { display: block; }
+  h1 .pk { position: absolute; left: 0; top: 0; color: #FF5AA8; transform: translate(.9vmin, .6vmin); mix-blend-mode: multiply; }
+  h1 .bl { position: relative; color: #2F4FA8; mix-blend-mode: multiply; }
+  .lede { grid-area: lede; margin-top: 2.4vmin; font-size: 2.3vmin; line-height: 1.35; color: #2F4FA8; font-weight: 500; max-width: 42vmin; }
+
+  .duo { grid-area: duo; position: relative; margin-top: 3vmin; width: 26vmin; height: 26vmin; align-self: start; }
+  .duo .pic { position: absolute; inset: 0; overflow: hidden; background: #FF5AA8; isolation: isolate; }
+  .duo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; transform: scale(1.7); transform-origin: 50% 30%; filter: grayscale(1) contrast(1.3) brightness(1.08); mix-blend-mode: multiply; }
+  .duo .pic::after { content: ""; position: absolute; inset: 0; background: #2F4FA8; mix-blend-mode: lighten; }
+  .duo .dot { position: absolute; right: -3vmin; bottom: -3vmin; width: 14vmin; height: 14vmin; border-radius: 50%; background: #FFD23F; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2F4FA8; }
+  .duo .dot b { font-size: 4.6vmin; font-weight: 800; line-height: .9; font-variation-settings: "wdth" 75; }
+  .duo .dot small { font-family: "Space Mono", monospace; font-size: 1.6vmin; }
+  .duo .fig { position: absolute; left: 0; top: calc(100% + 1vmin); font-family: "Space Mono", monospace; font-size: 1.6vmin; color: #2F4FA8; white-space: nowrap; }
+
+  .foot { grid-area: foot; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; padding-top: 2vmin; border-top: .3vmin solid #2F4FA8; font-family: "Space Mono", monospace; font-size: 1.9vmin; text-transform: uppercase; }
+  .cta { background: #2F4FA8; color: #F3EDE1; padding: 1.2vmin 2.2vmin; font-weight: 700; white-space: nowrap; letter-spacing: .04em; }
+
+  /* SHORTER PORTRAIT — photo left, the zine column right */
+  @media (min-aspect-ratio: 7/10) {
+    .plate, .photo { top: 5vmin; left: 5vmin; right: auto; height: calc(100% - 12vmin); width: 52%; }
+    .panel { left: calc(52% + 12vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto minmax(0, 1fr) auto; grid-template-areas: "kick" "head" "lede" "duo" "foot"; }
+    .kick span:last-child { display: none; }
+    h1 { font-size: 11.4vmin; }
+    .lede { font-size: 2vmin; }
+    .duo { margin-top: 0; align-self: center; width: 21vmin; height: 21vmin; }
+    .duo .dot { width: 12vmin; height: 12vmin; right: -4vmin; }
+    .duo .dot b { font-size: 3.8vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.6vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .plate, .photo { width: 48%; }
+    .panel { left: calc(48% + 12vmin); }
+    h1 { font-size: 10.4vmin; margin-top: 2vmin; }
+    .lede { font-size: 1.9vmin; margin-top: 1.8vmin; }
+    .duo { width: 18vmin; height: 18vmin; }
+    .duo .dot { width: 10.5vmin; height: 10.5vmin; }
+    .duo .dot b { font-size: 3.4vmin; }
+    .duo .fig { display: none; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+  /* WIDE — photo left, a two-column spread right */
+  @media (min-aspect-ratio: 6/5) {
+    .plate, .photo { width: 42%; }
+    .panel { left: calc(42% + 13vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "kick kick" "head duo" "lede duo" "foot foot"; column-gap: 5vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { font-size: 14vmin; margin-top: 3vmin; }
+    .lede { font-size: 2.1vmin; margin-top: 2.4vmin; }
+    .duo { margin-top: 4vmin; align-self: start; width: 24vmin; height: 24vmin; }
+    .duo .dot { width: 13vmin; height: 13vmin; right: -3vmin; }
+    .duo .dot b { font-size: 4.2vmin; }
+    .duo .fig { display: block; }
+    .foot { font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design — a two-ink press run: the pink plate drifts out of register and snaps back ───────── */
+  /* paper grain boils like freshly printed stock (tiny stepped shifts) */
+  .grain { animation: boil .5s steps(1, end) infinite; }
+  @keyframes boil { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-.5vmin, .3vmin); } 50% { transform: translate(.4vmin, -.4vmin); } 75% { transform: translate(-.3vmin, -.2vmin); } }
+  /* the pink plate behind the photo slips further out of register and snaps back */
+  .plate { animation: slip 6s linear infinite; }
+  @keyframes slip {
+    0%, 34% { transform: translate(2vmin, 2vmin); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    44% { transform: translate(3.4vmin, .8vmin); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    50% { transform: translate(3.4vmin, .8vmin); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    56%, 100% { transform: translate(2vmin, 2vmin); }
+  }
+  /* the headline's pink overprint does the same, a beat later */
+  h1 .pk { animation: slipk 6s linear infinite; }
+  @keyframes slipk {
+    0%, 36% { transform: translate(.9vmin, .6vmin); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    46% { transform: translate(-.6vmin, 1.4vmin); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    51% { transform: translate(-.6vmin, 1.4vmin); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    57%, 100% { transform: translate(.9vmin, .6vmin); }
+  }
+  /* registration marks turn a quarter as the plates re-align */
+  .reg { animation: regturn 6s linear infinite; }
+  @keyframes regturn {
+    0%, 50% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    60%, 100% { transform: rotate(90deg); }
+  }
+  /* the halftone detail pans slowly */
+  .duo img { animation: pan 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes pan { 0%, 100% { transform: scale(1.7); } 50% { transform: scale(1.7) translate(-4%, 3%); } }
+  /* the yellow price dot: a stamped punch */
+  .duo .dot { animation: stamp 6s linear infinite; }
+  @keyframes stamp {
+    0%, 70% { transform: scale(1) rotate(0deg); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    73% { transform: scale(.82) rotate(-10deg); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    77% { transform: scale(1.1) rotate(4deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    81% { transform: scale(.97) rotate(-1deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    85%, 100% { transform: scale(1) rotate(0deg); }
+  }
+  /* CTA: an ink roll passes over the button */
+  .cta { background: linear-gradient(90deg, #2F4FA8 0 40%, #E6388C 47% 53%, #2F4FA8 60% 100%) 100% 0 / 300% 100% no-repeat; animation: roll 6s linear infinite; }
+  @keyframes roll {
+    0%, 84% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.35,1); }
+    96%, 100% { background-position: 0% 0; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .2  0 0 0 0 .2  0 0 0 0 .3  0 0 0 1.3 -.35"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  <div class="plate"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="reg r1"><i></i></div>
+  <div class="reg r2"><i></i></div>
+  <div class="panel">
+    <div class="kick"><span>Zine no. 07 — 2 colour</span><span>Edition of 300</span></div>
+    <h1><span class="pk">Limited<br>run.</span><span class="bl">Limited<br>run.</span></h1>
+    <div class="lede">A small-batch drop, printed in two inks and gone when it’s gone.</div>
+    <div class="duo"><div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="dot"><b>−25%</b><small>week one</small></div><div class="fig">fig. b — detail</div></div>
+    <div class="foot"><span>From $49 · code RISO25</span><span class="cta">Shop the run →</span></div>
+  </div>
+</div>
+</body>
+</html>

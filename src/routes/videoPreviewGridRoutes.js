@@ -2,7 +2,12 @@ const express = require("express");
 const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
 const { supabase } = require("../supabaseClient");
-const { generateVideoGridPreview } = require("../utils/videoGridPreview");
+const { generateVideoGridPreview, buildCommerceGridPrompt } = require("../utils/videoGridPreview");
+const { SKILLS: VIDEO_SKILLS, sanitizeSkill, buildSkillPreviewDirection } = require("../utils/videoSkillPrompt");
+const { sanitizeBrief, briefDirection } = require("../utils/commerceVideoPrompt");
+
+const PREVIEW_MODELS = new Set(["nano-banana-2", "gpt-image-2.5"]);
+const PREVIEW_RATIOS = new Set(["9:16", "3:4", "1:1", "4:3", "16:9", "21:9"]);
 
 const router = express.Router();
 
@@ -33,12 +38,16 @@ async function uploadBase64ToSupabase(base64String) {
 // 🧵 Background grid generation — POST'tan fire-and-forget olarak çağrılır.
 // Client uygulamadan çıksa bile devam eder; sonuç DB'ye yazılır, GET status
 // endpoint'inden poll edilebilir.
-async function runGridGenerationBackground({ previewId, sourceUrl, userPrompt }) {
+async function runGridGenerationBackground({ previewId, sourceUrl, userPrompt, sourceUrls = null, prompt = null, aspectRatio = "9:16", preferredModel = "gpt-image-2.5" }) {
   try {
     const result = await generateVideoGridPreview({
       supabase,
       sourceUrl,
+      sourceUrls,
       userPrompt,
+      prompt,
+      aspectRatio,
+      preferredModel,
       logTag: `VIDEO_PREVIEW ${previewId}`,
     });
 
@@ -89,6 +98,21 @@ async function runGridGenerationBackground({ previewId, sourceUrl, userPrompt })
 router.post("/videoPreviewGrid/generate", async (req, res) => {
   try {
     const { userId, first_frame_image, prompt: userPrompt } = req.body;
+    // 🛍️ 24 Eyl 2026: yeni istemciler kart (skill) ya da brief + ürün açıları + oran + model gönderir.
+    // Hiçbiri yoksa (eski uygulama sürümleri) eski moda akışı aynen çalışır.
+    const skillBrief = sanitizeSkill(req.body?.skill, req.body?.skillInputs);
+    const brief = sanitizeBrief(req.body?.brief);
+    const presenterImage = skillBrief?.skill === "ugc" ? req.body?.presenter_image : null;
+    if (presenterImage != null && (typeof presenterImage !== "string" || !/^(https?:\/\/|data:image\/)/i.test(presenterImage))) {
+      return res.status(400).json({ success: false, message: "Invalid presenter image" });
+    }
+    const locationImage = skillBrief?.skill === "spin360" ? req.body?.location_image : null;
+    if (locationImage != null && (typeof locationImage !== "string" || !/^(https?:\/\/|data:image\/)/i.test(locationImage))) {
+      return res.status(400).json({ success: false, message: "Invalid location image" });
+    }
+    const preferredModel = PREVIEW_MODELS.has(req.body?.previewModel) ? req.body.previewModel : "gpt-image-2.5";
+    const aspectRatio = PREVIEW_RATIOS.has(req.body?.aspect_ratio) ? req.body.aspect_ratio : "9:16";
+    const duration = [5, 8, 10, 15].includes(Number(req.body?.duration)) ? Number(req.body.duration) : 10;
 
     if (!userId || !first_frame_image) {
       return res.status(400).json({
@@ -101,6 +125,39 @@ router.post("/videoPreviewGrid/generate", async (req, res) => {
     const sourceUrl = first_frame_image.startsWith("data:image/")
       ? await uploadBase64ToSupabase(first_frame_image)
       : first_frame_image;
+
+    // 1b. Ek ürün açıları (kartlarda en çok 5 ek görsel önizlemeye gider)
+    let sourceUrls = [sourceUrl];
+    if ((skillBrief || brief) && Array.isArray(req.body?.product_images)) {
+      const extra = await Promise.all(req.body.product_images.slice(0, Math.min(5 - (locationImage ? 1 : 0) - (presenterImage ? 1 : 0), skillBrief ? VIDEO_SKILLS[skillBrief.skill].maxImages - 1 : 5)).map(async (img) => {
+        if (typeof img !== "string") return null;
+        if (img.startsWith("data:image/")) { try { return await uploadBase64ToSupabase(img); } catch { return null; } }
+        return /^https?:\/\//i.test(img) ? img : null;
+      }));
+      sourceUrls = [sourceUrl, ...extra.filter(Boolean)];
+    }
+    const productCount = sourceUrls.length;
+    let presenterImageIndex = null;
+    if (presenterImage) {
+      sourceUrls.push(presenterImage.startsWith("data:image/") ? await uploadBase64ToSupabase(presenterImage) : presenterImage);
+      presenterImageIndex = sourceUrls.length;
+    }
+    let locationImageIndex = null;
+    if (locationImage) {
+      sourceUrls.push(locationImage.startsWith("data:image/") ? await uploadBase64ToSupabase(locationImage) : locationImage);
+      locationImageIndex = sourceUrls.length;
+    }
+    const commercePrompt = skillBrief || brief
+      ? buildCommerceGridPrompt({
+          direction: skillBrief ? buildSkillPreviewDirection(skillBrief, { audio: req.body?.generate_audio === true, duration, imageCount: productCount, presenterImageIndex, locationImageIndex }) : briefDirection(brief),
+          notes: skillBrief ? [skillBrief.productName, skillBrief.sellingPoints, skillBrief.notes].filter(Boolean).join(" · ") : userPrompt,
+          aspectRatio,
+          productCount,
+          presenterImageIndex,
+          locationImageIndex,
+          duration,
+        })
+      : null;
 
     // 2. Pending row insert et — sourceUrl'i de baştan kaydet ki polling
     // sırasında client önceden bilebilsin.
@@ -126,7 +183,8 @@ router.post("/videoPreviewGrid/generate", async (req, res) => {
 
     // 3. Background grid generation — fire-and-forget. Client uygulamadan
     // çıksa bile bu callback execute olmaya devam eder (Node process içinde).
-    runGridGenerationBackground({ previewId, sourceUrl, userPrompt }).catch(
+    console.log(`🧩 [VIDEO_PREVIEW ${previewId}] ${skillBrief ? `kart:${skillBrief.skill}` : brief ? "brief" : "eski moda"} · model:${preferredModel} · ${aspectRatio} · ${sourceUrls.length} görsel`);
+    runGridGenerationBackground({ previewId, sourceUrl, userPrompt, sourceUrls, prompt: commercePrompt, aspectRatio: commercePrompt ? aspectRatio : "9:16", preferredModel: commercePrompt ? preferredModel : "gpt-image-2.5" }).catch(
       (err) => {
         console.error(
           `❌ [VIDEO_PREVIEW ${previewId}] unhandled background rejection:`,

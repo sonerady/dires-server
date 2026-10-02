@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Elastic Sale — the word is stretched to fill whatever box the frame gives it: squat and wide
+     under a tall photo, skyscraper-tall beside a square one. SVG type with preserveAspectRatio none,
+     so the lettering is always edge-to-edge, never cropped.
+     TALL → photo above, elastic panel below · 7/10+ → photo left, elastic column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0F0F0F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0F0F0F; color: #F2EDE3; font-family: "DM Mono", Menlo, monospace; display: flex; flex-direction: column; }
+
+  .ph { position: relative; flex: 1; min-height: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .panel { flex: none; height: 43%; box-sizing: border-box; padding: 3.2vmin 4.4vmin 4.4vmin; display: flex; flex-direction: column; gap: 2.2vmin; }
+  .top { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; color: rgba(242,237,227,.7); padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(242,237,227,.35); }
+  .top b { color: #FF5B24; font-weight: 500; }
+  .el { display: block; width: 100%; min-height: 0; overflow: hidden; }
+  .el text { font-family: "Anton", "Impact", "Arial Narrow", sans-serif; }
+  .word { flex: 1; }
+  .row { flex: none; height: 17vmin; display: flex; gap: 3.4vmin; align-items: stretch; }
+  .pct { flex: none; width: 46%; height: 100%; }
+  .info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+  .info p { margin: 0; font-size: 1.8vmin; line-height: 1.45; letter-spacing: .04em; text-transform: uppercase; color: rgba(242,237,227,.75); }
+  .info p b { color: #F2EDE3; font-weight: 500; }
+  .cta { display: flex; justify-content: space-between; align-items: center; background: #F2EDE3; color: #0F0F0F; font-size: 2.1vmin; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; padding: 1.7vmin 2.2vmin; white-space: nowrap; }
+
+  /* SHORTER PORTRAIT — photo left, the column of elastic type right */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { flex-direction: row; }
+    .panel { height: 100%; width: 46%; padding: 4.4vmin 4.4vmin 4.4vmin 4vmin; }
+    .row { flex-direction: column; height: auto; flex: none; gap: 2.4vmin; }
+    .pct { width: 100%; height: 15vmin; }
+    .info { gap: 2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .panel { width: 44%; padding: 3.6vmin; gap: 1.8vmin; }
+    .top span:last-child { display: none; }
+    .pct { height: 12vmin; }
+    .info p { font-size: 1.6vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.5vmin 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .panel { width: 52%; padding: 4.4vmin 5vmin; gap: 2.4vmin; }
+    .top span:last-child { display: inline; }
+    .row { flex-direction: row; height: 18vmin; gap: 3.4vmin; }
+    .pct { width: 48%; height: 100%; }
+    .info p { font-size: 1.7vmin; }
+    .cta { font-size: 2vmin; padding: 1.6vmin 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="panel">
+    <div class="top"><span>Season sale · <b>Final week</b></span><span>Nº 04</span></div>
+    <svg class="el word" viewBox="0 0 1000 400" preserveAspectRatio="none"><text x="0" y="398" textLength="1000" lengthAdjust="spacingAndGlyphs" font-size="458" fill="#F2EDE3">SALE</text></svg>
+    <div class="row">
+      <svg class="el pct" viewBox="0 0 1000 400" preserveAspectRatio="none"><text x="0" y="398" textLength="1000" lengthAdjust="spacingAndGlyphs" font-size="458" fill="#FF5B24">−40%</text></svg>
+      <div class="info">
+        <p>Code <b>STRETCH40</b><br>Until Sunday, 23:59</p>
+        <div class="cta"><span>Shop sale</span><span>→</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

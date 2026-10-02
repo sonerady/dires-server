@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  /* Soft UI — the whole offer built as a neumorphic control panel pressed out of one sheet of pale grey: the photo
+     sits in a raised frame with a sunken well, a big extruded dial is turned to −30 % (coral progress ring, fine tick
+     ring, domed centre), an "Express delivery" switch is ON, a sunken size selector has M pressed up, and the CTA is a
+     soft extruded key. tall → photo above, controls below · 3:4 & square → photo + control column · wide → photo left, two control columns */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E3E7EE; }
+  .banner { --hi: #FFFFFF; --lo: #BCC3D0; --acc: #FF6A3D; position: fixed; inset: 0; overflow: hidden; background: linear-gradient(145deg, #E9ECF2 0%, #DFE3EB 100%);
+    color: #39404F; font-family: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif; }
+  .raised { box-shadow: 1.2vmin 1.2vmin 2.6vmin var(--lo), -1.2vmin -1.2vmin 2.6vmin var(--hi); background: linear-gradient(145deg, #EBEEF4, #DDE1E9); }
+  .sunk { box-shadow: inset .7vmin .7vmin 1.4vmin var(--lo), inset -.7vmin -.7vmin 1.4vmin var(--hi); background: #E1E5EC; }
+
+  .frame { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; height: calc(100% - 80vmin); border-radius: 4vmin; box-sizing: border-box; padding: 2vmin; }
+  .well { position: relative; height: 100%; border-radius: 2.6vmin; box-sizing: border-box; padding: 1.8vmin; }
+  .well img { position: absolute; left: 1.8vmin; top: 1.8vmin; width: calc(100% - 3.6vmin); height: calc(100% - 3.6vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .ui { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 64vmin; display: grid; grid-template-columns: 24vmin 1fr;
+    grid-template-areas: "head head" "dial tog" "dial size" "cta cta" "fine fine"; grid-template-rows: auto 1fr 1fr auto auto; column-gap: 5vmin; row-gap: 2.6vmin; align-items: center; }
+  .head { grid-area: head; }
+  .kick { font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #8A93A5; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-weight: 800; font-size: 7.6vmin; line-height: .98; letter-spacing: -.04em; color: #333A48; }
+  h1 em { font-style: normal; color: var(--acc); }
+  .sub { display: none; margin-top: 2.4vmin; font-size: 2.2vmin; line-height: 1.5; color: #6B7386; max-width: 46vmin; }
+
+  .dial { grid-area: dial; position: relative; width: 24vmin; height: 24vmin; border-radius: 50%; }
+  .dial::before { content: ""; position: absolute; inset: 1.8vmin; border-radius: 50%; background: conic-gradient(var(--acc) 0 108deg, #D2D8E2 108deg 360deg);
+    -webkit-mask: radial-gradient(circle, transparent 60%, #000 61%); mask: radial-gradient(circle, transparent 60%, #000 61%); }
+  .dial::after { content: ""; position: absolute; inset: .7vmin; border-radius: 50%; background: repeating-conic-gradient(#A9B1C0 0 1.4deg, transparent 1.4deg 15deg);
+    -webkit-mask: radial-gradient(circle, transparent 89%, #000 90% 96%, transparent 97%); mask: radial-gradient(circle, transparent 89%, #000 90% 96%, transparent 97%); }
+  .face { position: absolute; inset: 5.4vmin; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .face b { font-family: "Nunito", sans-serif; font-weight: 900; font-size: 4.6vmin; line-height: 1; letter-spacing: -.03em; color: #333A48; }
+  .face small { margin-top: .6vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .18em; color: #8A93A5; }
+  .knob { position: absolute; left: 50%; top: 50%; width: 1.6vmin; height: 1.6vmin; margin: -.8vmin; border-radius: 50%; background: var(--acc); box-shadow: 0 0 1.2vmin rgba(255,106,61,.6);
+    transform: rotate(108deg) translateY(-8.6vmin); }
+
+  .tog { grid-area: tog; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; border-radius: 99vmin; padding: 1.6vmin 1.6vmin 1.6vmin 3vmin; }
+  .tog span { font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+  .tog span small { display: block; font-size: 1.6vmin; font-weight: 500; color: #8A93A5; margin-top: .3vmin; }
+  .sw { flex: none; position: relative; width: 9vmin; height: 4.8vmin; border-radius: 99vmin; background: var(--acc); box-shadow: inset .5vmin .5vmin 1vmin rgba(160,50,20,.45), inset -.4vmin -.4vmin .8vmin rgba(255,200,170,.5); }
+  .sw::after { content: ""; position: absolute; right: .5vmin; top: .5vmin; width: 3.8vmin; height: 3.8vmin; border-radius: 50%; background: linear-gradient(145deg, #FFFFFF, #E4E8EF); box-shadow: .4vmin .4vmin 1vmin rgba(120,40,10,.35); }
+
+  .size { grid-area: size; display: flex; justify-content: space-between; border-radius: 99vmin; padding: 1vmin; }
+  .size span { flex: 1; text-align: center; padding: 1.3vmin 0; border-radius: 99vmin; font-size: 1.9vmin; font-weight: 700; color: #8A93A5; }
+  .size span.on { color: var(--acc); box-shadow: .5vmin .5vmin 1.2vmin var(--lo), -.5vmin -.5vmin 1.2vmin var(--hi); background: linear-gradient(145deg, #EFF2F7, #DFE3EB); }
+
+  .cta { grid-area: cta; display: flex; align-items: center; justify-content: space-between; border-radius: 99vmin; padding: 2.2vmin 3.6vmin; font-size: 2.2vmin; font-weight: 800; color: #333A48; }
+  .cta b { font-family: "Nunito", sans-serif; font-weight: 900; font-size: 3.4vmin; color: var(--acc); white-space: nowrap; }
+  .cta s { font-family: "Nunito", sans-serif; font-weight: 700; font-size: 2vmin; color: #9AA2B2; margin-right: 1.2vmin; }
+  .fine { grid-area: fine; font-size: 1.6vmin; color: #8A93A5; white-space: nowrap; }
+
+  /* ── 3:4 — photo frame left, one tall control column right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .frame { right: auto; width: 54vmin; top: 6vmin; height: calc(100% - 12vmin); }
+    .ui { left: 66vmin; right: 5vmin; top: 7vmin; bottom: 6vmin; height: auto; grid-template-columns: 1fr;
+      grid-template-areas: "head" "dial" "tog" "size" "cta" "fine"; grid-template-rows: auto auto auto auto 1fr auto; row-gap: 3vmin; }
+    .kick { white-space: normal; line-height: 1.5; }
+    h1 { font-size: 5.6vmin; }
+    .dial { width: 19vmin; height: 19vmin; justify-self: center; }
+    .dial::before { inset: 1.4vmin; } .face { inset: 4.2vmin; } .face b { font-size: 3.6vmin; }
+    .knob { transform: rotate(108deg) translateY(-6.8vmin); }
+    .tog { padding: 1.2vmin 1.2vmin 1.2vmin 2.2vmin; }
+    .tog span { font-size: 1.8vmin; }
+    .sw { width: 7.4vmin; height: 4vmin; } .sw::after { width: 3vmin; height: 3vmin; }
+    .size span { font-size: 1.7vmin; }
+    .cta { align-self: end; flex-direction: column; align-items: flex-start; gap: .8vmin; border-radius: 3vmin; padding: 2vmin 2.6vmin; font-size: 2vmin; }
+    .fine { white-space: normal; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .frame { left: auto; right: 6vmin; width: 52%; top: 6vmin; height: calc(100% - 12vmin); }
+    .ui { left: 5.6vmin; right: auto; width: calc(48% - 15vmin); top: 6vmin; bottom: 6vmin; row-gap: 2.4vmin; }
+    h1 { font-size: 5.4vmin; }
+    .dial { width: 17vmin; height: 17vmin; }
+    .face { inset: 3.8vmin; } .face b { font-size: 3.2vmin; }
+    .knob { transform: rotate(108deg) translateY(-6vmin); }
+  }
+  /* ── wide — photo left, headline across the top of a two-column control deck ── */
+  @media (min-aspect-ratio: 6/5) {
+    .frame { left: 6vmin; right: auto; width: calc(100% - 76vmin); }
+    .ui { left: calc(100% - 62vmin); right: 6vmin; width: auto; top: 7vmin; bottom: 7vmin; grid-template-columns: 20vmin 1fr; column-gap: 4vmin; row-gap: 2.6vmin;
+      grid-template-areas: "head head" "dial tog" "dial size" "cta cta" "fine fine"; grid-template-rows: auto 1fr 1fr auto auto; }
+    .kick { white-space: nowrap; }
+    h1 { font-size: 6.4vmin; }
+    .sub { display: block; font-size: 2vmin; margin-top: 1.8vmin; }
+    .dial { width: 20vmin; height: 20vmin; justify-self: start; }
+    .dial::before { inset: 1.5vmin; } .face { inset: 4.4vmin; } .face b { font-size: 3.8vmin; }
+    .knob { transform: rotate(108deg) translateY(-7.2vmin); }
+    .tog { padding: 1.3vmin 1.3vmin 1.3vmin 2.6vmin; }
+    .tog span { font-size: 1.9vmin; }
+    .sw { width: 8vmin; height: 4.4vmin; } .sw::after { width: 3.4vmin; height: 3.4vmin; }
+    .cta { padding: 2vmin 3.2vmin; flex-direction: row; align-items: center; justify-content: space-between; border-radius: 99vmin; }
+    .fine { white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="frame raised"><div class="well sunk"><img src="{{PRODUCT_IMAGE}}" alt=""></div></div>
+  <div class="ui">
+    <div class="head">
+      <div class="kick">Plume · Soft goods, SS26</div>
+      <h1>Made to be <em>touched.</em></h1>
+      <div class="sub">Brushed-soft finishes, pressed into shape. Turn the dial before Sunday.</div>
+    </div>
+    <div class="dial raised"><div class="face raised"><b>−30%</b><small>TODAY</small></div><i class="knob"></i></div>
+    <div class="tog raised"><span>Express delivery<small>Free · next day</small></span><i class="sw"></i></div>
+    <div class="size sunk"><span>S</span><span class="on">M</span><span>L</span><span>XL</span></div>
+    <div class="cta raised"><span>Add to bag</span><b><s>€92</s>€64</b></div>
+    <div class="fine">Offer ends Sunday · Easy 30-day returns</div>
+  </div>
+</div>
+</body>
+</html>

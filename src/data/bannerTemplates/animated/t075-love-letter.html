@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Mrs+Saint+Delafield&display=swap" rel="stylesheet">
+<style>
+  /* Love Letter — a restrained Valentine's: the copy panel is an envelope, its flap closed with a wax seal;
+     a perforated postage stamp with a cancellation mark sits on the photo corner.
+     tall → photo above the envelope; square/wide → photo left, envelope right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECD3CB; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECD3CB; color: #3A1C1E; font-family: "EB Garamond", Garamond, "Times New Roman", serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 56%; object-fit: cover; object-position: 50% 16%; }
+  .env { position: absolute; left: 0; right: 0; top: 56%; bottom: 0; }
+  .flap { position: absolute; left: 0; top: 0; width: 100%; height: 30%; overflow: visible; }
+  .seal { position: absolute; left: 50%; top: calc(30% - 7.4vmin); width: 14.8vmin; height: 14.8vmin; margin-left: -7.4vmin; filter: drop-shadow(0 .6vmin .8vmin rgba(58,28,30,.35)); }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: calc(30% + 8.4vmin); bottom: 4.5vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .k { font-size: 1.9vmin; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; margin-right: -.34em; }
+  h1 { margin: 2.2vmin 0 0; font-family: "Mrs Saint Delafield", "Snell Roundhand", cursive; font-weight: 400; font-size: 14vmin; line-height: 1; color: #8B1C26; }
+  .p { margin-top: -.6vmin; font-style: italic; font-size: 3.2vmin; line-height: 1.3; max-width: 70vmin; }
+  .offer { margin-top: 2.2vmin; display: flex; gap: 2vmin; align-items: center; font-size: 1.9vmin; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; }
+  .offer i { width: 1px; height: 2.4vmin; background: rgba(58,28,30,.5); }
+  .cta { margin-top: 2.4vmin; font-size: 2.2vmin; font-weight: 500; letter-spacing: .26em; text-transform: uppercase; padding-bottom: .6vmin; border-bottom: 1px solid #3A1C1E; }
+  .stamp { position: absolute; right: 4vmin; top: 4vmin; width: 15vmin; height: 18.5vmin; box-sizing: border-box; padding: 1.1vmin; background: #FBF5EE; transform: rotate(4deg);
+    -webkit-mask: radial-gradient(circle at .55vmin .55vmin, transparent .5vmin, #000 .55vmin) -.55vmin -.55vmin / 1.1vmin 1.1vmin, linear-gradient(#000 0 0) content-box;
+    mask: radial-gradient(circle at .55vmin .55vmin, transparent .5vmin, #000 .55vmin) -.55vmin -.55vmin / 1.1vmin 1.1vmin, linear-gradient(#000 0 0) content-box; }
+  .stamp div { position: absolute; inset: 1.6vmin; background: #8B1C26; color: #FBF5EE; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 1.2vmin 0 1vmin; box-sizing: border-box; }
+  .stamp svg { width: 6.4vmin; height: 6.4vmin; }
+  .stamp b { font-weight: 500; font-size: 3.4vmin; line-height: 1; }
+  .stamp span { font-size: 1.6vmin; letter-spacing: .2em; text-transform: uppercase; }
+  .cancel { position: absolute; right: 12vmin; top: 7vmin; width: 22vmin; height: 12vmin; overflow: visible; transform: rotate(-8deg); }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 52%; }
+    .env { top: 52%; }
+    .flap { height: 26%; }
+    .seal { top: calc(26% - 6.6vmin); width: 13.2vmin; height: 13.2vmin; margin-left: -6.6vmin; }
+    .copy { top: calc(26% + 7vmin); }
+    h1 { font-size: 12vmin; }
+    .p { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 30%; }
+    .env { top: 0; left: 50%; }
+    .flap { height: 34%; }
+    .seal { top: calc(34% - 6.6vmin); }
+    .copy { top: calc(34% + 7vmin); left: 4vmin; right: 4vmin; bottom: 5vmin; }
+    h1 { font-size: 11vmin; }
+    .p { font-size: 2.6vmin; }
+    .offer { flex-direction: column; gap: .8vmin; font-size: 1.7vmin; }
+    .offer i { display: none; }
+    .stamp { right: calc(50% + 3.5vmin); }
+    .cancel { right: calc(50% + 11vmin); }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; object-position: 55% 30%; }
+    .flap { height: 36%; }
+    .seal { top: calc(36% - 7.4vmin); width: 14.8vmin; height: 14.8vmin; margin-left: -7.4vmin; }
+    .copy { top: calc(36% + 8vmin); left: 6vmin; right: 6vmin; }
+    h1 { font-size: 13vmin; }
+    .p { font-size: 3vmin; }
+    .offer { flex-direction: row; gap: 2vmin; font-size: 1.9vmin; }
+    .offer i { display: block; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design (restrained, romantic) ───────── */
+  /* the wax seal beats like a heart: lub-dub, rest */
+  .seal { animation: beat 4s linear infinite; }
+  @keyframes beat {
+    0% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    6% { transform: scale(1.07); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    13% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    19% { transform: scale(1.045); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    30%, 100% { transform: scale(1); }
+  }
+  /* "With love," fades and is handwritten again, left to right */
+  h1 { animation: write 8s linear infinite; }
+  @keyframes write {
+    0%, 12% { clip-path: inset(-40% -15% -40% -15%); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.75,0); }
+    17% { clip-path: inset(-40% -15% -40% -15%); opacity: 0; animation-timing-function: steps(1, end); }
+    18% { clip-path: inset(-40% 115% -40% -15%); opacity: 1; animation-timing-function: cubic-bezier(.45,.1,.55,1); }
+    42%, 100% { clip-path: inset(-40% -15% -40% -15%); opacity: 1; }
+  }
+  /* the postmark lifts off and thuds back down; the stamp jolts */
+  .cancel { animation: thunk 8s linear infinite; }
+  @keyframes thunk {
+    0%, 54% { opacity: 1; scale: 1; animation-timing-function: linear; }
+    56% { opacity: 0; scale: 1; animation-timing-function: steps(1, end); }
+    62% { opacity: 0; scale: 1.3; animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    65% { opacity: 1; scale: .96; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    70%, 100% { opacity: 1; scale: 1; }
+  }
+  .stamp { animation: jolt 8s linear infinite; }
+  @keyframes jolt {
+    0%, 64.5% { rotate: 0deg; translate: 0 0; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    66% { rotate: -1.4deg; translate: 0 .3vmin; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    70%, 100% { rotate: 0deg; translate: 0 0; }
+  }
+  /* CTA: a wine-red stroke runs along the underline */
+  .cta { position: relative; }
+  .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: .35vmin; background: #8B1C26; clip-path: inset(0 100% 0 0); animation: underline 8s linear infinite; }
+  @keyframes underline {
+    0%, 78% { clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    86% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    94%, 100% { clip-path: inset(0 0 0 100%); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <svg class="cancel" viewBox="0 0 220 120" aria-hidden="true">
+    <g fill="none" stroke="#3A1C1E" stroke-width="2.2" opacity=".75">
+      <circle cx="150" cy="60" r="44"/><circle cx="150" cy="60" r="36" stroke-width="1"/>
+      <path d="M0 42 Q 12 34 24 42 T 48 42 T 72 42 T 96 42 T 120 42"/>
+      <path d="M0 60 Q 12 52 24 60 T 48 60 T 72 60 T 96 60 T 120 60"/>
+      <path d="M0 78 Q 12 70 24 78 T 48 78 T 72 78 T 96 78 T 120 78"/>
+    </g>
+    <text x="150" y="56" text-anchor="middle" font-size="15" font-family="EB Garamond, serif" letter-spacing="2" fill="#3A1C1E" opacity=".85">14 FEB</text>
+    <text x="150" y="74" text-anchor="middle" font-size="10" font-family="EB Garamond, serif" letter-spacing="2" fill="#3A1C1E" opacity=".85">PAR AVION</text>
+  </svg>
+  <div class="stamp"><div>
+    <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 34 C 8 25, 3 18, 3 12 C 3 7, 7 4, 11 4 C 15 4, 18 7, 20 10 C 22 7, 25 4, 29 4 C 33 4, 37 7, 37 12 C 37 18, 32 25, 20 34 Z" fill="none" stroke="#FBF5EE" stroke-width="1.8"/></svg>
+    <b>14·II</b><span>Amour</span></div></div>
+  <div class="env">
+    <svg class="flap" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 0 L 50 100 L 100 0 Z" fill="#E2BCB2"/>
+      <path d="M0 0 L 50 100 L 100 0" fill="none" stroke="#C99A8F" stroke-width="1" vector-effect="non-scaling-stroke"/>
+    </svg>
+    <svg class="seal" viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M50 3 C 60 2, 66 8, 74 9 C 84 11, 90 18, 92 27 C 95 35, 99 42, 97 51 C 96 60, 99 68, 93 76 C 88 84, 80 88, 72 92 C 64 97, 56 96, 48 97 C 39 98, 31 94, 24 89 C 16 84, 8 79, 5 70 C 2 61, 4 53, 3 45 C 2 36, 6 28, 12 21 C 18 13, 26 9, 34 6 C 40 4, 45 3, 50 3 Z" fill="#8B1C26"/>
+      <circle cx="50" cy="50" r="32" fill="none" stroke="#6E141D" stroke-width="3"/>
+      <circle cx="50" cy="50" r="27" fill="none" stroke="#A8323B" stroke-width="1.2"/>
+      <path d="M50 64 C 38 56, 34 50, 34 44 C 34 39, 38 36, 42 36 C 46 36, 48 39, 50 42 C 52 39, 54 36, 58 36 C 62 36, 66 39, 66 44 C 66 50, 62 56, 50 64 Z" fill="#6E141D"/>
+      <path d="M30 26 C 36 20, 44 17, 52 17" fill="none" stroke="#B94A52" stroke-width="2.4" stroke-linecap="round" opacity=".8"/>
+    </svg>
+    <div class="copy">
+      <div class="k">The Valentine's Edit</div>
+      <h1>With love,</h1>
+      <div class="p">Gifts for them — and a little something for you.</div>
+      <div class="offer"><span>20% off</span><i></i><span>Code AMOUR</span><i></i><span>Until 14 Feb</span></div>
+      <div class="cta">Open the edit</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

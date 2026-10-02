@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Mural Wall — a commissioned flat-colour mural on the side of a building: a butter sun, a teal arch, pink bands and
+     terracotta blocks painted around the photo, the headline painted in as part of the piece, and a gallery-style
+     placard screwed to the wall at eye level.
+     tall / 3:4 → headline over the sun, photo lower right, placard bottom · square / wide → mural + copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E9DA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1F2E2D; font-family: "Syne", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(circle, rgba(120,90,60,.07) 0 .14vmin, transparent .2vmin) 0 0 / 1.2vmin 1.2vmin,
+      #F3E9DA; }
+  .m { position: absolute; }
+  .sun { left: -16vmin; top: 8vmin; width: 74vmin; height: 74vmin; border-radius: 50%; background: #F1CD72; }
+  .arch { right: -8vmin; top: -20vmin; width: 60vmin; height: 70vmin; border-radius: 30vmin 30vmin 0 0; background: #1F6F6B; transform: rotate(180deg); }
+  .bands { left: 0; right: 0; top: 70vmin; height: 26vmin;
+    background: repeating-linear-gradient(180deg, #EBB2A6 0 3vmin, #F3E9DA 3vmin 5.4vmin); }
+  .block { left: 0; bottom: 0; width: 46vmin; height: 34vmin; background: #D0694A; }
+  .dot { right: 9vmin; top: 38vmin; width: 9vmin; height: 9vmin; border-radius: 50%; background: #1F2E2D; }
+
+  .kick { position: absolute; left: 7vmin; top: 6vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  h1 { position: absolute; left: 6.4vmin; top: 12vmin; margin: 0; font-weight: 800; font-size: 19vmin; line-height: .88; letter-spacing: -.045em; color: #1F2E2D; }
+  h1 em { font-style: normal; color: #C4583A; }
+
+  .photo { position: absolute; left: 22vmin; right: 7vmin; top: 51vmin; width: calc(100% - 29vmin); height: calc(100% - 92vmin); object-fit: cover; object-position: 50% 25%; display: block;
+    box-shadow: 0 0 0 1.4vmin #F3E9DA; }
+
+  .placard { position: absolute; left: 7vmin; bottom: 7vmin; width: 46vmin; background: #FFFFFF; padding: 2.2vmin 2.6vmin; box-sizing: border-box; font-family: "Libre Caslon Text", Georgia, serif;
+    box-shadow: .4vmin .6vmin 1.2vmin rgba(60,40,20,.18); }
+  .placard .t { font-size: 2.2vmin; line-height: 1.3; }
+  .placard .t i { font-style: italic; }
+  .placard .d { margin-top: .8vmin; font-size: 1.7vmin; line-height: 1.4; color: #5C5A55; }
+  .placard .o { margin-top: 1.4vmin; padding-top: 1.2vmin; border-top: 1px solid #CFC7BA; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; font-family: "Syne", sans-serif; }
+  .placard .o b { font-weight: 800; font-size: 3.6vmin; letter-spacing: -.02em; }
+  .placard .o span { font-size: 1.7vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .sign { position: absolute; right: 7vmin; bottom: 7.6vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; text-align: right; line-height: 1.5; color: #1F2E2D; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .sun { width: 60vmin; height: 60vmin; top: 6vmin; }
+    .arch { width: 50vmin; height: 56vmin; }
+    .kick { top: 5vmin; }
+    h1 { top: 9vmin; font-size: 13vmin; }
+    .photo { left: 22vmin; top: 36vmin; width: calc(100% - 29vmin); height: calc(100% - 64vmin); }
+    .dot { top: 25vmin; width: 7vmin; height: 7vmin; }
+    .bands { top: 52vmin; height: 20vmin; }
+    .block { width: 60vmin; height: 26vmin; }
+    .placard { bottom: 5vmin; }
+    .sign { bottom: 5.6vmin; }
+  }
+  /* square / wide — mural + copy left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .sun { left: -14vmin; top: 4vmin; width: 58vmin; height: 58vmin; }
+    .arch { right: auto; left: 30%; top: auto; bottom: -10vmin; width: 30vmin; height: 50vmin; transform: none; border-radius: 15vmin 15vmin 0 0; }
+    .bands { top: auto; bottom: 0; left: 0; right: auto; width: 30%; height: 20vmin; }
+    .block { display: none; }
+    .dot { right: auto; left: 36vmin; bottom: auto; top: 22vmin; width: 7vmin; height: 7vmin; }
+    h1 { top: 12vmin; font-size: 10vmin; }
+    .photo { left: auto; right: 6vmin; top: 6vmin; width: 42%; height: calc(100% - 12vmin); }
+    .placard { left: 7vmin; bottom: 8vmin; width: 42vmin; }
+    .sign { right: auto; left: 7vmin; bottom: 3vmin; text-align: left; line-height: 1; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .sun { width: 70vmin; height: 70vmin; }
+    .arch { left: 36%; width: 34vmin; height: 56vmin; border-radius: 17vmin 17vmin 0 0; }
+    .dot { left: 44vmin; top: 26vmin; width: 8vmin; height: 8vmin; }
+    h1 { font-size: 13vmin; }
+    .photo { width: 40%; }
+    .placard { width: 48vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <i class="m sun"></i><i class="m arch"></i><i class="m bands"></i><i class="m block"></i><i class="m dot"></i>
+  <div class="kick">Casa Liso · Wall Nº 14</div>
+  <h1>Open<br><em>air.</em></h1>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="placard">
+    <div class="t"><b>Open Air</b>, <i>2026</i></div>
+    <div class="d">Acrylic on brick, 14 × 9 m.<br>The new collection, painted large.</div>
+    <div class="o"><b>€120</b><span>Shop the wall →</span></div>
+  </div>
+  <div class="sign">casaliso.com</div>
+</div>
+</body>
+</html>

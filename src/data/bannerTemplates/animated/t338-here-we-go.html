@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,400..900&family=Herr+Von+Muellerhoff&display=swap" rel="stylesheet">
+<style>
+  /* Here We Go — the club's "official signing" announcement graphic: outlined OFFICIAL watermark, extra-wide
+     acid-lime SIGNED, a HERE WE GO rubber stamp, the contract terms as the offer, and a pen signature on the dotted line.
+     tall/4:5 → photo above, announcement below · square/wide → photo left, announcement right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E0E10; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0E0E10; color: #F5F5F2; font-family: "Anybody", "Arial Narrow", sans-serif; font-stretch: 100%; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; }
+  .slash { position: absolute; left: 0; right: 0; top: calc(100% - 84vmin); height: 1.4vmin; background: repeating-linear-gradient(-60deg, #C8F03C 0 1.6vmin, #0E0E10 1.6vmin 2.6vmin); }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: calc(84vmin - 1.4vmin); overflow: hidden; }
+  .wm { position: absolute; left: -2vmin; top: 3vmin; margin: 0; font-weight: 900; font-stretch: 150%; font-size: 17vmin; line-height: .86; color: transparent; -webkit-text-stroke: 1px rgba(245,245,242,.16); white-space: nowrap; text-transform: uppercase; }
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; align-items: center; gap: 1.8vmin; font-weight: 600; font-stretch: 110%; font-size: 1.9vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .top svg { flex: none; width: 4.4vmin; height: 5.2vmin; }
+  .top span:last-child { margin-left: auto; color: #C8F03C; }
+  .hl { position: absolute; left: 6vmin; right: 6vmin; top: 14vmin; margin: 0; font-weight: 900; font-stretch: 125%; font-size: 11.4vmin; white-space: nowrap; line-height: .82; letter-spacing: -.02em; text-transform: uppercase; color: #C8F03C; }
+  .hl small { display: block; margin-top: 2vmin; font-weight: 700; font-stretch: 75%; font-size: 4.6vmin; line-height: 1; letter-spacing: .01em; color: #F5F5F2; }
+  .stamp { position: absolute; right: 4.4vmin; top: 12vmin; width: 17vmin; height: 17vmin; transform: rotate(14deg); }
+
+  .terms { position: absolute; left: 6vmin; right: 6vmin; top: 42vmin; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(245,245,242,.35); border-bottom: 1px solid rgba(245,245,242,.35); }
+  .terms div { padding: 1.6vmin 0 1.6vmin 2vmin; border-left: 1px solid rgba(245,245,242,.2); }
+  .terms div:first-child { padding-left: 0; border-left: 0; }
+  .terms small { display: block; font-weight: 500; font-stretch: 100%; font-size: 1.6vmin; letter-spacing: .2em; text-transform: uppercase; color: #A7A7A0; }
+  .terms b { display: block; margin-top: .6vmin; font-weight: 800; font-stretch: 80%; font-size: 4.4vmin; line-height: 1; }
+  .terms b em { font-style: normal; color: #C8F03C; }
+  .sig { position: absolute; left: 6vmin; right: 6vmin; top: 58vmin; display: flex; align-items: flex-end; gap: 3vmin; }
+  .sig .line { flex: 1; position: relative; height: 8vmin; border-bottom: .3vmin dotted rgba(245,245,242,.6); }
+  .sig .line span { position: absolute; left: 1vmin; bottom: -1.4vmin; font-family: "Herr Von Muellerhoff", cursive; font-size: 9vmin; line-height: 1; color: #F5F5F2; transform: rotate(-4deg); transform-origin: left bottom; white-space: nowrap; }
+  .sig .x { font-weight: 800; font-size: 2.6vmin; color: #C8F03C; padding-bottom: .6vmin; }
+  .sig p { margin: 0; font-weight: 500; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #A7A7A0; text-align: right; line-height: 1.4; white-space: nowrap; }
+  .cta { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: center; padding: 1.8vmin 3vmin; background: #C8F03C; color: #0E0E10; font-weight: 800; font-stretch: 125%; font-size: 2.3vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 78vmin); }
+    .slash { top: calc(100% - 78vmin); }
+    .panel { height: calc(78vmin - 1.4vmin); }
+    .hl { top: 13vmin; font-size: 11vmin; }
+    .stamp { top: 11vmin; width: 16vmin; height: 16vmin; }
+    .terms { top: 38.5vmin; }
+    .sig { top: 53vmin; }
+    .cta { bottom: 4.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .slash { top: calc(100% - 64vmin); }
+    .panel { height: calc(64vmin - 1.4vmin); }
+    .wm { font-size: 14vmin; }
+    .top { left: 7vmin; right: 7vmin; top: 4vmin; font-size: 1.7vmin; }
+    .top svg { width: 3.6vmin; height: 4.2vmin; }
+    .hl { left: 7vmin; top: 11vmin; font-size: 9.6vmin; }
+    .hl small { font-size: 3.8vmin; margin-top: 1.6vmin; }
+    .stamp { right: 7vmin; top: 10vmin; width: 15vmin; height: 15vmin; }
+    .terms { left: 7vmin; right: 7vmin; top: 31vmin; }
+    .terms b { font-size: 3.6vmin; }
+    .sig { left: 7vmin; right: 7vmin; top: 43vmin; }
+    .sig .line { height: 6vmin; }
+    .sig .line span { font-size: 7vmin; }
+    .cta { left: 7vmin; right: 7vmin; bottom: 3.8vmin; padding: 1.4vmin 2.6vmin; font-size: 2.1vmin; }
+  }
+  /* square / wide → photo left, announcement right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .slash { left: 50%; right: auto; top: 0; bottom: 0; width: 1.4vmin; height: auto; background: repeating-linear-gradient(-30deg, #C8F03C 0 1.6vmin, #0E0E10 1.6vmin 2.6vmin); }
+    .panel { left: calc(50% + 1.4vmin); top: 0; height: auto; }
+    .wm { top: auto; bottom: 22vmin; font-size: 12vmin; }
+    .top { left: 5vmin; right: 5vmin; top: 5vmin; font-size: 1.6vmin; letter-spacing: .14em; }
+    .top span:last-child { display: none; }
+    .top svg { width: 3.6vmin; height: 4.2vmin; }
+    .hl { left: 5vmin; right: 5vmin; top: 14vmin; font-size: 6.2vmin; }
+    .hl small { font-size: 3.4vmin; margin-top: 1.6vmin; }
+    .stamp { right: 4vmin; top: 63vmin; width: 13vmin; height: 13vmin; }
+    .terms { left: 5vmin; right: 5vmin; top: 36vmin; }
+    .terms div { padding-left: 1.4vmin; }
+    .terms small { font-size: 1.6vmin; letter-spacing: .1em; }
+    .terms b { font-size: 3.2vmin; }
+    .sig { left: 5vmin; right: 5vmin; top: 50vmin; flex-direction: column; align-items: stretch; gap: 1.6vmin; }
+    .sig .x { display: none; }
+    .sig .line { flex: none; height: 7vmin; }
+    .sig .line span { font-size: 7.6vmin; }
+    .sig p { text-align: left; font-size: 1.6vmin; }
+    .cta { left: 5vmin; right: 5vmin; bottom: 5vmin; padding: 1.5vmin 2.2vmin; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .slash { left: 46%; }
+    .panel { left: calc(46% + 1.4vmin); }
+    .wm { bottom: 20vmin; font-size: 16vmin; }
+    .top { left: 7vmin; right: 7vmin; top: 6vmin; font-size: 1.8vmin; letter-spacing: .2em; }
+    .top span:last-child { display: none; }
+    .top svg { width: 4vmin; height: 4.8vmin; }
+    .hl { left: 7vmin; right: 7vmin; top: 20vmin; font-size: 9.4vmin; }
+    .hl small { font-size: 4vmin; }
+    .stamp { right: 5vmin; top: 3.6vmin; width: 15vmin; height: 15vmin; }
+    .terms { left: 7vmin; right: 7vmin; top: 44vmin; }
+    .terms div { padding-left: 2vmin; }
+    .terms b { font-size: 4vmin; }
+    .sig { left: 7vmin; right: 7vmin; top: 60vmin; flex-direction: row; align-items: flex-end; gap: 3vmin; }
+    .sig .x { display: block; }
+    .sig .line { flex: 1; height: 8vmin; }
+    .sig p { text-align: right; font-size: 1.7vmin; }
+    .cta { left: 7vmin; right: 7vmin; bottom: 6vmin; padding: 1.7vmin 2.8vmin; font-size: 2.2vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* constant: the hazard slash crawls; the OFFICIAL watermark drifts (parallax); photo breathes in
+     beats: 0.6s "SIGNED." slams back in from the left · 1.8s the HERE WE GO stamp thumps down ·
+     3.0s the pen re-signs the dotted line · 4.8s CTA sheen, arrow nudges */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .slash { animation: crawl 6s linear infinite; }
+  @keyframes crawl { from { background-position: 0 0; } to { background-position: calc(2.6vmin / .8660254 * 4) 0; } }
+  @keyframes crawlv { from { background-position: 0 0; } to { background-position: 0 calc(2.6vmin / .8660254 * -4); } }
+  @media (min-aspect-ratio: 9/10) { .slash { animation-name: crawlv; } }
+
+  .wm { animation: drift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-3vmin); } }
+
+  .hl .s { display: inline-block; animation: slam 6s linear infinite; }
+  @keyframes slam {
+    0%, 6% { transform: translateX(0) skewX(0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    9% { transform: translateX(6vmin) skewX(-12deg); opacity: 0; animation-timing-function: steps(1, end); }
+    9.5% { transform: translateX(-8vmin) skewX(-14deg); opacity: 0; animation-timing-function: cubic-bezier(.2,.9,.25,1); }
+    13% { transform: translateX(.8vmin) skewX(4deg); opacity: 1; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    17%, 100% { transform: translateX(0) skewX(0); opacity: 1; }
+  }
+
+  .stamp { animation: thump 6s linear infinite; }
+  @keyframes thump {
+    0%, 26% { transform: rotate(14deg) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    28% { transform: rotate(14deg) scale(.9); opacity: 0; animation-timing-function: steps(1, end); }
+    28.5% { transform: rotate(4deg) scale(1.45); opacity: 0; animation-timing-function: cubic-bezier(.7,0,.9,.6); }
+    31% { transform: rotate(16deg) scale(.94); opacity: 1; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    35% { transform: rotate(13.4deg) scale(1.02); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    39%, 100% { transform: rotate(14deg) scale(1); opacity: 1; }
+  }
+
+  .sig .line span { animation: sign 6s linear infinite; }
+  @keyframes sign {
+    0%, 46% { clip-path: inset(-40% -10% -40% -5%); opacity: 1; animation-timing-function: ease-in; }
+    48.5% { clip-path: inset(-40% -10% -40% -5%); opacity: 0; animation-timing-function: steps(1, end); }
+    49% { clip-path: inset(-40% 110% -40% -5%); opacity: 1; animation-timing-function: cubic-bezier(.35,.1,.45,1); }
+    64%, 100% { clip-path: inset(-40% -10% -40% -5%); opacity: 1; }
+  }
+
+  .cta { overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 22%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-140%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-140%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    92%, 100% { transform: translateX(520%) skewX(-18deg); }
+  }
+  .cta span:last-child { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 82% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    85% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    91% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    94%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="slash"></div>
+  <div class="panel">
+    <div class="wm">Official<br>Official</div>
+    <div class="top">
+      <svg viewBox="0 0 44 52" aria-hidden="true"><path d="M22 2 L41 9 V27 C41 39 32 46 22 50 C12 46 3 39 3 27 V9 Z" fill="#C8F03C"/><path d="M22 8 L35 13 V27 C35 35 29 40 22 43 C15 40 9 35 9 27 V13 Z" fill="none" stroke="#0E0E10" stroke-width="2"/><text x="22" y="32" text-anchor="middle" font-family="Anybody, sans-serif" font-weight="900" font-size="14" fill="#0E0E10">AN</text></svg>
+      <span>Atelier Nord F.C.</span><span>Official · 25.09</span>
+    </div>
+    <h1 class="hl"><span class="s">Signed.</span><small>The new season is ours.</small></h1>
+    <svg class="stamp" viewBox="0 0 100 100" aria-hidden="true">
+      <defs><path id="st" d="M 50 50 m -35 0 a 35 35 0 1 1 70 0 a 35 35 0 1 1 -70 0"/></defs>
+      <circle cx="50" cy="50" r="47" fill="none" stroke="#C8F03C" stroke-width="3"/>
+      <circle cx="50" cy="50" r="27" fill="none" stroke="#C8F03C" stroke-width="1.5"/>
+      <text font-family="Anybody, sans-serif" font-weight="800" font-size="10.5" letter-spacing="3.2" fill="#C8F03C"><textPath href="#st">HERE WE GO · HERE WE GO ·</textPath></text>
+      <text x="50" y="58" text-anchor="middle" font-family="Anybody, sans-serif" font-weight="900" font-size="22" fill="#C8F03C">26</text>
+    </svg>
+    <div class="terms">
+      <div><small>Fee from</small><b><em>€89</em></b></div>
+      <div><small>Squad no.</small><b>26</b></div>
+      <div><small>Contract</small><b>−20%</b></div>
+    </div>
+    <div class="sig"><span class="x">✕</span><div class="line"><span>Atelier Nord</span></div><p>Medical passed<br>Code <b>SIGNED20</b></p></div>
+    <div class="cta"><span>Shop the signing</span><span>→</span></div>
+  </div>
+</div>
+</body>
+</html>

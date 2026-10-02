@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Sticker Sheet — a kiss-cut sticker sheet for a journal: glossy white backing with a perforated header strip,
+     die-cut stickers with thick white borders (a −25% starburst, a NEW IN dot, an "obsessed!" speech bubble,
+     a free-shipping pill with a peeling corner, a price tag, a sparkle) and one empty dashed slot where a
+     sticker has already been peeled off. The photo stays clean beside it on a lilac desk.
+     tall → title / photo / sheet (3×2) · 3:4 & square → photo left, title + sheet (2×3) right · wide → photo left, sheet (3×2) right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCD3F2; }
+  .banner { --u: 1.1; position: fixed; inset: 0; overflow: hidden; color: #231C3D; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(circle, rgba(255,255,255,.35) 0 .2vmin, transparent .3vmin) 0 0 / 2.6vmin 2.6vmin,
+      radial-gradient(ellipse at 30% 20%, #E6DEF8 0%, #D8CEF0 60%, #CABDE8 100%); }
+
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  h1 { margin: 0; font-family: "Bagel Fat One", "Arial Rounded MT Bold", sans-serif; font-weight: 400; font-size: 10.6vmin; line-height: .9; letter-spacing: -.01em; color: #231C3D; }
+  .sub { flex: none; width: 30vmin; font-size: 2.1vmin; line-height: 1.35; color: #463C68; padding-bottom: .8vmin; }
+  .sub b { display: block; font-weight: 700; color: #231C3D; }
+  .sub em { display: inline-block; margin-top: 1.2vmin; font-style: normal; font-weight: 700; color: #FFF; background: #231C3D; padding: .8vmin 1.8vmin; border-radius: 99vmin; white-space: nowrap; }
+
+  .photo { position: absolute; left: 7vmin; right: 7vmin; top: 29vmin; bottom: 62vmin; width: calc(100% - 14vmin); height: calc(100% - 91vmin); object-fit: cover; object-position: 50% 30%; display: block;
+    box-shadow: 0 1vmin 2.4vmin rgba(60,40,110,.22); }
+
+  .sheet { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 54vmin; background: linear-gradient(160deg, #FFFFFF 0%, #F6F4FA 60%, #FFFFFF 100%); border-radius: 1.6vmin;
+    box-shadow: 0 1.2vmin 2.6vmin rgba(60,40,110,.25), inset 0 0 0 1px rgba(60,40,110,.06); display: flex; flex-direction: column; }
+  .strip { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; padding: 1.6vmin 3vmin 1.4vmin; border-bottom: .3vmin dashed rgba(60,40,110,.22);
+    font-size: 1.7vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #6A5F90; white-space: nowrap; }
+  .grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); place-items: center; padding: 1vmin 2vmin 2vmin; }
+
+  /* stickers */
+  .st { position: relative; filter: drop-shadow(0 .4vmin .5vmin rgba(40,30,80,.22)); }
+  .cut { position: relative; background: #FFF; }
+  .ink { position: absolute; inset: calc(var(--u) * .9vmin); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: "Bagel Fat One", sans-serif; line-height: .95; }
+  .burst .cut, .burst .ink { clip-path: polygon(50.0% 0.0%, 60.4% 11.4%, 75.0% 6.7%, 78.3% 21.7%, 93.3% 25.0%, 88.6% 39.6%, 100.0% 50.0%, 88.6% 60.4%, 93.3% 75.0%, 78.3% 78.3%, 75.0% 93.3%, 60.4% 88.6%, 50.0% 100.0%, 39.6% 88.6%, 25.0% 93.3%, 21.7% 78.3%, 6.7% 75.0%, 11.4% 60.4%, 0.0% 50.0%, 11.4% 39.6%, 6.7% 25.0%, 21.7% 21.7%, 25.0% 6.7%, 39.6% 11.4%); }
+  .burst .cut { width: calc(var(--u) * 19vmin); height: calc(var(--u) * 19vmin); transform: rotate(-10deg); }
+  .burst .ink { inset: calc(var(--u) * 1.3vmin); background: #FF5A36; color: #FFF; font-size: calc(var(--u) * 5vmin); }
+  .burst .ink small { font-family: "Figtree", sans-serif; font-weight: 700; font-size: max(1.6vmin, calc(var(--u) * 1.9vmin)); letter-spacing: .1em; margin-top: .4vmin; }
+  .dot .cut { width: calc(var(--u) * 15vmin); height: calc(var(--u) * 15vmin); border-radius: 50%; transform: rotate(8deg); }
+  .dot .ink { border-radius: 50%; background: #FFD23F; color: #231C3D; font-size: calc(var(--u) * 3.8vmin); }
+  .bubble .cut { width: calc(var(--u) * 22vmin); height: calc(var(--u) * 11vmin); border-radius: calc(var(--u) * 5vmin); transform: rotate(-4deg); }
+  .bubble .cut::after { content: ""; position: absolute; left: 22%; bottom: calc(var(--u) * -3vmin); width: calc(var(--u) * 5vmin); height: calc(var(--u) * 4vmin); background: #FFF; clip-path: polygon(0 0, 100% 0, 10% 100%); }
+  .bubble .ink { border-radius: calc(var(--u) * 4.2vmin); background: #7B61FF; color: #FFF; font-size: calc(var(--u) * 3.9vmin); z-index: 1; }
+  .bubble .ink::after { content: ""; position: absolute; left: 24%; bottom: calc(var(--u) * -2vmin); width: calc(var(--u) * 3.4vmin); height: calc(var(--u) * 2.6vmin); background: #7B61FF; clip-path: polygon(0 0, 100% 0, 10% 100%); }
+  .pill .cut { width: calc(var(--u) * 24vmin); height: calc(var(--u) * 8.6vmin); border-radius: 99vmin; transform: rotate(5deg); }
+  .pill .ink { border-radius: 99vmin; background: #2EC4A6; color: #0E3B33; font-family: "Figtree", sans-serif; font-weight: 700; font-size: max(1.8vmin, calc(var(--u) * 2.4vmin)); letter-spacing: .06em; text-transform: uppercase; }
+  .pill .peel { position: absolute; right: calc(var(--u) * 1vmin); top: calc(var(--u) * -.4vmin); width: calc(var(--u) * 4.4vmin); height: calc(var(--u) * 4.4vmin); border-radius: 0 0 0 100%;
+    background: linear-gradient(225deg, transparent 50%, #E4E1EC 50%, #F7F6FA 70%, #D4D0DF 100%); box-shadow: -.2vmin .3vmin .5vmin rgba(40,30,80,.2); }
+  .tag .cut { width: calc(var(--u) * 21vmin); height: calc(var(--u) * 10.4vmin); clip-path: polygon(20% 0, 100% 0, 100% 100%, 20% 100%, 0 50%); transform: rotate(-7deg); }
+  .tag .ink { inset: calc(var(--u) * .9vmin) calc(var(--u) * .9vmin) calc(var(--u) * .9vmin) calc(var(--u) * 1.4vmin); clip-path: polygon(20% 0, 100% 0, 100% 100%, 20% 100%, 0 50%);
+    background: radial-gradient(circle at 18% 50%, #FFF 0 calc(var(--u) * .9vmin), transparent calc(var(--u) * 1vmin)), #231C3D; color: #FFF; font-size: calc(var(--u) * 5vmin); padding-left: 16%; }
+  .slot { position: relative; width: calc(var(--u) * 15vmin); height: calc(var(--u) * 15vmin); }
+  .gone { position: absolute; inset: 0; border-radius: 50%; border: .3vmin dashed rgba(60,40,110,.3); display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: max(1.6vmin, calc(var(--u) * 1.8vmin)); line-height: 1.25; font-weight: 600; color: #8C82AE; }
+  .spark { position: absolute; right: calc(var(--u) * -5vmin); top: calc(var(--u) * -3.4vmin); }
+  .spark .cut, .spark .ink { clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%); }
+  .spark .cut { width: calc(var(--u) * 9vmin); height: calc(var(--u) * 9vmin); }
+  .spark .ink { inset: calc(var(--u) * 1.4vmin); background: #5AB0FF; }
+
+
+  /* ── 3:4 & square — photo left, title + sheet right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --u: .78; }
+    .photo { left: 6vmin; right: auto; top: 6vmin; bottom: 6vmin; width: 50vmin; height: calc(100% - 12vmin); }
+    .head { left: 61vmin; right: 5vmin; top: 6vmin; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    h1 { font-size: 8.2vmin; }
+    .sub { width: auto; font-size: 2vmin; }
+    .sheet { left: 60vmin; right: 4vmin; top: 44vmin; bottom: 6vmin; height: auto; }
+    .strip { padding: 1.2vmin 2vmin; letter-spacing: .06em; }
+    .strip span:last-child { display: none; }
+    .grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); padding: .6vmin 1vmin 1.4vmin; }
+    .spark { right: calc(var(--u) * -3vmin); }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --u: .6; }
+    .photo { width: 48vmin; top: 5vmin; bottom: 5vmin; height: calc(100% - 10vmin); left: 5vmin; }
+    .head { left: 58vmin; right: 4vmin; top: 5vmin; gap: 1.4vmin; }
+    h1 { font-size: 7.4vmin; }
+    .sub { font-size: 1.8vmin; }
+    .sheet { left: 58vmin; top: 34vmin; bottom: 5vmin; }
+  }
+  /* ── wide — photo left, title + 3×2 sheet right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --u: 1; }
+    .photo { width: 58vmin; left: 6vmin; top: 6vmin; bottom: 6vmin; height: calc(100% - 12vmin); }
+    .head { left: 70vmin; right: 6vmin; top: 6vmin; flex-direction: row; align-items: flex-end; gap: 3vmin; }
+    h1 { font-size: 9vmin; }
+    .sub { width: 26vmin; font-size: 1.9vmin; }
+    .sheet { left: 69vmin; right: 5vmin; top: 30vmin; bottom: 6vmin; }
+    .strip span:last-child { display: inline; }
+    .grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); padding: 1vmin 2vmin 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1>Stick<br>with it.</h1>
+    <div class="sub"><b>Plume Studio · the autumn drop</b>Peel, pick, keep forever.<br><em>Shop the pack →</em></div>
+  </div>
+
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="sheet">
+    <div class="strip"><span>Sheet Nº 04 · the drop pack</span><span>peel &amp; keep</span></div>
+    <div class="grid">
+      <div class="st burst"><div class="cut"><div class="ink">−25%<small>THIS WEEK</small></div></div></div>
+      <div class="st dot"><div class="cut"><div class="ink">NEW<br>IN</div></div></div>
+      <div class="st bubble"><div class="cut"><div class="ink">obsessed!</div></div></div>
+      <div class="st pill"><div class="cut"><div class="ink">Free shipping</div><i class="peel"></i></div></div>
+      <div class="st tag"><div class="cut"><div class="ink">$64</div></div></div>
+      <div class="slot"><div class="gone">already<br>peeled</div>
+        <div class="st spark"><div class="cut"><div class="ink"></div></div></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

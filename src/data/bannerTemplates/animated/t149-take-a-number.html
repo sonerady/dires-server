@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Take a Number — the sample-sale queue: a red take-a-number ticket torn from its roll, an LED "now serving" board, and the practical details of three days only */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EFE9; }
+  .banner { --panel: 78vmin; --tw: 32vmin; --th: 48vmin; position: fixed; inset: 0; overflow: hidden; background: #F2EFE9; color: #161513; font-family: "Chivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+
+  /* now serving */
+  .board { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel)); height: 8vmin; background: #141312; color: #EDE7DC; display: flex; align-items: center; justify-content: space-between; padding: 0 6vmin; box-sizing: border-box; }
+  .board span { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.8vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; }
+  .led { position: relative; font-family: "Chivo Mono", Menlo, monospace; font-weight: 700; font-size: 5.4vmin; line-height: 1; letter-spacing: .06em; color: #FF4A3A; text-shadow: 0 0 .8vmin rgba(255,74,58,.8), 0 0 2.4vmin rgba(255,74,58,.45); }
+  .led i { position: absolute; left: 0; top: 0; font-style: normal; color: rgba(255,74,58,.12); text-shadow: none; }
+
+  .copy { position: absolute; left: 6vmin; width: 50vmin; bottom: 6vmin; top: calc(100% - var(--panel) + 13vmin); display: flex; flex-direction: column; }
+  .kick { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.8vmin; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 900; font-size: 11.6vmin; line-height: .86; letter-spacing: -.05em; }
+  dl { margin: 4vmin 0 0; display: grid; grid-template-columns: auto 1fr; gap: 1.2vmin 2.4vmin; font-family: "Chivo Mono", Menlo, monospace; font-size: 2vmin; line-height: 1.25; }
+  dt { color: #7A746A; text-transform: uppercase; letter-spacing: .12em; font-size: 1.7vmin; padding-top: .2vmin; }
+  dd { margin: 0; font-weight: 500; }
+  dd b { font-weight: 700; color: #C9322A; }
+  .cta { margin-top: auto; align-self: flex-start; font-weight: 700; font-size: 2vmin; letter-spacing: .16em; text-transform: uppercase; background: #161513; color: #F2EFE9; padding: 1.8vmin 2.8vmin; white-space: nowrap; }
+
+  /* the ticket + the roll behind it */
+  .tk { position: absolute; right: 6vmin; bottom: 8vmin; width: var(--tw); height: var(--th); }
+  .t { position: absolute; inset: 0; background: #D23B2C; color: #FFF1E6;
+    -webkit-mask: radial-gradient(circle at 0 66%, transparent 1.7vmin, #000 1.8vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 66%, transparent 1.7vmin, #000 1.8vmin) right / 51% 100% no-repeat;
+            mask: radial-gradient(circle at 0 66%, transparent 1.7vmin, #000 1.8vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 66%, transparent 1.7vmin, #000 1.8vmin) right / 51% 100% no-repeat; }
+  .t.back { background: #B53024; transform: rotate(-7deg) translate(-3vmin, 1.4vmin); }
+  .t.front { transform: rotate(5deg); box-shadow: none; display: flex; flex-direction: column; padding: 3vmin 2.8vmin 2.4vmin; box-sizing: border-box; background-image: radial-gradient(rgba(255,255,255,.07) 20%, transparent 21%); background-size: .8vmin .8vmin; }
+  .t .hd { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.6vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; text-align: center; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(255,241,230,.6); }
+  .t .no { text-align: center; margin-top: auto; }
+  .t .no small { display: block; font-family: "Chivo Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .2em; }
+  .t .no b { display: block; font-weight: 900; font-size: 14vmin; line-height: .9; letter-spacing: -.05em; }
+  .t .perf { height: 0; border-top: .3vmin dashed rgba(255,241,230,.75); margin: 3.4vmin -2.8vmin 0; position: relative; top: 0; }
+  .t .stub { height: 28%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 0; }
+  .t .stub small { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .t .stub b { font-weight: 900; font-size: 4vmin; line-height: 1; letter-spacing: -.02em; margin-top: .8vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 66vmin; --tw: 28vmin; --th: 42vmin; }
+    .copy { top: calc(100% - var(--panel) + 12vmin); bottom: 4.6vmin; }
+    h1 { font-size: 10vmin; }
+    dl { margin-top: 2.8vmin; gap: .9vmin 2.4vmin; font-size: 1.9vmin; }
+    .tk { bottom: 6vmin; }
+    .t .no b { font-size: 12vmin; }
+    .t .stub b { font-size: 3.6vmin; }
+  }
+  /* square / wide — photo left; board runs across the paper side's top */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --tw: 19vmin; --th: 30vmin; }
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .board { left: 50%; top: 0; padding: 0 5vmin; height: 8vmin; }
+    .copy { left: calc(50% + 5vmin); width: auto; right: 5vmin; top: 13vmin; bottom: 5vmin; }
+    h1 { font-size: 8.6vmin; }
+    dl { width: 20vmin; grid-template-columns: 1fr; gap: .4vmin; margin-top: 3.4vmin; font-size: 1.8vmin; }
+    dt { font-size: 1.6vmin; margin-top: 1vmin; }
+    .tk { right: 6vmin; bottom: 15vmin; }
+    .t.front { padding: 2.2vmin 1.6vmin 1.8vmin; }
+    .t .hd { letter-spacing: .06em; padding-bottom: 1vmin; }
+    .t .no b { font-size: 8.4vmin; }
+    .t .perf { margin: 2.2vmin -1.6vmin 0; }
+    .t .stub small { letter-spacing: .04em; }
+    .t .stub b { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --tw: 28vmin; --th: 43vmin; }
+    .photo { width: 46%; object-position: 64% 25%; }
+    .board { left: 46%; padding: 0 6vmin; }
+    .copy { left: calc(46% + 6vmin); right: 6vmin; top: 15vmin; bottom: 6vmin; }
+    h1 { font-size: 10vmin; }
+    dl { width: auto; max-width: 40vmin; grid-template-columns: auto 1fr; gap: 1.2vmin 2.4vmin; font-size: 1.9vmin; }
+    dt { margin-top: 0; }
+    .tk { right: 9vmin; bottom: 12vmin; }
+    .t.front { padding: 3vmin 2.8vmin 2.4vmin; }
+    .t .hd { letter-spacing: .2em; padding-bottom: 1.4vmin; }
+    .t .perf { margin: 3.4vmin -2.8vmin 0; }
+    .t .stub small { letter-spacing: .14em; }
+    .t .no b { font-size: 12vmin; }
+    .t .stub b { font-size: 3.4vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     constant: the LED segments hum (faint 1.5s glow breathing)
+     beat: 2.4s the board stutters and clicks over 046 → 047 — your number — the front ticket jumps on its roll,
+           3.9s a sheen crosses the CTA, 5.6s the board blanks and resets to 046 for the next customer */
+  @keyframes hum { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
+  .led em { font-style: normal; }
+  .led .b { position: absolute; left: 0; top: 0; }
+  .led .b { color: #FF4A3A; text-shadow: 0 0 .8vmin rgba(255,74,58,.8), 0 0 2.4vmin rgba(255,74,58,.45); animation: showB 6s linear infinite; }
+  /* the board's own "046" (the .led text) is switched off while 047 shows */
+  .led { animation: hum 1.5s cubic-bezier(.45,0,.55,1) infinite, showA 6s linear infinite; }
+  @keyframes showA {
+    0%, 39.9%, 97.5%, 100% { color: #FF4A3A; text-shadow: 0 0 .8vmin rgba(255,74,58,.8), 0 0 2.4vmin rgba(255,74,58,.45); }
+    40%, 97.4% { color: rgba(255,74,58,0); text-shadow: 0 0 0 rgba(255,74,58,0), 0 0 0 rgba(255,74,58,0); }
+  }
+  @keyframes showB {
+    0%, 40.9% { opacity: 0; }
+    41%, 41.9% { opacity: .55; }
+    42%, 42.9% { opacity: 0; }
+    43%, 93.9% { opacity: 1; }
+    94%, 100% { opacity: 0; }
+  }
+  .board > span { animation: call 6s linear infinite; }
+  @keyframes call { 0%, 42.9%, 52%, 100% { color: #EDE7DC; } 43%, 45.9%, 47%, 49.9% { color: #FF8A7E; } 46%, 46.9%, 50%, 51.9% { color: #EDE7DC; } }
+
+  .t.front { animation: jump 6s linear infinite; }
+  @keyframes jump {
+    0%, 43% { transform: rotate(5deg) translateY(0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    46% { transform: rotate(8.5deg) translate(.6vmin, -2.4vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    50.5% { transform: rotate(3.6deg) translateY(.3vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    54% { transform: rotate(5.6deg) translateY(0); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    57%, 100% { transform: rotate(5deg) translateY(0); }
+  }
+  .t .no b { animation: glow 6s linear infinite; }
+  @keyframes glow { 0%, 44%, 60%, 100% { text-shadow: 0 0 0 rgba(255,241,230,0); } 48%, 54% { text-shadow: 0 0 2vmin rgba(255,241,230,.55); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.24) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen { 0%, 62% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+                     76%, 100% { transform: translateX(400%) skewX(-18deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="board"><span>Now serving</span><div class="led"><i>888</i>046<em class="b">047</em></div></div>
+  <div class="copy">
+    <div class="kick">Studio Oro · Three days only</div>
+    <h1>Sample sale.</h1>
+    <dl>
+      <dt>Dates</dt><dd>12–14 Oct</dd>
+      <dt>Hours</dt><dd>10:00–19:00</dd>
+      <dt>Where</dt><dd>Warehouse 4</dd>
+      <dt>Offer</dt><dd><b>Up to −80%</b></dd>
+    </dl>
+    <div class="cta">Get your number →</div>
+  </div>
+  <div class="tk">
+    <div class="t back"></div>
+    <div class="t front">
+      <div class="hd">Take a number</div>
+      <div class="no"><small>Nº</small><b>047</b></div>
+      <div class="perf"></div>
+      <div class="stub"><small>Sample sale</small><b>−80%</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

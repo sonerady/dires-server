@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Floor Directory — a Hongdae shopping building at dusk: every floor has its own lightbox sign stacked up the facade
+     (B1 archive … 5F members), each one a different colour, the sale floor glowing brightest, with an upright
+     vertical "SALE" sign and a lift indicator.
+     tall → headline, photo + sign column, code strip · square & wide → photo left, signs + copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C2130; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F4F2EC; font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Helvetica Neue", sans-serif;
+    background:
+      linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 100% 11vmin,
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px) 0 0 / 16vmin 100%,
+      radial-gradient(120% 70% at 80% 0%, #2B3350 0%, #1C2130 60%, #151925 100%); }
+
+  .head { position: absolute; left: 5vmin; right: 5vmin; top: 5vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  h1 { margin: 0; font-weight: 900; font-size: 8.6vmin; line-height: 1; letter-spacing: -.04em; }
+  h1 em { font-style: normal; color: #FFD400; }
+  .lift { flex: none; display: flex; flex-direction: column; align-items: center; gap: .6vmin; background: #0E1119; border: 1px solid rgba(255,255,255,.18); padding: 1.2vmin 1.6vmin; font-family: "IBM Plex Mono", "Courier New", monospace; font-weight: 600; font-size: 1.7vmin; letter-spacing: .08em; }
+  .lift b { font-size: 4.6vmin; line-height: 1; color: #FF5A3C; text-shadow: 0 0 1.2vmin rgba(255,90,60,.7); font-weight: 600; }
+  .lift i { font-style: normal; color: #FF5A3C; }
+
+  .photo { position: absolute; left: 5vmin; top: 27vmin; width: 58%; height: calc(100% - 50vmin); overflow: hidden; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+
+  .vsign { display: none; }
+
+  /* the stack of floor signs */
+  .floors { position: absolute; left: calc(58% + 9vmin); right: 5vmin; top: 27vmin; height: calc(100% - 50vmin); display: flex; flex-direction: column; gap: 1.8vmin; }
+  .fl { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; justify-content: center; padding: 0 2vmin; background: var(--bg); color: var(--fg); box-shadow: 0 0 3vmin var(--glow), inset 0 0 0 .35vmin rgba(255,255,255,.25); }
+  .fl b { font-weight: 900; font-size: 4.8vmin; line-height: 1; letter-spacing: -.03em; }
+  .fl span { font-weight: 700; font-size: 2.2vmin; line-height: 1.15; margin-top: .6vmin; }
+  .fl small { font-weight: 500; font-size: 1.6vmin; opacity: .8; margin-top: .3vmin; }
+  .f5 { --bg: #F4F2EC; --fg: #1C2130; --glow: rgba(244,242,236,.2); }
+  .f4 { --bg: #E8322B; --fg: #fff; --glow: rgba(232,50,43,.35); }
+  .f3 { --bg: #FFD400; --fg: #111; --glow: rgba(255,212,0,.6); flex: 1.35; }
+  .f3 b { font-size: 6vmin; }
+  .f2 { --bg: #2458E6; --fg: #fff; --glow: rgba(36,88,230,.35); }
+  .f1 { --bg: #10A36E; --fg: #fff; --glow: rgba(16,163,110,.35); }
+  .fb { --bg: #0B0D13; --fg: #FFD400; --glow: rgba(0,0,0,0); box-shadow: inset 0 0 0 .35vmin #FFD400; }
+  .f3::after { content: "SALE"; position: absolute; right: 1.4vmin; top: 1.2vmin; font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.6vmin; letter-spacing: .1em; }
+
+  .strip { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 13vmin; display: flex; align-items: stretch; background: #F4F2EC; color: #1C2130; }
+  .strip .code { background: #FFD400; color: #111; display: flex; flex-direction: column; justify-content: center; padding: 0 3vmin; font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.7vmin; letter-spacing: .1em; }
+  .strip .code b { font-family: "Noto Sans KR", sans-serif; font-weight: 900; font-size: 4.2vmin; letter-spacing: -.01em; line-height: 1.1; }
+  .strip .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 3vmin; font-size: 2.1vmin; line-height: 1.35; font-weight: 500; }
+  .strip .txt b { font-weight: 900; font-size: 2.4vmin; }
+  .strip .go { display: flex; align-items: center; padding: 0 3vmin; background: #1C2130; color: #F4F2EC; font-weight: 700; font-size: 2.1vmin; letter-spacing: .04em; white-space: nowrap; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    h1 { font-size: 7.6vmin; }
+    .head { top: 4.4vmin; }
+    .photo, .floors { top: 24vmin; height: calc(100% - 44vmin); }
+    .floors { gap: 1.4vmin; }
+    .fl b { font-size: 4vmin; }
+    .f3 b { font-size: 5vmin; }
+    .fl small { display: none; }
+    .strip { height: 11vmin; bottom: 4.4vmin; }
+  }
+  /* SQUARE — photo left; vertical sign on the seam; copy + floors right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 0; top: 0; width: 44%; height: 100%; }
+    .vsign { display: flex; position: absolute; left: calc(44% + 3vmin); top: 5vmin; bottom: 5vmin; width: 9vmin; background: #E8322B; box-shadow: 0 0 3vmin rgba(232,50,43,.45), inset 0 0 0 .35vmin rgba(255,255,255,.3); flex-direction: column; align-items: center; justify-content: center; gap: 2vmin; }
+    .vsign b { writing-mode: vertical-rl; text-orientation: upright; font-weight: 900; font-size: 6.4vmin; letter-spacing: -.06em; line-height: 1; color: #fff; }
+    .vsign span { writing-mode: vertical-rl; font-weight: 700; font-size: 2.4vmin; color: #FFD400; }
+    .head { left: calc(44% + 16vmin); right: 5vmin; top: 5vmin; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .lift { display: none; }
+    h1 { font-size: 6.2vmin; }
+    .floors { left: calc(44% + 16vmin); right: 5vmin; top: 23vmin; height: auto; bottom: 21vmin; gap: 1.2vmin; }
+    .fl { flex-direction: row; align-items: center; justify-content: flex-start; gap: 2vmin; }
+    .fl b, .f3 b { font-size: 3.4vmin; width: 5.4vmin; flex: none; }
+    .fl span { margin-top: 0; font-size: 2vmin; }
+    .fl small { display: none; }
+    .f3 { flex: 1.25; }
+    .strip { left: calc(44% + 16vmin); right: 5vmin; bottom: 5vmin; height: 14vmin; flex-direction: column; }
+    .strip .txt { display: none; }
+    .strip .code { flex: 1; padding: 0 2.4vmin; flex-direction: row; align-items: center; justify-content: space-between; }
+    .strip .go { padding: 1vmin 2.4vmin; font-size: 1.9vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .vsign { left: calc(46% + 4vmin); top: 6vmin; bottom: 6vmin; width: 11vmin; }
+    .vsign b { font-size: 8vmin; }
+    .head { left: calc(46% + 20vmin); right: 6vmin; top: 6vmin; flex-direction: row; align-items: flex-end; }
+    .lift { display: flex; }
+    h1 { font-size: 6.6vmin; }
+    .floors { left: calc(46% + 20vmin); right: 6vmin; top: 25vmin; bottom: 23vmin; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 1.6vmin; }
+    .fl b, .f3 b { font-size: 4vmin; width: 6vmin; }
+    .fl span { font-size: 2.1vmin; }
+    .strip { left: calc(46% + 20vmin); right: 6vmin; bottom: 6vmin; height: 13vmin; flex-direction: row; }
+    .strip .code { flex-direction: column; align-items: flex-start; justify-content: center; padding: 0 3vmin; }
+    .strip .go { padding: 0 3vmin; font-size: 2.1vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the lift's ▲ blinks, the 3F sale lightbox breathes its yellow glow (3s) ·
+     beats: 1.2s the lift rides up — each floor sign lights up in turn from B1 to 5F, the sale floor holds the longest ·
+     3.4s "on sale." gets a lightbox buzz · 4.2s the vertical SALE sign stutters (square/wide) · 5.0s code sheen + lift button lights */
+  .lift i { animation: up 1s steps(1, end) infinite; }
+  @keyframes up { 0%, 59% { opacity: 1; } 60%, 100% { opacity: .2; } }
+  .lift b { animation: liftnum 6s linear infinite; }
+  @keyframes liftnum { 0%, 20%, 42%, 100% { transform: translateY(0); opacity: 1; } 21% { transform: translateY(0); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.8,.4); } 23% { transform: translateY(-1vmin); opacity: 0; animation-timing-function: steps(1, end); } 23.5% { transform: translateY(1vmin); opacity: 0; animation-timing-function: cubic-bezier(.2,.8,.3,1); } 27% { transform: translateY(0); opacity: 1; } }
+
+  .fl { animation: ride 6s linear infinite; }
+  .fb { animation-delay: -1.25s; } .f1 { animation-delay: -1s; } .f2 { animation-delay: -.75s; } .f3 { animation-delay: -.5s; } .f4 { animation-delay: -.25s; } .f5 { animation-delay: 0s; }
+  @keyframes ride {
+    0%, 35% { filter: brightness(1); transform: translateX(0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    37% { filter: brightness(1.35) saturate(1.15); transform: translateX(-.8vmin); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    43%, 100% { filter: brightness(1); transform: translateX(0); }
+  }
+  .f3 { animation: ride 6s linear infinite, sale 3s cubic-bezier(.45,0,.55,1) infinite; animation-delay: -.5s, 0s; }
+  @keyframes sale { 0%, 100% { box-shadow: 0 0 3vmin var(--glow), inset 0 0 0 .35vmin rgba(255,255,255,.25); } 50% { box-shadow: 0 0 6vmin rgba(255,212,0,.85), inset 0 0 0 .35vmin rgba(255,255,255,.55); } }
+
+  h1 em { animation: buzz 6s linear infinite; }
+  @keyframes buzz {
+    0%, 56%, 57.6%, 58.8%, 60.2%, 100% { color: #FFD400; text-shadow: 0 0 0 rgba(255,212,0,0); }
+    56.3%, 57.3% { color: #FFE766; text-shadow: 0 0 1.6vmin rgba(255,212,0,.8); }
+    57.8%, 58.5% { color: #7A6A1A; text-shadow: none; }
+    59.2%, 59.8% { color: #FFE766; text-shadow: 0 0 1.6vmin rgba(255,212,0,.8); }
+  }
+  .vsign { animation: vs 6s linear infinite; }
+  @keyframes vs { 0%, 70%, 71.6%, 72.4%, 73.8%, 100% { filter: brightness(1); } 70.3%, 71.2%, 72.8%, 73.4% { filter: brightness(.45); } }
+
+  .strip .code { position: relative; overflow: hidden; }
+  .strip .code::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.75) 50%, rgba(255,255,255,0));
+    transform: translateX(-150%) skewX(-20deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen { 0%, 82% { transform: translateX(-150%) skewX(-20deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 95%, 100% { transform: translateX(360%) skewX(-20deg); } }
+  .strip .go { animation: go 6s linear infinite; }
+  @keyframes go { 0%, 86% { background: #1C2130; animation-timing-function: cubic-bezier(.2,.8,.3,1); } 89% { background: #34406A; animation-timing-function: cubic-bezier(.4,0,.4,1); } 97%, 100% { background: #1C2130; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1>Every floor,<br><em>on sale.</em></h1>
+    <div class="lift"><i>▲ UP</i><b>3F</b>LIFT</div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="vsign"><b>SALE</b><span>세일 −40%</span></div>
+  <div class="floors">
+    <div class="fl f5"><b>5F</b><span>Members</span><small>멤버십</small></div>
+    <div class="fl f4"><b>4F</b><span>Last call −50%</span><small>마지막</small></div>
+    <div class="fl f3"><b>3F</b><span>Up to 40% off</span><small>세일</small></div>
+    <div class="fl f2"><b>2F</b><span>The Edit</span><small>에디트</small></div>
+    <div class="fl f1"><b>1F</b><span>New in</span><small>신상</small></div>
+    <div class="fl fb"><b>B1</b><span>Archive</span><small>아카이브</small></div>
+  </div>
+  <div class="strip">
+    <div class="code">CODE<b>FLOOR40</b></div>
+    <div class="txt"><b>Hongdae store &amp; online</b>Until 12 October</div>
+    <div class="go">Take the lift →</div>
+  </div>
+</div>
+</body>
+</html>

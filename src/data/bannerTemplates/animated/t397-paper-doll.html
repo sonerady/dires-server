@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Paper Doll — the finishing pieces as a vintage paper-doll sheet: the full look is the doll, and three
+     crops of the same photo are printed as cut-outs with white fold-over tabs, a dashed cutting line
+     and a pair of scissors, each tagged "Tab A / B / C" with a price. Blush halftone paper, oxblood ink.
+     tall / 3:4 → doll above, cut-outs below; square / wide → doll left, the sheet on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1DCD2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2E1B18; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif;
+    background-color: #F1DCD2; background-image: radial-gradient(rgba(155,43,43,.10) 22%, transparent 24%); background-size: 1.6vmin 1.6vmin;
+    display: flex; flex-direction: column; padding: 5vmin; box-sizing: border-box; }
+  .top { flex: none; display: flex; justify-content: space-between; align-items: center; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .top span:last-child { color: #9B2B2B; }
+  .ph { flex: 1 1 auto; min-height: 0; position: relative; margin-top: 2.6vmin; overflow: hidden; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .copy { flex: none; margin-top: 3.4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  h1 { margin: 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 10vmin; line-height: .9; letter-spacing: -.01em; white-space: nowrap; }
+  h1 i { color: #9B2B2B; }
+  .sub { font-size: 2vmin; line-height: 1.4; text-align: right; padding-bottom: .8vmin; }
+
+  .sheet { flex: none; position: relative; margin-top: 3vmin; padding-top: 4.4vmin; display: flex; justify-content: space-between; }
+  .sheet svg.sc { position: absolute; left: -1vmin; top: -.6vmin; width: 5.4vmin; height: 3.4vmin; }
+  .sheet::before { content: ""; position: absolute; left: 5vmin; right: 0; top: 1.1vmin; border-top: 1px dashed #2E1B18; }
+  .pc { flex: none; width: 26vmin; display: flex; flex-direction: column; align-items: center; }
+  .cut { position: relative; width: 100%; box-sizing: border-box; background: #FFFDF8; padding: 1.2vmin; box-shadow: 0 .5vmin 1.4vmin rgba(80,30,25,.18); }
+  .cut::before, .cut::after { content: ""; position: absolute; top: -2.4vmin; width: 4.4vmin; height: 2.6vmin; background: #FFFDF8; clip-path: polygon(18% 0, 82% 0, 100% 100%, 0 100%); }
+  .cut::before { left: 16%; }
+  .cut::after { right: 16%; }
+  .cut i { position: absolute; inset: -1.3vmin; border: 1px dashed rgba(46,27,24,.7); pointer-events: none; }
+  .cr { position: relative; height: 22vmin; overflow: hidden; }
+  .cr img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .p1 .cut { transform: rotate(-3deg); }
+  .p2 .cut { transform: rotate(2deg); }
+  .p3 .cut { transform: rotate(-1.4deg); }
+  .p1 .cr img { object-position: 50% 26%; transform: scale(1.7); transform-origin: 50% 28%; }
+  .p2 .cr img { object-position: 50% 50%; transform: scale(2.4); transform-origin: 50% 50%; }
+  .p3 .cr img { object-position: 50% 86%; transform: scale(1.8); transform-origin: 50% 88%; }
+  .lab { margin-top: 2.2vmin; width: 100%; display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+  .lab b { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 2.8vmin; letter-spacing: 0; text-transform: none; }
+
+  .foot { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; margin-top: 3vmin; border-top: 1px solid #2E1B18; padding-top: 2.2vmin; }
+  .foot p { margin: 0; font-size: 2vmin; font-weight: 500; }
+  .foot p b { font-weight: 700; color: #9B2B2B; }
+  .cta { flex: none; background: #9B2B2B; color: #FFFDF8; padding: 1.8vmin 3vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 5vmin; }
+    h1 { font-size: 8.4vmin; }
+    .copy { margin-top: 2.6vmin; }
+    .sheet { margin-top: 2vmin; padding-top: 4vmin; }
+    .pc { width: 24vmin; }
+    .cr { height: 15vmin; }
+    .lab { margin-top: 1.8vmin; }
+    .foot { margin-top: 2.4vmin; padding-top: 1.8vmin; }
+  }
+  /* square / wide — doll left, the sheet right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: grid; grid-template-columns: 46% minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; column-gap: 5vmin; padding: 0 5vmin 0 0; }
+    .ph { grid-column: 1; grid-row: 1 / -1; margin: 0; }
+    .top { grid-column: 2; grid-row: 1; margin-top: 5vmin; flex-direction: column; align-items: flex-start; gap: .8vmin; }
+    .copy { grid-column: 2; grid-row: 2; margin-top: 3.4vmin; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .sub { text-align: left; font-size: 1.9vmin; padding: 0; }
+    .sheet { grid-column: 2; grid-row: 3; align-self: center; margin: 0; }
+    .pc { width: 20vmin; }
+    .p3 { display: none; }
+    .cr { height: 20vmin; }
+    .foot { grid-column: 2; grid-row: 4; margin: 0 0 5vmin; flex-direction: column; align-items: flex-start; gap: 1.8vmin; padding-top: 1.8vmin; }
+    .foot p { font-size: 1.8vmin; }
+    .cta { padding: 1.5vmin 2.6vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: 42% minmax(0, 1fr); column-gap: 6vmin; padding-right: 6vmin; }
+    .top { margin-top: 6vmin; flex-direction: row; justify-content: space-between; }
+    .copy { flex-direction: row; align-items: flex-end; }
+    h1 { font-size: 9vmin; }
+    .sub { text-align: right; }
+    .p3 { display: flex; }
+    .pc { width: 21vmin; }
+    .cr { height: 21vmin; }
+    .foot { flex-direction: row; align-items: center; margin-bottom: 6vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     cutting out the sheet: 0.5 s the scissors run along the dashed line, snipping as they go (a small bite-rock),
+     and each cut-out lifts off the paper as the blades pass it — straightens, rises, casts a deeper shadow — and
+     settles back at its tilt · the scissors fade out at the end of the line and reappear at the start ·
+     the doll photo breathes in slowly */
+  .sheet svg.sc { animation: travel 6s cubic-bezier(.45,0,.55,1) infinite, snip .5s ease-in-out infinite; }
+  @keyframes travel {
+    0%, 8% { left: -1vmin; opacity: 1; }
+    52% { left: calc(100% - 5.4vmin); opacity: 1; }
+    58% { left: calc(100% - 5.4vmin); opacity: 0; }
+    58.01%, 86% { left: -1vmin; opacity: 0; }
+    96%, 100% { left: -1vmin; opacity: 1; }
+  }
+  @keyframes snip { 0%, 100% { transform: rotate(0deg) scaleY(1); } 50% { transform: rotate(-6deg) scaleY(.8); } }
+  .cut { animation: peel 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .p1 .cut { --r: -3deg; animation-delay: -5.1s; }
+  .p2 .cut { --r: 2deg; animation-delay: -4.2s; }
+  .p3 .cut { --r: -1.4deg; animation-delay: -3.3s; }
+  @keyframes peel {
+    0%, 100% { transform: rotate(var(--r)) translateY(0); box-shadow: 0 .5vmin 1.4vmin rgba(80,30,25,.18); }
+    5% { transform: rotate(0deg) translateY(-1.4vmin); box-shadow: 0 1.8vmin 2.8vmin rgba(80,30,25,.26); }
+    11% { transform: rotate(0deg) translateY(-1.4vmin); box-shadow: 0 1.8vmin 2.8vmin rgba(80,30,25,.26); }
+    17% { transform: rotate(var(--r)) translateY(0); box-shadow: 0 .5vmin 1.4vmin rgba(80,30,25,.18); }
+  }
+  .lab b { display: inline-block; animation: price 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .p1 .lab b { animation-delay: -5.1s; }
+  .p2 .lab b { animation-delay: -4.2s; }
+  .p3 .lab b { animation-delay: -3.3s; }
+  @keyframes price { 0%, 4%, 12%, 100% { transform: scale(1); } 7% { transform: scale(1.14); } }
+  .ph img { transform-origin: 50% 30%; animation: drift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes drift { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><span>Paper doll · sheet 05</span><span>Finish the look</span></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="copy">
+    <h1>Cut out <i>&amp; keep.</i></h1>
+    <div class="sub">Three pieces<br>that finish it.</div>
+  </div>
+  <div class="sheet">
+    <svg class="sc" viewBox="0 0 54 34" aria-hidden="true"><g fill="none" stroke="#2E1B18" stroke-width="2.4"><circle cx="9" cy="8" r="6"/><circle cx="9" cy="26" r="6"/><path d="M14 11 L52 22 M14 23 L52 12" stroke-linecap="round"/></g></svg>
+    <div class="pc p1"><div class="cut"><i></i><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div></div><div class="lab"><span>Tab A</span><b>€89</b></div></div>
+    <div class="pc p2"><div class="cut"><i></i><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div></div><div class="lab"><span>Tab B</span><b>€45</b></div></div>
+    <div class="pc p3"><div class="cut"><i></i><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div></div><div class="lab"><span>Tab C</span><b>€120</b></div></div>
+  </div>
+  <div class="foot">
+    <p>Any two pieces <b>−20%</b> · code CUTOUT20</p>
+    <div class="cta">Shop the set</div>
+  </div>
+</div>
+</body>
+</html>

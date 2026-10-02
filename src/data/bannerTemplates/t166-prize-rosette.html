@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Prize Rosette — "top rated" as a county-show award: a pleated royal-blue rosette with swallow-tail ribbons,
+     a Bodoni headline and the judges' numbers. tall → photo melts into a dove panel; square / wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E9E6E1; }
+  .banner { --panel: 60vmin; position: fixed; inset: 0; overflow: hidden; background: #E9E6E1; color: #14213F; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .shot { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel) + 12vmin); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; display: block; }
+  .shot::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 18vmin;
+    background: linear-gradient(to top, rgba(233,230,225,1) 0%, rgba(233,230,225,.985) 7.69%, rgba(233,230,225,.943) 15.38%, rgba(233,230,225,.874) 23.08%, rgba(233,230,225,.784) 30.77%, rgba(233,230,225,.677) 38.46%, rgba(233,230,225,.56) 46.15%, rgba(233,230,225,.44) 53.85%, rgba(233,230,225,.323) 61.54%, rgba(233,230,225,.216) 69.23%, rgba(233,230,225,.126) 76.92%, rgba(233,230,225,.057) 84.62%, rgba(233,230,225,.015) 92.31%, rgba(233,230,225,0) 100%); }
+
+  .rosette { position: absolute; right: 5vmin; bottom: 4vmin; width: 32vmin; height: 44.8vmin; filter: drop-shadow(0 1vmin 1.4vmin rgba(20,33,63,.22)); }
+  .rosette svg { width: 100%; height: 100%; display: block; }
+
+  .panel { position: absolute; left: 6vmin; right: 41vmin; bottom: 6vmin; }
+  .kick { display: flex; align-items: center; gap: 1.4vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  .kick i { width: 5vmin; height: 1px; background: #14213F; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Bodoni Moda", "Didot", Georgia, serif; font-weight: 400; font-size: 12.4vmin; line-height: .9; letter-spacing: -.025em; }
+  h1 i { font-weight: 400; color: #1F3A93; }
+  .sub { margin: 2.6vmin 0 0; font-size: 2.2vmin; line-height: 1.45; color: #3A4563; }
+  .sub b { color: #14213F; font-weight: 600; }
+  .cta { display: inline-flex; align-items: center; gap: 1.6vmin; margin-top: 3.4vmin; padding-bottom: .8vmin; border-bottom: .3vmin solid #1F3A93; font-size: 2.1vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #1F3A93; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 54vmin; }
+    .rosette { width: 29vmin; height: 40.6vmin; bottom: 3.6vmin; }
+    .panel { right: 37vmin; bottom: 5vmin; }
+    h1 { font-size: 11vmin; }
+    .sub { font-size: 2vmin; margin-top: 2vmin; }
+    .cta { margin-top: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 50%; }
+    .shot { width: var(--pw); height: 100%; }
+    .shot::after { display: none; }
+    .rosette { right: auto; left: calc(var(--pw) + 25vmin - 15vmin); bottom: auto; top: 4.4vmin; width: 30vmin; height: 42vmin; }
+    .panel { left: calc(var(--pw) + 5.5vmin); right: 5.5vmin; bottom: 5.5vmin; }
+    .kick { font-size: 1.6vmin; letter-spacing: .2em; }
+    h1 { font-size: 10vmin; margin-top: 2vmin; }
+    .sub { font-size: 2vmin; margin-top: 2vmin; }
+    .cta { margin-top: 2.4vmin; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 46%; }
+    .rosette { left: auto; right: 6vmin; top: 50%; transform: translateY(-46%); width: 32vmin; height: 44.8vmin; }
+    .panel { left: calc(var(--pw) + 7vmin); right: 44vmin; top: 50%; bottom: auto; transform: translateY(-50%); }
+    .kick { font-size: 1.8vmin; }
+    h1 { font-size: 10.6vmin; }
+    .sub { font-size: 2.1vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+
+  <div class="panel">
+    <div class="kick"><i></i>Customers' choice 2026</div>
+    <h1>Best <i>in show.</i></h1>
+    <p class="sub">Rated <b>4.9 out of 5</b> by 2,400 customers. Our highest score of the season.</p>
+    <div class="cta">Shop the winners →</div>
+  </div>
+
+  <div class="rosette">
+    <svg viewBox="0 0 200 280">
+      <defs><path id="rr" d="M100 100 m-47 0 a47 47 0 1 1 94 0 a47 47 0 1 1 -94 0"/></defs>
+      <g>
+        <path d="M76 140 L104 140 L84 276 L71 258 L55 270 Z" fill="#1F3A93"/>
+        <path d="M89 145 L73 262" stroke="#F4F0E6" stroke-width="3"/>
+        <path d="M96 140 L124 140 L145 270 L129 258 L116 276 Z" fill="#17307D"/>
+        <path d="M111 145 L128 262" stroke="#F4F0E6" stroke-width="3"/>
+      </g>
+      <path d="M100.0 2.0 L106.7 14.3 L115.3 3.2 L120.1 16.4 L130.3 6.8 L132.9 20.5 L144.5 12.7 L144.9 26.7 L157.6 20.7 L155.9 34.6 L169.3 30.7 L165.4 44.1 L179.3 42.4 L173.3 55.1 L187.3 55.5 L179.5 67.1 L193.2 69.7 L183.6 79.9 L196.8 84.7 L185.7 93.3 L198.0 100.0 L185.7 106.7 L196.8 115.3 L183.6 120.1 L193.2 130.3 L179.5 132.9 L187.3 144.5 L173.3 144.9 L179.3 157.6 L165.4 155.9 L169.3 169.3 L155.9 165.4 L157.6 179.3 L144.9 173.3 L144.5 187.3 L132.9 179.5 L130.3 193.2 L120.1 183.6 L115.3 196.8 L106.7 185.7 L100.0 198.0 L93.3 185.7 L84.7 196.8 L79.9 183.6 L69.7 193.2 L67.1 179.5 L55.5 187.3 L55.1 173.3 L42.4 179.3 L44.1 165.4 L30.7 169.3 L34.6 155.9 L20.7 157.6 L26.7 144.9 L12.7 144.5 L20.5 132.9 L6.8 130.3 L16.4 120.1 L3.2 115.3 L14.3 106.7 L2.0 100.0 L14.3 93.3 L3.2 84.7 L16.4 79.9 L6.8 69.7 L20.5 67.1 L12.7 55.5 L26.7 55.1 L20.7 42.4 L34.6 44.1 L30.7 30.7 L44.1 34.6 L42.4 20.7 L55.1 26.7 L55.5 12.7 L67.1 20.5 L69.7 6.8 L79.9 16.4 L84.7 3.2 L93.3 14.3 Z" fill="#1F3A93"/>
+      <path d="M100.0 20.0 L106.7 27.3 L114.7 21.4 L120.0 29.8 L128.9 25.4 L132.5 34.7 L142.1 32.0 L144.0 41.7 L153.9 40.9 L153.9 50.8 L163.8 51.8 L162.1 61.6 L171.6 64.3 L168.1 73.6 L176.9 78.1 L171.8 86.6 L179.7 92.6 L173.0 100.0 L179.7 107.4 L171.8 113.4 L176.9 121.9 L168.1 126.4 L171.6 135.7 L162.1 138.4 L163.8 148.2 L153.9 149.2 L153.9 159.1 L144.0 158.3 L142.1 168.0 L132.5 165.3 L128.9 174.6 L120.0 170.2 L114.7 178.6 L106.7 172.7 L100.0 180.0 L93.3 172.7 L85.3 178.6 L80.0 170.2 L71.1 174.6 L67.5 165.3 L57.9 168.0 L56.0 158.3 L46.1 159.1 L46.1 149.2 L36.2 148.2 L37.9 138.4 L28.4 135.7 L31.9 126.4 L23.1 121.9 L28.2 113.4 L20.3 107.4 L27.0 100.0 L20.3 92.6 L28.2 86.6 L23.1 78.1 L31.9 73.6 L28.4 64.3 L37.9 61.6 L36.2 51.8 L46.1 50.8 L46.1 40.9 L56.0 41.7 L57.9 32.0 L67.5 34.7 L71.1 25.4 L80.0 29.8 L85.3 21.4 L93.3 27.3 Z" fill="#F4F0E6"/>
+      <circle cx="100" cy="100" r="64" fill="#1F3A93"/>
+      <circle cx="100" cy="100" r="58.5" fill="none" stroke="#F4F0E6" stroke-width="1" stroke-dasharray="2.4 2.4"/>
+      <text font-family="Jost, Arial, sans-serif" font-weight="600" font-size="11.5" letter-spacing="2" fill="#F4F0E6"><textPath href="#rr">TOP RATED ★ TOP RATED ★ TOP RATED ★</textPath></text>
+      <circle cx="100" cy="100" r="36" fill="#F4F0E6"/>
+      <text x="100" y="109" text-anchor="middle" font-family="Bodoni Moda, Didot, Georgia, serif" font-style="italic" font-size="30" fill="#14213F">1st</text>
+      <text x="100" y="124" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-weight="600" font-size="7" letter-spacing="2" fill="#1F3A93">PRIZE</text>
+    </svg>
+  </div>
+</div>
+</body>
+</html>

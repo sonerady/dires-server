@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Black Friday — editorial black: the photo melts into a black page, one enormous Didone number carries the offer */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0A0A0A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0A0A0A; color: #F4F1EC; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 74vmin); object-fit: cover; object-position: 50% 22%; }
+  .melt { position: absolute; left: 0; right: 0; top: calc(100% - 74vmin - 20vmin); height: 20.5vmin; background: linear-gradient(to top, rgba(10,10,10,1.0) 0.0%, rgba(10,10,10,0.985) 7.7%, rgba(10,10,10,0.943) 15.4%, rgba(10,10,10,0.874) 23.1%, rgba(10,10,10,0.784) 30.8%, rgba(10,10,10,0.677) 38.5%, rgba(10,10,10,0.56) 46.2%, rgba(10,10,10,0.44) 53.8%, rgba(10,10,10,0.323) 61.5%, rgba(10,10,10,0.216) 69.2%, rgba(10,10,10,0.126) 76.9%, rgba(10,10,10,0.057) 84.6%, rgba(10,10,10,0.015) 92.3%, rgba(10,10,10,0.0) 100.0%); }
+  .topfade { position: absolute; left: 0; right: 0; top: 0; height: 16vmin; background: linear-gradient(to bottom, rgba(10,10,10,0.72) 0.0%, rgba(10,10,10,0.709) 7.7%, rgba(10,10,10,0.679) 15.4%, rgba(10,10,10,0.629) 23.1%, rgba(10,10,10,0.564) 30.8%, rgba(10,10,10,0.487) 38.5%, rgba(10,10,10,0.403) 46.2%, rgba(10,10,10,0.317) 53.8%, rgba(10,10,10,0.233) 61.5%, rgba(10,10,10,0.156) 69.2%, rgba(10,10,10,0.091) 76.9%, rgba(10,10,10,0.041) 84.6%, rgba(10,10,10,0.011) 92.3%, rgba(10,10,10,0.0) 100.0%); }
+  .folio { position: absolute; left: 5vmin; right: 5vmin; top: 4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; }
+  .panel { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 66vmin; display: flex; flex-direction: column; }
+  .title { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 1px solid rgba(244,241,236,.35); padding-bottom: 1.6vmin; }
+  .title h1 { margin: 0; font-family: "Bodoni Moda", "Didot", Georgia, serif; font-style: italic; font-weight: 400; font-size: 8.4vmin; line-height: 1; letter-spacing: -.01em; }
+  .title span { font-size: 1.8vmin; letter-spacing: .24em; text-transform: uppercase; color: rgba(244,241,236,.7); }
+  .offer { flex: 1; display: flex; align-items: center; }
+  .lock { display: flex; align-items: stretch; gap: 2.4vmin; }
+  .num { font-family: "Bodoni Moda", "Didot", Georgia, serif; font-weight: 800; font-size: 50vmin; line-height: .74; letter-spacing: -.06em; font-variation-settings: "opsz" 28; margin-left: -1.4vmin; }
+  .side { display: flex; flex-direction: column; justify-content: space-between; padding: .6vmin 0 0; }
+  .pct { font-family: "Bodoni Moda", "Didot", Georgia, serif; font-weight: 400; font-size: 15vmin; line-height: .8; font-variation-settings: "opsz" 96; }
+  .upto { font-size: 1.9vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; line-height: 1.7; }
+  .upto em { display: block; font-style: normal; font-weight: 400; color: rgba(244,241,236,.7); }
+  .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 4vmin; border-top: 1px solid rgba(244,241,236,.35); padding-top: 2vmin; }
+  .foot p { margin: 0; font-size: 2.2vmin; line-height: 1.4; color: rgba(244,241,236,.78); max-width: 46vmin; }
+  .cta { flex: none; font-size: 2.3vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; padding-bottom: .6vmin; border-bottom: .3vmin solid #F4F1EC; white-space: nowrap; }
+
+  /* 2:3 · 3:4 · 4:5 — a shorter page, a slightly smaller number */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 60vmin); }
+    .melt { top: calc(100% - 60vmin - 16vmin); height: 16.5vmin; }
+    .panel { height: 54vmin; bottom: 4vmin; }
+    .title h1 { font-size: 7vmin; }
+    .num { font-size: 40vmin; }
+    .pct { font-size: 12vmin; }
+  }
+  /* square — photo on the right, the page on the left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 20%; }
+    .melt { top: 0; bottom: 0; height: auto; left: 50%; right: auto; width: 12%; background: linear-gradient(to right, rgba(10,10,10,1.0) 0.0%, rgba(10,10,10,0.985) 7.7%, rgba(10,10,10,0.943) 15.4%, rgba(10,10,10,0.874) 23.1%, rgba(10,10,10,0.784) 30.8%, rgba(10,10,10,0.677) 38.5%, rgba(10,10,10,0.56) 46.2%, rgba(10,10,10,0.44) 53.8%, rgba(10,10,10,0.323) 61.5%, rgba(10,10,10,0.216) 69.2%, rgba(10,10,10,0.126) 76.9%, rgba(10,10,10,0.057) 84.6%, rgba(10,10,10,0.015) 92.3%, rgba(10,10,10,0.0) 100.0%); }
+    .topfade { display: none; }
+    .folio { right: auto; width: calc(50% - 10vmin); flex-direction: column; gap: 1vmin; }
+    .panel { top: 15vmin; bottom: 5vmin; height: auto; right: auto; width: calc(50% - 8vmin); }
+    .title { flex-direction: column; align-items: flex-start; gap: 1.2vmin; }
+    .title h1 { font-size: 7.6vmin; }
+    .num { font-size: 28vmin; }
+    .pct { font-size: 8.5vmin; }
+    .upto { font-size: 1.7vmin; letter-spacing: .2em; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .foot p { font-size: 2vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; }
+    .melt { left: 46%; width: 11%; }
+    .folio { width: calc(46% - 12vmin); flex-direction: row; }
+    .panel { top: 12vmin; width: calc(46% - 13vmin); }
+    .title { flex-direction: row; align-items: baseline; }
+    .title h1 { font-size: 8vmin; }
+    .num { font-size: 34vmin; }
+    .pct { font-size: 10vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="melt"></div>
+  <div class="topfade"></div>
+  <div class="folio"><span>Nº 11 — The Black Edit</span><span>28.11 — 01.12</span></div>
+  <div class="panel">
+    <div class="title"><h1>Black Friday</h1><span>Online &amp; in store</span></div>
+    <div class="offer">
+      <div class="lock">
+        <div class="num">40</div>
+        <div class="side">
+          <div class="pct">%</div>
+          <div class="upto">Up to<em>off</em></div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><p>Across the collection, while it lasts.</p><div class="cta">Shop the edit</div></div>
+  </div>
+</div>
+</body>
+</html>

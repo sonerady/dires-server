@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;700;800&family=Chivo+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Alti Watch — an ABC outdoor wrist instrument seen from above: ribbed rubber strap, octagonal bezel with a
+     compass ring and printed button labels, and a sage-grey LCD that reads the sale like an altimeter
+     (mode ALTI, −30%, a falling altitude log in bar segments). Ice-blue accents on black.
+     tall → photo above, watch below · square/wide → photo left, watch right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E1012; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0E1012; color: #E8ECEE; font-family: "Oxanium", "Arial Narrow", sans-serif; --ice: #5CC8FF; --lcd: #B7C2A2; --ink: #1B2317; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 94vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 94vmin; overflow: hidden; background: radial-gradient(80% 55% at 50% 62%, #1C2024, #0E1012 72%); }
+  .mono { font-family: "Chivo Mono", Menlo, monospace; }
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 4.6vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #8B949A; white-space: nowrap; }
+  .kick b { color: var(--ice); font-weight: 600; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 800; font-size: 8vmin; line-height: .95; letter-spacing: -.02em; text-transform: uppercase; }
+  h1 span { color: var(--ice); }
+
+  /* strap */
+  .strap { position: absolute; left: calc(50% - 17vmin); width: 34vmin; top: 28vmin; bottom: 0; border-radius: 3vmin 3vmin 0 0;
+    background: radial-gradient(circle, #07080A 0 1.1vmin, transparent 1.2vmin) 50% 100% / 100% 7vmin repeat-y,
+      repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 .5vmin, transparent .5vmin 1.6vmin),
+      linear-gradient(90deg, #15181B, #2A2E33 20%, #30353A 50%, #2A2E33 80%, #15181B); }
+  .watch { position: absolute; left: calc(50% - 29vmin); top: 32vmin; width: 58vmin; height: 58vmin; }
+  .btn { position: absolute; width: 3.6vmin; height: 7vmin; background: linear-gradient(90deg, #3A3F45, #6A7178 50%, #3A3F45); border-radius: .8vmin; }
+  .b1 { left: -2.4vmin; top: 14vmin; } .b2 { left: -2.4vmin; bottom: 14vmin; } .b3 { right: -2.4vmin; top: 14vmin; } .b4 { right: -2.4vmin; bottom: 14vmin; }
+  .b3 { background: linear-gradient(90deg, #1F6C93, var(--ice) 50%, #1F6C93); }
+  .bezel { position: absolute; inset: 0; clip-path: polygon(29% 0, 71% 0, 100% 29%, 100% 71%, 71% 100%, 29% 100%, 0 71%, 0 29%);
+    background: linear-gradient(145deg, #4A5057, #24282D 40%, #16191C 70%, #31363C); }
+  .bezel::after { content: ""; position: absolute; inset: 1.4vmin; clip-path: inherit; background: #15181B; }
+  .ring { position: absolute; inset: 3.4vmin; border-radius: 50%; z-index: 1;
+    background: repeating-conic-gradient(from -1deg, #8B949A 0 2deg, transparent 2deg 15deg); -webkit-mask: radial-gradient(circle, transparent 0 60%, #000 60.5% 64%, transparent 64.5%); mask: radial-gradient(circle, transparent 0 60%, #000 60.5% 64%, transparent 64.5%); }
+  .cd { position: absolute; z-index: 2; font-weight: 700; font-size: 2.4vmin; line-height: 1; color: #C9D0D4; }
+  .cd.n { left: 50%; top: 4.6vmin; transform: translateX(-50%); color: var(--ice); }
+  .cd.s { left: 50%; bottom: 4.6vmin; transform: translateX(-50%); }
+  .cd.e { right: 5vmin; top: 50%; transform: translateY(-50%); }
+  .cd.w { left: 5vmin; top: 50%; transform: translateY(-50%); }
+  .lbl { position: absolute; z-index: 2; font-family: "Chivo Mono", Menlo, monospace; font-weight: 600; font-size: 1.6vmin; letter-spacing: .08em; color: #8B949A; }
+  .lb1 { left: 4.4vmin; top: 12vmin; } .lb2 { left: 4.4vmin; bottom: 12vmin; } .lb3 { right: 4.4vmin; top: 12vmin; color: var(--ice); } .lb4 { right: 4.4vmin; bottom: 12vmin; }
+  .lcd { position: absolute; left: 13vmin; top: 13vmin; width: 32vmin; height: 32vmin; z-index: 2; border-radius: 50%; box-sizing: border-box; padding: 5vmin 4vmin 0;
+    display: flex; flex-direction: column; align-items: center; color: var(--ink);
+    background: radial-gradient(circle at 40% 30%, #C8D2B4, var(--lcd) 60%, #9DA98A); box-shadow: inset 0 .6vmin 1.2vmin rgba(0,0,0,.45), 0 0 0 .6vmin #0A0B0C; }
+  .mode { display: flex; gap: 1.4vmin; font-family: "Chivo Mono", Menlo, monospace; font-weight: 600; font-size: 1.6vmin; letter-spacing: .06em; }
+  .mode i { font-style: normal; padding: 0 .6vmin; background: var(--ink); color: var(--lcd); }
+  .dig { position: relative; margin-top: .8vmin; font-weight: 700; font-size: 10vmin; line-height: 1; letter-spacing: -.02em; white-space: nowrap; }
+  .sub { display: flex; gap: 1.6vmin; font-family: "Chivo Mono", Menlo, monospace; font-weight: 600; font-size: 1.6vmin; white-space: nowrap; }
+  .bars { display: flex; align-items: flex-end; gap: .5vmin; height: 4vmin; margin-top: 1.2vmin; }
+  .bars i { width: 1.1vmin; background: var(--ink); }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 38vmin; }
+  .fl, .fr { display: flex; flex-direction: column; gap: .8vmin; min-width: 0; }
+  .fr { align-items: flex-end; text-align: right; }
+  .fl small, .fr small { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #8B949A; white-space: nowrap; }
+  .fl b, .fr b { font-weight: 700; font-size: 3vmin; letter-spacing: .02em; white-space: nowrap; }
+  .fr b { color: var(--ice); }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 84vmin); }
+    .panel { height: 84vmin; }
+    .head { top: 4vmin; }
+    h1 { font-size: 7.2vmin; }
+    .strap { top: 25vmin; }
+    .watch { top: 25vmin; transform: scale(.92); transform-origin: 50% 0; }
+    .foot { bottom: 4.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .panel { height: 66vmin; }
+    .head { top: 3.6vmin; right: 62vmin; }
+    .kick { flex-direction: column; gap: .5vmin; }
+    h1 { font-size: 6.4vmin; }
+    .strap { left: auto; right: 12vmin; top: 0; }
+    .watch { left: auto; right: -0vmin; top: 5vmin; transform: scale(.82); transform-origin: 50% 0; }
+    .foot { right: 62vmin; bottom: 4vmin; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .fr { align-items: flex-start; text-align: left; }
+  }
+  /* square / wide → photo left, watch right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 50%; top: 0; height: auto; }
+    .head { left: 4.4vmin; right: 4.4vmin; top: 4.4vmin; }
+    .kick { flex-direction: column; gap: .5vmin; font-size: 1.6vmin; }
+    h1 { font-size: 5.6vmin; }
+    .strap { left: calc(50% - 12vmin); right: auto; width: 24vmin; top: 25vmin; }
+    .watch { left: calc(50% - 29vmin); right: auto; top: 25vmin; transform: scale(.7); transform-origin: 50% 0; }
+    .foot { left: 4.4vmin; right: 4.4vmin; bottom: 4vmin; flex-direction: row; align-items: flex-end; gap: 2vmin; }
+    .fr { align-items: flex-end; text-align: right; }
+    .fl b, .fr b { font-size: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .panel { left: 48%; }
+    .head { left: 6vmin; right: 6vmin; top: 6vmin; }
+    .kick { flex-direction: row; font-size: 1.7vmin; }
+    h1 { font-size: 7vmin; margin-top: 2vmin; }
+    .strap { left: auto; right: 15.2vmin; width: 26vmin; top: 29vmin; }
+    .watch { left: auto; right: -.8vmin; top: 31vmin; transform: scale(.8); transform-origin: 50% 0; }
+    .foot { left: 6vmin; right: 50vmin; bottom: 6vmin; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .fr { align-items: flex-start; text-align: left; }
+    .fl b, .fr b { font-size: 3.4vmin; }
+  }
+
+  /* ───────── motion (6s loop), t=0 = static design ─────────
+     constant: SALE button glows (3s breath)
+     1.5s LIGHT button pressed → ice backlight floods the LCD, fades · 3.6s bezel ring clicks one notch (15°)
+     4.2s altitude log bars re-draw left→right · 5.0s the −30% readout blinks twice like an LCD alarm */
+  .b1 { animation: press 6s linear infinite; }
+  @keyframes press {
+    0%, 24% { transform: translateX(0); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    26%, 30% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    33%, 100% { transform: translateX(0); }
+  }
+  .lcd::after { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: -1; pointer-events: none;
+    background: radial-gradient(circle at 50% 45%, rgba(150,230,255,.95), rgba(92,200,255,.7) 60%, rgba(40,140,200,.6));
+    opacity: 0; animation: backlight 6s linear infinite; }
+  @keyframes backlight {
+    0%, 26% { opacity: 0; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    29%, 50% { opacity: 1; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    58%, 100% { opacity: 0; }
+  }
+  .ring { animation: notch 6s linear infinite; }
+  @keyframes notch {
+    0%, 60% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.5,0,.2,1.4); }
+    65%, 100% { transform: rotate(15deg); }
+  }
+  .bars i { transform-origin: 50% 100%; animation: logbar 6s linear infinite; }
+  .bars i:nth-child(2) { animation-delay: -.06s; } .bars i:nth-child(3) { animation-delay: -.12s; } .bars i:nth-child(4) { animation-delay: -.18s; }
+  .bars i:nth-child(5) { animation-delay: -.24s; } .bars i:nth-child(6) { animation-delay: -.3s; } .bars i:nth-child(7) { animation-delay: -.36s; } .bars i:nth-child(8) { animation-delay: -.42s; }
+  @keyframes logbar {
+    0%, 72% { transform: scaleY(1); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    74.5% { transform: scaleY(0); animation-timing-function: steps(1, end); }
+    76% { transform: scaleY(0); animation-timing-function: cubic-bezier(.2,.8,.3,1.2); }
+    80%, 100% { transform: scaleY(1); }
+  }
+  .dig { animation: blinkd 6s steps(1, end) infinite; }
+  @keyframes blinkd { 0%, 83% { opacity: 1; } 84%, 86.5% { opacity: 0; } 87.5% { opacity: 1; } 89.5%, 92% { opacity: 0; } 93%, 100% { opacity: 1; } }
+  .b3 { animation: saleglow 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes saleglow { 0%, 100% { box-shadow: 0 0 0 rgba(92,200,255,0); } 50% { box-shadow: 0 0 2.4vmin rgba(92,200,255,.75); } }
+  .lb3 { animation: saletxt 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes saletxt { 0%, 100% { text-shadow: 0 0 0 rgba(92,200,255,0); } 50% { text-shadow: 0 0 1.2vmin rgba(92,200,255,.9); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="head">
+      <div class="kick mono"><span>Mode · <b>Alti</b></span><span>Sensor sale</span></div>
+      <h1>Prices at <br><span>low altitude.</span></h1>
+    </div>
+    <i class="strap"></i>
+    <div class="watch">
+      <i class="btn b1"></i><i class="btn b2"></i><i class="btn b3"></i><i class="btn b4"></i>
+      <i class="bezel"></i>
+      <i class="ring"></i>
+      <span class="cd n">N</span><span class="cd e">E</span><span class="cd s">S</span><span class="cd w">W</span>
+      <span class="lbl lb1">LIGHT</span><span class="lbl lb2">MODE</span><span class="lbl lb3">SALE</span><span class="lbl lb4">BARO</span>
+      <div class="lcd">
+        <div class="mode"><i>ALTI</i><span>▼ DROP</span></div>
+        <div class="dig">−30%</div>
+        <div class="sub"><span>2 450 m</span><span>12:30</span></div>
+        <div class="bars"><i style="height:100%"></i><i style="height:92%"></i><i style="height:84%"></i><i style="height:70%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:36%"></i><i style="height:22%"></i></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="fl"><small>Code</small><b>ALT30</b></div>
+      <div class="fr"><small>Until 06.10</small><b>Shop now →</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

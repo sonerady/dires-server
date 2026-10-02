@@ -103,7 +103,7 @@ for (const name of ['createRefiner', 'createRefinerWeb']) test(`${name}: first P
   function visit(n) { if (!n || typeof n !== 'object') return; if (n.type) nodes.push(n); for (const [k,v] of Object.entries(n)) if(k!=='loc') Array.isArray(v) ? v.forEach(visit) : visit(v); }
   visit(ast);
   const h = setup('timeout'), saved = [];
-  const context = {...h, req:{body:request}, gptImageResult:options.imageUrl, upscaleMp:4, userId:'device-account', finalGenerationId:'main', enhancedPrompt:'preserve product', deductCreditOnSuccess:async()=>true,
+  const context = {...h, refinerBackgroundMode: require('../src/utils/refinerBackground').refinerBackgroundMode, req:{body:request}, gptImageResult:options.imageUrl, upscaleMp:4, userId:'device-account', finalGenerationId:'main', enhancedPrompt:'preserve product', deductCreditOnSuccess:async()=>true,
     updateGenerationStatus:async (id,user,status,updates) => { saved.push({status,updates}); return {result_image_url:'https://storage/gpt-copy.jpg'}; }};
   vm.createContext(context);
   for (const variable of ['upscaleOutcome','refinerUpdated','refinerFinalUrl']) {

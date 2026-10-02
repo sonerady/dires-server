@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* Shelf Edge — the aluminium price rail of a Nordic shop shelf: a clip-in paper label with article number,
+     colour and size run, the new price in condensed figures, the struck old price and a tongue-in-cheek
+     "price per wear"; an ochre "new lower price" flag clips over the rail.
+     tall → photo is the shelf, rail under it; 3:4 and wider → photo left, rail across the right panel */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECEAE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECEAE4; color: #1C1D1B; font-family: "Barlow", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 76vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 76vmin; display: flex; flex-direction: column; }
+  /* the rail */
+  .rail { position: relative; flex: none; padding: 1.6vmin 0; background: linear-gradient(180deg, #E3E6E6 0, #B7BCBD 12%, #C8CCCC 50%, #9DA3A4 90%, #7F8586 100%); box-shadow: 0 1.4vmin 2vmin -.6vmin rgba(30,32,30,.35); z-index: 2; }
+  .label { margin: 0 4vmin; background: #FBFAF6; display: grid; grid-template-columns: 1fr auto; align-items: stretch; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+  .info { padding: 2vmin 2.6vmin 1.8vmin; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+  .art { font-size: 1.7vmin; letter-spacing: .08em; color: #5C5E5A; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .name { margin-top: .6vmin; font-weight: 700; font-size: 3.4vmin; line-height: 1.05; letter-spacing: -.01em; }
+  .spec { margin-top: 1vmin; font-size: 1.8vmin; color: #3D3F3B; white-space: nowrap; }
+  .price { padding: 1.4vmin 2.6vmin 1.6vmin 2.6vmin; border-left: 1px solid #D4D2CB; text-align: right; display: flex; flex-direction: column; justify-content: center; }
+  .price s { font-size: 2vmin; color: #6D6F6A; white-space: nowrap; }
+  .price strong { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; font-size: 12vmin; line-height: .82; letter-spacing: -.02em; white-space: nowrap; }
+  .price strong sup { font-size: .4em; vertical-align: .95em; margin-left: .4vmin; }
+  .price span { margin-top: .8vmin; font-size: 1.7vmin; color: #5C5E5A; white-space: nowrap; }
+  .flag { position: absolute; left: 7vmin; top: -3.6vmin; background: #D9B25A; padding: .9vmin 1.6vmin 1vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.25); transform: rotate(-2deg); }
+  .flag::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1.6vmin; height: 2.4vmin; margin-left: -.8vmin; background: rgba(245,245,240,.75); border: 1px solid rgba(0,0,0,.15); }
+
+  h1 { margin: 0; padding: 7vmin 5vmin 0; font-weight: 600; font-size: 11vmin; line-height: .95; letter-spacing: -.035em; }
+  h1 span { color: #7B7A72; }
+  .foot { margin-top: auto; padding: 0 5vmin 4.6vmin; display: flex; justify-content: space-between; align-items: center; font-size: 1.8vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; color: #4B4D49; }
+  .foot b { color: #1C1D1B; font-weight: 700; letter-spacing: .02em; text-transform: none; font-size: 2.4vmin; }
+  .foot .cta { color: #1C1D1B; border-bottom: .35vmin solid #1C1D1B; padding-bottom: .2vmin; font-weight: 700; }
+
+  /* 3:4 / 4:5 → photo left, panel right: headline, rail, footer */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .panel { left: 50%; top: 0; height: auto; }
+    h1 { order: -1; font-size: 7.4vmin; padding: 6vmin 4vmin 0; margin-bottom: auto; }
+    .rail { margin-bottom: 7vmin; }
+    .foot { margin-top: 0; padding: 0 4vmin 4.4vmin; }
+    .label { margin: 0 2.6vmin; grid-template-columns: 1fr; }
+    .price { border-left: 0; border-top: 1px solid #D4D2CB; text-align: left; padding: 1.6vmin 2.4vmin 2vmin; }
+    .price strong { font-size: 11vmin; }
+    .info { padding: 2.4vmin 2.4vmin 1.6vmin; }
+    .name { font-size: 3vmin; }
+    .flag { left: auto; right: 4vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .panel { left: 46%; }
+    h1 { font-size: 8.6vmin; padding: 5vmin 4.4vmin 0; }
+    .rail { margin-bottom: 5vmin; }
+    .foot { padding: 0 4.4vmin 4vmin; }
+    .label { margin: 0 3vmin; grid-template-columns: 1fr auto; }
+    .price { border-top: 0; border-left: 1px solid #D4D2CB; text-align: right; padding: 1.2vmin 2vmin 1.4vmin; }
+    .price strong { font-size: 9vmin; }
+    .info { padding: 1.8vmin 2vmin 1.4vmin; }
+    .name { font-size: 2.6vmin; }
+    .spec { font-size: 1.6vmin; }
+    .price span { font-size: 1.6vmin; }
+    .foot { flex-direction: row; align-items: center; font-size: 1.6vmin; }
+    .foot .when { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; object-position: 50% 28%; }
+    .panel { left: 50%; }
+    h1 { font-size: 10.4vmin; padding: 5.4vmin 5vmin 0; }
+    .foot { padding: 0 5vmin 4.4vmin; }
+    .label { margin: 0 4vmin; }
+    .price strong { font-size: 10.4vmin; }
+    .name { font-size: 3vmin; }
+    .spec { font-size: 1.7vmin; }
+    .flag { right: 6vmin; }
+    .foot .when { display: inline; }
+    .foot { font-size: 1.7vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="rail">
+      <div class="flag">New lower price</div>
+      <div class="label">
+        <div class="info">
+          <div class="art">Art. 604.221.07</div>
+          <div class="name">The season<br>essential</div>
+          <div class="spec">Oat · XS–XL · Aisle 4</div>
+        </div>
+        <div class="price"><s>Was €69</s><strong>€49<sup>00</sup></strong><span>€0.49 per wear*</span></div>
+      </div>
+    </div>
+    <h1>Lower prices.<br><span>For good.</span></h1>
+    <div class="foot"><b>Hylla</b><span class="when">*100 wears</span><span class="cta">Shop the edit →</span></div>
+  </div>
+</div>
+</body>
+</html>

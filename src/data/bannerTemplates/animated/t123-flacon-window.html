@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Flacon Window — perfume-ad minimalism: the photo is the "juice" inside a faceted glass flacon
+     with a black lacquer cap and gilt collar, standing on a stone ground with its shadow.
+     tall/square → symmetric poster (name above, offer below); wide → flacon left, words right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6E0D7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1E1B18; font-family: "Tenor Sans", "Gill Sans", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(90% 60% at 50% 40%, #F1ECE5 0%, #E6E0D7 60%, #DAD3C8 100%);
+    --x: 12vmin; --w: 76vmin; --top: 24.5%; --bot: 17%; --c: 5vmin; }
+  .ground { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--bot) + 6vmin); background: linear-gradient(0deg, rgba(160,148,132,0.28) 0.0%, rgba(160,148,132,0.276) 7.7%, rgba(160,148,132,0.264) 15.4%, rgba(160,148,132,0.245) 23.1%, rgba(160,148,132,0.22) 30.8%, rgba(160,148,132,0.19) 38.5%, rgba(160,148,132,0.157) 46.2%, rgba(160,148,132,0.123) 53.8%, rgba(160,148,132,0.09) 61.5%, rgba(160,148,132,0.06) 69.2%, rgba(160,148,132,0.035) 76.9%, rgba(160,148,132,0.016) 84.6%, rgba(160,148,132,0.004) 92.3%, rgba(160,148,132,0.0) 100.0%); }
+  .shadow { position: absolute; left: calc(var(--x) - 4vmin); width: calc(var(--w) + 8vmin); bottom: calc(var(--bot) - 2.4vmin); height: 5vmin; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(40,30,20,.42), rgba(40,30,20,.18) 60%, rgba(40,30,20,0)); }
+
+  .cut { clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)); }
+  .glass { position: absolute; left: var(--x); width: var(--w); top: var(--top); bottom: var(--bot);
+    background:
+      linear-gradient(90deg, rgba(255,255,255,.85) 0%, rgba(214,220,222,.55) 5%, rgba(255,255,255,.35) 12%, rgba(196,204,208,.45) 50%, rgba(255,255,255,.3) 88%, rgba(200,206,210,.6) 95%, rgba(255,255,255,.9) 100%),
+      linear-gradient(180deg, #C9CFD1, #B7BEC1 80%, #A7AFB3); }
+  .glass .photo { position: absolute; left: 2.4vmin; top: 2.4vmin; width: calc(100% - 4.8vmin); height: calc(100% - 7.4vmin); object-fit: cover; object-position: 50% 22%; --c: 3.6vmin; }
+  .glint { position: absolute; left: 4.2vmin; top: 5vmin; width: 2.2vmin; height: calc(100% - 16vmin); background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.28), rgba(255,255,255,0)); }
+  .base { position: absolute; left: 2.4vmin; right: 2.4vmin; bottom: 1.2vmin; height: 3.4vmin; background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.15)); --c: 1.6vmin; }
+
+  .collar { position: absolute; left: calc(var(--x) + var(--w) / 2 - 12vmin); width: 24vmin; height: 2.8vmin; top: calc(var(--top) - 2.8vmin);
+    background: linear-gradient(90deg, #8A6A36, #E7CF93 22%, #B8934F 48%, #F2DDA6 70%, #8E6D38); }
+  .cap { position: absolute; left: calc(var(--x) + var(--w) / 2 - 15vmin); width: 30vmin; height: 10vmin; top: calc(var(--top) - 12.8vmin); --c: 2.2vmin;
+    background: linear-gradient(90deg, #0E0D0C, #3A3733 18%, #121110 40%, #1C1A18 72%, #4A4641 88%, #0E0D0C); display: flex; align-items: center; justify-content: center; }
+  .cap span { font-size: 2vmin; letter-spacing: .4em; margin-right: -.4em; color: #D9BE83; }
+
+  .head { position: absolute; left: 5vmin; right: 5vmin; top: 5.4vmin; text-align: center; }
+  h1 { margin: 0; font-weight: 400; font-size: 11vmin; line-height: 1; letter-spacing: .32em; margin-right: -.32em; }
+  .sub { margin-top: 1.6vmin; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 3.4vmin; color: #5A5047; }
+  .foot { position: absolute; left: 5vmin; right: 5vmin; bottom: calc(var(--bot) / 2 - 1vmin); transform: translateY(50%); text-align: center; }
+  .offer { font-family: "Instrument Serif", Georgia, serif; font-size: 6vmin; line-height: 1.05; }
+  .offer i { color: #7A5B2E; }
+  .meta { margin-top: 1.8vmin; display: flex; justify-content: center; align-items: center; gap: 2.2vmin; font-size: 1.8vmin; letter-spacing: .3em; text-transform: uppercase; color: #4A423A; white-space: nowrap; }
+  .meta i { width: 5vmin; height: 1px; background: #8C8174; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --x: 18vmin; --w: 64vmin; --top: 27%; --bot: 16%; }
+    h1 { font-size: 10vmin; }
+    .offer { font-size: 5vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --x: 20vmin; --w: 60vmin; --top: 28%; --bot: 15%; --c: 4vmin; }
+    .head { top: 4vmin; }
+    h1 { font-size: 7.4vmin; }
+    .sub { margin-top: .8vmin; font-size: 2.8vmin; }
+    .cap { height: 8vmin; top: calc(var(--top) - 10.4vmin); width: 26vmin; left: calc(var(--x) + var(--w) / 2 - 13vmin); }
+    .collar { height: 2.4vmin; top: calc(var(--top) - 2.4vmin); width: 20vmin; left: calc(var(--x) + var(--w) / 2 - 10vmin); }
+    .foot { bottom: 3.6vmin; transform: none; }
+    .offer { font-size: 4vmin; }
+    .meta { margin-top: 1vmin; font-size: 1.6vmin; }
+    .ground { height: 22%; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --x: 10vmin; --w: 70vmin; --top: 23%; --bot: 9%; --c: 4.6vmin; }
+    .glass .photo { object-position: 55% 28%; }
+    .head { left: calc(var(--x) + var(--w) + 9vmin); right: 7vmin; top: 17vmin; text-align: left; }
+    h1 { font-size: 8.4vmin; letter-spacing: .22em; margin-right: 0; }
+    .sub { margin-top: 2vmin; font-size: 3.4vmin; }
+    .foot { left: calc(var(--x) + var(--w) + 9vmin); right: 7vmin; bottom: 12vmin; text-align: left; }
+    .offer { font-size: 5.6vmin; }
+    .offer br { display: inline; }
+    .meta { justify-content: flex-start; margin-top: 3vmin; }
+    .meta i { display: none; }
+    .ground { height: 30%; }
+  }
+  /* ── animated loop (6s) ── the flacon levitates a breath off the stone, a specular sweep crosses the glass,
+     the gilt collar catches it, SAISON exhales and returns, the offer gets a gold glint */
+  .cap, .collar, .glass { animation: fwFloat 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes fwFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -1vmin; } }
+  .shadow { animation: fwShadow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes fwShadow { 0%, 100% { scale: 1 1; opacity: 1; } 50% { scale: .9 .85; opacity: .7; } }
+  .glass::after { content: ""; position: absolute; top: -10%; bottom: -10%; left: 0; width: 26%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.1) 30%, rgba(255,255,255,.42) 50%, rgba(255,255,255,.1) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-140%) skewX(-14deg); animation: fwSweep 6s linear infinite; }
+  @keyframes fwSweep {
+    0%, 52% { transform: translateX(-140%) skewX(-14deg); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    74%, 100% { transform: translateX(480%) skewX(-14deg); }
+  }
+  .collar { animation: fwFloat 6s cubic-bezier(.45,0,.55,1) infinite, fwGild 6s linear infinite; }
+  @keyframes fwGild { 0%, 60%, 80%, 100% { filter: brightness(1); } 68% { filter: brightness(1.35) saturate(1.1); } }
+  h1 { animation: fwBreath 6s linear infinite; }
+  @keyframes fwBreath {
+    0%, 12% { opacity: 1; filter: blur(0); translate: 0 0; animation-timing-function: cubic-bezier(.55,0,.8,.4); }
+    20% { opacity: 0; filter: blur(1vmin); translate: 0 -1.2vmin; animation-timing-function: steps(1, end); }
+    21% { opacity: 0; filter: blur(1vmin); translate: 0 1.2vmin; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    34%, 100% { opacity: 1; filter: blur(0); translate: 0 0; }
+  }
+  .sub { animation: fwSub 6s linear infinite; }
+  @keyframes fwSub {
+    0%, 15% { opacity: 1; animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    22%, 26% { opacity: 0; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    40%, 100% { opacity: 1; }
+  }
+  .offer i { background: linear-gradient(90deg, #7A5B2E 0 42%, #E6CC8E 50%, #7A5B2E 58% 100%) 0 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: fwGlint 6s linear infinite; }
+  @keyframes fwGlint { 0%, 76% { background-position: 0% 0; animation-timing-function: cubic-bezier(.45,0,.3,1); } 94%, 100% { background-position: 100% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ground"></div>
+  <div class="shadow"></div>
+  <div class="collar"></div>
+  <div class="cap cut"><span>Nº26</span></div>
+  <div class="glass cut">
+    <img class="photo cut" src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="glint"></div>
+    <div class="base cut"></div>
+  </div>
+  <div class="head">
+    <h1>SAISON</h1>
+    <div class="sub">the new collection, bottled</div>
+  </div>
+  <div class="foot">
+    <div class="offer">Launch week — <i>25% off</i></div>
+    <div class="meta"><i></i>Code SAISON25<i></i></div>
+  </div>
+</div>
+</body>
+</html>

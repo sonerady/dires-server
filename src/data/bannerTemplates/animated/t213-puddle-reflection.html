@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Puddle Reflection — the photo stands at the edge of a rain puddle on wet asphalt: a darkened, softened mirror
+     image with ripple rings at the waterline, and the headline "After the rain." echoed upside-down in the water.
+     tall → photo above, puddle below with copy · square/wide → photo + puddle on the left, asphalt copy column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #14171B; }
+  .banner { --pw: 100%; --ph: calc(100% - 94vmin); position: fixed; inset: 0; overflow: hidden; background: #14171B; color: #EEF0EE; font-family: "IBM Plex Mono", Menlo, monospace; }
+  .serif { font-family: "Newsreader", Georgia, serif; }
+
+  .photo, .refl { position: absolute; left: 0; width: var(--pw); height: var(--ph); object-fit: cover; object-position: 50% 20%; }
+  .photo { top: 0; z-index: 2; }
+  .refl { top: var(--ph); transform: scaleY(-1); filter: blur(.35vmin) brightness(.78) saturate(.8) contrast(.95); }
+  .water { position: absolute; left: 0; width: var(--pw); top: var(--ph); height: var(--ph);
+    background: linear-gradient(180deg, rgba(20,23,27,.18) 0%, rgba(20,23,27,.195) 4%, rgba(20,23,27,.29) 8%, rgba(20,23,27,.4) 12%, rgba(20,23,27,.52) 16%, rgba(20,23,27,.63) 20%, rgba(20,23,27,.74) 24%, rgba(20,23,27,.83) 28%, rgba(20,23,27,.9) 32%, rgba(20,23,27,.94) 36%, rgba(20,23,27,.97) 40%, rgba(20,23,27,.99) 44%, #14171B 48%, #14171B 100%); }
+  .line { position: absolute; left: 0; width: var(--pw); top: var(--ph); height: 1px; background: rgba(238,240,238,.55); z-index: 3; }
+  .rip { position: absolute; left: 12%; top: calc(var(--ph) + 3vmin); width: 50vmin; height: 12vmin; z-index: 3; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5.4vmin; z-index: 4; }
+  .wx { display: flex; align-items: baseline; gap: 2.4vmin; font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; color: #B9C0C4; }
+  .wx .deg { font-family: "Newsreader", Georgia, serif; font-weight: 300; font-style: italic; font-size: 6vmin; letter-spacing: -.02em; color: #EEF0EE; text-transform: none; }
+  .wx .sep { flex: 1; height: 1px; background: rgba(238,240,238,.3); align-self: center; }
+  h1 { position: relative; margin: 2vmin 0 0; font-weight: 400; font-style: italic; font-size: 12.4vmin; line-height: 1; letter-spacing: -.035em; white-space: nowrap; }
+  .echo { display: block; margin-top: -4.6vmin; height: 7vmin; overflow: hidden; font-weight: 400; font-style: italic; font-size: 12.4vmin; line-height: 1; letter-spacing: -.035em; white-space: nowrap;
+    color: #EEF0EE; opacity: .26;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.5) 40%, transparent 100%); mask-image: linear-gradient(180deg, #000 0%, rgba(0,0,0,.5) 40%, transparent 100%); }
+  .echo span { display: block; transform: scaleY(-1); filter: blur(.2vmin); }
+  .offer { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; margin-top: 3.2vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(238,240,238,.3); }
+  .offer p { margin: 0; font-size: 2vmin; line-height: 1.5; color: #B9C0C4; }
+  .offer p b { display: block; font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 4.6vmin; line-height: 1.05; letter-spacing: -.01em; color: #EEF0EE; margin-bottom: .6vmin; }
+  .offer p em { font-style: normal; color: #EEF0EE; font-weight: 600; letter-spacing: .1em; }
+  .cta { flex: none; padding: 1.9vmin 3vmin; background: #EEF0EE; color: #14171B; font-size: 1.9vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --ph: calc(100% - 84vmin); }
+    h1, .echo { font-size: 11.4vmin; }
+    .copy { bottom: 4.6vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --ph: calc(100% - 68vmin); }
+    .wx .deg { font-size: 5vmin; }
+    h1, .echo { font-size: 10vmin; }
+    h1 { margin-top: 1.4vmin; }
+    .echo { height: 5.6vmin; margin-top: -3.8vmin; }
+    .offer { margin-top: 2vmin; padding-top: 2vmin; }
+    .offer p b { font-size: 4vmin; }
+    .copy { bottom: 4vmin; }
+    .rip { top: calc(var(--ph) + 2vmin); }
+  }
+  /* square / wide → photo + puddle left, copy column right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 55%; --ph: 66%; }
+    .photo, .refl { object-position: 50% 24%; }
+    .water { background: linear-gradient(180deg, rgba(20,23,27,.18) 0%, rgba(20,23,27,.195) 5%, rgba(20,23,27,.29) 10%, rgba(20,23,27,.4) 15%, rgba(20,23,27,.52) 20%, rgba(20,23,27,.63) 25%, rgba(20,23,27,.74) 30%, rgba(20,23,27,.83) 35%, rgba(20,23,27,.9) 40%, rgba(20,23,27,.94) 45%, rgba(20,23,27,.97) 50%, rgba(20,23,27,.99) 55%, #14171B 60%, #14171B 100%); }
+    .rip { left: 6%; width: 40vmin; height: 10vmin; top: calc(66% + 2vmin); }
+    .copy { left: calc(55% + 5vmin); right: 5vmin; top: 5.4vmin; bottom: 5.4vmin; display: flex; flex-direction: column; }
+    .wx { flex-wrap: wrap; gap: .6vmin 2vmin; font-size: 1.6vmin; }
+    .wx .sep { display: none; }
+    .wx span:last-child { width: 100%; }
+    h1 { margin-top: auto; font-size: 8.4vmin; }
+    .echo { font-size: 8.4vmin; height: 4.8vmin; margin-top: -3.2vmin; }
+    .offer { flex-direction: column; align-items: stretch; gap: 2.4vmin; margin-top: 2.4vmin; }
+    .offer p { font-size: 1.8vmin; }
+    .offer p b { font-size: 3.6vmin; }
+    .cta { text-align: center; font-size: 1.7vmin; padding: 1.7vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 54%; --ph: 64%; }
+    .copy { left: calc(54% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .wx { font-size: 1.8vmin; }
+    .wx .deg { font-size: 6vmin; }
+    h1 { font-size: 10.6vmin; }
+    .echo { font-size: 10.6vmin; height: 6vmin; margin-top: -4vmin; }
+    .offer p b { font-size: 4.2vmin; }
+    .offer { flex-direction: row; align-items: flex-end; }
+    .cta { font-size: 1.8vmin; padding: 1.8vmin 2.6vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+     calm, restrained: the puddle is alive, the copy stays still.
+     constant: the reflection sways a fraction (water surface), the upside-down "the rain." echo wavers, the ripple rings breathe
+     beats: 1.2s and 4.2s a late drop lands — a fresh set of rings opens out from the waterline and fades; the waterline glints */
+  .refl { transform-origin: 50% 0; animation: sway 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sway {
+    0%, 100% { transform: scaleY(-1); }
+    25% { transform: scaleY(-1) skewX(.5deg) translateX(-.25vmin); }
+    75% { transform: scaleY(-1) skewX(-.5deg) translateX(.25vmin); }
+  }
+  .echo span { transform-origin: 50% 50%; animation: waver 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes waver {
+    0%, 100% { transform: scaleY(-1); }
+    25% { transform: scaleY(-1.06) skewX(-4deg) translateX(.5vmin); }
+    50% { transform: scaleY(-.97); }
+    75% { transform: scaleY(-1.04) skewX(4deg) translateX(-.5vmin); }
+  }
+  .rip ellipse { transform-box: fill-box; transform-origin: 50% 50%; animation: breathe 3s cubic-bezier(.45,0,.55,1) infinite; }
+  .rip ellipse:nth-child(2), .rip ellipse:nth-child(6) { animation-delay: -.25s; }
+  .rip ellipse:nth-child(3), .rip ellipse:nth-child(7) { animation-delay: -.5s; }
+  .rip ellipse:nth-child(4) { animation-delay: -.75s; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+  .rip .fresh ellipse { opacity: 0; animation: ring 3s linear infinite; animation-delay: 0s; }
+  .rip .fresh ellipse:nth-child(2) { animation-delay: -2.75s; }
+  .rip .fresh ellipse:nth-child(3) { animation-delay: -2.5s; }
+  @keyframes ring { 0%, 40% { transform: scale(.08); opacity: 0; animation-timing-function: cubic-bezier(.15,.6,.35,1); } 42% { opacity: .7; } 84% { transform: scale(1); opacity: 0; } 100% { transform: scale(1); opacity: 0; } }
+  .line { transform-origin: 50% 50%; animation: glint 3s linear infinite; }
+  @keyframes glint { 0%, 38% { opacity: 1; } 42% { opacity: .35; } 52% { opacity: 1; } 56% { opacity: .6; } 64%, 100% { opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <img class="refl" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="water"></div>
+  <div class="line"></div>
+  <svg class="rip" viewBox="0 0 200 48" preserveAspectRatio="none" aria-hidden="true">
+    <g fill="none" stroke="#EEF0EE">
+      <ellipse cx="70" cy="18" rx="10" ry="2.4" stroke-opacity=".6" stroke-width=".8"/>
+      <ellipse cx="70" cy="18" rx="24" ry="5.6" stroke-opacity=".38" stroke-width=".7"/>
+      <ellipse cx="70" cy="18" rx="42" ry="9.6" stroke-opacity=".22" stroke-width=".6"/>
+      <ellipse cx="70" cy="18" rx="64" ry="14.6" stroke-opacity=".12" stroke-width=".6"/>
+      <ellipse cx="160" cy="32" rx="6" ry="1.5" stroke-opacity=".5" stroke-width=".7"/>
+      <ellipse cx="160" cy="32" rx="16" ry="3.8" stroke-opacity=".26" stroke-width=".6"/>
+      <ellipse cx="160" cy="32" rx="30" ry="7" stroke-opacity=".12" stroke-width=".6"/>
+    </g>
+    <g class="fresh" fill="none" stroke="#EEF0EE" stroke-width=".7"><ellipse cx="118" cy="24" rx="34" ry="8"/><ellipse cx="118" cy="24" rx="34" ry="8"/><ellipse cx="118" cy="24" rx="34" ry="8"/></g>
+  </svg>
+  <div class="copy">
+    <div class="wx"><span class="deg">14°</span><span>Showers clearing</span><i class="sep"></i><span>Dry from 16:00</span></div>
+    <h1 class="serif">After<br>the rain.</h1>
+    <span class="echo serif" aria-hidden="true"><span>the rain.</span></span>
+    <div class="offer">
+      <p><b>25% off the new season</b>Code <em>AFTERRAIN</em> · until Sunday</p>
+      <div class="cta">Step out</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

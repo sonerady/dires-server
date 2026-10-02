@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Shirt Back — a kit launch told on the back of the shirt itself: ribbed back collar with tipping,
+     raglan stitch seams, the arched name print and a huge outlined squad number, plus a woven jock tag.
+     tall → photo above, shirt panel below · square/wide → photo left, shirt panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE4D0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE4D0; color: #1F3A2E; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 20%; }
+  .shirt { position: absolute; left: 0; right: 0; bottom: 0; height: 86vmin; overflow: hidden;
+    background:
+      repeating-linear-gradient(90deg, rgba(31,58,46,.045) 0 .5vmin, transparent .5vmin 1.6vmin),
+      linear-gradient(180deg, #F1EAD8, #E6DDC6); }
+  .seams { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .collar { position: absolute; left: 50%; top: -1px; width: 46vmin; height: 8vmin; margin-left: -23vmin; }
+  .print { position: absolute; left: 50%; top: 8vmin; width: 56vmin; height: 42vmin; margin-left: -28vmin; overflow: visible; }
+  .row { position: absolute; left: 7vmin; right: 7vmin; top: 53vmin; display: flex; align-items: center; gap: 4vmin; }
+  .tag { flex: none; width: 15vmin; padding: 1.4vmin 0 1.2vmin; background: #1F3A2E; color: #ECE4D0; text-align: center; box-shadow: 0 .3vmin .6vmin rgba(31,58,46,.25);
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 .2vmin, transparent .2vmin .5vmin); }
+  .tag svg { display: block; width: 6vmin; height: 7vmin; margin: 0 auto .8vmin; }
+  .tag small { display: block; font-size: 1.6vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; line-height: 1.25; }
+  .copy h2 { margin: 0; font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 900; font-size: 6.4vmin; line-height: .92; text-transform: uppercase; letter-spacing: .01em; }
+  .copy p { margin: 1.2vmin 0 0; font-size: 2.2vmin; line-height: 1.4; }
+  .copy p b { color: #C8553D; font-weight: 700; }
+  .cta { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: center; padding: 1.8vmin 2.8vmin; background: #C8553D; color: #F6F0E2; font-weight: 700; font-size: 2.3vmin; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .cta span:last-child { font-weight: 400; letter-spacing: .1em; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 78vmin); }
+    .shirt { height: 78vmin; }
+    .collar { width: 42vmin; height: 7vmin; margin-left: -21vmin; }
+    .print { top: 7vmin; width: 52vmin; height: 39vmin; margin-left: -26vmin; }
+    .row { top: 48vmin; }
+    .copy h2 { font-size: 5.8vmin; }
+    .cta { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .shirt { height: 64vmin; }
+    .collar { width: 34vmin; height: 5.6vmin; margin-left: -17vmin; }
+    .print { left: 7vmin; top: 7vmin; width: 46vmin; height: 34.5vmin; margin-left: 0; }
+    .row { left: 57vmin; right: 7vmin; top: 9vmin; flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+    .tag { width: 13vmin; }
+    .tag svg { width: 5vmin; height: 6vmin; }
+    .copy h2 { font-size: 5.4vmin; }
+    .copy p { font-size: 2vmin; }
+    .cta { bottom: 4.5vmin; padding: 1.6vmin 2.6vmin; font-size: 2.1vmin; }
+  }
+  /* square / wide → photo left, the shirt back takes the right half */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .shirt { left: 50%; top: 0; height: auto; }
+    .collar { width: 30vmin; height: 5vmin; margin-left: -15vmin; }
+    .print { left: 50%; top: 9vmin; width: 44vmin; height: 33vmin; margin-left: -22vmin; }
+    .row { left: 5vmin; right: 5vmin; top: 50vmin; flex-direction: row; align-items: center; gap: 3vmin; }
+    .tag { width: 11.5vmin; padding: 1.1vmin 0 1vmin; }
+    .tag svg { width: 4.4vmin; height: 5.2vmin; margin-bottom: .6vmin; }
+    .copy h2 { font-size: 4.6vmin; }
+    .copy p { font-size: 1.9vmin; }
+    .cta { left: 5vmin; right: 5vmin; bottom: 5vmin; font-size: 1.9vmin; padding: 1.5vmin 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .shirt { left: 46%; }
+    .collar { width: 36vmin; height: 6vmin; margin-left: -18vmin; }
+    .print { top: 8vmin; width: 52vmin; height: 39vmin; margin-left: -26vmin; }
+    .row { left: 9vmin; right: 9vmin; top: 54vmin; gap: 4vmin; }
+    .tag { width: 13vmin; }
+    .copy h2 { font-size: 5.4vmin; }
+    .copy p { font-size: 2.1vmin; }
+    .cta { left: 9vmin; right: 9vmin; bottom: 7vmin; font-size: 2.2vmin; padding: 1.7vmin 2.8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* constant: a soft breeze of light rolls across the shirt fabric; photo breathes in
+     beats: 1.0s the arched "NEW SEASON" re-prints left → right · 1.5s the squad number is heat-pressed
+     back on (stamp down + settle) · 3.8s a glint crosses the woven jock tag · 4.8s CTA sheen */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .shirt::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,252,240,0) 0vmin, rgba(255,252,240,.34) 30vmin, rgba(255,252,240,0) 60vmin, rgba(90,80,50,.05) 90vmin, rgba(255,252,240,0) 120vmin, rgba(255,252,240,0) 240vmin);
+    background-size: 240vmin 100%; animation: breeze 6s linear infinite; }
+  @keyframes breeze { from { background-position: 0 0; } to { background-position: 240vmin 0; } }
+
+  .print .arc { animation: reprint 6s linear infinite; }
+  @keyframes reprint {
+    0%, 12% { clip-path: inset(-20% -5% -20% -5%); opacity: 1; animation-timing-function: ease-in; }
+    14% { clip-path: inset(-20% -5% -20% -5%); opacity: 0; animation-timing-function: steps(1, end); }
+    14.5% { clip-path: inset(-20% 105% -20% -5%); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    24%, 100% { clip-path: inset(-20% -5% -20% -5%); opacity: 1; }
+  }
+  .print .num { transform-box: fill-box; transform-origin: 50% 60%; animation: press 6s linear infinite; }
+  @keyframes press {
+    0%, 20% { transform: scale(1); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    23% { transform: scale(.92); opacity: 0; animation-timing-function: steps(1, end); }
+    23.5% { transform: scale(1.14); opacity: .2; animation-timing-function: cubic-bezier(.7,0,.9,.6); }
+    27% { transform: scale(.975); opacity: 1; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    31% { transform: scale(1.01); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    35%, 100% { transform: scale(1); opacity: 1; }
+  }
+
+  .tag { position: relative; overflow: hidden; }
+  .tag::after { content: ""; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.22) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-120%) skewX(-18deg); animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 62% { transform: translateX(-120%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    74%, 100% { transform: translateX(320%) skewX(-18deg); }
+  }
+
+  .cta { overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 22%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.26) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-140%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-140%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    92%, 100% { transform: translateX(520%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="shirt">
+    <svg class="seams" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M31 0 L0 34 M69 0 L100 34" stroke="#1F3A2E" stroke-opacity=".22" stroke-width="1" vector-effect="non-scaling-stroke" fill="none"/>
+      <path d="M32.6 0 L0 35.8 M67.4 0 L100 35.8" stroke="#1F3A2E" stroke-opacity=".3" stroke-width="1" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" fill="none"/>
+    </svg>
+    <svg class="collar" viewBox="0 0 100 18" preserveAspectRatio="none" aria-hidden="true">
+      <defs><pattern id="rib" width="1.6" height="18" patternUnits="userSpaceOnUse"><rect width="1.6" height="18" fill="#1F3A2E"/><rect width=".5" height="18" fill="#2F5343"/></pattern></defs>
+      <path d="M9 0 H91 C 80 8.6, 20 8.6, 9 0 Z" fill="#D6CBB0"/>
+      <path d="M0 0 H9 C 20 8.6, 80 8.6, 91 0 H100 C 88 15.5, 12 15.5, 0 0 Z" fill="url(#rib)"/>
+      <path d="M4.6 .8 C 16 12.2, 84 12.2, 95.4 .8" stroke="#C8553D" stroke-width="1.6" fill="none" vector-effect="non-scaling-stroke"/>
+      <path d="M0 0 C 12 15.5, 88 15.5, 100 0" stroke="#ECE4D0" stroke-opacity=".55" stroke-width="1" stroke-dasharray="2 2" fill="none" vector-effect="non-scaling-stroke"/>
+    </svg>
+    <svg class="print" viewBox="0 0 200 150" aria-hidden="true">
+      <defs><path id="arc" d="M 22 54 Q 100 10 178 54"/></defs>
+      <text class="arc" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="23" letter-spacing="3.6" fill="#1F3A2E"><textPath href="#arc" startOffset="50%" text-anchor="middle">NEW SEASON</textPath></text>
+      <g class="num">
+      <text x="100" y="146" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="118" letter-spacing="2" fill="#1F3A2E" stroke="#C8553D" stroke-width="7" stroke-linejoin="round" paint-order="stroke">26</text>
+      <text x="100" y="146" text-anchor="middle" font-family="Big Shoulders Display, Arial Narrow, sans-serif" font-weight="900" font-size="118" letter-spacing="2" fill="none" stroke="#ECE4D0" stroke-width="1.2" stroke-linejoin="round">26</text>
+          </g>
+    </svg>
+    <div class="row">
+      <div class="tag">
+        <svg viewBox="0 0 40 48" aria-hidden="true"><path d="M20 2 L37 8 V24 C37 35 29 42 20 46 C11 42 3 35 3 24 V8 Z" fill="none" stroke="#ECE4D0" stroke-width="2"/><path d="M3 20 H37" stroke="#C8553D" stroke-width="2"/><text x="20" y="36" text-anchor="middle" font-family="Big Shoulders Display, sans-serif" font-weight="900" font-size="14" fill="#ECE4D0">AN</text><text x="20" y="16" text-anchor="middle" font-size="8" fill="#C8553D">★</text></svg>
+        <small>Authentic<br>26/27</small>
+      </div>
+      <div class="copy">
+        <h2>Home kit out now</h2>
+        <p>Atelier Nord · from <b>€79</b><br>Members save <b>15%</b> · code <b>KIT26</b></p>
+      </div>
+    </div>
+    <div class="cta"><span>Shop the kit</span><span>Launch 26.09 →</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Abril+Fatface&family=Covered+By+Your+Grace&display=swap" rel="stylesheet">
+<style>
+  /* 1990s grunge zine — photocopy paper with toner specks, a taped-in photo, ransom-note cut-outs on a torn black strip,
+     typewriter copy, a red-marker circle and a label-maker promo code. tall: photo top, zine copy below · square & wide: side by side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E8E5DE; }
+  .banner { --ink: #121212; --red: #D7261E; --paper: #E8E5DE;
+    position: fixed; inset: 0; overflow: hidden; background: var(--paper); color: var(--ink); font-family: "Special Elite", "Courier New", monospace; }
+  .noise { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .vig { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,.14) 100%); }
+  .stp { position: absolute; top: 2.6vmin; width: 5vmin; height: .8vmin; background: linear-gradient(180deg, #9a9a9a, #5c5c5c); }
+  .stp.a { left: 7vmin; } .stp.b { right: 7vmin; }
+  .hdr { position: absolute; left: 7vmin; right: 7vmin; top: 5.2vmin; font-size: 1.9vmin; letter-spacing: .08em; text-transform: lowercase; display: flex; justify-content: space-between; }
+  .ph { position: absolute; left: 9vmin; right: 9vmin; top: 12vmin; height: calc(100% - 12vmin - 76vmin); transform: rotate(-1.4deg); box-shadow: .5vmin .8vmin 0 rgba(0,0,0,.18); }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .tape { position: absolute; width: 17vmin; height: 4.6vmin; background: rgba(233,224,196,.8); box-shadow: 0 .2vmin .6vmin rgba(0,0,0,.12);
+    clip-path: polygon(0 8%, 4% 0, 7% 12%, 10% 2%, 90% 0, 93% 10%, 96% 0, 100% 14%, 97% 30%, 100% 50%, 96% 72%, 100% 92%, 94% 100%, 90% 88%, 8% 100%, 5% 86%, 0 100%, 3% 70%, 0 50%, 4% 30%); }
+  .tape.a { left: -5.5vmin; top: -.6vmin; transform: rotate(-38deg); }
+  .tape.b { right: -5.5vmin; top: -.6vmin; transform: rotate(36deg); }
+  .low { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; }
+  .band { background: var(--ink); padding: 3.2vmin 3vmin 3.4vmin; text-align: center; line-height: 1.5;
+    clip-path: polygon(0% 0.58vmin, 4.17% 0.27vmin, 8.33% 1.17vmin, 12.5% 0.13vmin, 16.67% 0.96vmin, 20.83% 0.66vmin, 25.0% 0.1vmin, 29.17% 0.91vmin, 33.33% 0.07vmin, 37.5% 0.78vmin, 41.67% 0.13vmin, 45.83% 0.16vmin, 50.0% 0.76vmin, 54.17% 1.49vmin, 58.33% 0.22vmin, 62.5% 0.4vmin, 66.67% 1.13vmin, 70.83% 1.71vmin, 75.0% 1.04vmin, 79.17% 0.71vmin, 83.33% 1.76vmin, 87.5% 0.08vmin, 91.67% 1.55vmin, 95.83% 0.52vmin, 100% 0.26vmin, 100% calc(100% - 0.21vmin), 95.83% calc(100% - 0.56vmin), 91.67% calc(100% - 1.47vmin), 87.5% calc(100% - 0.33vmin), 83.33% calc(100% - 1.05vmin), 79.17% calc(100% - 1.15vmin), 75.0% calc(100% - 0.67vmin), 70.83% calc(100% - 0.99vmin), 66.67% calc(100% - 0.11vmin), 62.5% calc(100% - 0.11vmin), 58.33% calc(100% - 0.37vmin), 54.17% calc(100% - 1.22vmin), 50.0% calc(100% - 0.77vmin), 45.83% calc(100% - 0.57vmin), 41.67% calc(100% - 1.05vmin), 37.5% calc(100% - 0.82vmin), 33.33% calc(100% - 0.54vmin), 29.17% calc(100% - 1.43vmin), 25.0% calc(100% - 1.26vmin), 20.83% calc(100% - 0.44vmin), 16.67% calc(100% - 1.03vmin), 12.5% calc(100% - 0.95vmin), 8.33% calc(100% - 1.58vmin), 4.17% calc(100% - 1.31vmin), 0% calc(100% - 0.52vmin)); }
+  .w { display: inline-block; vertical-align: middle; margin: .6vmin .8vmin; padding: .4vmin 1.6vmin .8vmin; line-height: 1; }
+  .w1 { font-family: "Abril Fatface", Georgia, serif; font-size: 11vmin; background: var(--red); color: #fff; transform: rotate(-4deg); }
+  .w2 { font-family: "Special Elite", "Courier New", monospace; font-size: 10.4vmin; background: #F4F2EC; color: var(--ink); transform: rotate(2.5deg); padding-top: 1.2vmin; text-transform: uppercase; }
+  .w3 { font-family: "Abril Fatface", Georgia, serif; font-size: 11.6vmin; background: #F2E36B; color: var(--ink); transform: rotate(-1.5deg); font-style: italic; }
+  .mid { margin-top: 4vmin; display: flex; align-items: center; gap: 4vmin; }
+  .circ { position: relative; flex: none; padding: 2.4vmin 3.6vmin; font-family: "Covered By Your Grace", "Marker Felt", cursive; font-size: 7.6vmin; line-height: .9; color: var(--red); transform: rotate(-6deg); white-space: nowrap; }
+  .circ svg { position: absolute; left: -1vmin; top: -1vmin; width: calc(100% + 2vmin); height: calc(100% + 2vmin); overflow: visible; }
+  .tw { font-size: 2.3vmin; line-height: 1.5; }
+  .bot { margin-top: 3.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .dymo { flex: none; background: var(--ink); color: #F4F2EC; padding: 1.3vmin 2.4vmin 1.1vmin; font-size: 2.5vmin; letter-spacing: .28em; transform: rotate(-1.2deg);
+    clip-path: polygon(0 12%, 3% 0, 97% 4%, 100% 16%, 98% 50%, 100% 86%, 96% 100%, 2% 96%, 0 84%, 2% 50%); text-shadow: 0 .15vmin 0 rgba(255,255,255,.35); }
+  .cta { font-size: 2.3vmin; white-space: nowrap; padding-bottom: .8vmin;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8' preserveAspectRatio='none'%3E%3Cpath d='M1 5C20 2 40 7 60 4S90 3 99 5' fill='none' stroke='%23D7261E' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E") 0 100% / 100% 1.4vmin no-repeat; }
+  @media (min-aspect-ratio: 7/10) {
+    .ph { left: 15vmin; right: 15vmin; top: 11vmin; height: calc(100% - 11vmin - 60vmin); }
+    .low { bottom: 5vmin; }
+    .band { padding: 2.4vmin 3vmin 2.6vmin; }
+    .w1, .w2, .w3 { font-size: 7.4vmin; }
+    .mid { margin-top: 2.8vmin; }
+    .circ { font-size: 6.6vmin; }
+    .bot { margin-top: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .hdr { right: auto; width: 43vmin; top: 3.4vmin; }
+    .stp.a { top: 1.6vmin; } .stp.b { display: none; }
+    .ph { left: 7vmin; right: auto; top: 10vmin; width: 44vmin; height: calc(100% - 18vmin); }
+    .low { left: 57vmin; right: 4vmin; top: 50%; bottom: auto; transform: translateY(-50%); }
+    .band { padding: 2.4vmin 1.6vmin 2.6vmin; }
+    .w { margin: .5vmin .5vmin; }
+    .w1, .w2, .w3 { font-size: 6.4vmin; }
+    .mid { flex-direction: column; align-items: flex-start; gap: 2.6vmin; margin-top: 3.4vmin; }
+    .circ { font-size: 6.4vmin; margin-left: 1vmin; }
+    .tw { font-size: 2.1vmin; }
+    .bot { flex-direction: column; align-items: flex-start; gap: 3vmin; margin-top: 3vmin; }
+    .dymo { font-size: 2.2vmin; }
+    .cta { font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .hdr { width: 56vmin; left: 8vmin; }
+    .ph { left: 8vmin; width: 56vmin; top: 11vmin; height: calc(100% - 20vmin); }
+    .low { left: 73vmin; right: 7vmin; }
+    .w1, .w2, .w3 { font-size: 7.4vmin; }
+    .band { padding: 2.8vmin 2vmin 3vmin; }
+    .mid { flex-direction: row; align-items: center; gap: 4vmin; }
+    .bot { flex-direction: row; align-items: center; justify-content: flex-start; gap: 4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="noise" aria-hidden="true"><filter id="x"><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="3" seed="4"/><feColorMatrix values="0 0 0 0 .07  0 0 0 0 .07  0 0 0 0 .07  -16 0 0 0 6.1"/></filter><rect width="100%" height="100%" filter="url(#x)" opacity=".8"/></svg>
+  <div class="vig"></div>
+  <i class="stp a"></i><i class="stp b"></i>
+  <div class="hdr"><span>issue #09</span><span>the xerox edition</span><span>free</span></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""><i class="tape a"></i><i class="tape b"></i></div>
+  <div class="low">
+    <div class="band"><span class="w w1">Anti</span><span class="w w2">Season</span><span class="w w3">Sale</span></div>
+    <div class="mid">
+      <div class="circ">30% off<svg viewBox="0 0 100 60" preserveAspectRatio="none" fill="none" stroke="#D7261E" stroke-width="2.4" stroke-linecap="round"><path d="M62 4C30 0 3 12 4 30s30 28 56 26 38-12 36-28S70 2 40 7"/></svg></div>
+      <div class="tw">on everything in the edit. thrifted feel, brand-new pieces. no rules.</div>
+    </div>
+    <div class="bot"><div class="dymo">CODE ZINE30</div><div class="cta">shop it before it's gone →</div></div>
+  </div>
+</div>
+</body>
+</html>

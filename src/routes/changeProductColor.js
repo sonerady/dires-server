@@ -1,6 +1,7 @@
 const { NB2_EDIT_MODEL, selectToolEditModel, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims } = require("../utils/gpt25Edit");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
+const { setGenerationProgress, getGenerationProgress, clearGenerationProgress } = require("../services/generationProgress");
 const express = require("express");
 const router = express.Router();
 // Updated: Using Google Gemini API for prompt generation
@@ -4202,6 +4203,8 @@ router.post("/generate", async (req, res) => {
 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
+    // 🧭 Results kartındaki kullanıcı dostu aşama yazısı (services/generationProgress)
+    setGenerationProgress(finalGenerationId, "preparing");
 
     // 📊 Color change modunda color_change_generations tablosuna da kaydet
     if (isColorChange) {
@@ -4380,6 +4383,7 @@ router.post("/generate", async (req, res) => {
 
     let enhancedPrompt, backgroundRemovedImage;
 
+    setGenerationProgress(finalGenerationId, "product");
     if (isColorChange || isPoseChange || isRefinerMode) {
       // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
       if (isColorChange) {
@@ -4672,6 +4676,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
 
       try {
         // GPT Image 2.5 ile görsel oluştur
+        setGenerationProgress(finalGenerationId, "generating");
         const gptImageResult = await callFalAiGptImageEditForRefiner(
           enhancedPrompt,
           finalImage,
@@ -4685,10 +4690,12 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         );
 
         // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
+        setGenerationProgress(finalGenerationId, "finishing");
         await updateGenerationStatus(finalGenerationId, userId, "completed", {
           result_image_url: gptImageResult,
           enhanced_prompt: enhancedPrompt,
         });
+        clearGenerationProgress(finalGenerationId, "tamamlandı");
 
         logger.log(
           "✅ [REFINER MODE] Generation completed olarak güncellendi"
@@ -4711,6 +4718,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
           "❌ [REFINER MODE] GPT Image 2.5 hatası:",
           refinerError.message
         );
+        clearGenerationProgress(finalGenerationId, "hata");
 
         // Generation'ı failed olarak güncelle
         await updateGenerationStatus(finalGenerationId, userId, "failed");
@@ -4767,11 +4775,13 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
     );
     logger.log(`🎨 [TOOL MODEL] ${falModel} · resolution=${falResolution}`);
 
+    setGenerationProgress(finalGenerationId, "generating");
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         logger.log(
           `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`
         );
+        if (attempt > 1) setGenerationProgress(finalGenerationId, "retrying");
 
         logger.log("🚀 Fal.ai nano-banana API çağrısı yapılıyor...");
 
@@ -5053,6 +5063,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
 
     if (!initialResult.id) {
       console.error("Replicate prediction ID alınamadı:", initialResult);
+      clearGenerationProgress(finalGenerationId, "hata");
 
       // 🗑️ Prediction ID hatası durumunda geçici dosyaları temizle
       logger.log(
@@ -5123,6 +5134,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         processingTime = Math.round((Date.now() - startTime) / 1000);
       } catch (pollingError) {
         console.error("❌ Polling hatası:", pollingError.message);
+        clearGenerationProgress(finalGenerationId, "hata");
 
         // Polling hatası durumunda status'u failed'e güncelle
         await updateGenerationStatus(finalGenerationId, userId, "failed", {
@@ -5164,6 +5176,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         logger.log(
           `🔄 Failed status retry attempt ${retryAttempt}/${maxPollingRetries}`
         );
+        setGenerationProgress(finalGenerationId, "retrying");
 
         try {
           // 2 saniye bekle, sonra yeni prediction başlat
@@ -5339,6 +5352,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
       let resultImageUrl = Array.isArray(finalResult.output)
         ? finalResult.output[0]
         : finalResult.output;
+      if (Number(upscaleMp) > 4) setGenerationProgress(finalGenerationId, "upscaling");
       const upscaleOutcome = await applyResultUpscale({
         imageUrl: resultImageUrl,
         upscaleMp,
@@ -5348,6 +5362,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         logTag: "COLOR UPSCALE",
       });
       resultImageUrl = upscaleOutcome.imageUrl;
+      setGenerationProgress(finalGenerationId, "finishing");
       const updatedGeneration = await updateGenerationStatus(finalGenerationId, userId, "completed", {
         enhanced_prompt: enhancedPrompt,
         result_image_url: resultImageUrl,
@@ -5360,6 +5375,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
       });
       // updateGenerationStatus Supabase bucket'e kaydedip DB'yi günceller,
       // dönen kayıttaki result_image_url artık Supabase URL'sidir (fal.media değil)
+      clearGenerationProgress(finalGenerationId, "tamamlandı");
       const finalResultImageUrl = updatedGeneration?.result_image_url || resultImageUrl;
       const thumbnailSourceUrl = updatedGeneration?.pre_upscale_image_url ||
         upscaleOutcome.preUpscaleUrl || finalResultImageUrl;
@@ -5410,6 +5426,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
       return res.status(200).json(responseData);
     } else {
       console.error("Replicate API başarısız:", finalResult);
+      clearGenerationProgress(finalGenerationId, "hata");
 
       // ❌ Status'u failed'e güncelle
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
@@ -5460,6 +5477,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
     }
   } catch (error) {
     console.error("Resim oluşturma hatası:", error);
+    clearGenerationProgress(finalGenerationId, "hata");
 
     // ❌ Status'u failed'e güncelle (genel hata durumu)
     if (finalGenerationId) {
@@ -6114,6 +6132,10 @@ router.get("/generation-status/:generationId", async (req, res) => {
         resultImageThumbnail: thumbnailUrl,
         upscaledMp: generation.upscaled_mp || null,
         preUpscaleImageUrl: generation.pre_upscale_image_url || null,
+        // ⏳ Ara aşama — bellekteki canlı aşama (services/generationProgress); DB'ye yazılmaz
+        stage: finalStatus === "processing" || finalStatus === "pending"
+          ? getGenerationProgress(generation.generation_id) || null
+          : null,
         originalPrompt: generation.original_prompt,
         enhancedPrompt: generation.enhanced_prompt,
         settings: generation.settings || {}, // Settings bilgisini de ekle

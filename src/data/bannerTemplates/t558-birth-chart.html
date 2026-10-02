@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Karla:wght@400;500;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Birth Chart — the product's natal certificate: a crisp black-and-white natal wheel (houses, ascendant axis,
+     planet glyphs, red and blue aspect lines) beside a placements table, "Born under a good sign."
+     tall → photo on top, chart + table side by side below · 3:4 / square → photo left, chart over table right
+     · wide → photo left, chart and table side by side right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F7F4EE; }
+  .banner { --ink: #141414; --soft: rgba(20,20,20,.55); --N: 30vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Karla", "Helvetica Neue", Arial, sans-serif; background: #F7F4EE; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 76vmin); object-fit: cover; object-position: 50% 26%; display: block; }
+  .cert { position: absolute; left: 7vmin; right: 7vmin; bottom: 6vmin; height: 64vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; border-bottom: 1px solid var(--ink); padding-bottom: 1.2vmin; }
+  .kick span + span { color: var(--soft); }
+  h1 { margin: 2.2vmin 0 0; font-family: "Gilda Display", Didot, serif; font-weight: 400; font-size: 7.6vmin; line-height: 1; letter-spacing: -.01em; }
+  h1 i { font-style: italic; }
+
+  .chart { margin-top: auto; display: flex; align-items: center; gap: 5vmin; }
+  .natal { position: relative; flex: none; width: var(--N); height: var(--N); border-radius: 50%; box-sizing: border-box; border: 1px solid var(--ink);
+    background:
+      linear-gradient(var(--ink), var(--ink)) center / 100% 1px no-repeat,
+      radial-gradient(closest-side, transparent 77.6%, var(--ink) 77.9% 78.4%, transparent 78.7%),
+      radial-gradient(closest-side, transparent 30%, rgba(20,20,20,.25) 30.3% 30.8%, transparent 31.1%); }
+  .natal::before { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: repeating-conic-gradient(from -.2deg, var(--soft) 0 .4deg, transparent .4deg 30deg);
+    -webkit-mask-image: radial-gradient(closest-side, transparent 78%, #000 78.2%); mask-image: radial-gradient(closest-side, transparent 78%, #000 78.2%); }
+  .natal svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .pl { position: absolute; left: 50%; top: 50%; font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols", "DejaVu Sans", serif; font-size: calc(var(--N) * .075); line-height: 1;
+    transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--N) * -.445)) rotate(calc(var(--a) * -1)); }
+  .pl:nth-of-type(1) { --a: 24deg; } .pl:nth-of-type(2) { --a: 78deg; } .pl:nth-of-type(3) { --a: 128deg; } .pl:nth-of-type(4) { --a: 168deg; }
+  .pl:nth-of-type(5) { --a: 214deg; } .pl:nth-of-type(6) { --a: 296deg; } .pl:nth-of-type(7) { --a: 334deg; }
+
+  .table { flex: 1; min-width: 0; }
+  .table div { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; padding: .9vmin 0; border-bottom: 1px solid rgba(20,20,20,.2); white-space: nowrap; }
+  .table div:first-child { border-top: 1px solid rgba(20,20,20,.2); }
+  .table span { font-size: 1.6vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--soft); }
+  .table b { font-family: "Gilda Display", serif; font-weight: 400; font-size: 2.2vmin; }
+
+  .foot { margin-top: 3vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 1.8vmin; line-height: 1.4; }
+  .offer b { font-family: "Gilda Display", serif; font-weight: 400; font-size: 3.6vmin; margin-right: 1vmin; }
+  .cta { padding: 1.6vmin 3vmin; background: var(--ink); color: #F7F4EE; font-size: 1.7vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --N: 28vmin; }
+    .photo { width: 48vmin; height: 100%; }
+    .cert { left: 54vmin; right: 5vmin; top: 6vmin; bottom: 6vmin; height: auto; }
+    .kick span + span { display: none; }
+    h1 { font-size: 6vmin; }
+    .chart { margin-top: 3vmin; flex-direction: column; align-items: stretch; gap: 3vmin; }
+    .natal { align-self: center; }
+    .foot { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --N: 25vmin; }
+    .photo { width: 46%; }
+    .cert { left: calc(46% + 5vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 6vmin; }
+    .chart { margin-top: 2.6vmin; gap: 2.4vmin; }
+    .table div { padding: .7vmin 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --N: 34vmin; }
+    .photo { width: 40%; }
+    .cert { left: calc(40% + 6vmin); right: 6vmin; top: 7vmin; bottom: 7vmin; }
+    .kick span + span { display: inline; }
+    h1 { font-size: 7.6vmin; }
+    .chart { margin-top: auto; flex-direction: row; align-items: center; gap: 4vmin; }
+    .table div { padding: .9vmin 0; }
+    .foot { margin-top: 4vmin; flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cert">
+    <div class="kick"><span>Maison Natale</span><span>Certificate No. 0925</span></div>
+    <h1>Born under <i>a good&nbsp;sign.</i></h1>
+    <div class="chart">
+      <div class="natal">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <polygon points="50,11.5 83.3,69.3 16.7,69.3" fill="none" stroke="#2E5C8A" stroke-width=".45"/>
+          <line x1="22" y1="23" x2="80" y2="42" stroke="#C0392B" stroke-width=".45"/>
+          <line x1="30" y1="84" x2="84" y2="40" stroke="#C0392B" stroke-width=".45" stroke-dasharray="1.4 1"/>
+          <line x1="12" y1="55" x2="66" y2="86" stroke="#2E5C8A" stroke-width=".45" stroke-dasharray="1.4 1"/>
+        </svg>
+        <span class="pl">&#9737;&#xFE0E;</span><span class="pl">&#9789;&#xFE0E;</span><span class="pl">&#9791;&#xFE0E;</span><span class="pl">&#9792;&#xFE0E;</span>
+        <span class="pl">&#9794;&#xFE0E;</span><span class="pl">&#9795;&#xFE0E;</span><span class="pl">&#9796;&#xFE0E;</span>
+      </div>
+      <div class="table">
+        <div><span>Sun</span><b>Libra 02°</b></div>
+        <div><span>Moon</span><b>Pisces 17°</b></div>
+        <div><span>Rising</span><b>Leo 09°</b></div>
+        <div><span>Venus</span><b>Virgo 28°</b></div>
+        <div><span>Born</span><b>25.09 · 09:14</b></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="offer"><b>−20%</b>on everything born this week</div>
+      <div class="cta">Read the chart</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

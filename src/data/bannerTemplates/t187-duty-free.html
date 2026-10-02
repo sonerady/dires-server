@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,500;0,700;0,800;1,500&display=swap" rel="stylesheet">
+<style>
+  /* Duty Free — airport wayfinding: a signal-yellow sign with black pictogram tiles, a bilingual line, a direction arrow,
+     the discount set like a gate number and a black gate strip; a red tamper-evident tape seals the photo edge.
+     tall → photo above, tape across, sign below; square / wide → photo left, vertical tape, sign right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFCD00; }
+  .banner { --y: #FFCD00; --k: #141414; --sub: #4A3F00; --red: #E0312B;
+    position: fixed; inset: 0; overflow: hidden; background: var(--y); color: var(--k); font-family: "Figtree", "Frutiger", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 76vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .tape { position: absolute; left: 0; right: 0; bottom: calc(76vmin - 4.6vmin); height: 4.6vmin; overflow: hidden; background: var(--red); color: #fff; display: flex; align-items: center; box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.2); }
+  .tape span { flex: none; white-space: nowrap; font-weight: 800; font-size: 1.9vmin; letter-spacing: .22em; text-transform: uppercase; padding-left: 2vmin; }
+  .sign { position: absolute; left: 0; right: 0; bottom: 0; height: calc(76vmin - 4.6vmin); box-sizing: border-box; padding: 5vmin 5vmin 5vmin; display: flex; flex-direction: column; }
+  .top { display: flex; align-items: center; gap: 1.6vmin; }
+  .ico { flex: none; width: 10.4vmin; height: 10.4vmin; background: var(--k); display: flex; align-items: center; justify-content: center; }
+  .ico svg { width: 72%; height: 72%; }
+  .t { flex: 1; min-width: 0; margin-left: 1.6vmin; font-weight: 800; font-size: 9.6vmin; line-height: .9; letter-spacing: -.025em; white-space: nowrap; }
+  .arr { flex: none; width: 10.4vmin; height: 10.4vmin; background: var(--k); display: flex; align-items: center; justify-content: center; }
+  .arr svg { width: 70%; height: 70%; }
+  .bi { margin-top: 1.8vmin; padding-left: calc(2 * 10.4vmin + 3.2vmin + 1.6vmin); font-style: italic; font-weight: 500; font-size: 2.4vmin; color: var(--sub); white-space: nowrap; }
+  .rule { height: .7vmin; background: var(--k); margin: 3.6vmin 0 3vmin; }
+  .mid { display: flex; align-items: flex-end; gap: 4vmin; }
+  .pct { flex: none; font-weight: 800; font-size: 23vmin; line-height: .78; letter-spacing: -.05em; }
+  .pct small { display: block; font-weight: 700; font-size: 2.4vmin; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 2.4vmin; }
+  .copy { flex: 1; min-width: 0; padding-bottom: .6vmin; font-weight: 500; font-size: 2.5vmin; line-height: 1.35; }
+  .copy b { display: block; font-weight: 800; font-size: 3.2vmin; line-height: 1.1; margin-bottom: 1vmin; }
+  .strip { margin-top: auto; display: flex; background: var(--k); color: var(--y); }
+  .strip div { flex: 1; padding: 1.8vmin 2.4vmin; font-weight: 700; font-size: 2.2vmin; white-space: nowrap; }
+  .strip div + div { border-left: 1px solid rgba(255,205,0,.45); }
+  .strip small { display: block; margin-bottom: .4vmin; font-weight: 500; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; color: #BFA54A; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 68vmin); }
+    .tape { bottom: calc(68vmin - 4.6vmin); }
+    .sign { height: calc(68vmin - 4.6vmin); padding: 4.4vmin 6vmin; }
+    .rule { margin: 3vmin 0 2.6vmin; }
+    .pct { font-size: 20vmin; }
+    .ico, .arr { width: 9.4vmin; height: 9.4vmin; }
+    .t { font-size: 9.6vmin; }
+    .bi { padding-left: calc(2 * 9.4vmin + 3.2vmin + 1.6vmin); }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 24%; }
+    .tape { left: 48%; right: auto; top: 0; bottom: 0; width: 4.6vmin; height: auto; flex-direction: column; justify-content: flex-start; }
+    .tape span { writing-mode: vertical-rl; padding: 2vmin 0 0; font-size: 1.8vmin; }
+    .sign { left: calc(48% + 4.6vmin); top: 0; height: 100%; padding: 5vmin 5vmin 5vmin 4.6vmin; }
+    .top { flex-wrap: wrap; gap: 1.4vmin; }
+    .ico, .arr { width: 8.6vmin; height: 8.6vmin; }
+    .arr { margin-left: auto; }
+    .t { order: 4; flex: 0 0 100%; margin: 2.4vmin 0 0; font-size: 10.6vmin; white-space: normal; }
+    .bi { padding-left: 0; font-size: 2.1vmin; margin-top: 1.6vmin; }
+    .rule { margin: 3vmin 0 2.6vmin; }
+    .mid { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .pct { font-size: 14.6vmin; }
+    .pct small { font-size: 2.1vmin; margin-bottom: 1.8vmin; }
+    .copy { font-size: 2.2vmin; }
+    .copy b { font-size: 2.8vmin; }
+    .strip { flex-direction: column; }
+    .strip div { padding: 1.2vmin 2vmin; font-size: 2vmin; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; }
+    .strip div + div { border-left: 0; border-top: 1px solid rgba(255,205,0,.35); }
+    .strip small { margin: 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .tape { left: 44%; }
+    .sign { left: calc(44% + 4.6vmin); padding: 7vmin 6vmin 6vmin 5.4vmin; }
+    .ico, .arr { width: 9.4vmin; height: 9.4vmin; }
+    .t { margin-top: 3vmin; font-size: 11.6vmin; white-space: nowrap; }
+    .bi { font-size: 2.3vmin; }
+    .rule { margin: 3.6vmin 0 3vmin; }
+    .mid { gap: 2.4vmin; }
+    .pct { font-size: 20vmin; }
+    .copy { font-size: 2.4vmin; max-width: 56vmin; }
+    .copy b { font-size: 3vmin; }
+    .strip { flex-direction: row; }
+    .strip div { display: block; padding: 1.8vmin 2.4vmin; font-size: 2.1vmin; }
+    .strip div + div { border-top: 0; border-left: 1px solid rgba(255,205,0,.45); }
+    .strip small { margin-bottom: .4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tape"><span>Sealed · Do not open before final destination · Sealed · Do not open before final destination · Sealed · Do not open before final destination ·</span></div>
+  <div class="sign">
+    <div class="top">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#FFCD00" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1.2 13H6.2z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/></svg></div>
+      <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#FFCD00" transform="rotate(45 12 12)" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+      <div class="t">Duty free</div>
+      <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="#FFCD00" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+    </div>
+    <div class="bi">Tax &amp; duty free · Hors taxes</div>
+    <div class="rule"></div>
+    <div class="mid">
+      <div class="pct"><small>Up to</small>−40%</div>
+      <div class="copy"><b>Travel-retail exclusive.</b>The resort collection, before take-off. This week only.</div>
+    </div>
+    <div class="strip">
+      <div><small>Gates</small>A1–A40</div>
+      <div><small>Until</small>30 June</div>
+      <div><small>Code</small>TAXFREE40</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

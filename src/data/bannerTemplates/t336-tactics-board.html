@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* Tactics Board — the manager's magnetic whiteboard: a printed half-pitch, black magnets in a 4-3-3,
+     three red magnets that carry the offers (their numbers key into the team sheet below), and red dry-wipe
+     marker runs and notes. tall/4:5 → photo above, board below · square/wide → board left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F4F1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4F4F1; color: #151515; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 20%; }
+  .board { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; overflow: hidden;
+    background: linear-gradient(115deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.7) 42%, rgba(255,255,255,0) 54%), linear-gradient(180deg, #FBFBF9, #EDEDE9); }
+  .rail { position: absolute; left: 0; right: 0; top: 0; height: 1.6vmin; background: linear-gradient(180deg, #D9DBDD, #A9ADB1 60%, #8E9296); box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.18); }
+  .hd { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; display: flex; justify-content: space-between; align-items: flex-end; }
+  .hd h1 { margin: 0; white-space: nowrap; font-weight: 900; font-size: 8.4vmin; line-height: .88; letter-spacing: -.03em; text-transform: uppercase; }
+  .hd h1 small { display: block; margin-bottom: 1.2vmin; font-weight: 700; font-size: 1.9vmin; letter-spacing: .26em; color: #6B6B66; }
+  .note { font-family: "Caveat", "Comic Sans MS", cursive; font-weight: 700; font-size: 4.6vmin; line-height: 1; color: #D6342C; transform: rotate(-5deg); transform-origin: right bottom; text-align: right; white-space: nowrap; padding-bottom: .6vmin; }
+
+  .pitch { position: absolute; left: 6vmin; right: 6vmin; top: 22vmin; height: 40vmin; }
+  .pitch svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .m { position: absolute; width: 4.6vmin; height: 4.6vmin; margin: -2.3vmin 0 0 -2.3vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #4A4A4A, #111 70%); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 2vmin; box-shadow: 0 .4vmin .5vmin rgba(0,0,0,.35); }
+  .m.r { width: 6vmin; height: 6vmin; margin: -3vmin 0 0 -3vmin; background: radial-gradient(circle at 35% 30%, #FF6A5C, #C8261D 72%); font-size: 2.7vmin; font-weight: 900; }
+
+  .sheet { position: absolute; left: 6vmin; right: 6vmin; top: 66vmin; display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 3vmin; border-top: .3vmin solid #151515; padding-top: 1.8vmin; }
+  .sheet div { display: flex; align-items: flex-start; gap: 1.4vmin; }
+  .sheet i { flex: none; width: 4vmin; height: 4vmin; border-radius: 50%; background: #D6342C; color: #fff; font-style: normal; font-weight: 900; font-size: 1.9vmin; display: flex; align-items: center; justify-content: center; }
+  .sheet span { font-size: 2vmin; font-weight: 500; line-height: 1.25; }
+  .sheet span b { display: block; font-size: 2.6vmin; font-weight: 900; text-transform: uppercase; letter-spacing: -.01em; }
+  .cta { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .cta p { margin: 0; font-size: 2vmin; font-weight: 500; color: #4A4A46; }
+  .cta p b { color: #151515; font-weight: 900; letter-spacing: .04em; }
+  .cta span { flex: none; padding: 1.7vmin 2.8vmin; background: #151515; color: #fff; font-weight: 700; font-size: 2.3vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 82vmin); }
+    .board { height: 82vmin; }
+    .hd { top: 5.4vmin; }
+    .hd h1 { font-size: 7.6vmin; }
+    .pitch { top: 19vmin; height: 37vmin; }
+    .sheet { top: 60vmin; }
+    .cta { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .board { height: 66vmin; }
+    .hd { left: 8vmin; right: 8vmin; top: 4.6vmin; }
+    .hd h1 { font-size: 6.2vmin; }
+    .hd h1 small { font-size: 1.7vmin; margin-bottom: .8vmin; }
+    .note { font-size: 4vmin; }
+    .pitch { left: 8vmin; right: 34vmin; top: 17vmin; height: 30vmin; }
+    .m { width: 3.8vmin; height: 3.8vmin; margin: -1.9vmin 0 0 -1.9vmin; font-size: 1.7vmin; }
+    .m.r { width: 5vmin; height: 5vmin; margin: -2.5vmin 0 0 -2.5vmin; font-size: 2.3vmin; }
+    .sheet { left: 70vmin; right: 6vmin; top: 17vmin; grid-template-columns: 1fr; row-gap: 2.4vmin; padding-top: 2vmin; }
+    .sheet span b { font-size: 2.4vmin; }
+    .cta { left: 8vmin; right: 6vmin; bottom: 4.4vmin; }
+    .cta span { padding: 1.4vmin 2.4vmin; font-size: 2.1vmin; }
+  }
+  /* square / wide → board left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .board { right: 46%; top: 0; height: auto; }
+    .rail { left: auto; right: 0; top: 0; bottom: 0; width: 1.4vmin; height: auto; background: linear-gradient(90deg, #8E9296, #A9ADB1 40%, #D9DBDD); }
+    .hd { left: 5vmin; right: 5vmin; top: 5.4vmin; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .hd h1 { font-size: 6.8vmin; }
+    .note { font-size: 3.6vmin; transform-origin: left bottom; transform: rotate(-4deg); }
+    .pitch { left: 5vmin; right: 5vmin; top: 27vmin; height: 26vmin; }
+    .m { width: 3.2vmin; height: 3.2vmin; margin: -1.6vmin 0 0 -1.6vmin; font-size: 1.6vmin; }
+    .m.r { width: 4.4vmin; height: 4.4vmin; margin: -2.2vmin 0 0 -2.2vmin; font-size: 2vmin; }
+    .sheet { left: 5vmin; right: 5vmin; top: 58vmin; grid-template-columns: 1fr; row-gap: 1.4vmin; padding-top: 1.6vmin; }
+    .sheet div { align-items: center; }
+    .sheet span { font-size: 1.8vmin; }
+    .sheet span b { display: inline; font-size: 2.2vmin; margin-right: 1vmin; }
+    .sheet i { width: 3.4vmin; height: 3.4vmin; font-size: 1.7vmin; }
+    .cta { left: 5vmin; right: 5vmin; bottom: 5vmin; flex-direction: column; align-items: stretch; gap: 1.6vmin; }
+    .cta p { font-size: 1.8vmin; }
+    .cta span { text-align: center; padding: 1.3vmin 2vmin; font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .board { right: 44%; }
+    .hd { left: 6vmin; right: 6vmin; top: 6vmin; flex-direction: row; align-items: flex-end; }
+    .hd h1 { font-size: 7vmin; }
+    .note { font-size: 3.8vmin; transform-origin: right bottom; transform: rotate(-5deg); }
+    .pitch { left: 6vmin; right: 6vmin; top: 22vmin; height: 38vmin; }
+    .m { width: 4.4vmin; height: 4.4vmin; margin: -2.2vmin 0 0 -2.2vmin; font-size: 1.9vmin; }
+    .m.r { width: 5.8vmin; height: 5.8vmin; margin: -2.9vmin 0 0 -2.9vmin; font-size: 2.6vmin; }
+    .sheet { left: 6vmin; right: 6vmin; top: 65vmin; grid-template-columns: repeat(3, 1fr); padding-top: 1.8vmin; }
+    .sheet div { align-items: flex-start; }
+    .sheet span { font-size: 1.9vmin; }
+    .sheet span b { display: block; font-size: 2.4vmin; margin: 0; }
+    .sheet i { width: 3.8vmin; height: 3.8vmin; font-size: 1.8vmin; }
+    .cta { left: 6vmin; right: 6vmin; bottom: 5.4vmin; flex-direction: row; align-items: center; }
+    .cta p { font-size: 1.9vmin; }
+    .cta span { padding: 1.5vmin 2.6vmin; font-size: 2.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="board">
+    <div class="rail"></div>
+    <div class="hd">
+      <h1><small>Atelier Nord · Matchday 1</small>Starting XI</h1>
+      <div class="note">new season line-up!</div>
+    </div>
+    <div class="pitch">
+      <svg viewBox="0 0 220 100" preserveAspectRatio="none" aria-hidden="true">
+        <g fill="none" stroke="#8FB39B" stroke-width="1.4" vector-effect="non-scaling-stroke">
+          <rect x="1" y="1" width="218" height="98" vector-effect="non-scaling-stroke"/>
+          <rect x="62" y="1" width="96" height="30" vector-effect="non-scaling-stroke"/>
+          <rect x="88" y="1" width="44" height="11" vector-effect="non-scaling-stroke"/>
+          <path d="M92 31 Q110 44 128 31" vector-effect="non-scaling-stroke"/>
+          <path d="M84 99 Q110 64 136 99" vector-effect="non-scaling-stroke"/>
+        </g>
+        <g fill="none" stroke="#D6342C" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="1 5" vector-effect="non-scaling-stroke">
+          <path d="M52 30 C 60 20, 66 14, 76 10" vector-effect="non-scaling-stroke"/>
+          <path d="M168 30 C 160 20, 154 14, 144 10" vector-effect="non-scaling-stroke"/>
+          <path d="M110 58 L110 24" vector-effect="non-scaling-stroke"/>
+        </g>
+        <g fill="none" stroke="#D6342C" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke">
+          <path d="M72.5 14.6 L76 10 L70.3 9" vector-effect="non-scaling-stroke"/>
+          <path d="M147.5 14.6 L144 10 L149.7 9" vector-effect="non-scaling-stroke"/>
+          <path d="M106 28 L110 24 L114 28" vector-effect="non-scaling-stroke"/>
+        </g>
+      </svg>
+      <span class="m" style="left:12%;top:86%">2</span>
+      <span class="m" style="left:37%;top:90%">5</span>
+      <span class="m" style="left:63%;top:90%">4</span>
+      <span class="m" style="left:88%;top:86%">3</span>
+      <span class="m" style="left:28%;top:60%">6</span>
+      <span class="m" style="left:50%;top:66%">8</span>
+      <span class="m" style="left:72%;top:60%">11</span>
+      <span class="m r" style="left:20%;top:36%">7</span>
+      <span class="m r" style="left:50%;top:14%">9</span>
+      <span class="m r" style="left:80%;top:36%">10</span>
+    </div>
+    <div class="sheet">
+      <div><i>7</i><span><b>New in</b>just signed</span></div>
+      <div><i>9</i><span><b>Best sellers</b>top scorers</span></div>
+      <div><i>10</i><span><b>−40%</b>the playmakers</span></div>
+    </div>
+    <div class="cta"><p>Kick-off 04.10 · code <b>XI40</b></p><span>See the line-up →</span></div>
+  </div>
+</div>
+</body>
+</html>

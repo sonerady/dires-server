@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Wet+Paint&family=Rubik:wght@400;500;700;800&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Wet Paint — a glossy slab of cobalt just rolled onto a plaster wall, still running: drips hang toward the photo,
+     the headline itself dripping, a yellow "touch it anyway" tag.
+     tall / 3:4 → paint slab on top, drips, photo below · square / wide → slab + drips in the left column, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEE6D4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #15172A; font-family: "Rubik", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(70vmin 40vmin at 80% 60%, rgba(160,140,110,.12), transparent 70%),
+      radial-gradient(circle, rgba(120,100,70,.08) 0 .15vmin, transparent .2vmin) 0 0 / 1.1vmin 1.3vmin,
+      #EEE6D4; }
+  .slab { position: absolute; left: 0; right: 0; top: 0; height: 50vmin; color: #fff;
+    background:
+      radial-gradient(60vmin 14vmin at 30% 22%, rgba(255,255,255,.22), transparent 70%),
+      linear-gradient(100deg, rgba(255,255,255,0) 0 40%, rgba(255,255,255,.08) 46%, rgba(255,255,255,0) 52%),
+      linear-gradient(180deg, #2F52EA 0%, #2242D8 55%, #1A35BC 100%); }
+  .kick { position: absolute; left: 6vmin; top: 5.4vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #C9D4FF; white-space: nowrap; }
+  .kick b { color: #FFE14A; font-weight: 800; }
+  h1 { position: absolute; left: 5vmin; top: 10vmin; margin: 0; font-family: "Rubik Wet Paint", "Rubik", sans-serif; font-weight: 400; font-size: 18.5vmin; line-height: .92; letter-spacing: -.01em; color: #FFFFFF; }
+  .sub { position: absolute; right: 6vmin; bottom: 6.4vmin; width: 36vmin; text-align: right; font-size: 2.1vmin; line-height: 1.4; color: #E4E9FF; }
+  .sub b { color: #fff; font-weight: 700; }
+
+  /* the runs */
+  .d { position: absolute; top: calc(100% - .2vmin); width: 2.6vmin; border-radius: 0 0 1.6vmin 1.6vmin;
+    background: linear-gradient(90deg, #1A35BC 0%, #3558EE 35%, #1A35BC 70%, #142C9E 100%); }
+  .d::after { content: ""; position: absolute; left: 50%; bottom: -1.2vmin; width: 150%; aspect-ratio: 1; transform: translateX(-50%); border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
+    background: radial-gradient(circle at 36% 36%, #5C7BFF 0 16%, #2A48DC 34%, #1A35BC 72%); }
+  .d1 { left: 6%; height: 11vmin; } .d2 { left: 13%; height: 5vmin; width: 1.8vmin; } .d3 { left: 21%; height: 14vmin; width: 3vmin; }
+  .d4 { left: 30%; height: 7vmin; width: 2vmin; } .d5 { left: 35%; height: 12vmin; } .d6 { left: 42%; height: 4vmin; width: 1.6vmin; }
+  .d7 { left: 91%; height: 6vmin; width: 2vmin; }
+
+  .buy { position: absolute; right: 7vmin; top: 53vmin; display: flex; align-items: center; gap: 2.6vmin; }
+  .price { font-size: 2vmin; font-weight: 500; line-height: 1.1; color: #3A3C55; }
+  .price b { display: block; font-size: 7vmin; font-weight: 800; letter-spacing: -.03em; color: #15172A; line-height: .95; }
+  .cta { background: #FFE14A; color: #15172A; font-size: 2vmin; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 1.4vmin 2.2vmin; transform: rotate(-3deg);
+    box-shadow: .4vmin .5vmin 0 #15172A; white-space: nowrap; }
+
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - 70vmin); object-fit: cover; object-position: 50% 25%; display: block; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .slab { height: 40vmin; }
+    .kick { top: 4.6vmin; }
+    h1 { top: 8vmin; font-size: 14.5vmin; }
+    .sub { bottom: 5vmin; width: 34vmin; font-size: 1.9vmin; }
+    .d1 { height: 8vmin; } .d3 { height: 11vmin; } .d5 { height: 9vmin; }
+    .buy { top: 42.6vmin; }
+    .price b { font-size: 6vmin; }
+    .photo { height: calc(100% - 57vmin); }
+  }
+  /* square / wide — paint column left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .slab { right: auto; width: 48%; height: 60vmin; }
+    .kick { left: 5vmin; top: 5vmin; font-size: 1.6vmin; }
+    h1 { left: 4.4vmin; top: 9.6vmin; font-size: 13vmin; }
+    .sub { right: auto; left: 5vmin; bottom: 4.6vmin; width: calc(100% - 10vmin); text-align: left; font-size: 1.8vmin; }
+    .d1 { left: 8%; height: 9vmin; } .d2 { left: 19%; } .d3 { left: 31%; height: 13vmin; } .d4 { left: 47%; } .d5 { left: 62%; height: 10vmin; } .d6 { left: 74%; } .d7 { left: 86%; height: 7vmin; }
+    .buy { right: auto; left: 5vmin; top: auto; bottom: 6vmin; }
+    .price b { font-size: 6vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.2vmin 1.8vmin; }
+    .photo { left: auto; right: 0; top: 0; width: 52%; height: 100%; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .slab { width: 50%; height: 62vmin; }
+    .kick { left: 6vmin; top: 6vmin; font-size: 1.8vmin; }
+    h1 { left: 5.4vmin; top: 11vmin; font-size: 17vmin; }
+    .sub { left: 6vmin; bottom: 5vmin; width: 44vmin; font-size: 2vmin; }
+    .buy { left: 6vmin; bottom: 7vmin; }
+    .price b { font-size: 7vmin; }
+    .cta { font-size: 2vmin; }
+    .photo { width: 50%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="slab">
+    <div class="kick"><b>Wet paint</b> · Atelier Lacq · Drop 03</div>
+    <h1>Still<br>wet.</h1>
+    <div class="sub">Colour drop 03, fresh from the studio floor. <b>Only 60 made.</b></div>
+    <i class="d d1"></i><i class="d d2"></i><i class="d d3"></i><i class="d d4"></i><i class="d d5"></i><i class="d d6"></i><i class="d d7"></i>
+  </div>
+  <div class="buy"><div class="price">from<b>$64</b></div><div class="cta">Touch it anyway →</div></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+</div>
+</body>
+</html>

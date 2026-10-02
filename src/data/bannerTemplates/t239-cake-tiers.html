@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Karla:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Cake Tiers — the celebration sale as a three-tier wedding cake on a pedestal stand: each iced tier (piped bead
+     border, dusty-blue ribbon) carries one spend tier of the offer; a little flag topper says "yes". "Have your cake
+     and wear it." tall → photo above the butter-yellow panel; square/wide → panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E6C8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2A3550; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; background: #F3E6C8; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; box-sizing: border-box; padding: 5vmin 7vmin 4.6vmin; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    background: radial-gradient(60% 50% at 50% 65%, rgba(255,255,255,.45), transparent 70%), #F3E6C8; }
+  h1 { margin: 0; text-align: center; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 9vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 i { display: block; font-size: .62em; margin-top: .6vmin; color: #6A7897; }
+
+  .cake { --u: 1.1vmin; display: flex; flex-direction: column; align-items: center; }
+  .topper { width: calc(12 * var(--u)); height: calc(8 * var(--u)); display: block; overflow: visible; }
+  .tier { position: relative; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: calc(1.6 * var(--u)); background: linear-gradient(90deg, #EFE8DA, #FFFCF5 30%, #FFFDF8 60%, #EDE5D5);
+    border-radius: calc(.8 * var(--u)) calc(.8 * var(--u)) 0 0; box-shadow: inset 0 calc(-.3 * var(--u)) 0 rgba(0,0,0,.04); white-space: nowrap; }
+  /* piped beads along the top edge and a ribbon at the base */
+  .tier::before { content: ""; position: absolute; left: calc(-.4 * var(--u)); right: calc(-.4 * var(--u)); top: calc(-1 * var(--u)); height: calc(2 * var(--u));
+    background: radial-gradient(circle at 50% 50%, #FFFFFF 0 calc(.7 * var(--u)), #E6DCC8 calc(.8 * var(--u)), transparent calc(.95 * var(--u))) 0 0 / calc(2 * var(--u)) calc(2 * var(--u)) repeat-x; }
+  .tier::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: calc(1.8 * var(--u)); background: linear-gradient(180deg, #9FB0CC, #8497B8); }
+  .t1 { width: calc(30 * var(--u)); height: calc(11 * var(--u)); padding-bottom: calc(1.8 * var(--u)); }
+  .t2 { width: calc(43 * var(--u)); height: calc(12 * var(--u)); padding-bottom: calc(1.8 * var(--u)); }
+  .t3 { width: calc(56 * var(--u)); height: calc(13.5 * var(--u)); padding-bottom: calc(1.8 * var(--u)); }
+  .tier b { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: calc(4.4 * var(--u)); line-height: 1; }
+  .tier span { font-size: max(1.6vmin, calc(1.8 * var(--u))); font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #6A7897; }
+  .t3 b { font-size: calc(5.4 * var(--u)); }
+  .stand { width: calc(64 * var(--u)); height: calc(1.6 * var(--u)); border-radius: 50%; background: linear-gradient(180deg, #FFFFFF, #D9CCB2); box-shadow: 0 calc(.4 * var(--u)) calc(.6 * var(--u)) rgba(80,60,20,.2); }
+  .stem { width: calc(8 * var(--u)); height: calc(5 * var(--u)); background: linear-gradient(90deg, #D4C6AA, #FFFFFF 45%, #D4C6AA); clip-path: polygon(30% 0, 70% 0, 62% 70%, 100% 100%, 0 100%, 38% 70%); }
+
+  .foot { width: 100%; display: flex; justify-content: space-between; gap: 2vmin; border-top: 1px solid rgba(42,53,80,.4); padding-top: 1.6vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 76vmin); }
+    .panel { height: 76vmin; padding: 4vmin 8vmin 4vmin; }
+    h1 { font-size: 7.4vmin; }
+    .cake { --u: .92vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .panel { top: 0; right: 46%; height: auto; padding: 6vmin 4vmin 5vmin; }
+    h1 { font-size: 7vmin; }
+    .cake { --u: .82vmin; }
+    .foot { font-size: 1.6vmin; letter-spacing: .1em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; }
+    .panel { right: 45%; padding: 6vmin 7vmin 5vmin; }
+    h1 { font-size: 8.4vmin; }
+    .cake { --u: 1.04vmin; }
+    .foot { font-size: 1.8vmin; letter-spacing: .2em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <h1>Have your cake<i>and wear it.</i></h1>
+    <div class="cake">
+      <svg class="topper" viewBox="0 0 120 80" aria-hidden="true">
+        <path d="M44 80 L 52 8 M76 80 L 68 8" stroke="#B89146" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M52 10 L 68 10 L 68 30 L 52 30 Z" fill="#8497B8"/>
+        <path d="M24 12 L 52 10 L 52 30 L 24 32 L 32 22 Z M96 12 L 68 10 L 68 30 L 96 32 L 88 22 Z" fill="#9FB0CC"/>
+        <text x="60" y="25" text-anchor="middle" font-family="Karla, Arial, sans-serif" font-weight="600" font-size="11" letter-spacing="1" fill="#FFFDF8">YES</text>
+      </svg>
+      <div class="tier t1"><b>10%</b><span>over $150</span></div>
+      <div class="tier t2"><b>20%</b><span>over $250</span></div>
+      <div class="tier t3"><b>30% off</b><span>over $400</span></div>
+      <div class="stand"></div>
+      <div class="stem"></div>
+    </div>
+    <div class="foot"><span>The Celebration Sale</span><span>This weekend</span></div>
+  </div>
+</div>
+</body>
+</html>

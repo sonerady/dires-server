@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Rampart+One&family=Hachi+Maru+Pop&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  /* Sticker Booth — a Harajuku photo-sticker sheet: the big "best shot" die-cut on a glitter-pink sheet, three small
+     re-takes (zoom · beauty mode · mono) cut beneath it, pixel booth UI, doodled hearts and sparkles in the margins.
+     tall → best shot above, re-takes + copy below · square & wide → best shot left, re-takes + copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFD1E4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #E4136F; font-family: "DotGothic16", "Courier New", monospace;
+    background:
+      radial-gradient(circle, rgba(255,255,255,.95) 0 .22vmin, transparent .34vmin) 0 0 / 6vmin 6vmin,
+      radial-gradient(circle, rgba(255,255,255,.55) 0 .16vmin, transparent .26vmin) 3vmin 3vmin / 6vmin 6vmin,
+      radial-gradient(120% 70% at 50% 0%, #FFE3EF 0%, #FFCCE1 60%, #FFB9D6 100%); }
+
+  /* pixel booth UI */
+  .ui { position: absolute; left: 6vmin; right: 6vmin; top: 3.6vmin; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; font-size: 2vmin; letter-spacing: .06em; white-space: nowrap; }
+  .ui b { font-weight: 400; background: #E4136F; color: #fff; padding: .5vmin 1.4vmin; }
+  .ui .dots { display: flex; gap: .8vmin; }
+  .ui .dots i { width: 1.6vmin; height: 1.6vmin; background: #E4136F; }
+  .ui .dots i:last-child { background: #fff; box-shadow: inset 0 0 0 .35vmin #E4136F; }
+
+  /* the best shot, die-cut with a white margin and a dotted cut line */
+  .shot { position: absolute; left: 7vmin; right: 7vmin; top: 10.5vmin; height: calc(100% - 70vmin); background: #fff; padding: 1.6vmin; box-sizing: border-box; transform: rotate(-1.2deg);
+    outline: .3vmin dashed rgba(228,19,111,.55); outline-offset: .9vmin; box-shadow: 0 1.2vmin 2.4vmin rgba(160,20,80,.18); }
+  .shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .shot .stamp { position: absolute; left: 1.6vmin; bottom: -.1vmin; transform: translateY(100%); padding-top: .4vmin; font-size: 1.7vmin; letter-spacing: .08em; color: #E4136F; }
+
+  .doodle { position: absolute; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .d1 { right: .8vmin; top: 7vmin; width: 7vmin; height: 7vmin; fill: #fff; stroke: #E4136F; stroke-width: 1.4; }
+  .d2 { left: 1vmin; top: 36%; width: 5.6vmin; height: 5.6vmin; stroke: #fff; stroke-width: 2.4; fill: #FF6FB0; }
+  .d3 { right: 1.2vmin; top: 50%; width: 4.4vmin; height: 4.4vmin; fill: #FFF27A; stroke: #E4136F; stroke-width: 1.4; }
+
+  /* three re-takes, each cut as its own sticker */
+  .takes { position: absolute; left: 7vmin; right: 7vmin; bottom: 33vmin; height: 22vmin; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 4vmin; }
+  .take { position: relative; background: #fff; padding: 1.1vmin 1.1vmin 3.4vmin; box-sizing: border-box; box-shadow: 0 .6vmin 1.4vmin rgba(160,20,80,.16); min-height: 0; }
+  .take:nth-child(1) { transform: rotate(2deg); background: #C9F3E2; }
+  .take:nth-child(2) { transform: rotate(-1.5deg); background: #E3D8FF; }
+  .take:nth-child(3) { transform: rotate(1.2deg); background: #FFF3A6; }
+  .take .win { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  .take img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .z img { transform: scale(1.9); transform-origin: 50% 30%; }
+  .b img { filter: brightness(1.12) saturate(1.25) contrast(.92); }
+  .b .win::after { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 70% at 50% 35%, rgba(255,255,255,.28), rgba(255,190,220,.25)); }
+  .m img { filter: grayscale(1) contrast(1.15); }
+  .m .win::after { content: ""; position: absolute; inset: 0; background: #FF4FA3; mix-blend-mode: screen; opacity: .35; }
+  .take span { position: absolute; left: 50%; bottom: .7vmin; transform: translateX(-50%); font-size: 1.7vmin; line-height: 1; white-space: nowrap; letter-spacing: .04em; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.4vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  h1 { margin: 0; font-family: "Rampart One", "Arial Rounded MT Bold", sans-serif; font-weight: 400; font-size: 11.4vmin; line-height: .92; letter-spacing: -.01em; color: #E4136F; }
+  .sub { margin-top: 1.2vmin; font-family: "Hachi Maru Pop", "Marker Felt", cursive; font-size: 2.7vmin; line-height: 1.3; color: #7A1142; }
+  .deal { flex: none; text-align: center; }
+  .code { display: block; background: #E4136F; color: #fff; padding: 1.3vmin 2vmin; font-size: 2.2vmin; letter-spacing: .08em; white-space: nowrap; }
+  .pct { display: block; font-family: "Rampart One", "Arial Rounded MT Bold", sans-serif; font-size: 8vmin; line-height: 1; color: #E4136F; margin-bottom: .6vmin; }
+
+  /* SHORTER PORTRAIT (3:4, 4:5) */
+  @media (min-aspect-ratio: 7/10) {
+    .shot { left: 12vmin; right: 12vmin; height: calc(100% - 62vmin); top: 10vmin; }
+    .takes { left: 12vmin; right: 12vmin; height: 18vmin; bottom: 30vmin; column-gap: 3.4vmin; }
+    .d2 { top: 30%; left: 4vmin; }
+    .d3 { right: 4vmin; }
+    .d1 { right: 4vmin; top: 6vmin; }
+    h1 { font-size: 10vmin; }
+    .copy { bottom: 4vmin; }
+  }
+  /* SQUARE — best shot left, re-takes + copy right */
+  @media (min-aspect-ratio: 9/10) {
+    .shot { left: 5vmin; right: auto; top: 9.5vmin; bottom: 6vmin; height: auto; width: 44%; }
+    .shot img { height: 100%; }
+    .shot .stamp { display: none; }
+    .ui { left: 5vmin; right: 5vmin; top: 3.2vmin; font-size: 1.8vmin; }
+    .d1 { left: calc(44% + 1vmin); right: auto; top: 6.5vmin; width: 6vmin; height: 6vmin; }
+    .d2 { left: 1vmin; top: auto; bottom: 1.4vmin; width: 4.6vmin; height: 4.6vmin; }
+    .d3 { display: none; }
+    .takes { left: calc(44% + 11vmin); right: 5vmin; top: 44vmin; bottom: auto; height: 27vmin; column-gap: 2.6vmin; }
+    .take { padding: .9vmin .9vmin 3vmin; }
+    .take span { font-size: 1.6vmin; bottom: .6vmin; }
+    .copy { left: calc(44% + 11vmin); right: 5vmin; top: 13vmin; bottom: 6vmin; flex-direction: column; align-items: flex-start; justify-content: space-between; }
+    .copy .head { height: 26vmin; }
+    h1 { font-size: 7.6vmin; }
+    .sub { font-size: 2vmin; white-space: nowrap; }
+    .deal { display: flex; align-items: center; gap: 2.4vmin; }
+    .pct { font-size: 7vmin; margin: 0; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 45%; top: 10vmin; }
+    .d1 { left: calc(45% + 1vmin); }
+    .takes { left: calc(45% + 13vmin); right: 6vmin; top: 44vmin; height: 31vmin; column-gap: 3.4vmin; }
+    .copy { left: calc(45% + 13vmin); right: 6vmin; top: 13vmin; }
+    h1 { font-size: 9.6vmin; }
+    .sub { font-size: 2.5vmin; }
+    .copy .head { height: 28vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ui"><span><b>BOOTH 07</b> 写真シール</span><span class="dots"><i></i><i></i><i></i><i></i></span><span>SHOT 4/4</span></div>
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""><span class="stamp">2026.09.25 ♡ BEST SHOT</span></div>
+  <svg class="doodle d1" viewBox="0 0 24 24"><path d="M12 1C13 8.5 15.5 11 23 12C15.5 13 13 15.5 12 23C11 15.5 8.5 13 1 12C8.5 11 11 8.5 12 1Z"/></svg>
+  <svg class="doodle d2" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2A5.4 5.4 0 0 1 12 6.4a5.4 5.4 0 0 1 9.6 5.4C19.5 16.4 12 21 12 21z"/></svg>
+  <svg class="doodle d3" viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z"/></svg>
+  <div class="takes">
+    <div class="take z"><div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div><span>① zoom</span></div>
+    <div class="take b"><div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div><span>② beauty</span></div>
+    <div class="take m"><div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div><span>③ mono</span></div>
+  </div>
+  <div class="copy">
+    <div class="head"><h1>Snap the<br>new drop!</h1><div class="sub">4 poses, 1 code — all new in ♡</div></div>
+    <div class="deal"><span class="pct">−15%</span><span class="code">CODE SNAP15</span></div>
+  </div>
+</div>
+</body>
+</html>

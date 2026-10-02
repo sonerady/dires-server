@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;700;900&family=Chivo+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Take a Number — the sample-sale queue: a red take-a-number ticket torn from its roll, an LED "now serving" board, and the practical details of three days only */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EFE9; }
+  .banner { --panel: 78vmin; --tw: 32vmin; --th: 48vmin; position: fixed; inset: 0; overflow: hidden; background: #F2EFE9; color: #161513; font-family: "Chivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+
+  /* now serving */
+  .board { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel)); height: 8vmin; background: #141312; color: #EDE7DC; display: flex; align-items: center; justify-content: space-between; padding: 0 6vmin; box-sizing: border-box; }
+  .board span { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.8vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; }
+  .led { position: relative; font-family: "Chivo Mono", Menlo, monospace; font-weight: 700; font-size: 5.4vmin; line-height: 1; letter-spacing: .06em; color: #FF4A3A; text-shadow: 0 0 .8vmin rgba(255,74,58,.8), 0 0 2.4vmin rgba(255,74,58,.45); }
+  .led i { position: absolute; left: 0; top: 0; font-style: normal; color: rgba(255,74,58,.12); text-shadow: none; }
+
+  .copy { position: absolute; left: 6vmin; width: 50vmin; bottom: 6vmin; top: calc(100% - var(--panel) + 13vmin); display: flex; flex-direction: column; }
+  .kick { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.8vmin; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 900; font-size: 11.6vmin; line-height: .86; letter-spacing: -.05em; }
+  dl { margin: 4vmin 0 0; display: grid; grid-template-columns: auto 1fr; gap: 1.2vmin 2.4vmin; font-family: "Chivo Mono", Menlo, monospace; font-size: 2vmin; line-height: 1.25; }
+  dt { color: #7A746A; text-transform: uppercase; letter-spacing: .12em; font-size: 1.7vmin; padding-top: .2vmin; }
+  dd { margin: 0; font-weight: 500; }
+  dd b { font-weight: 700; color: #C9322A; }
+  .cta { margin-top: auto; align-self: flex-start; font-weight: 700; font-size: 2vmin; letter-spacing: .16em; text-transform: uppercase; background: #161513; color: #F2EFE9; padding: 1.8vmin 2.8vmin; white-space: nowrap; }
+
+  /* the ticket + the roll behind it */
+  .tk { position: absolute; right: 6vmin; bottom: 8vmin; width: var(--tw); height: var(--th); }
+  .t { position: absolute; inset: 0; background: #D23B2C; color: #FFF1E6;
+    -webkit-mask: radial-gradient(circle at 0 66%, transparent 1.7vmin, #000 1.8vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 66%, transparent 1.7vmin, #000 1.8vmin) right / 51% 100% no-repeat;
+            mask: radial-gradient(circle at 0 66%, transparent 1.7vmin, #000 1.8vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 66%, transparent 1.7vmin, #000 1.8vmin) right / 51% 100% no-repeat; }
+  .t.back { background: #B53024; transform: rotate(-7deg) translate(-3vmin, 1.4vmin); }
+  .t.front { transform: rotate(5deg); box-shadow: none; display: flex; flex-direction: column; padding: 3vmin 2.8vmin 2.4vmin; box-sizing: border-box; background-image: radial-gradient(rgba(255,255,255,.07) 20%, transparent 21%); background-size: .8vmin .8vmin; }
+  .t .hd { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.6vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; text-align: center; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(255,241,230,.6); }
+  .t .no { text-align: center; margin-top: auto; }
+  .t .no small { display: block; font-family: "Chivo Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .2em; }
+  .t .no b { display: block; font-weight: 900; font-size: 14vmin; line-height: .9; letter-spacing: -.05em; }
+  .t .perf { height: 0; border-top: .3vmin dashed rgba(255,241,230,.75); margin: 3.4vmin -2.8vmin 0; position: relative; top: 0; }
+  .t .stub { height: 28%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-top: 0; }
+  .t .stub small { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .t .stub b { font-weight: 900; font-size: 4vmin; line-height: 1; letter-spacing: -.02em; margin-top: .8vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 66vmin; --tw: 28vmin; --th: 42vmin; }
+    .copy { top: calc(100% - var(--panel) + 12vmin); bottom: 4.6vmin; }
+    h1 { font-size: 10vmin; }
+    dl { margin-top: 2.8vmin; gap: .9vmin 2.4vmin; font-size: 1.9vmin; }
+    .tk { bottom: 6vmin; }
+    .t .no b { font-size: 12vmin; }
+    .t .stub b { font-size: 3.6vmin; }
+  }
+  /* square / wide — photo left; board runs across the paper side's top */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --tw: 19vmin; --th: 30vmin; }
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .board { left: 50%; top: 0; padding: 0 5vmin; height: 8vmin; }
+    .copy { left: calc(50% + 5vmin); width: auto; right: 5vmin; top: 13vmin; bottom: 5vmin; }
+    h1 { font-size: 8.6vmin; }
+    dl { width: 20vmin; grid-template-columns: 1fr; gap: .4vmin; margin-top: 3.4vmin; font-size: 1.8vmin; }
+    dt { font-size: 1.6vmin; margin-top: 1vmin; }
+    .tk { right: 6vmin; bottom: 15vmin; }
+    .t.front { padding: 2.2vmin 1.6vmin 1.8vmin; }
+    .t .hd { letter-spacing: .06em; padding-bottom: 1vmin; }
+    .t .no b { font-size: 8.4vmin; }
+    .t .perf { margin: 2.2vmin -1.6vmin 0; }
+    .t .stub small { letter-spacing: .04em; }
+    .t .stub b { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --tw: 28vmin; --th: 43vmin; }
+    .photo { width: 46%; object-position: 64% 25%; }
+    .board { left: 46%; padding: 0 6vmin; }
+    .copy { left: calc(46% + 6vmin); right: 6vmin; top: 15vmin; bottom: 6vmin; }
+    h1 { font-size: 10vmin; }
+    dl { width: auto; max-width: 40vmin; grid-template-columns: auto 1fr; gap: 1.2vmin 2.4vmin; font-size: 1.9vmin; }
+    dt { margin-top: 0; }
+    .tk { right: 9vmin; bottom: 12vmin; }
+    .t.front { padding: 3vmin 2.8vmin 2.4vmin; }
+    .t .hd { letter-spacing: .2em; padding-bottom: 1.4vmin; }
+    .t .perf { margin: 3.4vmin -2.8vmin 0; }
+    .t .stub small { letter-spacing: .14em; }
+    .t .no b { font-size: 12vmin; }
+    .t .stub b { font-size: 3.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="board"><span>Now serving</span><div class="led"><i>888</i>046</div></div>
+  <div class="copy">
+    <div class="kick">Studio Oro · Three days only</div>
+    <h1>Sample sale.</h1>
+    <dl>
+      <dt>Dates</dt><dd>12–14 Oct</dd>
+      <dt>Hours</dt><dd>10:00–19:00</dd>
+      <dt>Where</dt><dd>Warehouse 4</dd>
+      <dt>Offer</dt><dd><b>Up to −80%</b></dd>
+    </dl>
+    <div class="cta">Get your number →</div>
+  </div>
+  <div class="tk">
+    <div class="t back"></div>
+    <div class="t front">
+      <div class="hd">Take a number</div>
+      <div class="no"><small>Nº</small><b>047</b></div>
+      <div class="perf"></div>
+      <div class="stub"><small>Sample sale</small><b>−80%</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

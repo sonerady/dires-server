@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Oswald:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Souvenir Fold-out — a seaside souvenir concertina: the photo runs continuously across three folded leaves
+     (zigzag edges + valley/peak shading), the folded remainder stacked at the end, roman-numeral view captions,
+     a two-colour (tomato + cobalt) souvenir lockup and a tomato offer flap.
+     tall → lockup / fold-out / captions / flap; square / wide → lockup + flap left, fold-out right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EAD4; }
+  .banner { --pap: #F3EAD4; --tom: #D8452B; --cob: #1F3E9C; --ink: #1D1F2A;
+    position: fixed; inset: 0; overflow: hidden; background: var(--pap); color: var(--ink); font-family: "Oswald", "Arial Narrow", sans-serif; }
+  .lock { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; }
+  .sv { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 7.4vmin; line-height: 1; color: var(--tom); }
+  .ed { font-weight: 600; font-size: 11vmin; line-height: .9; letter-spacing: -.005em; text-transform: uppercase; color: var(--cob); white-space: nowrap; }
+  .meta { margin-top: 1.8vmin; display: flex; gap: 2.4vmin; font-size: 1.8vmin; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .meta span + span::before { content: "✦"; margin-right: 2.4vmin; color: var(--tom); }
+  .fold { position: absolute; left: 6vmin; right: 6vmin; top: 34vmin; bottom: 36vmin; display: flex; filter: drop-shadow(0 1vmin 1.4vmin rgba(40,30,10,.22)); }
+  .leaf { position: relative; flex: 1; overflow: hidden; }
+  .leaf img { position: absolute; top: 0; height: 100%; width: 300%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .l1 img { left: 0; } .l2 img { left: -100%; } .l3 img { left: -200%; }
+  .l1, .l3 { clip-path: polygon(0 0, 100% 3.6%, 100% 96.4%, 0 100%); }
+  .l2 { clip-path: polygon(0 3.6%, 100% 0, 100% 100%, 0 96.4%); }
+  .leaf::after { content: ""; position: absolute; inset: 0; pointer-events: none; }
+  .l1::after, .l3::after { background: linear-gradient(90deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 35%, rgba(0,0,0,.06) 65%, rgba(0,0,0,.3) 100%); }
+  .l2::after { background: linear-gradient(90deg, rgba(0,0,0,.3) 0%, rgba(0,0,0,.08) 30%, rgba(255,255,255,0) 62%, rgba(255,255,255,.2) 100%); }
+  .rest { flex: none; width: 3.2vmin; margin: 2.4% 0; background: linear-gradient(90deg, #E6DCC3 0 .8vmin, #CFC3A6 .8vmin 1.6vmin, #E6DCC3 1.6vmin 2.4vmin, #CFC3A6 2.4vmin 3.2vmin); }
+  .caps { position: absolute; left: 6vmin; right: 9.2vmin; bottom: 30vmin; display: flex; }
+  .caps div { flex: 1; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .caps b { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 2.6vmin; letter-spacing: 0; color: var(--tom); margin-right: 1vmin; }
+  .flap { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 20vmin; box-sizing: border-box; background: var(--tom); color: var(--pap); display: flex; align-items: center; gap: 4vmin; padding: 0 5vmin; }
+  .flap::before { content: ""; position: absolute; left: 1.2vmin; right: 1.2vmin; top: 1.2vmin; bottom: 1.2vmin; border: 1px dashed rgba(243,234,212,.6); pointer-events: none; }
+  .pct { font-weight: 600; font-size: 11vmin; line-height: 1; letter-spacing: -.02em; white-space: nowrap; }
+  .off { flex: 1; min-width: 0; font-family: "Instrument Serif", Georgia, serif; font-size: 3.4vmin; line-height: 1.1; }
+  .off small { display: block; margin-top: 1.2vmin; font-family: "Oswald", sans-serif; font-size: 1.8vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .cta { font-weight: 600; font-size: 1.9vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; border-bottom: .25vmin solid var(--pap); padding-bottom: .5vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .lock { top: 4.4vmin; }
+    .sv { font-size: 6.4vmin; }
+    .ed { font-size: 10vmin; }
+    .fold { top: 29vmin; bottom: 31vmin; }
+    .caps { bottom: 25.6vmin; }
+    .flap { height: 17vmin; bottom: 4.4vmin; }
+    .pct { font-size: 9.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .lock { right: auto; width: 40vmin; top: 7vmin; }
+    .sv { font-size: 6.4vmin; }
+    .ed { font-size: 9.6vmin; white-space: normal; }
+    .meta { flex-direction: column; gap: .8vmin; font-size: 1.7vmin; }
+    .meta span + span::before { display: none; }
+    .fold { left: 49vmin; right: 5vmin; top: 5vmin; bottom: 11vmin; }
+    .caps { left: 49vmin; right: 8.2vmin; bottom: 5vmin; }
+    .caps div { font-size: 1.6vmin; letter-spacing: .1em; }
+    .caps b { font-size: 2.2vmin; }
+    .flap { right: auto; width: 38vmin; height: 34vmin; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1.8vmin; padding: 0 4vmin; }
+    .pct { font-size: 10vmin; }
+    .off { flex: none; font-size: 3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .lock { width: 56vmin; top: 8vmin; left: 7vmin; }
+    .sv { font-size: 7.4vmin; }
+    .ed { font-size: 11.4vmin; }
+    .meta { flex-direction: row; gap: 2.4vmin; font-size: 1.8vmin; }
+    .meta span + span::before { display: inline; }
+    .fold { left: 70vmin; right: 6vmin; top: 6vmin; bottom: 13vmin; }
+    .caps { left: 70vmin; right: 9.2vmin; bottom: 6vmin; }
+    .caps div { font-size: 1.8vmin; letter-spacing: .16em; }
+    .caps b { font-size: 2.6vmin; }
+    .flap { left: 7vmin; width: 56vmin; height: 24vmin; bottom: 7vmin; flex-direction: row; align-items: center; gap: 3.4vmin; padding: 0 4.4vmin; flex-wrap: wrap; align-content: center; }
+    .pct { font-size: 11vmin; }
+    .off { flex: 1; font-size: 3.2vmin; }
+    .cta { flex: 0 0 100%; border-bottom: 0; padding: 0; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static fold-out) ─────────
+     0.5–3.0s "a day passes" over the concertina: a warm light blooms on leaf I, II, III in turn (morning → noon → evening),
+              each caption numeral pops as its leaf lights; the folds breathe (zigzag deepens slightly) ·
+     3.6s the tomato offer flap lifts on its hinge and drops back · 4.7s "Souvenir of" is rewritten (ink wipe) ·
+     5.3s CTA arrow nudges */
+  .leaf::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; mix-blend-mode: soft-light;
+    background: radial-gradient(90% 70% at 50% 35%, rgba(255,214,140,.95), rgba(255,170,90,.35) 60%, rgba(255,170,90,0) 100%);
+    animation: sun 6s linear infinite; }
+  .l2::before { animation-delay: -5.2s; }
+  .l3::before { animation-delay: -4.4s; background: radial-gradient(90% 70% at 50% 35%, rgba(255,150,110,.95), rgba(230,90,70,.35) 60%, rgba(230,90,70,0) 100%); }
+  @keyframes sun {
+    0%, 8% { opacity: 0; animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    20% { opacity: 1; animation-timing-function: cubic-bezier(.5,0,.6,1); }
+    36%, 100% { opacity: 0; }
+  }
+  .caps b { display: inline-block; animation: num 6s linear infinite; }
+  .caps div:nth-child(2) b { animation-delay: -5.2s; }
+  .caps div:nth-child(3) b { animation-delay: -4.4s; }
+  @keyframes num {
+    0%, 12% { transform: scale(1) translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    17% { transform: scale(1.35) translateY(-.3vmin); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    24%, 100% { transform: scale(1) translateY(0); }
+  }
+  .l1, .l3 { animation: foldA 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .l2 { animation: foldB 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes foldA { 0%, 100% { clip-path: polygon(0 0, 100% 3.6%, 100% 96.4%, 0 100%); } 30% { clip-path: polygon(0 0, 100% 5.4%, 100% 94.6%, 0 100%); } }
+  @keyframes foldB { 0%, 100% { clip-path: polygon(0 3.6%, 100% 0, 100% 100%, 0 96.4%); } 30% { clip-path: polygon(0 5.4%, 100% 0, 100% 100%, 0 94.6%); } }
+  .flap { transform-origin: 50% 100%; animation: lift 6s linear infinite; }
+  @keyframes lift {
+    0%, 58% { transform: perspective(90vmin) rotateX(0deg); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    63% { transform: perspective(90vmin) rotateX(22deg); animation-timing-function: cubic-bezier(.6,0,.8,.5); }
+    67% { transform: perspective(90vmin) rotateX(-3deg); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    70% { transform: perspective(90vmin) rotateX(2deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    73%, 100% { transform: perspective(90vmin) rotateX(0deg); }
+  }
+  .sv span { display: inline-block; animation: write 6s linear infinite; }
+  @keyframes write {
+    0%, 76% { clip-path: inset(-20% -5% -20% 0); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    80% { clip-path: inset(-20% -5% -20% 100%); animation-timing-function: steps(1, end); }
+    80.5% { clip-path: inset(-20% 100% -20% 0); animation-timing-function: cubic-bezier(.3,.1,.3,1); }
+    90%, 100% { clip-path: inset(-20% -5% -20% 0); }
+  }
+  .cta i { font-style: normal; display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 86% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    89% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    92% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    95% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    98%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="lock">
+    <div class="sv"><span>Souvenir of</span></div>
+    <div class="ed">The Summer Edit</div>
+    <div class="meta"><span>Fold-out</span><span>Three views</span><span>Resort 27</span></div>
+  </div>
+  <div class="fold">
+    <div class="leaf l1"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="leaf l2"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="leaf l3"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="rest"></div>
+  </div>
+  <div class="caps"><div><b>I.</b>Morning</div><div><b>II.</b>Noon</div><div><b>III.</b>Evening</div></div>
+  <div class="flap">
+    <div class="pct">−20%</div>
+    <div class="off">on the whole edit<small>Code SOUVENIR20</small></div>
+    <div class="cta">Shop now <i>→</i></div>
+  </div>
+</div>
+</body>
+</html>

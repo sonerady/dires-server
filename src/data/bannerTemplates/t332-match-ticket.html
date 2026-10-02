@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,800;1,500&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Match Ticket — a season-opener stadium ticket laid on the stands: security-print guilloche paper,
+     club header band, GATE / BLOCK / ROW / SEAT fields, a perforated tear-off stub with the code and a barcode,
+     and a holographic foil square. tall/4:5 → photo above, ticket landscape below ·
+     square → photo right, ticket turns portrait (stub at the bottom) · wide → photo right, ticket landscape */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1D1C33; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #1D1C33; color: #1D1C33; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 76vmin); object-fit: cover; object-position: 50% 20%; }
+  .stand { position: absolute; left: 0; right: 0; bottom: 0; height: 76vmin; overflow: hidden;
+    background: radial-gradient(ellipse 60% 50% at 85% 0%, rgba(255,246,214,.16), rgba(255,246,214,0) 70%),
+      repeating-linear-gradient(180deg, #25244A 0 2.6vmin, #1D1C33 2.6vmin 3.4vmin, #1D1C33 3.4vmin 6vmin); }
+  .rowno { position: absolute; left: 2.2vmin; top: 0; bottom: 0; width: 3vmin; font-family: "IBM Plex Mono", monospace; font-size: 1.6vmin; font-weight: 500; color: rgba(255,255,255,.35); line-height: 6vmin; text-align: center; white-space: pre; }
+
+  .ticket { position: absolute; left: 6vmin; right: 6vmin; top: 8vmin; height: 52vmin; display: flex; transform: rotate(-2.5deg);
+    filter: drop-shadow(0 .5vmin .6vmin rgba(0,0,0,.35)) drop-shadow(0 2vmin 3vmin rgba(0,0,0,.35)); }
+  .main, .stub { position: relative; background-color: #F4EFE1;
+    background-image: repeating-radial-gradient(circle at 20% 120%, rgba(111,94,168,.10) 0 .12vmin, transparent .12vmin 1vmin),
+      repeating-radial-gradient(circle at 95% -30%, rgba(224,69,43,.07) 0 .12vmin, transparent .12vmin 1.3vmin); }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .band { display: flex; justify-content: space-between; align-items: center; padding: 1.4vmin 3vmin; background: #E0452B; color: #FFF6E6; font-weight: 600; font-size: 2vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .body { flex: 1; padding: 2.2vmin 3vmin 2.4vmin; display: flex; flex-direction: column; }
+  .title { font-weight: 800; font-size: 10.4vmin; line-height: .86; text-transform: uppercase; letter-spacing: .005em; }
+  .fix { margin-top: 1.8vmin; font-style: italic; font-weight: 500; font-size: 2.6vmin; color: #4A4570; }
+  .fields { margin-top: auto; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid rgba(29,28,51,.35); }
+  .fields div { padding: 1.2vmin 0 0 1.4vmin; border-left: 1px solid rgba(29,28,51,.2); }
+  .fields div:first-child { padding-left: 0; border-left: 0; }
+  .fields small { display: block; margin-bottom: .5vmin; font-family: "IBM Plex Mono", monospace; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; color: #6A6590; }
+  .fields b { display: block; font-weight: 800; font-size: 5.2vmin; line-height: 1; }
+  .when { margin-top: 2vmin; font-family: "IBM Plex Mono", monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .02em; }
+  .when b { color: #E0452B; font-weight: 600; }
+
+  .stub { flex: none; width: 22vmin; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 3vmin 1.6vmin 2.6vmin; box-sizing: border-box; border-left: .45vmin dotted #1D1C33; }
+  .stub::before, .stub::after { content: ""; position: absolute; left: -2vmin; width: 3.6vmin; height: 3.6vmin; border-radius: 50%; background: #1D1C33; }
+  .stub::before { top: -1.8vmin; } .stub::after { bottom: -1.8vmin; }
+  .stub .k { font-family: "IBM Plex Mono", monospace; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #6A6590; }
+  .stub .pct { font-weight: 800; font-size: 10vmin; line-height: .85; color: #E0452B; text-align: center; }
+  .stub .pct small { display: block; font-size: 3vmin; line-height: 1; color: #1D1C33; letter-spacing: .08em; }
+  .bars { width: 100%; height: 5vmin; background: repeating-linear-gradient(90deg, #1D1C33 0 .3vmin, transparent .3vmin .55vmin, #1D1C33 .55vmin 1vmin, transparent 1vmin 1.25vmin, #1D1C33 1.25vmin 1.4vmin, transparent 1.4vmin 1.9vmin); }
+  .code { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 2.2vmin; letter-spacing: .14em; }
+  .foil { position: absolute; right: 2.6vmin; top: 6.4vmin; width: 7vmin; height: 7vmin; opacity: .9;
+    background: conic-gradient(from 30deg, #F7C6D9, #C8E8F7, #D9F7C8, #F7EDC8, #D7C8F7, #F7C6D9);
+    box-shadow: inset 0 0 0 .3vmin rgba(255,255,255,.6); }
+  .foil::after { content: "AN"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 3vmin; color: rgba(29,28,51,.55); letter-spacing: .04em; }
+
+  .cta { position: absolute; left: 7vmin; right: 7vmin; bottom: 5.5vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; color: #F4EFE1; white-space: nowrap; }
+  .cta p { margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 1.8vmin; letter-spacing: .06em; text-transform: uppercase; color: #C9C5E6; }
+  .cta span { padding: 1.6vmin 3vmin; background: #F4EFE1; color: #1D1C33; font-weight: 800; font-size: 2.8vmin; letter-spacing: .14em; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 70vmin); }
+    .stand { height: 70vmin; }
+    .ticket { top: 7vmin; height: 47vmin; }
+    .title { font-size: 9vmin; }
+    .fields b { font-size: 4.6vmin; }
+    .stub .pct { font-size: 9vmin; }
+    .cta { bottom: 4.5vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 60vmin); }
+    .stand { height: 60vmin; }
+    .ticket { left: 9vmin; right: 9vmin; top: 5.5vmin; height: 38vmin; }
+    .band { padding: 1.1vmin 2.6vmin; font-size: 1.8vmin; }
+    .body { padding: 1.8vmin 2.6vmin 2vmin; }
+    .title { font-size: 7vmin; }
+    .fix { font-size: 2.3vmin; }
+    .fields b { font-size: 3.8vmin; }
+    .stub { width: 19vmin; padding: 2.4vmin 1.4vmin 2vmin; }
+    .stub .pct { font-size: 7.6vmin; }
+    .bars { height: 4vmin; }
+    .foil { top: 5.4vmin; width: 6vmin; height: 6vmin; }
+    .cta { left: 10vmin; right: 10vmin; bottom: 4vmin; }
+    .cta span { padding: 1.3vmin 2.6vmin; font-size: 2.5vmin; }
+  }
+  /* square → photo right, portrait ticket with the stub torn along the bottom */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .stand { right: 50%; top: 0; height: auto; }
+    .rowno { display: none; }
+    .ticket { left: 6vmin; right: 6vmin; top: 7vmin; height: 70vmin; flex-direction: column; transform: rotate(-1.5deg); }
+    .band { padding: 1.1vmin 2.4vmin; font-size: 1.6vmin; letter-spacing: .14em; }
+    .body { padding: 2vmin 2.4vmin 2vmin; }
+    .title { font-size: 7.2vmin; }
+    .fix { font-size: 2.2vmin; }
+    .fields { grid-template-columns: 1fr 1fr; }
+    .fields div { padding: 1vmin 0 .6vmin 1.4vmin; }
+    .fields div:nth-child(3) { padding-left: 0; border-left: 0; }
+    .fields b { font-size: 3.6vmin; }
+    .when { font-size: 1.6vmin; margin-top: 1vmin; }
+    .foil { top: auto; bottom: 16vmin; right: 2.4vmin; width: 5vmin; height: 5vmin; display: none; }
+    .stub { width: auto; height: 17vmin; flex-direction: row; padding: 2vmin 2.4vmin; border-left: 0; border-top: .45vmin dotted #1D1C33; gap: 2vmin; }
+    .stub::before, .stub::after { left: auto; top: -2vmin; bottom: auto; }
+    .stub::before { left: -1.8vmin; } .stub::after { right: -1.8vmin; }
+    .stub .k { display: none; }
+    .stub .pct { font-size: 7.4vmin; }
+    .stub .pct small { font-size: 2.4vmin; }
+    .stub .side { display: flex; flex-direction: column; align-items: stretch; gap: 1vmin; width: 16vmin; }
+    .bars { height: 5vmin; }
+    .code { font-size: 1.9vmin; text-align: center; }
+    .cta { left: 6vmin; right: 6vmin; bottom: 5vmin; }
+    .cta { justify-content: center; }
+    .cta p { display: none; }
+    .cta span { flex: 1; text-align: center; padding: 1.4vmin 2.2vmin; font-size: 2.4vmin; }
+  }
+  /* wide → photo right, landscape ticket */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .stand { right: 46%; }
+    .ticket { left: 7vmin; right: 7vmin; top: 12vmin; height: 52vmin; flex-direction: row; transform: rotate(-2deg); }
+    .band { padding: 1.3vmin 2.8vmin; font-size: 1.8vmin; letter-spacing: .18em; }
+    .body { padding: 2.4vmin 2.8vmin 2.4vmin; }
+    .title { font-size: 8.6vmin; }
+    .fix { font-size: 2.5vmin; }
+    .fields { grid-template-columns: repeat(4, 1fr); }
+    .fields div { padding: 1.2vmin 0 0 1.4vmin; }
+    .fields div:nth-child(3) { padding-left: 1.4vmin; border-left: 1px solid rgba(29,28,51,.2); }
+    .fields b { font-size: 4.2vmin; }
+    .when { font-size: 1.7vmin; margin-top: 1.4vmin; }
+    .foil { display: block; top: 6.6vmin; bottom: auto; right: 2.6vmin; width: 6.6vmin; height: 6.6vmin; }
+    .stub { width: 20vmin; height: auto; flex-direction: column; padding: 3vmin 1.6vmin 2.6vmin; border-top: 0; border-left: .45vmin dotted #1D1C33; }
+    .stub::before, .stub::after { left: -2vmin; right: auto; }
+    .stub::before { top: -1.8vmin; } .stub::after { top: auto; bottom: -1.8vmin; }
+    .stub .k { display: block; }
+    .stub .pct { font-size: 8.4vmin; }
+    .stub .side { width: 100%; }
+    .cta { left: 7vmin; right: 7vmin; bottom: 8vmin; }
+    .cta { justify-content: space-between; }
+    .cta p { display: block; font-size: 1.8vmin; }
+    .cta span { flex: none; padding: 1.5vmin 2.8vmin; font-size: 2.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="stand">
+    <div class="rowno">K
+L
+M
+N
+O
+P
+Q
+R
+S
+T
+U
+V
+W</div>
+    <div class="ticket">
+      <div class="main">
+        <div class="band"><span>Atelier Nord F.C.</span><span>26/27</span></div>
+        <div class="body">
+          <div class="title">Season<br>opener</div>
+          <div class="fix">Nord F.C. v Last Season</div>
+          <div class="fields">
+            <div><small>Gate</small><b>07</b></div>
+            <div><small>Block</small><b>N</b></div>
+            <div><small>Row</small><b>26</b></div>
+            <div><small>Seat</small><b>30</b></div>
+          </div>
+          <div class="when">Sat 27.09 · Doors <b>10:00</b></div>
+        </div>
+        <div class="foil"></div>
+      </div>
+      <div class="stub">
+        <span class="k">Admit one</span>
+        <div class="pct">30%<small>OFF</small></div>
+        <div class="side"><div class="bars"></div><div class="code">OPEN30</div></div>
+      </div>
+    </div>
+    <div class="cta"><p>Retain stub · code at checkout</p><span>Get in →</span></div>
+  </div>
+</div>
+</body>
+</html>

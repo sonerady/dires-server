@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Kiosk Order — a Seoul café self-order kiosk, re-set for a clothing drop: category chips, the look as the
+     menu item, size + colour option chips, a quantity stepper and one big soft "Order" key with a tap ripple.
+     tall → stacked kiosk screen · square & wide → photo left, the order panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3F2EE; }
+  .banner { position: fixed; inset: 0; overflow: hidden; box-sizing: border-box; padding: 5vmin 5.5vmin 5vmin;
+    font-family: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif; color: #1E2230;
+    background: radial-gradient(120% 60% at 100% 0%, #E9ECFF 0%, rgba(233,236,255,0) 60%), #F3F2EE;
+    display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    grid-template-areas: "top" "tabs" "ph" "info" "bar"; row-gap: 2.6vmin; }
+
+  .top { grid-area: top; display: flex; justify-content: space-between; align-items: center; white-space: nowrap; }
+  .brand { font-weight: 800; font-size: 2.2vmin; letter-spacing: .2em; }
+  .brand small { font-weight: 500; letter-spacing: .06em; color: #7A7F92; margin-left: 1.2vmin; font-size: 1.8vmin; }
+  .ticket { display: flex; align-items: center; gap: 1vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .06em; background: #fff; border-radius: 3vmin; padding: .8vmin 1.6vmin; box-shadow: 0 .3vmin 1vmin rgba(40,50,110,.08); }
+  .ticket i { width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #5CCB98; box-shadow: 0 0 0 .5vmin rgba(92,203,152,.22); }
+
+  .tabs { grid-area: tabs; display: flex; gap: 1.2vmin; white-space: nowrap; }
+  .tab { font-weight: 700; font-size: 2vmin; padding: 1.1vmin 2.2vmin; border-radius: 4vmin; background: #fff; color: #555B70; }
+  .tab.on { background: #1E2230; color: #fff; }
+  .tab.sale { background: #FFDCE4; color: #B2324F; }
+
+  .ph { grid-area: ph; position: relative; overflow: hidden; background: #E6E4DE; min-height: 0; }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+
+  .info { grid-area: info; background: #fff; border-radius: 3.2vmin; padding: 2.8vmin 3.2vmin; box-shadow: 0 .6vmin 2vmin rgba(40,50,110,.07); display: flex; flex-direction: column; gap: 2vmin; }
+  .name { display: flex; justify-content: space-between; align-items: flex-end; gap: 2vmin; }
+  .name div { min-width: 0; }
+  .new { display: inline-block; font-weight: 800; font-size: 1.6vmin; letter-spacing: .12em; color: #3F8F6A; background: #D8F2E6; padding: .4vmin 1.1vmin; border-radius: 2vmin; }
+  h1 { margin: .9vmin 0 0; font-weight: 800; font-size: 6vmin; line-height: 1; letter-spacing: -.03em; white-space: nowrap; }
+  .price { text-align: right; white-space: nowrap; }
+  .price s { display: block; font-size: 1.9vmin; color: #9A9EAE; font-weight: 500; }
+  .price b { font-weight: 800; font-size: 5vmin; letter-spacing: -.02em; }
+  .opt { display: flex; align-items: center; gap: 1.1vmin; white-space: nowrap; }
+  .opt .l { width: 8.5vmin; flex: none; font-size: 1.8vmin; font-weight: 500; color: #7A7F92; }
+  .sz { min-width: 5.2vmin; box-sizing: border-box; text-align: center; font-weight: 700; font-size: 1.9vmin; padding: .9vmin 0; border-radius: 1.4vmin; border: .25vmin solid #E3E4EC; color: #1E2230; }
+  .sz.on { background: #1E2230; border-color: #1E2230; color: #fff; }
+  .sz.out { color: #C3C6D2; text-decoration: line-through; }
+  .dot { width: 3.6vmin; height: 3.6vmin; border-radius: 50%; box-sizing: border-box; }
+  .dot.on { box-shadow: 0 0 0 .45vmin #fff, 0 0 0 .75vmin #1E2230; }
+  .opt .cn { margin-left: .6vmin; font-size: 1.8vmin; font-weight: 500; color: #555B70; }
+
+  .bar { grid-area: bar; display: flex; gap: 1.6vmin; align-items: stretch; position: relative; }
+  .step { flex: none; display: flex; align-items: center; gap: 2vmin; background: #fff; border-radius: 4vmin; padding: 0 2.2vmin; font-weight: 700; font-size: 2.6vmin; }
+  .step span { color: #9A9EAE; font-weight: 500; }
+  .go { flex: 1; min-width: 0; position: relative; display: flex; justify-content: space-between; align-items: center; background: #5F6FEA; color: #fff; border-radius: 4vmin; padding: 2vmin 2.4vmin 2vmin 3vmin; box-shadow: 0 1vmin 2.4vmin rgba(95,111,234,.35); white-space: nowrap; }
+  .go b { font-weight: 800; font-size: 2.6vmin; letter-spacing: -.01em; }
+  .go small { display: block; font-weight: 500; font-size: 1.6vmin; opacity: .85; margin-top: .3vmin; letter-spacing: .02em; }
+  .go .arr { position: relative; width: 5.4vmin; height: 5.4vmin; flex: none; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; }
+  .go .arr svg { width: 2.6vmin; height: 2.6vmin; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  /* tap ripple — two soft rings behind the arrow key */
+  .go .arr::before, .go .arr::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .25vmin solid rgba(255,255,255,.45); transform: scale(1.35); }
+  .go .arr::after { transform: scale(1.75); border-color: rgba(255,255,255,.2); }
+  .note { display: flex; justify-content: space-between; gap: 2vmin; padding-top: 1.8vmin; border-top: 1px dashed #DADCE6; font-size: 1.7vmin; font-weight: 500; color: #7A7F92; white-space: nowrap; }
+  .note b { color: #3F8F6A; font-weight: 700; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { row-gap: 2vmin; padding: 4.4vmin 5vmin; }
+    .info { padding: 2.2vmin 3vmin; gap: 1.5vmin; }
+    h1 { font-size: 4.6vmin; }
+  }
+  /* SQUARE — photo left, the order panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { padding: 4.6vmin; column-gap: 3.6vmin; row-gap: 2.2vmin; grid-template-columns: 46% minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto;
+      grid-template-areas: "ph top" "ph tabs" "ph info" "ph bar"; }
+    .tabs { gap: .9vmin; }
+    .tab { font-size: 1.8vmin; padding: 1vmin 1.7vmin; }
+    .tab:nth-child(3) { display: none; }
+    .info { align-self: stretch; justify-content: center; gap: 2vmin; padding: 2.6vmin 2.8vmin; }
+    .name { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .price { text-align: left; display: flex; align-items: baseline; gap: 1.2vmin; }
+    .price s { display: inline; }
+    h1 { font-size: 5.2vmin; }
+    .price b { font-size: 4.8vmin; }
+    .info { gap: 2.6vmin; }
+    .note { flex-direction: column; gap: .8vmin; }
+    .opt .l { width: 7.2vmin; }
+    .sz { min-width: 4.8vmin; }
+    .brand small { display: none; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { padding: 5vmin 5.5vmin; column-gap: 4.4vmin; grid-template-columns: 44% minmax(0, 1fr); }
+    .brand small { display: inline; }
+    .tab:nth-child(3) { display: inline; }
+    .tab { font-size: 1.9vmin; padding: 1vmin 2vmin; }
+    .name { flex-direction: row; align-items: flex-end; }
+    .price { text-align: right; display: block; }
+    .price s { display: block; }
+    h1 { font-size: 5.8vmin; }
+    .note { flex-direction: row; }
+    .opt .l { width: 8.5vmin; }
+  }
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     a customer at the kiosk: taps size M, bumps the quantity, presses Order (ripple), then the screen resets */
+  .ph img { transform-origin: 50% 30%; animation: k-push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes k-push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .ticket i { animation: k-dot 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes k-dot { 0%, 100% { box-shadow: 0 0 0 .5vmin rgba(92,203,152,.22); } 50% { box-shadow: 0 0 0 .9vmin rgba(92,203,152,.08); } }
+
+  .tab.sale { background-image: linear-gradient(105deg, rgba(255,255,255,0) 40%, rgba(255,255,255,.85) 50%, rgba(255,255,255,0) 60%);
+    background-size: 300% 100%; background-repeat: no-repeat; background-position: 100% 0; animation: k-sheen 6s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes k-sheen { 0%, 6% { background-position: 100% 0; } 24%, 100% { background-position: 0% 0; } }
+
+  /* size selection hops S → M and back */
+  .opt .sz:nth-child(3) { animation: k-szS 6s cubic-bezier(.3,0,.2,1) infinite; }
+  .opt .sz:nth-child(4) { animation: k-szM 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes k-szS {
+    0%, 16%, 86%, 100% { background: #1E2230; border-color: #1E2230; color: #fff; transform: scale(1); }
+    20%, 80% { background: rgba(30,34,48,0); border-color: #E3E4EC; color: #1E2230; transform: scale(1); }
+  }
+  @keyframes k-szM {
+    0%, 16%, 86%, 100% { background: rgba(30,34,48,0); border-color: #E3E4EC; color: #1E2230; transform: scale(1); }
+    18% { transform: scale(.9); }
+    22% { background: #1E2230; border-color: #1E2230; color: #fff; transform: scale(1.06); }
+    26%, 80% { background: #1E2230; border-color: #1E2230; color: #fff; transform: scale(1); }
+  }
+
+  /* quantity reel 1 → 2 → 1 with a tap on "+" */
+  .step .q { display: inline-block; height: 1.2em; line-height: 1.2em; overflow: hidden; vertical-align: middle; color: #1E2230; font-weight: 700; }
+  .step .q > span { display: block; color: #1E2230; font-weight: 700; animation: k-qty 6s cubic-bezier(.6,0,.2,1) infinite; }
+  @keyframes k-qty { 0%, 32% { transform: translateY(0); } 37%, 84% { transform: translateY(-1.2em); } 89%, 100% { transform: translateY(0); } }
+  .step > span:last-child { display: inline-block; animation: k-plus 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes k-plus { 0%, 30%, 40%, 100% { transform: scale(1); color: #9A9EAE; } 33% { transform: scale(1.35); color: #5F6FEA; } }
+
+  /* the Order key: a press at 50 %, ripple rings emit and settle back */
+  .go { animation: k-press 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes k-press {
+    0%, 46%, 60%, 100% { transform: scale(1); box-shadow: 0 1vmin 2.4vmin rgba(95,111,234,.35); }
+    50% { transform: scale(.965); box-shadow: 0 .4vmin 1vmin rgba(95,111,234,.3); }
+    54% { transform: scale(1.01); }
+  }
+  .go .arr::before { animation: k-rip1 6s cubic-bezier(.2,.6,.3,1) infinite; }
+  .go .arr::after { animation: k-rip2 6s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes k-rip1 { 0%, 49%, 100% { transform: scale(1.35); opacity: 1; } 66% { transform: scale(2.6); opacity: 0; } 67% { transform: scale(1); opacity: 0; } 80% { transform: scale(1.35); opacity: 1; } }
+  @keyframes k-rip2 { 0%, 51%, 100% { transform: scale(1.75); opacity: 1; } 70% { transform: scale(3.2); opacity: 0; } 71% { transform: scale(1.2); opacity: 0; } 84% { transform: scale(1.75); opacity: 1; } }
+  .go .arr svg { animation: k-nudge 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes k-nudge { 0%, 20%, 50%, 100% { transform: translateX(0); } 35% { transform: translateX(.6vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><div class="brand">STUDIO ORO<small>Order here · 주문</small></div><div class="ticket"><i></i>No. 027</div></div>
+  <div class="tabs"><span class="tab on">New in</span><span class="tab">Best</span><span class="tab">Sets</span><span class="tab sale">Sale −20%</span></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="info">
+    <div class="name"><div><span class="new">NEW</span><h1>The Soft Edit</h1></div><div class="price"><s>€89.00</s><b>€71.20</b></div></div>
+    <div class="opt"><span class="l">Size</span><span class="sz">XS</span><span class="sz on">S</span><span class="sz">M</span><span class="sz">L</span><span class="sz out">XL</span></div>
+    <div class="opt"><span class="l">Colour</span><span class="dot on" style="background:#EFE6D6"></span><span class="dot" style="background:#CFE6F5"></span><span class="dot" style="background:#F5D3DC"></span><span class="dot" style="background:#D6EBD9"></span><span class="cn">Oat</span></div>
+    <div class="note"><span><b>●</b> Ready in 24 h</span><span>Free returns · 30 days</span></div>
+  </div>
+  <div class="bar">
+    <div class="step"><span>−</span><span class="q"><span>1<br>2</span></span><span>+</span></div>
+    <div class="go"><div><b>Order now</b><small>Code KIOSK20 applied</small></div><div class="arr"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></div></div>
+  </div>
+</div>
+</body>
+</html>

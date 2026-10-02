@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  /* Sheet Music — the cover of a 1930s popular-song sheet, two-colour printed in bottle green and coral on cream:
+     "a fox-trot song" in italic, the title in deco display caps, "words & music by", the photo set in a stepped
+     double-rule frame like the star's portrait, a five-line staff with a few notes, and the offer printed where the
+     cover price sat. tall / 3:4 → title above, portrait, staff + price below; square / wide → title column left, portrait right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F0E4CA; }
+  .banner { --paper: #F0E4CA; --grn: #1E4D45; --cor: #D9644A; --top: 50vmin; --bot: 29vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--paper); color: var(--grn);
+    font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif; }
+  .rays { position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg at 50% 38%, rgba(217,100,74,.08) 0 5deg, transparent 5deg 10deg); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .14; mix-blend-mode: multiply; pointer-events: none; }
+
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; height: calc(var(--top) - 8vmin); display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .head .kind { display: flex; align-items: center; gap: 2vmin; font-style: italic; font-weight: 600; font-size: 3.6vmin; color: var(--cor); white-space: nowrap; }
+  .head .kind::before, .head .kind::after { content: ""; width: 9vmin; height: .5vmin; border-top: 1px solid var(--cor); border-bottom: 1px solid var(--cor); }
+  h1 { margin: 1.6vmin 0 0; font-family: "Limelight", "Didot", serif; font-weight: 400; font-size: 12.4vmin; line-height: .98; letter-spacing: .01em; }
+  h1 span { display: block; white-space: nowrap; }
+  h1 i { font-style: normal; color: var(--cor); }
+  .lyric { display: none; }
+  .by { margin-top: auto; font-size: 2.3vmin; font-weight: 500; letter-spacing: .08em; white-space: nowrap; }
+  .by b { font-weight: 600; font-variant: small-caps; letter-spacing: .12em; font-size: 2.7vmin; }
+
+  .port { position: absolute; left: 9vmin; right: 9vmin; top: var(--top); bottom: var(--bot);
+    box-shadow: 0 0 0 1.2vmin var(--paper), 0 0 0 1.6vmin var(--grn), 0 0 0 2.6vmin var(--paper), 0 0 0 2.9vmin var(--cor); }
+  .port img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .port::before, .port::after { content: ""; position: absolute; top: -4.4vmin; width: 5vmin; height: 5vmin; border-top: .6vmin solid var(--grn); }
+  .port::before { left: -4.4vmin; border-left: .6vmin solid var(--grn); }
+  .port::after { right: -4.4vmin; border-right: .6vmin solid var(--grn); }
+
+  .low { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.4vmin; height: calc(var(--bot) - 9vmin); display: flex; align-items: center; gap: 3.4vmin; }
+  .staff { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1.4vmin; }
+  .staff svg { display: block; width: 100%; height: 9vmin; }
+  .staff .pub { font-size: 1.9vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .staff .pub i { text-transform: none; letter-spacing: .02em; font-weight: 500; font-size: 2.2vmin; }
+  .price { flex: none; width: 19vmin; height: 19vmin; border-radius: 50%; background: var(--cor); color: var(--paper); display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 .6vmin var(--paper), 0 0 0 .9vmin var(--cor); }
+  .price small { font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; padding-left: .2em; text-transform: uppercase; }
+  .price b { font-family: "Limelight", serif; font-weight: 400; font-size: 5.4vmin; line-height: 1.05; }
+  .price span { font-style: italic; font-weight: 600; font-size: 2vmin; }
+
+  /* 3:4 · 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --top: 43vmin; --bot: 25vmin; }
+    .head { top: 4vmin; height: calc(var(--top) - 7.4vmin); }
+    h1 { font-size: 10.2vmin; margin-top: 1vmin; }
+    .head .kind { font-size: 3.2vmin; }
+    .port { left: 14vmin; right: 14vmin; }
+    .low { bottom: 3.6vmin; height: calc(var(--bot) - 8vmin); }
+    .staff svg { height: 7.4vmin; }
+    .price { width: 16vmin; height: 16vmin; }
+    .price b { font-size: 4.6vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .rays { background: repeating-conic-gradient(from 0deg at 72% 50%, rgba(217,100,74,.08) 0 5deg, transparent 5deg 10deg); }
+    .head { left: 5vmin; right: auto; width: 43vmin; top: 6vmin; height: auto; bottom: 37vmin; align-items: flex-start; text-align: left; }
+    .head .kind { font-size: 3vmin; gap: 1.4vmin; }
+    .head .kind::before { display: none; }
+    .head .kind::after { width: 7vmin; }
+    h1 { font-size: 8.4vmin; margin-top: 1.8vmin; }
+    .lyric { display: block; margin-top: 3.4vmin; padding: 2vmin 0; border-top: 1px solid var(--cor); border-bottom: 1px solid var(--cor); font-style: italic; font-weight: 500; font-size: 3vmin; line-height: 1.3; }
+    .lyric b { display: block; margin-top: 1vmin; font-style: normal; font-weight: 600; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: var(--cor); }
+    .by { font-size: 2vmin; letter-spacing: .04em; }
+    .by b { font-size: 2.3vmin; }
+    .port { left: 55vmin; right: 7vmin; top: 8vmin; bottom: 8vmin; }
+    .low { left: 5vmin; right: auto; width: 43vmin; bottom: 6vmin; height: 26vmin; flex-direction: column-reverse; align-items: flex-start; gap: 2.4vmin; }
+    .staff { flex: none; width: 100%; }
+    .staff svg { height: 6.4vmin; }
+    .staff .pub { font-size: 1.6vmin; letter-spacing: .1em; }
+    .staff .pub i { font-size: 1.9vmin; }
+    .price { width: 14vmin; height: 14vmin; margin-left: 1vmin; }
+    .price b { font-size: 4vmin; }
+    .price small { font-size: 1.6vmin; letter-spacing: .12em; }
+    .price span { font-size: 1.7vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .rays { background: repeating-conic-gradient(from 0deg at 70% 50%, rgba(217,100,74,.08) 0 5deg, transparent 5deg 10deg); }
+    .head { left: 7vmin; width: 62vmin; top: 7vmin; bottom: 36vmin; }
+    .head .kind { font-size: 3.4vmin; }
+    h1 { font-size: 10vmin; }
+    .lyric { font-size: 3.4vmin; margin-top: 3vmin; max-width: 54vmin; }
+    .by { font-size: 2.3vmin; }
+    .by b { font-size: 2.7vmin; }
+    .port { left: calc(100% - 64vmin); right: 9vmin; top: 9vmin; bottom: 9vmin; }
+    .low { left: 7vmin; width: 62vmin; bottom: 7vmin; height: 22vmin; flex-direction: row; align-items: center; gap: 3.4vmin; }
+    .staff { flex: 1; width: auto; }
+    .staff svg { height: 8vmin; }
+    .staff .pub { font-size: 1.8vmin; }
+    .price { width: 18vmin; height: 18vmin; margin-left: 0; }
+    .price b { font-size: 5vmin; }
+  }
+  /* ───────── motion (6s loop) ─────────
+     constant: the sunburst behind the cover turns slowly (one 10° ray period per loop → seamless) ·
+     the notes hop along the staff left→right in fox-trot time, twice per loop (0.3s and 3.3s) ·
+     1.8s "your" does a little swing step · 4.6s the price disc gives a twirl and a pop */
+  .rays { --cx: 50%; --cy: 38%; background: none; overflow: hidden; }
+  .rays::before { content: ""; position: absolute; left: var(--cx); top: var(--cy); width: 400vmax; height: 400vmax; margin: -200vmax 0 0 -200vmax;
+    background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(217,100,74,.08) 0 5deg, transparent 5deg 10deg);
+    animation: spin 6s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(10deg); } }
+  .nt.n1 { animation: hop0 3s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes hop0 { 0%, 10%, 18%, 100% { transform: translateY(0); } 13% { transform: translateY(-9px); } }
+  .nt.n2 { animation: hop1 3s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes hop1 { 0%, 15%, 23%, 100% { transform: translateY(0); } 18% { transform: translateY(-9px); } }
+  .nt.n3 { animation: hop2 3s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes hop2 { 0%, 20%, 28%, 100% { transform: translateY(0); } 23% { transform: translateY(-9px); } }
+  .nt.n4 { animation: hop3 3s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes hop3 { 0%, 25%, 33%, 100% { transform: translateY(0); } 28% { transform: translateY(-9px); } }
+  .nt.n5 { animation: hop4 3s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes hop4 { 0%, 30%, 38%, 100% { transform: translateY(0); } 33% { transform: translateY(-9px); } }
+  h1 i { display: inline-block; transform-origin: 50% 90%; animation: swing 6s cubic-bezier(.45,0,.4,1) infinite; }
+  @keyframes swing {
+    0%, 28%, 46%, 100% { transform: rotate(0deg) translateY(0); }
+    32% { transform: rotate(-7deg) translateY(-.8vmin); }
+    37% { transform: rotate(6deg) translateY(-.4vmin); }
+    42% { transform: rotate(-2deg) translateY(0); }
+  }
+  .price { animation: twirl 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes twirl { 0%, 74%, 90%, 100% { transform: rotate(0deg) scale(1); } 80% { transform: rotate(-12deg) scale(1.1); } 85% { transform: rotate(3deg) scale(.98); } }
+
+  @media (min-aspect-ratio: 9/10) { .rays { --cx: 72%; --cy: 50%; background: none; } }
+  @media (min-aspect-ratio: 6/5) { .rays { --cx: 70%; --cy: 50%; background: none; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="rays"></div>
+  <svg class="grain" aria-hidden="true"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 .15  0 0 0 0 .2  0 0 0 0 .15  0 0 0 1.1 -.4"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
+  <div class="head">
+    <div class="kind">a fox-trot song</div>
+    <h1><span>Spring in</span><span><i>your</i> Step</span></h1>
+    <div class="lyric">“Put on something new and dance the season through…”<b>Refrain · bar 12</b></div>
+    <div class="by">Words &amp; music by <b>Harlow &amp; Finch</b></div>
+  </div>
+  <div class="port"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="low">
+    <div class="staff">
+      <svg viewBox="0 -14 400 104" preserveAspectRatio="none" aria-hidden="true">
+        <g stroke="#1E4D45" stroke-width="1.4"><path d="M0 15 H400 M0 30 H400 M0 45 H400 M0 60 H400 M0 75 H400"/><path d="M398 15 V75" stroke-width="3"/><path d="M390 15 V75"/></g>
+        <g fill="#1E4D45" stroke="#1E4D45" stroke-width="2.2">
+          <g class="nt n1"><ellipse cx="70" cy="60" rx="8" ry="6" transform="rotate(-20 70 60)"/><path d="M77 58 V14" fill="none"/></g>
+          <g class="nt n2"><ellipse cx="120" cy="45" rx="8" ry="6" transform="rotate(-20 120 45)"/><path d="M127 43 V0" fill="none"/>
+          <ellipse cx="170" cy="37" rx="8" ry="6" transform="rotate(-20 170 37)"/><path d="M177 35 V-6" fill="none"/>
+          <path d="M127 4 L 177 -2 L 177 4 L 127 10 Z" stroke="none"/></g>
+          <g class="nt n3"><ellipse cx="230" cy="30" rx="8" ry="6" transform="rotate(-20 230 30)" fill="#D9644A" stroke="#D9644A"/><path d="M237 28 V-10" fill="none" stroke="#D9644A"/></g>
+          <g class="nt n4"><ellipse cx="290" cy="52" rx="8" ry="6" transform="rotate(-20 290 52)" fill="none"/><path d="M297 50 V8" fill="none"/></g>
+          <g class="nt n5"><ellipse cx="345" cy="45" rx="8" ry="6" transform="rotate(-20 345 45)"/><path d="M352 43 V2" fill="none"/></g>
+        </g>
+      </svg>
+      <div class="pub"><i>Published by</i> Atelier Harlow · Nº 468</div>
+    </div>
+    <div class="price"><small>Now</small><b>−30%</b><span>code FOXTROT</span></div>
+  </div>
+</div>
+</body>
+</html>

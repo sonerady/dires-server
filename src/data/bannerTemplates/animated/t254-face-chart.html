@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Face Chart — the make-up artist's printed face chart from the hair & make-up room: a line-drawn face with
+     washes of colour, numbered callouts, swatch smudges and the look notes; the offer is the last note on the chart.
+     tall → photo above, chart below · square & wide → photo left, chart right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EDE5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F2EDE5; color: #2A2521; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+  .serif { font-family: "Instrument Serif", "Times New Roman", serif; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 50%; object-fit: cover; object-position: 50% 18%; }
+  .chart { position: absolute; left: 6vmin; right: 6vmin; top: calc(50% + 4.4vmin); bottom: 5vmin; display: grid; grid-template-columns: 38vmin 1fr; grid-template-rows: auto 1fr auto; column-gap: 4vmin; }
+
+  .hd { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; border-bottom: 1px solid #2A2521; padding-bottom: 1.4vmin; }
+  h1 { margin: 0; font-family: "Instrument Serif", serif; font-weight: 400; font-size: 9.4vmin; line-height: .9; letter-spacing: -.01em; white-space: nowrap; }
+  h1 em { color: #B4533A; }
+  .hd small { font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; text-align: right; line-height: 1.5; white-space: nowrap; }
+
+  .face { position: relative; min-height: 0; margin-top: 2.4vmin; }
+  .face svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .notes { list-style: none; margin: 2.4vmin 0 0; padding: 0; display: flex; flex-direction: column; justify-content: center; gap: 1.9vmin; min-height: 0; }
+  .notes li { display: grid; grid-template-columns: 3.6vmin 1fr; column-gap: 1.4vmin; align-items: start; }
+  .notes .n { width: 3.2vmin; height: 3.2vmin; border-radius: 50%; border: 1px solid #2A2521; font-size: 1.6vmin; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-top: .3vmin; }
+  .notes b { display: block; font-size: 1.6vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #7A6F66; }
+  .notes span { display: block; font-family: "Instrument Serif", serif; font-style: italic; font-size: 3.6vmin; line-height: 1.05; }
+  .sw { display: flex; gap: 1.2vmin; margin-top: .4vmin; }
+  .sw i { width: 5vmin; height: 3.4vmin; border-radius: 50% 44% 52% 40%; transform: rotate(-8deg); }
+
+  .offer { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; border-top: 1px solid #2A2521; padding-top: 1.8vmin; margin-top: 2.4vmin; }
+  .offer .big { font-family: "Instrument Serif", serif; font-size: 7.4vmin; line-height: .9; white-space: nowrap; }
+  .offer .big em { color: #B4533A; }
+  .offer .meta { text-align: right; font-size: 1.8vmin; letter-spacing: .06em; line-height: 1.55; white-space: nowrap; }
+  .offer .meta b { font-weight: 600; letter-spacing: .14em; border: 1px solid #2A2521; padding: .3vmin 1vmin; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .photo { height: 46%; }
+    .chart { top: calc(46% + 3.6vmin); bottom: 4.4vmin; grid-template-columns: 32vmin 1fr; }
+    h1 { font-size: 8.4vmin; }
+    .notes { gap: 1.3vmin; }
+    .notes span { font-size: 3.2vmin; }
+    .offer .big { font-size: 6.4vmin; }
+  }
+  /* shorter portrait */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 42%; }
+    .chart { top: calc(42% + 3.4vmin); bottom: 4vmin; grid-template-columns: 27vmin 1fr; }
+    h1 { font-size: 7.4vmin; }
+    .notes li:nth-child(4) { display: none; }
+    .notes span { font-size: 3vmin; }
+    .offer { margin-top: 1.8vmin; padding-top: 1.4vmin; }
+    .offer .big { font-size: 5.6vmin; }
+  }
+  /* square — photo left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 22%; }
+    .chart { left: calc(46% + 4.4vmin); right: 4.4vmin; top: 4.6vmin; bottom: 4.4vmin; grid-template-columns: 20vmin 1fr; column-gap: 3vmin; }
+    .hd { flex-direction: column; align-items: flex-start; gap: 1vmin; }
+    .hd small { text-align: left; }
+    h1 { font-size: 7.6vmin; }
+    .notes { gap: 1.6vmin; }
+    .notes li:nth-child(4) { display: grid; }
+    .notes span { font-size: 2.8vmin; }
+    .offer { flex-direction: column; align-items: flex-start; gap: 1.2vmin; }
+    .offer .big { font-size: 6vmin; }
+    .offer .meta { text-align: left; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; }
+    .chart { left: calc(40% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; grid-template-columns: 34vmin 1fr; column-gap: 4vmin; }
+    .hd { flex-direction: row; align-items: baseline; }
+    .hd small { text-align: right; }
+    h1 { font-size: 8.4vmin; }
+    .notes span { font-size: 3.2vmin; }
+    .offer { flex-direction: row; align-items: flex-end; }
+    .offer .big { font-size: 6.6vmin; }
+    .offer .meta { text-align: right; }
+  }
+
+  /* ── motion (6s loop) · the artist works the chart: the line-drawn face is erased and re-drawn stroke by stroke ·
+     the copper lid and blush washes bloom back in · the callouts 1–4 pop in turn while the matching note number
+     inks in · the −20% punches; the photo breathes */
+  .photo { transform-origin: 50% 100%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .face .lines path, .face .lines circle { stroke-dasharray: 1 1; stroke-dashoffset: 0; animation: draw 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes draw { 0%, 6% { stroke-dashoffset: 0; } 14% { stroke-dashoffset: -1; } 14.01% { stroke-dashoffset: 1; } 40%, 100% { stroke-dashoffset: 0; } }
+  .face ellipse { animation: wash 6s ease-in-out infinite; }
+  @keyframes wash { 0%, 8% { opacity: 1; } 14%, 36% { opacity: 0; } 50%, 100% { opacity: 1; } }
+
+  .face .calls circle { transform-box: fill-box; transform-origin: 50% 50%; animation: pop 6s cubic-bezier(.3,0,.2,1) infinite; }
+  .face .calls circle:nth-of-type(1) { animation-delay: -1.35s; }
+  .face .calls circle:nth-of-type(2) { animation-delay: -.9s; }
+  .face .calls circle:nth-of-type(3) { animation-delay: -.45s; }
+  @keyframes pop { 0%, 50%, 60%, 100% { transform: none; fill: #F2EDE5; } 53% { transform: scale(1.45); fill: #E8C4B0; } 56% { transform: scale(.95); fill: #F2EDE5; } }
+
+  .notes .n { animation: ink 6s ease infinite; }
+  .notes li:nth-child(1) .n { animation-delay: -1.35s; }
+  .notes li:nth-child(2) .n { animation-delay: -.9s; }
+  .notes li:nth-child(3) .n { animation-delay: -.45s; }
+  @keyframes ink { 0%, 51%, 60%, 100% { background: rgba(42,37,33,0); color: #2A2521; } 53%, 57% { background: #2A2521; color: #F2EDE5; } }
+
+  .offer .big em { display: inline-block; transform-origin: 50% 80%; animation: punch 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes punch { 0%, 84% { transform: none; } 88% { transform: scale(1.12); } 92% { transform: scale(.98); } 95%, 100% { transform: none; } }
+  @media (min-aspect-ratio: 9/10) { .photo { transform-origin: 100% 25%; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="chart">
+    <div class="hd">
+      <h1>Face chart, <em>look 03</em></h1>
+      <small>Hair &amp; make-up · Room B<br>Studio Oro SS27</small>
+    </div>
+    <div class="face">
+      <svg viewBox="0 0 200 250" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <radialGradient id="bl" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#C9765C" stop-opacity=".42"/><stop offset="1" stop-color="#C9765C" stop-opacity="0"/></radialGradient>
+          <radialGradient id="ld" cx="50%" cy="60%" r="55%"><stop offset="0" stop-color="#B8804A" stop-opacity=".55"/><stop offset="1" stop-color="#B8804A" stop-opacity="0"/></radialGradient>
+        </defs>
+        <!-- colour washes -->
+        <ellipse cx="72" cy="103" rx="22" ry="11" fill="url(#ld)"/>
+        <ellipse cx="128" cy="103" rx="22" ry="11" fill="url(#ld)"/>
+        <ellipse cx="58" cy="140" rx="20" ry="13" fill="url(#bl)"/>
+        <ellipse cx="142" cy="140" rx="20" ry="13" fill="url(#bl)"/>
+        <g class="lines" fill="none" stroke="#2A2521" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+          <path pathLength="1" d="M100 18 C146 18 168 56 166 104 C164 150 138 196 100 200 C62 196 36 150 34 104 C32 56 54 18 100 18 Z"/>
+          <path pathLength="1" d="M34 100 C26 98 24 122 36 128"/><path pathLength="1" d="M166 100 C174 98 176 122 164 128"/>
+          <path pathLength="1" d="M74 190 C76 208 74 222 64 236"/><path pathLength="1" d="M126 190 C124 208 126 222 136 236"/>
+          <path pathLength="1" d="M64 236 C44 242 24 244 4 248"/><path pathLength="1" d="M136 236 C156 242 176 244 196 248"/>
+          <path pathLength="1" d="M56 86 C66 78 80 78 90 84" stroke-width="2.2"/><path pathLength="1" d="M110 84 C120 78 134 78 144 86" stroke-width="2.2"/>
+          <path pathLength="1" d="M58 104 C66 96 82 96 90 104 C82 110 66 110 58 104 Z"/>
+          <path pathLength="1" d="M110 104 C118 96 134 96 142 104 C134 110 118 110 110 104 Z"/>
+          <circle pathLength="1" cx="74" cy="103.5" r="4.6"/><circle pathLength="1" cx="126" cy="103.5" r="4.6"/>
+          <path pathLength="1" d="M58 104 C56 101 54 100 52 100"/><path pathLength="1" d="M142 104 C144 101 146 100 148 100"/>
+          <path pathLength="1" d="M100 108 C98 122 94 134 92 140 C96 144 104 144 108 140"/>
+        </g>
+        <path d="M80 164 C88 158 96 158 100 161 C104 158 112 158 120 164 C112 168 88 168 80 164 Z" fill="#9E3A2A" stroke="#2A2521" stroke-width="1"/>
+        <path d="M80 164 C88 176 112 176 120 164 C112 168 88 168 80 164 Z" fill="#B4533A" stroke="#2A2521" stroke-width="1"/>
+        <!-- callout markers -->
+        <g class="calls" font-family="Instrument Sans, Arial, sans-serif" font-size="8" font-weight="600" text-anchor="middle" fill="#2A2521">
+          <circle cx="160" cy="70" r="7" fill="#F2EDE5" stroke="#2A2521" stroke-width=".9"/><text x="160" y="72.8">1</text>
+          <path d="M153 72 L144 84" stroke="#2A2521" stroke-width=".7"/>
+          <circle cx="30" cy="80" r="7" fill="#F2EDE5" stroke="#2A2521" stroke-width=".9"/><text x="30" y="82.8">2</text>
+          <path d="M37 84 L60 100" stroke="#2A2521" stroke-width=".7"/>
+          <circle cx="170" cy="150" r="7" fill="#F2EDE5" stroke="#2A2521" stroke-width=".9"/><text x="170" y="152.8">3</text>
+          <path d="M163 148 L152 143" stroke="#2A2521" stroke-width=".7"/>
+          <circle cx="44" cy="180" r="7" fill="#F2EDE5" stroke="#2A2521" stroke-width=".9"/><text x="44" y="182.8">4</text>
+          <path d="M51 178 L80 167" stroke="#2A2521" stroke-width=".7"/>
+        </g>
+      </svg>
+    </div>
+    <ul class="notes">
+      <li><i class="n">1</i><div><b>Brow</b><span>brushed up, soap-set</span></div></li>
+      <li><i class="n">2</i><div><b>Lid</b><span>a wash of warm copper</span></div></li>
+      <li><i class="n">3</i><div><b>Skin</b><span>bare, lit from within</span></div></li>
+      <li><i class="n">4</i><div><b>Lip</b><span>stained brick</span><div class="sw"><i style="background:#B4533A"></i><i style="background:#C9885F"></i><i style="background:#E3B79C"></i></div></div></li>
+    </ul>
+    <div class="offer">
+      <div class="big">The collection, <em>−20%</em></div>
+      <div class="meta">Until Sun 12.10<br>Code <b>LOOK20</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

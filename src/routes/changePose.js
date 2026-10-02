@@ -1,3 +1,4 @@
+const { setGenerationProgress, getGenerationProgress, clearGenerationProgress } = require("../services/generationProgress");
 const { recordRefundCharge } = require("../services/refundChargeEvidence");
 const { NB2_EDIT_MODEL, selectToolEditModel, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims } = require("../utils/gpt25Edit");
@@ -1240,7 +1241,25 @@ function sanitizePoseText(text) {
 // 🕺 Pose change directive ITEM — V7'deki "Opening Directives" pattern.
 // Gemini bu intent'i okur ve kıyafete + sahneye + kullanıcı pozuna göre
 // 2-3 cümlelik ENHANCED versiyon üretir. ⚠️ başlığı verbatim korunur.
-function buildPoseChangeDirectiveItem(userPose, customDetail) {
+// 🤖 "Yapay zekaya bırak" (24 Eyl 2026, kullanıcı isteği): kullanıcı poz seçmek zorunda değil. Şablon/kütüphane
+// pozundan SEÇİLMEZ — model sahneyi, ürünü/kıyafeti ve konsepti okuyup bu fotoğrafa özgü en iyi pozu kendisi kurar.
+// Çoklu sonuçta her sonuç farklı bir duruş ailesine yönlendirilir (hepsi aynı pozda çıkmasın).
+const AUTO_POSE_FAMILIES = [
+  "a confident standing pose (weight shifted to one leg, natural arm placement)",
+  "a pose caught in natural motion (mid-step, turning or adjusting something)",
+  "a relaxed pose that interacts with the environment (leaning, sitting or touching something that genuinely exists in the scene) — if nothing in the scene supports it, a relaxed standing variation",
+  "a three-quarter angled pose with a distinctive head and hand gesture",
+];
+function buildAutoPoseClause(settings = {}) {
+  const count = Math.max(1, Number(settings.autoPoseCount) || 1);
+  const index = Math.max(0, Number(settings.autoPoseIndex) || 0);
+  const variety = count > 1
+    ? ` This is result ${index + 1} of ${count} made from the same photo, so lean toward ${AUTO_POSE_FAMILIES[index % AUTO_POSE_FAMILIES.length]} to keep the set varied.`
+    : "";
+  return `The user asked the AI to decide the pose (no pose was selected and no pose template is used). First read the photo: the environment (space, props, surfaces, light direction, mood), the product / outfit (category, cut, fabric, formality, the details a buyer needs to see) and the overall concept of the shoot (commercial, editorial, lifestyle, sporty, elegant…). Then invent the single most fitting, flattering and commercially strong pose for THIS exact photo — something a professional photographer would direct on this set, not a generic stock pose. The new pose MUST clearly differ from the input stance, look natural and physically plausible in this environment, and keep the product fully visible and well presented (no hands or limbs hiding key details).${variety}`;
+}
+
+function buildPoseChangeDirectiveItem(userPose, customDetail, settings = {}) {
   const pose =
     typeof userPose === "string" && userPose.trim()
       ? userPose.trim()
@@ -1248,7 +1267,9 @@ function buildPoseChangeDirectiveItem(userPose, customDetail) {
         ? customDetail.trim()
         : "";
 
-  const userPoseClause = pose
+  const userPoseClause = !pose && settings?.poseMode === "auto"
+    ? buildAutoPoseClause(settings)
+    : pose
     ? `The user has explicitly requested this exact pose: "${pose}". The model MUST adopt EXACTLY this pose — body positioning, weight distribution, head angle, arm placement, hand gestures, foot placement, and overall body language MUST match the user's requested pose precisely. Do NOT approximate, soften, or substitute it with a generic / similar pose.`
     : `No specific pose was named, so a clearly different and dramatic professional fashion-editorial pose MUST be chosen — one that contrasts strongly with the input photo's stance.`;
 
@@ -2237,7 +2258,9 @@ REMEMBER: Use ENGLISH for all color names in your output, even if the user provi
           ? `Transform the model to: ${settings.pose.trim()}`
           : customDetail && customDetail.trim()
             ? `Transform the model to: ${customDetail.trim()}`
-            : "Transform to a completely different iconic professional fashion modeling pose that contrasts dramatically with the current pose"
+            : settings?.poseMode === "auto"
+              ? buildAutoPoseClause(settings)
+              : "Transform to a completely different iconic professional fashion modeling pose that contrasts dramatically with the current pose"
         }
 
       COMPREHENSIVE POSE TRANSFORMATION REQUIREMENTS:
@@ -2586,6 +2609,7 @@ The output must be hyper-realistic, high-end professional fashion editorial qual
       const poseItem = buildPoseChangeDirectiveItem(
         settings?.pose,
         customDetail,
+        settings,
       );
       const poseOpeningInstruction = `
 IMAGE ROLES: Image 1 is the source photograph to edit. Preserve its person,
@@ -4265,6 +4289,7 @@ router.post("/generate", async (req, res) => {
 
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
+    setGenerationProgress(finalGenerationId, "preparing");
 
     // 📊 Pose change modunda pose_change_generations tablosuna da kaydet
     if (isPoseChange) {
@@ -4462,6 +4487,7 @@ router.post("/generate", async (req, res) => {
     );
 
     let enhancedPrompt, backgroundRemovedImage;
+    setGenerationProgress(finalGenerationId, "product");
 
     if (isColorChange || isPoseChange || isRefinerMode) {
       // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
@@ -4736,6 +4762,7 @@ router.post("/generate", async (req, res) => {
 
       try {
         // GPT Image 2.5 ile görsel oluştur
+        setGenerationProgress(finalGenerationId, "generating");
         const gptImageResult = await callFalAiGptImageEditForRefiner(
           enhancedPrompt,
           finalImage,
@@ -4749,10 +4776,12 @@ router.post("/generate", async (req, res) => {
         );
 
         // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
+        setGenerationProgress(finalGenerationId, "finishing");
         await updateGenerationStatus(finalGenerationId, userId, "completed", {
           result_image_url: gptImageResult,
           enhanced_prompt: enhancedPrompt,
         });
+        clearGenerationProgress(finalGenerationId, "tamamlandı");
 
         logger.log(
           "✅ [REFINER MODE] Generation completed olarak güncellendi"
@@ -4778,6 +4807,7 @@ router.post("/generate", async (req, res) => {
 
         // Generation'ı failed olarak güncelle
         await updateGenerationStatus(finalGenerationId, userId, "failed");
+        clearGenerationProgress(finalGenerationId, "hata");
 
         // Kredi iade et
         if (creditDeducted && userId && userId !== "anonymous_user") {
@@ -4832,6 +4862,7 @@ router.post("/generate", async (req, res) => {
     logger.log(`🎨 [TOOL MODEL] ${falModel} · resolution=${falResolution}`);
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      setGenerationProgress(finalGenerationId, attempt > 1 ? "retrying" : "generating");
       try {
         logger.log(
           `🔄 Fal.ai nano-banana API attempt ${attempt}/${maxRetries}`
@@ -5108,6 +5139,7 @@ router.post("/generate", async (req, res) => {
 
     if (!initialResult.id) {
       console.error("Replicate prediction ID alınamadı:", initialResult);
+      clearGenerationProgress(finalGenerationId, "hata");
 
       // 🗑️ Prediction ID hatası durumunda geçici dosyaları temizle
       logger.log(
@@ -5183,6 +5215,7 @@ router.post("/generate", async (req, res) => {
         await updateGenerationStatus(finalGenerationId, userId, "failed", {
           processing_time_seconds: Math.round((Date.now() - startTime) / 1000),
         });
+        clearGenerationProgress(finalGenerationId, "hata");
 
         // 🗑️ Polling hatası durumunda geçici dosyaları temizle
         logger.log(
@@ -5219,6 +5252,7 @@ router.post("/generate", async (req, res) => {
         logger.log(
           `🔄 Failed status retry attempt ${retryAttempt}/${maxPollingRetries}`
         );
+        setGenerationProgress(finalGenerationId, "retrying");
 
         try {
           // 2 saniye bekle, sonra yeni prediction başlat
@@ -5391,6 +5425,7 @@ router.post("/generate", async (req, res) => {
       let resultImageUrl = Array.isArray(finalResult.output)
         ? finalResult.output[0]
         : finalResult.output;
+      if (Number(upscaleMp) > 4) setGenerationProgress(finalGenerationId, "upscaling");
       const upscaleOutcome = await applyResultUpscale({
         imageUrl: resultImageUrl,
         upscaleMp,
@@ -5400,6 +5435,7 @@ router.post("/generate", async (req, res) => {
         logTag: "POSE UPSCALE",
       });
       resultImageUrl = upscaleOutcome.imageUrl;
+      setGenerationProgress(finalGenerationId, "finishing");
       const updatedGeneration = await updateGenerationStatus(finalGenerationId, userId, "completed", {
         enhanced_prompt: enhancedPrompt,
         result_image_url: resultImageUrl,
@@ -5410,6 +5446,7 @@ router.post("/generate", async (req, res) => {
           pre_upscale_image_url: upscaleOutcome.preUpscaleUrl,
         }),
       });
+      clearGenerationProgress(finalGenerationId, "tamamlandı");
       // updateGenerationStatus Supabase bucket'e kaydedip DB'yi günceller,
       // dönen kayıttaki result_image_url artık Supabase URL'sidir (fal.media değil)
       const finalResultImageUrl = updatedGeneration?.result_image_url || resultImageUrl;
@@ -5462,6 +5499,7 @@ router.post("/generate", async (req, res) => {
       return res.status(200).json(responseData);
     } else {
       console.error("Replicate API başarısız:", finalResult);
+      clearGenerationProgress(finalGenerationId, "hata");
 
       // ❌ Status'u failed'e güncelle
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
@@ -5512,6 +5550,7 @@ router.post("/generate", async (req, res) => {
     }
   } catch (error) {
     console.error("Resim oluşturma hatası:", error);
+    if (finalGenerationId) clearGenerationProgress(finalGenerationId, "hata");
 
     // ❌ Status'u failed'e güncelle (genel hata durumu)
     if (finalGenerationId) {
@@ -6162,6 +6201,10 @@ router.get("/generation-status/:generationId", async (req, res) => {
           generation.settings?.quality_version ||
           "v1", // Kalite versiyonu
         status: finalStatus,
+        // ⏳ Ara aşama — bellekteki canlı aşama (services/generationProgress); tamamlanınca taşınmaz.
+        stage: finalStatus === "processing" || finalStatus === "pending"
+          ? getGenerationProgress(generation.generation_id) || null
+          : null,
         resultImageUrl: generation.result_image_url,
         resultImageThumbnail: thumbnailUrl,
         upscaledMp: generation.upscaled_mp || null,

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Price Only — Swiss restraint, the price is the headline. Black on white, one red square.
+     tall → photo on top, a huge price below; square/wide → photo left, price column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F7F7F5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F7F7F5; color: #111; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 60%; object-fit: cover; object-position: 50% 16%; }
+  .panel { position: absolute; left: 5vmin; right: 5vmin; top: calc(60% + 4vmin); bottom: 5vmin; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 2.5vmin; font-weight: 500; padding-bottom: 1.4vmin; border-bottom: 1px solid #111; }
+  .top b { display: inline-block; width: 1.5vmin; height: 1.5vmin; background: #E3241B; margin-right: 1.2vmin; }
+  .price { margin-top: auto; display: flex; align-items: flex-start; font-weight: 600; font-size: 44vmin; line-height: .74; letter-spacing: -.075em; margin-left: -1.6vmin; white-space: nowrap; }
+  .price .cur { font-size: .42em; font-weight: 500; letter-spacing: -.02em; margin: .02em .08em 0 0; }
+  .foot { margin-top: 3.4vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; font-size: 2.4vmin; line-height: 1.45; }
+  .foot .specs { color: #555; }
+  .foot .cta { font-weight: 600; white-space: nowrap; padding-bottom: .5vmin; border-bottom: .3vmin solid #111; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 58%; }
+    .panel { top: calc(58% + 3.4vmin); bottom: 4.4vmin; }
+    .price { font-size: 30vmin; }
+    .foot { margin-top: 2.6vmin; font-size: 2.1vmin; }
+    .top { font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 52%; height: 100%; object-position: 50% 22%; }
+    .panel { left: calc(52% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    .price { font-size: 25vmin; margin-left: -1vmin; }
+    .top { font-size: 2vmin; }
+    .foot { font-size: 2vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; object-position: 60% 22%; }
+    .panel { left: calc(54% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .price { font-size: 34vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design — Swiss precision: square ticks, the price rolls, rules draw ───────── */
+  /* the red square turns a quarter on every 1.5s beat, like a metronome */
+  .top b { animation: quarter 1.5s linear infinite; }
+  @keyframes quarter {
+    0%, 70% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.7,0,.2,1); }
+    92%, 100% { transform: rotate(90deg); }
+  }
+  /* the price rolls like a split-flap: it exits upward and a fresh one rises from below */
+  .price { animation: roll 6s linear infinite; }
+  @keyframes roll {
+    0%, 40% { transform: translateY(0); clip-path: inset(-10% -2% -10% -2%); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    46% { transform: translateY(-14%); clip-path: inset(-10% -2% 110% -2%); opacity: 1; animation-timing-function: steps(1, end); }
+    47% { transform: translateY(14%); clip-path: inset(110% -2% -10% -2%); animation-timing-function: cubic-bezier(.15,.75,.25,1); }
+    58%, 100% { transform: translateY(0); clip-path: inset(-10% -2% -10% -2%); opacity: 1; }
+  }
+  /* currency sign follows a hair later */
+  .price .cur { animation: cur 6s linear infinite; }
+  @keyframes cur {
+    0%, 52% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    56% { transform: translateY(8%); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    62%, 100% { transform: translateY(0); }
+  }
+  /* the hairline under the header draws itself again */
+  .top { position: relative; border-bottom-color: transparent; }
+  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #111; animation: hair 6s linear infinite; }
+  @keyframes hair {
+    0%, 30% { transform: scaleX(1); transform-origin: 100% 50%; animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    37% { transform: scaleX(0); transform-origin: 100% 50%; }
+    37.1% { transform: scaleX(0); transform-origin: 0 50%; animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    48%, 100% { transform: scaleX(1); transform-origin: 0 50%; }
+  }
+  /* CTA: the underline thickens into a quick pulse, the arrow steps forward */
+  .foot .cta { animation: go 6s linear infinite; }
+  @keyframes go {
+    0%, 70% { transform: translateX(0); border-bottom-color: #111; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    75% { transform: translateX(1vmin); border-bottom-color: #E3241B; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    84%, 100% { transform: translateX(0); border-bottom-color: #111; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="top"><span><b></b>The essential</span><span>From</span></div>
+    <div class="price"><span class="cur">€</span>89</div>
+    <div class="foot">
+      <div class="specs">Free delivery<br>30-day returns</div>
+      <div class="cta">Shop now →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

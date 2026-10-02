@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Tape Case — a cherry-red retractable tape measure, chrome button and all, is the fit guide's mascot:
+     its yellow blade is pulled out across the panel and printed not in centimetres but in sizes, XS to 4XL,
+     ending in the brass hook. "Measure once. Love it always."
+     tall → photo above, case + blade running right below the headline · square / wide → photo left,
+     the case sits top-right of the panel and the blade drops down to the bottom edge */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EEE4; }
+  .banner { --panel: max(78vmin, 46%); --red: #C8202F; --tape: #F3C623; position: fixed; inset: 0; overflow: hidden; background: #F4EEE4; color: #1D1715; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .case { position: absolute; left: 5vmin; bottom: 7vmin; width: 30vmin; height: 30vmin; border-radius: 50%; z-index: 3;
+    background: radial-gradient(circle at 34% 30%, #E8505B 0%, var(--red) 42%, #8E1320 100%);
+    box-shadow: 0 1.4vmin 2.6vmin rgba(60,10,15,.35), inset 0 0 0 1.2vmin rgba(0,0,0,.12); }
+  .case::before { content: ""; position: absolute; inset: 9.5vmin; border-radius: 50%;
+    background: radial-gradient(circle at 38% 34%, #FFFFFF 0%, #C9CCD2 35%, #7D828C 75%, #A9ADB5 100%); box-shadow: 0 .4vmin .8vmin rgba(0,0,0,.35); }
+  .case span { position: absolute; left: 0; right: 0; text-align: center; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: #FFE7E0; }
+  .case .t { top: 4.2vmin; } .case .b { bottom: 4.2vmin; }
+  .mouth { position: absolute; z-index: 4; background: #2A2226; }
+
+  .blade { position: absolute; left: 30vmin; right: -3vmin; bottom: 7vmin; height: 7.4vmin; z-index: 2; display: flex; background: var(--tape); box-shadow: 0 .6vmin 1.2vmin rgba(80,60,0,.25);
+    background-image: repeating-linear-gradient(90deg, rgba(29,23,21,.85) 0 1px, transparent 1px 1.1vmin); background-size: 100% 1.6vmin; background-repeat: no-repeat; padding-left: 6vmin; box-sizing: border-box; }
+  .blade span { position: relative; flex: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 1vmin; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 2.1vmin; border-left: 1px solid rgba(29,23,21,.9); }
+  .blade span::before { content: ""; position: absolute; left: 50%; top: 0; height: 2.6vmin; width: 1px; background: rgba(29,23,21,.9); }
+  .blade span:nth-child(odd) { color: var(--red); }
+  .blade .hook { flex: none; width: 3vmin; border-left: 0; background: linear-gradient(90deg, #B08A3E, #E2C47A 50%, #9C7630); }
+  .blade .hook::before { display: none; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - var(--panel) + 5vmin); bottom: 18vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; align-items: center; gap: 1.4vmin; font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .kick b { background: var(--red); color: #fff; padding: .6vmin 1.2vmin; font-weight: 700; }
+  h1 { align-self: flex-start; margin: 2.2vmin 0 0; font-weight: 800; font-size: 11vmin; line-height: .88; letter-spacing: -.04em; }
+  h1 em { font-style: normal; color: var(--red); }
+  .sub { margin: 2.4vmin 0 0; max-width: 64vmin; font-weight: 500; font-size: 2.6vmin; line-height: 1.3; color: #4A403B; }
+  .row { margin-top: auto; margin-left: 32vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; padding-bottom: 3vmin; }
+  .row small { font-family: "JetBrains Mono", monospace; font-size: 1.7vmin; letter-spacing: .06em; text-transform: uppercase; line-height: 1.4; }
+  .cta { flex: none; background: #1D1715; color: #F4EEE4; padding: 1.9vmin 2.8vmin; font-weight: 700; font-size: 2.3vmin; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 74vmin; }
+    .case { width: 26vmin; height: 26vmin; bottom: 5vmin; }
+    .case::before { inset: 8.2vmin; }
+    .case .t { top: 3.4vmin; } .case .b { bottom: 3.4vmin; }
+    .blade { left: 26vmin; bottom: 5vmin; height: 6.6vmin; padding-left: 5.4vmin; }
+    .panel { top: calc(100% - var(--panel) + 4vmin); bottom: 13vmin; }
+    h1 { font-size: 9.6vmin; margin-top: 1.8vmin; }
+    .sub { font-size: 2.4vmin; margin-top: 1.8vmin; }
+    .row { margin-left: 28vmin; padding-bottom: 2.6vmin; }
+  }
+  /* square → photo left; case top-right, blade drops to the bottom edge */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 42%; height: 100%; }
+    .case { left: auto; right: 3vmin; top: 4vmin; bottom: auto; width: 18vmin; height: 18vmin; }
+    .case::before { inset: 5.8vmin; }
+    .case .t { top: 2.2vmin; font-size: 1.6vmin; letter-spacing: .1em; } .case .b { bottom: 2.2vmin; font-size: 1.6vmin; letter-spacing: .1em; }
+    .blade { left: auto; right: 9vmin; top: 19vmin; bottom: 0; width: 6vmin; height: auto; flex-direction: column; padding-left: 0; padding-top: 3.6vmin;
+      background-image: repeating-linear-gradient(180deg, rgba(29,23,21,.85) 0 1px, transparent 1px 1.1vmin); background-size: 1.6vmin 100%; background-position: right top; }
+    .blade span { border-left: 0; border-bottom: 1px solid rgba(29,23,21,.9); align-items: center; justify-content: flex-start; padding: 0 0 0 .8vmin; font-size: 1.9vmin; }
+    .blade span::before { left: auto; right: 0; top: 50%; width: 2.4vmin; height: 1px; }
+    .blade .hook { width: auto; height: 3vmin; flex: none; border-bottom: 0; }
+    .panel { left: calc(42% + 5vmin); right: 18vmin; top: 5vmin; bottom: 5vmin; }
+    .kick { flex-direction: column; align-items: flex-start; gap: 1vmin; font-size: 1.6vmin; }
+    h1 { font-size: 7.2vmin; margin-top: 3vmin; }
+    .sub { font-size: 2.1vmin; }
+    .row { margin-left: 0; flex-direction: column; align-items: flex-start; gap: 1.8vmin; padding-bottom: 0; }
+    .row small { font-size: 1.6vmin; }
+    .cta { font-size: 2.1vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 50% 28%; }
+    .case { right: 5vmin; top: 5vmin; width: 26vmin; height: 26vmin; }
+    .case::before { inset: 8.2vmin; }
+    .case .t { top: 3.4vmin; font-size: 1.7vmin; letter-spacing: .2em; } .case .b { bottom: 3.4vmin; font-size: 1.7vmin; letter-spacing: .2em; }
+    .blade { right: 14.3vmin; top: 26vmin; width: 7.4vmin; padding-top: 5.4vmin; }
+    .blade span { font-size: 2.1vmin; }
+    .panel { left: calc(42% + 6vmin); right: 30vmin; top: 6vmin; bottom: 6vmin; }
+    .kick { flex-direction: row; align-items: center; font-size: 1.7vmin; }
+    h1 { font-size: 9.6vmin; }
+    .sub { font-size: 2.4vmin; }
+    .row { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="blade"><span>XS</span><span>S</span><span>M</span><span>L</span><span>XL</span><span>2XL</span><span>3XL</span><span>4XL</span><span class="hook"></span></div>
+  <div class="case"><span class="t">Studio Oro</span><span class="b">Fit guide</span></div>
+  <div class="panel">
+    <div class="kick"><b>Fit guide</b><span>In every product page</span></div>
+    <h1>Measure once.<br><em>Love it</em> always.</h1>
+    <p class="sub">Every piece comes with a 60-second fit guide, XS to 4XL — and free swaps if it's off.</p>
+    <div class="row"><small>New collection<br>Free swaps · 60 days</small><span class="cta">Open the guide →</span></div>
+  </div>
+</div>
+</body>
+</html>

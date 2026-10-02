@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=DM+Mono:wght@400;500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* On Air 8PM — a "going live tonight" poster: a glowing ON AIR sign, a giant gradient 8PM, the photo as tonight's feature,
+     and a split-flap style countdown with a set-a-reminder CTA.
+     tall / 3:4 → 8PM over photo over countdown · square / wide → poster column left, photo right edge-to-edge */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #140A2B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F6EEFF; font-family: "DM Mono", ui-monospace, monospace;
+    background: radial-gradient(90vmin 70vmin at 10% 0%, rgba(255,62,165,.28), transparent 70%),
+                radial-gradient(90vmin 70vmin at 100% 100%, rgba(255,138,61,.2), transparent 70%), #140A2B;
+    display: flex; flex-direction: column; padding: 5vmin 6vmin 5vmin; box-sizing: border-box; }
+
+  .top { position: relative; flex: none; }
+  .signrow { display: flex; align-items: center; gap: 2.4vmin; }
+  .onair { flex: none; padding: 1.1vmin 2vmin; border: .4vmin solid #FF3EA5; border-radius: 1.2vmin;
+    font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 3vmin; letter-spacing: .14em; line-height: 1;
+    color: #FFD2EA; text-shadow: 0 0 1.2vmin #FF3EA5, 0 0 3vmin rgba(255,62,165,.8);
+    box-shadow: 0 0 2vmin rgba(255,62,165,.55), inset 0 0 1.6vmin rgba(255,62,165,.4); }
+  .kick { font-size: 1.8vmin; letter-spacing: .18em; text-transform: uppercase; color: #CDB8F0; line-height: 1.4; }
+  .big { display: flex; align-items: flex-end; gap: 2.4vmin; margin-top: 2.4vmin; }
+  .big b { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 34vmin; line-height: .78; letter-spacing: -.02em;
+    background: linear-gradient(180deg, #FFE1F1 0%, #FF3EA5 55%, #FF8A3D 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 3vmin rgba(255,62,165,.35)); padding-top: .6vmin; }
+  .when { padding-bottom: 1.4vmin; font-size: 1.8vmin; line-height: 1.6; letter-spacing: .08em; color: #CDB8F0; text-transform: uppercase; }
+  .when em { display: block; font-style: normal; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 700; font-size: 5vmin; line-height: 1; letter-spacing: .02em; color: #F6EEFF; text-transform: none; margin-bottom: .8vmin; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin: 4vmin 0 0; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block;
+    box-shadow: 0 0 0 1px rgba(255,62,165,.5), 0 0 6vmin rgba(255,62,165,.28); }
+
+  .bot { position: relative; flex: none; margin-top: 4vmin; }
+  .count { display: flex; align-items: flex-start; gap: 1.2vmin; }
+  .cell { flex: none; text-align: center; }
+  .cell b { display: block; width: 11vmin; padding: 1.2vmin 0 1vmin; border-radius: 1vmin; background: linear-gradient(180deg, #2A1850 0 50%, #22123F 50% 100%);
+    border: 1px solid rgba(205,184,240,.22); font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 700; font-size: 7vmin; line-height: 1; color: #F6EEFF; }
+  .cell span { display: block; margin-top: 1vmin; font-size: 1.6vmin; letter-spacing: .18em; color: #9C86C4; }
+  .colon { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 700; font-size: 6vmin; line-height: 1.5; color: #FF3EA5; }
+  .cta { margin-left: auto; align-self: center; display: flex; align-items: center; gap: 1.2vmin; padding: 2vmin 3vmin; border-radius: 99vmin;
+    background: linear-gradient(90deg, #FF3EA5, #FF8A3D); color: #1A0B2E; font-family: "DM Mono", monospace; font-weight: 500; font-size: 2vmin; white-space: nowrap; }
+  .cta svg { width: 2.4vmin; height: 2.4vmin; display: block; }
+  .small { margin-top: 2.6vmin; font-size: 1.6vmin; letter-spacing: .06em; color: #9C86C4; }
+  .small b { color: #FFD2EA; font-weight: 500; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.4vmin; }
+    .big b { font-size: 28vmin; }
+    .photo { margin-top: 3.2vmin; }
+    .bot { margin-top: 3.2vmin; }
+    .cell b { width: 10vmin; font-size: 6vmin; }
+  }
+  /* ── square: poster column left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .photo { position: absolute; right: 0; top: 0; bottom: 0; width: 46%; height: 100%; margin: 0; }
+    .photo img { box-shadow: none; }
+    .top { position: absolute; left: 6vmin; width: calc(54% - 11vmin); top: 6vmin; }
+    .bot { position: absolute; left: 6vmin; width: calc(54% - 11vmin); bottom: 6vmin; margin: 0; }
+    .big { flex-direction: column; align-items: flex-start; gap: 1.6vmin; margin-top: 3vmin; }
+    .big b { font-size: 25vmin; }
+    .when { padding: 0; }
+    .count { flex-wrap: wrap; row-gap: 2.6vmin; }
+    .cell b { width: 9.4vmin; font-size: 5.6vmin; }
+    .colon { font-size: 5vmin; }
+    .cta { margin-left: 0; flex-basis: 100%; justify-content: center; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .top { left: 7vmin; width: calc(56% - 14vmin); top: 7vmin; }
+    .bot { left: 7vmin; width: calc(56% - 14vmin); bottom: 7vmin; }
+    .big { flex-direction: row; align-items: flex-end; gap: 3vmin; }
+    .big b { font-size: 30vmin; }
+    .when { padding-bottom: 1.8vmin; }
+    .count { flex-wrap: nowrap; }
+    .cell b { width: 10vmin; font-size: 6vmin; }
+    .cta { margin-left: auto; flex-basis: auto; }
+  }
+
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     constant: seconds count down one per second, colons blink on the beat, ON AIR tube breathes (3 s), 8PM glow breathes
+     beats: 1.4 s ON AIR buzzes/flickers like a real neon · 2.4 s a specular sweep rides across the 8PM ·
+            4.2 s the reminder bell rings · 4.8 s a sheen crosses the CTA · the photo drifts in (≤1.03) */
+  .photo { overflow: hidden; }
+  .photo img { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  /* tall layouts: the pink glow moves from the (now clipped) img to the frame itself */
+  @media (max-aspect-ratio: 8999/10000) { .photo { box-shadow: 0 0 0 1px rgba(255,62,165,.5), 0 0 6vmin rgba(255,62,165,.28); } .photo img { box-shadow: none; } }
+
+  .onair { animation: buzz 6s linear infinite, tube 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes buzz {
+    0%, 22.8%, 23.8%, 24.6%, 25.2%, 26.6%, 100% { opacity: 1; }
+    23%, 23.6%, 24.8%, 25%, 26.2% { opacity: .35; }
+  }
+  @keyframes tube {
+    0%, 100% { box-shadow: 0 0 2vmin rgba(255,62,165,.55), inset 0 0 1.6vmin rgba(255,62,165,.4); }
+    50% { box-shadow: 0 0 3.4vmin rgba(255,62,165,.8), inset 0 0 2.2vmin rgba(255,62,165,.55); }
+  }
+
+  .big b { background-image: linear-gradient(105deg, rgba(255,255,255,0) 40%, rgba(255,255,255,.85) 50%, rgba(255,255,255,0) 60%), linear-gradient(180deg, #FFE1F1 0%, #FF3EA5 55%, #FF8A3D 100%);
+    background-size: 300% 100%, 100% 100%; background-repeat: no-repeat; background-position: 100% 0, 0 0;
+    animation: spec 6s cubic-bezier(.45,0,.55,1) infinite, halo 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes spec { 0%, 38% { background-position: 100% 0, 0 0; } 58%, 100% { background-position: 0% 0, 0 0; } }
+  @keyframes halo { 0%, 100% { filter: drop-shadow(0 0 3vmin rgba(255,62,165,.35)); } 50% { filter: drop-shadow(0 0 4.4vmin rgba(255,62,165,.55)); } }
+
+  /* ticking digits: the values are stacked on one spot and switch by opacity, one per second (no sub-pixel drift) */
+  .reel { position: relative; display: block; font-style: normal; }
+  .reel > * { font-style: normal; animation: tickv 6s linear infinite; }
+  .reel > * + * { position: absolute; left: 0; right: 0; top: 0; opacity: 0; }
+  .reel > :nth-child(2) { animation-delay: -5s; } .reel > :nth-child(3) { animation-delay: -4s; }
+  .reel > :nth-child(4) { animation-delay: -3s; } .reel > :nth-child(5) { animation-delay: -2s; } .reel > :nth-child(6) { animation-delay: -1s; }
+  @keyframes tickv { 0%, 16.4% { opacity: 1; } 16.45%, 100% { opacity: 0; } }
+  .colon { animation: blink 1s steps(1, end) infinite; }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta svg { transform-origin: 50% 15%; animation: ring 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ring { 0%, 68%, 84%, 100% { transform: rotate(0); } 70% { transform: rotate(18deg); } 72% { transform: rotate(-16deg); } 74% { transform: rotate(12deg); } 76% { transform: rotate(-8deg); } 78% { transform: rotate(4deg); } 80% { transform: rotate(-2deg); } }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 60%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.5), rgba(255,255,255,0));
+    transform: translateX(-120%); animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 80% { transform: translateX(-120%); } 94%, 100% { transform: translateX(260%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <div class="signrow"><div class="onair">ON AIR</div><div class="kick">Going live tonight · Lune Studio</div></div>
+    <div class="big"><b>8PM</b><div class="when"><em>Thursday</em>New-in try-on<br>+ live-only prices</div></div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="bot">
+    <div class="count">
+      <div class="cell"><b>02</b><span>HRS</span></div><div class="colon">:</div>
+      <div class="cell"><b>14</b><span>MIN</span></div><div class="colon">:</div>
+      <div class="cell"><b><i class="reel"><i>37</i><i>36</i><i>35</i><i>34</i><i>33</i><i>32</i></i></b><span>SEC</span></div>
+      <div class="cta"><svg viewBox="0 0 24 24" fill="none" stroke="#1A0B2E" stroke-width="2.2" stroke-linecap="round"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.5 2h-15z"/><path d="M10 21.5h4"/></svg>Set a reminder</div>
+    </div>
+    <div class="small"><b>First 200 viewers</b> get free express shipping · 8 PM CET</div>
+  </div>
+</div>
+</body>
+</html>

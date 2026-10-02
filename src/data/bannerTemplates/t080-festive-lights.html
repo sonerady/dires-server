@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Festive Lights — an inclusive festive-season edit (Eid, Diwali, Christmas, New Year): the photo framed in a
+     pointed-arch window, hanging line-drawn lanterns and a crescent on deep teal night.
+     tall → arch above the copy; square/wide → arch doorway left, copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0C2F33; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(120vmin 80vmin at 50% 0%, #145056 0%, #0C2F33 60%); color: #F6EBD6; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif; }
+  .defs { position: absolute; width: 0; height: 0; }
+  .arch { position: absolute; left: 13vmin; right: 13vmin; top: 9vmin; height: calc(62% - 9vmin); }
+  .arch img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; clip-path: polygon(0.00% 100.00%, 0.00% 59.02%, 0.23% 54.04%, 0.90% 49.09%, 2.02% 44.21%, 3.58% 39.43%, 5.56% 34.78%, 7.96% 30.29%, 10.75% 25.99%, 13.93% 21.91%, 17.46% 18.07%, 21.33% 14.51%, 25.50% 11.24%, 29.96% 8.29%, 34.67% 5.67%, 39.61% 3.41%, 44.73% 1.51%, 50.00% -0.00%, 55.27% 1.51%, 60.39% 3.41%, 65.33% 5.67%, 70.04% 8.29%, 74.50% 11.24%, 78.67% 14.51%, 82.54% 18.07%, 86.07% 21.91%, 89.25% 25.99%, 92.04% 30.29%, 94.44% 34.78%, 96.42% 39.43%, 97.98% 44.21%, 99.10% 49.09%, 99.77% 54.04%, 100.00% 59.02%, 100.00% 100.00%); }
+  .arch .line { position: absolute; left: -2vmin; right: -2vmin; top: -2vmin; bottom: 0; width: calc(100% + 4vmin); height: calc(100% + 2vmin); overflow: visible; }
+  .arch .wide { display: none; }
+  .lan1 { position: absolute; left: 1vmin; top: 0; width: 11vmin; height: 34vmin; }
+  .lan2 { position: absolute; right: 2vmin; top: 0; width: 9vmin; height: 26vmin; }
+  .moon { position: absolute; right: 13vmin; top: 3vmin; width: 8vmin; height: 8vmin; }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: calc(62% + 3vmin); bottom: 5vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .k { font-size: 1.8vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #F2B25E; margin-right: -.3em; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Marcellus", "Trajan Pro", Georgia, serif; font-weight: 400; font-size: 10vmin; line-height: 1; letter-spacing: .01em; }
+  .p { margin-top: 1.4vmin; font-family: "Marcellus", Georgia, serif; font-size: 3.2vmin; color: #E9DCC2; }
+  .offer { margin-top: 2.6vmin; display: flex; align-items: center; gap: 2vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .offer i { width: 1.2vmin; height: 1.2vmin; background: #F2B25E; transform: rotate(45deg); }
+  .cta { margin-top: 2.6vmin; padding: 1.5vmin 3.6vmin; background: #F2B25E; color: #0C2F33; font-size: 2.1vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  @media (min-aspect-ratio: 7/10) {
+    .arch { left: 16vmin; right: 16vmin; top: 7vmin; height: calc(57% - 7vmin); }
+    .copy { top: calc(57% + 2.4vmin); }
+    .lan1 { left: 4vmin; }
+    .lan2 { right: 4vmin; }
+    h1 { font-size: 8.4vmin; }
+    .p { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .arch { left: 5vmin; right: auto; width: 46%; top: 6vmin; height: auto; bottom: 0; }
+    .arch img { object-position: 50% 25%; clip-path: polygon(0.00% 100.00%, 0.00% 40.66%, 0.23% 37.23%, 0.90% 33.82%, 2.02% 30.46%, 3.58% 27.17%, 5.56% 23.96%, 7.96% 20.87%, 10.75% 17.90%, 13.93% 15.09%, 17.46% 12.45%, 21.33% 10.00%, 25.50% 7.74%, 29.96% 5.71%, 34.67% 3.91%, 39.61% 2.35%, 44.73% 1.04%, 50.00% -0.00%, 55.27% 1.04%, 60.39% 2.35%, 65.33% 3.91%, 70.04% 5.71%, 74.50% 7.74%, 78.67% 10.00%, 82.54% 12.45%, 86.07% 15.09%, 89.25% 17.90%, 92.04% 20.87%, 94.44% 23.96%, 96.42% 27.17%, 97.98% 30.46%, 99.10% 33.82%, 99.77% 37.23%, 100.00% 40.66%, 100.00% 100.00%); }
+    .arch .line { height: calc(100% + 2vmin); }
+    .arch .tall { display: none; }
+    .arch .wide { display: inline; }
+    .lan1 { left: auto; right: 30vmin; width: 7vmin; height: 20vmin; }
+    .lan2 { right: 5vmin; width: 6vmin; height: 26vmin; }
+    .moon { right: 17vmin; top: 5vmin; width: 6vmin; height: 6vmin; }
+    .copy { top: 24vmin; bottom: 5vmin; left: calc(46% + 9vmin); right: 4vmin; }
+    .k { font-size: 1.6vmin; letter-spacing: .18em; margin-right: -.18em; line-height: 1.6; }
+    h1 { font-size: 7.6vmin; }
+    .p { font-size: 2.6vmin; }
+    .offer { flex-direction: column; gap: 1vmin; font-size: 1.8vmin; }
+    .offer i { display: none; }
+    .cta { font-size: 1.9vmin; padding: 1.4vmin 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .arch { left: 7vmin; width: 40%; }
+    .lan1 { right: 50vmin; width: 9vmin; height: 26vmin; }
+    .lan2 { right: 12vmin; width: 7vmin; height: 34vmin; }
+    .moon { right: 28vmin; top: 6vmin; width: 7vmin; height: 7vmin; }
+    .copy { top: 26vmin; left: calc(40% + 14vmin); right: 6vmin; bottom: 6vmin; }
+    .k { font-size: 1.8vmin; letter-spacing: .3em; margin-right: -.3em; }
+    h1 { font-size: 10vmin; }
+    .p { font-size: 3.1vmin; }
+    .offer { flex-direction: row; gap: 2vmin; font-size: 2vmin; }
+    .offer i { display: block; }
+    .cta { font-size: 2.1vmin; padding: 1.5vmin 3.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs><radialGradient id="glow"><stop offset="0" stop-color="#F2B25E" stop-opacity=".55"/><stop offset=".45" stop-color="#F2B25E" stop-opacity=".16"/><stop offset="1" stop-color="#F2B25E" stop-opacity="0"/></radialGradient></defs></svg>
+  <div class="arch">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <svg class="line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path class="tall" d="M0.00 100.00 L0.00 59.02 L0.23 54.04 L0.90 49.09 L2.02 44.21 L3.58 39.43 L5.56 34.78 L7.96 30.29 L10.75 25.99 L13.93 21.91 L17.46 18.07 L21.33 14.51 L25.50 11.24 L29.96 8.29 L34.67 5.67 L39.61 3.41 L44.73 1.51 L50.00 -0.00 L55.27 1.51 L60.39 3.41 L65.33 5.67 L70.04 8.29 L74.50 11.24 L78.67 14.51 L82.54 18.07 L86.07 21.91 L89.25 25.99 L92.04 30.29 L94.44 34.78 L96.42 39.43 L97.98 44.21 L99.10 49.09 L99.77 54.04 L100.00 59.02 L100.00 100.00" fill="none" stroke="#F2B25E" stroke-width="1" vector-effect="non-scaling-stroke"/>
+      <path class="wide" d="M0.00 100.00 L0.00 40.66 L0.23 37.23 L0.90 33.82 L2.02 30.46 L3.58 27.17 L5.56 23.96 L7.96 20.87 L10.75 17.90 L13.93 15.09 L17.46 12.45 L21.33 10.00 L25.50 7.74 L29.96 5.71 L34.67 3.91 L39.61 2.35 L44.73 1.04 L50.00 -0.00 L55.27 1.04 L60.39 2.35 L65.33 3.91 L70.04 5.71 L74.50 7.74 L78.67 10.00 L82.54 12.45 L86.07 15.09 L89.25 17.90 L92.04 20.87 L94.44 23.96 L96.42 27.17 L97.98 30.46 L99.10 33.82 L99.77 37.23 L100.00 40.66 L100.00 100.00" fill="none" stroke="#F2B25E" stroke-width="1" vector-effect="non-scaling-stroke"/>
+    </svg>
+  </div>
+  <svg class="lan1" viewBox="0 0 60 190" aria-hidden="true">
+      <circle cx="30" cy="128" r="30" fill="url(#glow)"/>
+      <path d="M30 0 V 70" stroke="#E7C58F" stroke-width="1" vector-effect="non-scaling-stroke"/>
+      <g fill="none" stroke="#F2B25E" stroke-width="1.6" stroke-linejoin="round">
+        <circle cx="30" cy="74" r="3.5"/>
+        <path d="M30 78 L 24 88 H 36 Z"/>
+        <path d="M20 96 C 20 90, 40 90, 40 96 Z" />
+        <path d="M18 96 H 42 L 46 104 L 44 150 L 38 158 H 22 L 16 150 L 14 104 Z"/>
+        <path d="M24 104 V 150 M36 104 V 150 M14 104 H 46 M16 150 H 44"/>
+        <path d="M24 104 C 24 110, 30 112, 30 118 C 30 112, 36 110, 36 104"/>
+        <path d="M22 158 L 26 166 H 34 L 38 158 M30 166 V 176"/>
+      </g>
+      <path d="M26 132 C 26 122, 30 118, 30 114 C 30 118, 34 122, 34 132 C 34 138, 26 138, 26 132 Z" fill="#FFD68A"/>
+    </svg>
+  <svg class="lan2" viewBox="0 0 60 190" aria-hidden="true">
+      <circle cx="30" cy="128" r="30" fill="url(#glow)"/>
+      <path d="M30 0 V 70" stroke="#E7C58F" stroke-width="1" vector-effect="non-scaling-stroke"/>
+      <g fill="none" stroke="#F2B25E" stroke-width="1.6" stroke-linejoin="round">
+        <circle cx="30" cy="74" r="3.5"/>
+        <path d="M30 78 L 24 88 H 36 Z"/>
+        <path d="M20 96 C 20 90, 40 90, 40 96 Z" />
+        <path d="M18 96 H 42 L 46 104 L 44 150 L 38 158 H 22 L 16 150 L 14 104 Z"/>
+        <path d="M24 104 V 150 M36 104 V 150 M14 104 H 46 M16 150 H 44"/>
+        <path d="M24 104 C 24 110, 30 112, 30 118 C 30 112, 36 110, 36 104"/>
+        <path d="M22 158 L 26 166 H 34 L 38 158 M30 166 V 176"/>
+      </g>
+      <path d="M26 132 C 26 122, 30 118, 30 114 C 30 118, 34 122, 34 132 C 34 138, 26 138, 26 132 Z" fill="#FFD68A"/>
+    </svg>
+  <svg class="moon" viewBox="0 0 60 60" aria-hidden="true">
+    <path d="M40 6 C 22 8, 10 22, 12 38 C 14 52, 30 60, 46 54 C 32 52, 22 42, 22 30 C 22 18, 30 10, 40 6 Z" fill="#F6E3B8"/>
+    <path d="M48 20 L 50 25 L 55 25 L 51 28 L 53 33 L 48 30 L 43 33 L 45 28 L 41 25 L 46 25 Z" fill="#F2B25E"/>
+  </svg>
+  <div class="copy">
+    <div class="k">Eid · Diwali · Christmas · New Year</div>
+    <h1>The Festive Edit</h1>
+    <div class="p">Light up every celebration.</div>
+    <div class="offer"><span>Up to 30% off</span><i></i><span>Free gift wrap</span></div>
+    <div class="cta">Shop the edit</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Work+Sans:wght@400;500;700&family=Courier+Prime:wght@700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Unboxing Day — an unboxing cover on corrugated kraft: a strip of parcel tape, a chunky script headline, the photo
+     sitting in an opened cardboard box (two flaps folded back) and a shipping label with tracking number, barcode and price.
+     tall / 3:4 → tape, headline, box, label band · square / wide → box left, tape + headline + label right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #C79A64; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3B2615; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif;
+    background:
+      repeating-linear-gradient(90deg, rgba(90,55,20,.06) 0 .5vmin, transparent .5vmin 1.4vmin),
+      radial-gradient(120vmin 90vmin at 30% 10%, #D4A872, #C79A64 55%, #B98A55 100%);
+    display: flex; flex-direction: column; padding: 11vmin 6vmin 5.4vmin; box-sizing: border-box; }
+
+  .tape { position: absolute; left: -3vmin; right: -3vmin; top: 3.4vmin; height: 5.6vmin; transform: rotate(-1.6deg);
+    background: linear-gradient(180deg, rgba(246,232,200,.92), rgba(234,214,172,.92)); box-shadow: 0 .4vmin 1vmin rgba(70,40,10,.18);
+    display: flex; align-items: center; justify-content: center; }
+  .tape span { font-size: 1.8vmin; font-weight: 700; letter-spacing: .34em; text-transform: uppercase; color: #9B3B22; white-space: nowrap; }
+
+  .head { position: relative; flex: none; }
+  h1 { margin: 0; font-family: "Shrikhand", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .98; color: #FFF4E2; text-shadow: .6vmin .6vmin 0 #7A4B22; }
+  .dek { margin-top: 1.8vmin; font-size: 2.3vmin; font-weight: 500; line-height: 1.35; color: #4A3019; }
+
+  .box { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 3vmin; }
+  .fl { position: absolute; top: 0; height: 6vmin; width: 50%; }
+  .fl.l { left: 0; background: linear-gradient(180deg, #A87644, #946336); clip-path: polygon(0 100%, 100% 100%, 94% 0, 8% 0); }
+  .fl.r { right: 0; background: linear-gradient(180deg, #B4824F, #9E6C3D); clip-path: polygon(0 100%, 100% 100%, 92% 0, 6% 0); }
+  .in { position: absolute; left: 0; right: 0; top: 6vmin; bottom: 0; background: #8A5A2E; padding: 1.6vmin; box-sizing: border-box; box-shadow: 0 1.6vmin 3vmin rgba(70,40,10,.3); }
+  .in img { position: absolute; left: 1.6vmin; top: 1.6vmin; width: calc(100% - 3.2vmin); height: calc(100% - 3.2vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .lbl { position: relative; flex: none; margin-top: 4vmin; display: flex; align-items: stretch; gap: 3.4vmin; }
+  .card { flex: 1 1 auto; min-width: 0; background: #FBF7EE; padding: 2.2vmin 2.6vmin; box-shadow: 0 .8vmin 1.8vmin rgba(70,40,10,.22); }
+  .card .r { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #8A7560; }
+  .card .to { margin-top: .8vmin; font-size: 3vmin; font-weight: 700; color: #3B2615; }
+  .card .bars { margin-top: 1.4vmin; height: 3.6vmin; background: repeating-linear-gradient(90deg, #2A1B0E 0 .3vmin, transparent .3vmin .7vmin, #2A1B0E .7vmin 1.1vmin, transparent 1.1vmin 1.3vmin, #2A1B0E 1.3vmin 1.5vmin, transparent 1.5vmin 2.2vmin); }
+  .card .trk { margin-top: .8vmin; font-family: "Courier Prime", monospace; font-weight: 700; font-size: 1.7vmin; letter-spacing: .14em; }
+  .buy { flex: none; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; }
+  .price { font-family: "Shrikhand", Georgia, serif; font-size: 7vmin; line-height: 1; color: #FFF4E2; text-shadow: .5vmin .5vmin 0 #7A4B22; }
+  .price small { display: block; margin-bottom: 1vmin; font-family: "Work Sans", sans-serif; font-size: 1.7vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #4A3019; text-shadow: none; text-align: right; }
+  .cta { padding: 1.9vmin 3vmin; border-radius: 99vmin; background: #3B2615; color: #FBF7EE; font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 9.4vmin 6vmin 4.6vmin; }
+    .tape { top: 2.6vmin; height: 5vmin; }
+    h1 { font-size: 9vmin; }
+    .dek { font-size: 2vmin; margin-top: 1.2vmin; }
+    .fl { height: 5vmin; } .in { top: 5vmin; }
+    .lbl { margin-top: 3.2vmin; }
+    .card { padding: 1.8vmin 2.4vmin; }
+    .card .to { font-size: 2.6vmin; }
+    .card .bars { height: 3vmin; margin-top: 1vmin; }
+    .price { font-size: 6vmin; }
+  }
+  /* ── square: box left, tape + headline + label right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .box { position: absolute; left: 5.6vmin; top: 4vmin; bottom: 5.6vmin; width: 48%; margin: 0; }
+    .tape { left: calc(48% + 8vmin); right: 2.4vmin; top: 5vmin; }
+    .tape span { font-size: 1.7vmin; letter-spacing: .18em; }
+    .card .r { flex-wrap: wrap; row-gap: .4vmin; }
+    .card .r span { white-space: nowrap; }
+    .head, .lbl { position: absolute; left: calc(48% + 11vmin); right: 5.6vmin; }
+    .head { top: 15vmin; }
+    h1 { font-size: 7.6vmin; }
+    .lbl { bottom: 5.6vmin; margin: 0; flex-direction: column; gap: 2.6vmin; }
+    .buy { flex-direction: row; align-items: center; justify-content: space-between; }
+    .price small { text-align: left; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .box { width: 44%; left: 6vmin; top: 4.4vmin; bottom: 6vmin; }
+    .tape { left: calc(44% + 9vmin); right: -3vmin; top: 6vmin; }
+    .tape span { font-size: 1.8vmin; letter-spacing: .34em; }
+    .head, .lbl { left: calc(44% + 13vmin); right: 7vmin; }
+    .head { top: 17vmin; }
+    h1 { font-size: 9.6vmin; }
+    .dek { font-size: 2.2vmin; }
+    .lbl { bottom: 6.4vmin; flex-direction: row; gap: 3.4vmin; }
+    .buy { flex-direction: column; align-items: flex-end; justify-content: space-between; }
+    .price small { text-align: right; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="tape"><span>Handle with style ✦ This side up</span></div>
+  <div class="head">
+    <h1>It's finally here.</h1>
+    <div class="dek">Unboxing the piece everyone asked about — tissue, ribbon and all.</div>
+  </div>
+  <div class="box"><i class="fl l"></i><i class="fl r"></i><div class="in"><img src="{{PRODUCT_IMAGE}}" alt=""></div></div>
+  <div class="lbl">
+    <div class="card">
+      <div class="r"><span>Ship to</span><span>From: Atelier Brume</span></div>
+      <div class="to">You, obviously.</div>
+      <div class="bars"></div>
+      <div class="trk">Nº 0425 7719 BR</div>
+    </div>
+    <div class="buy">
+      <div class="price"><small>Ships free</small>$96</div>
+      <div class="cta">Order yours →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

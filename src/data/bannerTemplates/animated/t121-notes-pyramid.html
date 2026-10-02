@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400;1,6..96,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Notes Pyramid — the collection written as a fragrance-notes pyramid: top / heart / base,
+     the offer sits in the base note. tall → photo above a cream panel; square/wide → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EDE5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4EDE5; color: #2A1F1A; font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+    --w: 50vmin; --h: 36vmin; --lw: 34vmin; --tf: 3.4vmin; --hf: 5.4vmin; --bf: 6.6vmin; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 55%; object-fit: cover; object-position: 50% 22%; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: calc(55% + 5vmin); bottom: 5vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .kick { display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: #7A5F50; white-space: nowrap; }
+  h1 { margin: 2.2vmin 0 0; font-family: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif; font-weight: 400; font-size: 7.8vmin; line-height: 1; letter-spacing: -.01em; white-space: nowrap; }
+  h1 i { font-weight: 400; color: #9A5A42; }
+
+  /* the pyramid */
+  .pyr { position: relative; height: var(--h); flex: none; }
+  .tri { position: absolute; left: 0; top: 0; width: var(--w); height: var(--h); overflow: visible; }
+  .tri polygon { stroke: #F4EDE5; stroke-width: .7vmin; vector-effect: non-scaling-stroke; stroke-linejoin: miter; }
+  .t { position: absolute; left: 0; width: var(--w); text-align: center; font-family: "Bodoni Moda", Georgia, serif; font-style: italic; line-height: 1; transform: translateY(-50%); white-space: nowrap; }
+  .t1 { top: calc(var(--h) * .235); font-size: var(--tf); color: #6B3F2E; }
+  .t2 { top: calc(var(--h) * .515); font-size: var(--hf); color: #3B2419; }
+  .t3 { top: calc(var(--h) * .82); font-size: var(--bf); font-style: normal; font-weight: 500; color: #FBF4EC; letter-spacing: -.01em; }
+  .lab { position: absolute; right: 0; display: flex; align-items: center; transform: translateY(-50%); }
+  .lab::before { content: ""; flex: 1; border-top: 1px dotted #9C7E6C; }
+  .lab span { width: var(--lw); box-sizing: border-box; padding-left: 2vmin; font-size: 2.2vmin; line-height: 1.25; color: #4A3A31; }
+  .lab b { display: block; margin-bottom: .5vmin; font-size: 1.6vmin; font-weight: 500; letter-spacing: .26em; text-transform: uppercase; color: #9A5A42; }
+  .l1 { top: calc(var(--h) * .235); left: calc(var(--w) * .64 + 1.4vmin); }
+  .l2 { top: calc(var(--h) * .515); left: calc(var(--w) * .77 + 1.4vmin); }
+  .l3 { top: calc(var(--h) * .82); left: calc(var(--w) * .93 + 1.4vmin); }
+
+  .foot { display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; padding-top: 2vmin; border-top: 1px solid #CDB8A8; font-size: 1.9vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; color: #6E574A; }
+  .foot b { font-weight: 500; color: #2A1F1A; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 52%; object-position: 50% 24%; }
+    .copy { top: calc(52% + 4.4vmin); bottom: 4.4vmin; }
+    .banner { --w: 40vmin; --h: 29vmin; --lw: 32vmin; --tf: 2.8vmin; --hf: 4.4vmin; --bf: 5.4vmin; }
+    h1 { font-size: 6.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 45%; height: 100%; object-position: 50% 25%; }
+    .copy { left: calc(45% + 5.5vmin); right: 5vmin; top: 6vmin; bottom: 5.5vmin; }
+    .banner { --w: 27vmin; --h: 32vmin; --lw: 20vmin; --tf: 2.2vmin; --hf: 3.2vmin; --bf: 3.6vmin; }
+    .kick { flex-direction: column; gap: 1vmin; }
+    h1 { margin-top: 3.4vmin; font-size: 6.2vmin; line-height: 1.02; white-space: normal; }
+    h1 i { display: block; }
+    .lab span { font-size: 1.9vmin; padding-left: 1.4vmin; }
+    .lab b { font-size: 1.6vmin; letter-spacing: .18em; }
+    .foot { flex-direction: column; gap: 1.2vmin; font-size: 1.7vmin; letter-spacing: .16em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .copy { left: calc(42% + 7vmin); right: 7vmin; top: 7.5vmin; bottom: 7vmin; }
+    .banner { --w: 40vmin; --h: 34vmin; --lw: 28vmin; --tf: 3vmin; --hf: 4.6vmin; --bf: 5.6vmin; }
+    .kick { flex-direction: row; }
+    h1 { font-size: 7.4vmin; }
+    .lab span { font-size: 2.2vmin; padding-left: 2vmin; }
+    .foot { flex-direction: row; font-size: 1.9vmin; letter-spacing: .2em; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* the notes rise: base → heart → top tiers warm in turn, each leader redraws to its label */
+  .tri polygon:nth-child(3) { animation: base 6s linear infinite; }
+  .tri polygon:nth-child(2) { animation: heart 6s linear infinite; }
+  .tri polygon:nth-child(1) { animation: top 6s linear infinite; }
+  @keyframes base  { 0%, 8%  { fill: #9A5A42; animation-timing-function: cubic-bezier(.4,0,.2,1); } 15% { fill: #B9745A; animation-timing-function: cubic-bezier(.5,0,.5,1); } 30%, 100% { fill: #9A5A42; } }
+  @keyframes heart { 0%, 20% { fill: #DDAE95; animation-timing-function: cubic-bezier(.4,0,.2,1); } 27% { fill: #ECC6B0; animation-timing-function: cubic-bezier(.5,0,.5,1); } 42%, 100% { fill: #DDAE95; } }
+  @keyframes top   { 0%, 32% { fill: #EED3C3; animation-timing-function: cubic-bezier(.4,0,.2,1); } 39% { fill: #FAE8DC; animation-timing-function: cubic-bezier(.5,0,.5,1); } 54%, 100% { fill: #EED3C3; } }
+  .lab::before { animation: lead 6s linear infinite; }
+  .l3::before { animation-delay: -1.8s; }
+  .l2::before { animation-delay: -1.1s; }
+  .l1::before { animation-delay: -.4s; }
+  @keyframes lead {
+    0%, 36% { clip-path: inset(-1px 0 -1px 0); animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    39% { clip-path: inset(-1px 0 -1px 100%); animation-timing-function: steps(1, end); }
+    39.5% { clip-path: inset(-1px 100% -1px 0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    46%, 100% { clip-path: inset(-1px 0 -1px 0); }
+  }
+  /* the offer in the base note swells with its tier */
+  .t3 { animation: swell 6s linear infinite; }
+  @keyframes swell { 0%, 8% { scale: 1; animation-timing-function: cubic-bezier(.3,0,.2,1); } 14% { scale: 1.07; animation-timing-function: cubic-bezier(.5,0,.4,1); } 26%, 100% { scale: 1; } }
+  /* top notes are the first to evaporate: "new" drifts up and dissolves, then re-forms */
+  .t1 { animation: evap 6s linear infinite; }
+  @keyframes evap {
+    0%, 56% { translate: 0 0; opacity: 1; filter: blur(0); animation-timing-function: cubic-bezier(.45,0,.7,.6); }
+    66% { translate: 0 -2.2vmin; opacity: 0; filter: blur(.4vmin); animation-timing-function: steps(1, end); }
+    70% { translate: 0 1vmin; opacity: 0; filter: blur(.4vmin); animation-timing-function: cubic-bezier(.2,.6,.3,1); }
+    82%, 100% { translate: 0 0; opacity: 1; filter: blur(0); }
+  }
+  .t2 { animation: evap2 6s linear infinite; }
+  @keyframes evap2 {
+    0%, 62% { translate: 0 0; opacity: 1; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    72% { translate: 0 -.6vmin; opacity: .55; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    84%, 100% { translate: 0 0; opacity: 1; }
+  }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div>
+      <div class="kick"><span>Maison Aurèle</span><span>Eau de Saison · Nº 26</span></div>
+      <h1>The notes <i>of the season</i></h1>
+    </div>
+    <div class="pyr">
+      <svg class="tri" viewBox="0 0 100 80" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="50,0 66.25,26 33.75,26" fill="#EED3C3"/>
+        <polygon points="33.75,26 66.25,26 82.5,52 17.5,52" fill="#DDAE95"/>
+        <polygon points="17.5,52 82.5,52 100,80 0,80" fill="#9A5A42"/>
+      </svg>
+      <div class="t t1">new</div>
+      <div class="t t2">light</div>
+      <div class="t t3">30% off</div>
+      <div class="lab l1"><span><b>Top note</b>Fresh cuts</span></div>
+      <div class="lab l2"><span><b>Heart note</b>Soft, easy fabrics</span></div>
+      <div class="lab l3"><span><b>Base note</b>Code BASE30</span></div>
+    </div>
+    <div class="foot"><span>Until 30 June</span><b>Discover the edit →</b></div>
+  </div>
+</div>
+</body>
+</html>

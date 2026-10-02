@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,500;0,700;0,900;1,900&family=Kalam:wght@700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Creator Duet — one piece, two creators: split panels (two crops of the photo) each captioned with the creator's name chip
+     and a handwritten styling note, a two-colour vote bar and a "shop both ways" CTA.
+     tall / 3:4 → panels stacked · square / wide → panels side by side between header and vote bar */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFF0D4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FFF0D4; color: #1B1B1B; box-sizing: border-box;
+    font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column; padding: 5vmin 6vmin 4.8vmin; }
+
+  .head { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .kick { font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #6A5E48; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-weight: 900; font-size: 9vmin; line-height: .9; letter-spacing: -.045em; text-transform: uppercase; }
+  h1 i { font-style: italic; color: #FF5A36; }
+  .vs { flex: none; width: 11vmin; height: 11vmin; border-radius: 50%; background: #1B1B1B; color: #FFF0D4; display: flex; align-items: center; justify-content: center;
+    font-family: "Kalam", cursive; font-size: 3.4vmin; line-height: 1; transform: rotate(-10deg); }
+
+  .duo { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 2.6vmin; margin-top: 3.4vmin; }
+  .pane { flex: 1 1 0; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+  .lab { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; margin-bottom: 1.4vmin; }
+  .chip { display: inline-flex; align-items: center; gap: 1vmin; padding: .8vmin 1.8vmin .8vmin 1vmin; border-radius: 99vmin; background: #1B1B1B; color: #FFF0D4; font-size: 1.8vmin; font-weight: 700; white-space: nowrap; }
+  .chip i { width: 2.4vmin; height: 2.4vmin; border-radius: 50%; background: #FF5A36; }
+  .b .chip i { background: #3558FF; }
+  .chip span { font-weight: 500; opacity: .7; }
+  .note { font-family: "Kalam", cursive; font-size: 2.6vmin; line-height: 1; color: #FF5A36; white-space: nowrap; transform: rotate(-2deg); }
+  .b .note { color: #3558FF; }
+  .ph { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .a img { object-position: 50% 22%; }
+  .b img { object-position: 50% 70%; transform: scale(1.18); transform-origin: 50% 60%; filter: saturate(1.08) contrast(1.04); }
+
+  .foot { flex: none; margin-top: 3vmin; }
+  .vote { display: flex; height: 4.6vmin; font-size: 1.8vmin; font-weight: 700; color: #FFF; }
+  .vote span { display: flex; align-items: center; padding: 0 1.6vmin; white-space: nowrap; }
+  .vote .va { flex: 54; background: #FF5A36; }
+  .vote .vb { flex: 46; background: #3558FF; justify-content: flex-end; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; margin-top: 2.2vmin; }
+  .row p { margin: 0; font-size: 1.9vmin; line-height: 1.35; color: #4A4234; }
+  .row p b { color: #1B1B1B; }
+  .cta { flex: none; padding: 1.8vmin 3vmin; border-radius: 99vmin; background: #1B1B1B; color: #FFF0D4; font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.2vmin; }
+    h1 { font-size: 7.6vmin; }
+    .vs { width: 9.4vmin; height: 9.4vmin; font-size: 3vmin; }
+    .duo { margin-top: 2.6vmin; gap: 2vmin; }
+    .lab { margin-bottom: 1vmin; }
+    .chip { font-size: 1.7vmin; }
+    .note { font-size: 2.3vmin; }
+    .foot { margin-top: 2.4vmin; }
+    .vote { height: 4vmin; }
+    .row { margin-top: 1.8vmin; }
+  }
+  /* ── square / wide: the two takes side by side ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { padding: 5vmin 5.4vmin 4.6vmin; }
+    .duo { flex-direction: row; gap: 3vmin; margin-top: 3vmin; }
+    h1 { font-size: 7vmin; }
+    h1 br { display: none; }
+    .vs { width: 9vmin; height: 9vmin; font-size: 2.8vmin; }
+    .lab { flex-direction: column; align-items: flex-start; gap: 1.2vmin; }
+    .note { font-size: 2.3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { padding: 5.4vmin 7vmin 5vmin; }
+    h1 { font-size: 7.6vmin; }
+    .duo { gap: 4vmin; }
+    .lab { flex-direction: row; align-items: center; }
+    .note { font-size: 2.6vmin; }
+    .foot { display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 4vmin; }
+    .row { margin: 0; }
+    .row p { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div><div class="kick">Duet · Oda Row creators</div><h1>One piece,<br><i>two takes.</i></h1></div>
+    <div class="vs">duet</div>
+  </div>
+  <div class="duo">
+    <div class="pane a"><div class="lab"><span class="chip"><i></i>Ama <span>@ama.layers</span></span><span class="note">desk → dinner</span></div><div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div></div>
+    <div class="pane b"><div class="lab"><span class="chip"><i></i>Rei <span>@rei.mode</span></span><span class="note">weekend, dressed down</span></div><div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div></div>
+  </div>
+  <div class="foot">
+    <div class="vote"><span class="va">Team Ama 54%</span><span class="vb">46% Team Rei</span></div>
+    <div class="row"><p><b>Which one are you?</b> Vote in the app, shop either way.</p><div class="cta">Shop both ways →</div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -16,6 +16,7 @@ const { getGpt25Quality, gpt25ImageSize } = require("../utils/gpt25Edit");
 const { SUNBURST_EDIT_MODEL, usesNb2ForModelCreation, usesSunburstForModelCreation, isSunburstContentRejection } = require("../utils/modelCreationModel");
 const { getGenerationCreditCost } = require("../utils/generationCredits");
 const { applyResultUpscale } = require("../utils/resultUpscale");
+const { normalizePhotoSwapMode, nearestSupportedRatio, buildPhotoSwapPrompt, hasLocationTarget } = require("../utils/photoSwapPrompt");
 const express = require("express");
 const router = express.Router();
 const mime = require("mime");
@@ -5158,6 +5159,120 @@ function finalizeGenerationPrompt(enhancedPrompt, {
   return enhancedPrompt;
 }
 
+/**
+ * 🔁 Model / Mekân Değiştir (23 Eyl 2026): Moda Stüdyosu'ndaki iki araç bu rotayı
+ * CreateModelPhotoScreen ile aynı sözleşmeyle çağırır (photoSwapMode). Ortak hazırlık
+ * (kredi ön kontrolü, referans yükleme, pending kayıt) aynen çalışır; sonra moda
+ * hattının Gemini/stil/havuz katmanlarına girmeden kaynak kare + model/mekân
+ * referansıyla nano-banana-2 edit çağrılır. Kredi BAŞARIDA düşer
+ * (updateGenerationStatus → deductCreditOnSuccess, iade kanıtı dahil).
+ */
+async function runPhotoSwapGeneration({ res, mode, userId, generationId, sourceUrl, modelUrl, locationImage, settings, customDetail, safetyTolerance }) {
+  const shortId = String(generationId).slice(0, 8);
+  try {
+    setGenerationProgress(generationId, "product");
+    const sourceResponse = await axios.get(sourceUrl, { responseType: "arraybuffer", timeout: 30000, maxContentLength: 40 * 1024 * 1024 });
+    const meta = await sharp(Buffer.from(sourceResponse.data)).metadata();
+    const rotated = (meta.orientation || 1) >= 5;
+    const aspectRatio = nearestSupportedRatio(rotated ? meta.height : meta.width, rotated ? meta.width : meta.height);
+
+    const imageUrls = [sanitizeImageUrl(sourceUrl)];
+    let hasModelReference = false;
+    let hasLocationReference = false;
+    setGenerationProgress(generationId, "request");
+    if (mode === "model" && modelUrl) {
+      imageUrls.push(sanitizeImageUrl(modelUrl));
+      hasModelReference = true;
+    }
+    if (mode === "location" && locationImage && !settings?.backgroundColorHex) {
+      try {
+        const venue = await axios.get(sanitizeImageUrl(String(locationImage).split("?")[0]), { responseType: "arraybuffer", timeout: 30000 });
+        const labelled = await stampLocationReference(Buffer.from(venue.data));
+        const stamped = await uploadReferenceImageToSupabase(`data:image/jpeg;base64,${labelled.toString("base64")}`, userId);
+        if (stamped) { imageUrls.push(stamped); hasLocationReference = true; }
+      } catch (venueError) {
+        logger.warn(`🔁 [PHOTO SWAP] ${shortId} mekân görseli hazırlanamadı, metinle devam:`, venueError.message);
+      }
+    }
+
+    const prompt = buildPhotoSwapPrompt(mode, { hasModelReference, hasLocationReference, settings, customDetail });
+    logger.log(`🔁 [PHOTO SWAP] ${mode} gen:${shortId} görsel:${imageUrls.length} oran:${aspectRatio} (${meta.width}x${meta.height})`);
+    await updateGenerationStatus(generationId, userId, "processing", { enhanced_prompt: prompt });
+    setGenerationProgress(generationId, "generating");
+
+    const thinkingLevel = await getNb2ThinkingLevel();
+    // Kaynak kare zaten tam çözünürlüklü: 2K çıktı düşürme yapmaz. 2 NB2 denemesi,
+    // olmazsa Nano Banana Pro ile son deneme.
+    const attempts = ["fal-ai/nano-banana-2/edit", "fal-ai/nano-banana-2/edit", "fal-ai/nano-banana-pro/edit"];
+    let resultUrl = null;
+    let lastError = null;
+    for (let index = 0; index < attempts.length && !resultUrl; index++) {
+      const model = attempts[index];
+      if (index > 0) setGenerationProgress(generationId, "retrying");
+      try {
+        const body = {
+          prompt,
+          image_urls: imageUrls,
+          output_format: "png",
+          aspect_ratio: aspectRatio,
+          num_images: 1,
+          resolution: "2K",
+          safety_tolerance: safetyTolerance,
+          ...(model.includes("nano-banana-2") && thinkingLevel !== "off" ? { thinking_level: thinkingLevel } : {}),
+        };
+        const response = await axios.post(`https://fal.run/${model}`, body, {
+          headers: { Authorization: `Key ${process.env.FAL_API_KEY}`, "Content-Type": "application/json" },
+          timeout: 300000,
+        });
+        resultUrl = response.data?.images?.[0]?.url || null;
+        if (!resultUrl) throw new Error(response.data?.detail || "no image returned");
+        logger.log(`✅ [PHOTO SWAP] ${shortId} ${model} ile tamamlandı (deneme ${index + 1})`);
+      } catch (error) {
+        lastError = error;
+        const detail = JSON.stringify(error.response?.data || error.message || "").slice(0, 400);
+        logger.warn(`⚠️ [PHOTO SWAP] ${shortId} ${model} deneme ${index + 1} başarısız: ${detail}`);
+        if (index < attempts.length - 1) await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
+    if (!resultUrl) throw lastError || new Error("generation_failed");
+
+    setGenerationProgress(generationId, "finishing");
+    await updateGenerationStatus(generationId, userId, "completed", {
+      result_image_url: resultUrl,
+      enhanced_prompt: prompt,
+    });
+    const { data: saved } = await supabase
+      .from("reference_results")
+      .select("result_image_url")
+      .eq("generation_id", generationId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    let currentCredit = null;
+    try {
+      const { data: account } = await supabase.from("users").select("credit_balance").eq("id", userId).maybeSingle();
+      currentCredit = account?.credit_balance ?? null;
+    } catch (_) {}
+    clearGenerationProgress(generationId, "tamamlandı");
+    const finalUrl = saved?.result_image_url || resultUrl;
+    return res.json({
+      success: true,
+      result: { imageUrl: finalUrl, output: [finalUrl], generationId, photoSwapMode: mode, currentCredit, apiUsed: "nano-banana-2:photo-swap" },
+    });
+  } catch (error) {
+    const detail = JSON.stringify(error.response?.data || "").toLowerCase();
+    const contentPolicy = /content_policy|safety|moderation|nsfw/.test(detail);
+    console.error(`❌ [PHOTO SWAP] ${mode} gen:${shortId} başarısız:`, error.message);
+    await updateGenerationStatus(generationId, userId, "failed", {
+      generationFailure: { code: contentPolicy ? "content_policy" : "generation_failed", stage: "photo_swap", mode },
+    });
+    clearGenerationProgress(generationId, "hata");
+    return res.status(contentPolicy ? 400 : 500).json({
+      success: false,
+      result: { errorCode: contentPolicy ? "CONTENT_POLICY" : "GENERATION_FAILED", generationId, message: error.message },
+    });
+  }
+}
+
 router.post("/generate", async (req, res) => {
   // 🔎 Teşhis logu (21 Ağu): "polling 404: kayıt yok" vakalarında POST'un
   // sunucuya ULAŞIP ulaşmadığını ayırt etmek için handler'ın İLK satırı.
@@ -5220,6 +5335,50 @@ router.post("/generate", async (req, res) => {
     } = req.body;
     ({ settings, prompt: promptText } = normalizeGenerationAge(settings, promptText));
 
+    // 🔁 Model / Mekân Değiştir (Moda Stüdyosu araçları): tek kaynak kare + model ya da
+    // mekân seçimi. Moda hattının stil/havuz/kombin katmanları bu istekte kapalı.
+    const photoSwapMode = normalizePhotoSwapMode(req.body?.photoSwapMode);
+    if (req.body?.photoSwapMode && !photoSwapMode) {
+      return res.status(400).json({ success: false, result: { errorCode: "INVALID_PHOTO_SWAP", message: "Unknown photo swap mode" } });
+    }
+    if (photoSwapMode) {
+      const imageCount = Array.isArray(referenceImages) ? referenceImages.length : 0;
+      settings = { ...(settings || {}) };
+      if (photoSwapMode === "model") {
+        for (const key of ["location", "locationEnhancedPrompt", "locationId", "backgroundColorHex", "weather", "timeOfDay"]) delete settings[key];
+        locationImage = null;
+      } else {
+        modelPhoto = null;
+        modelProfile = null;
+      }
+      if (imageCount !== 1 || (photoSwapMode === "location" && !hasLocationTarget(settings, locationImage))) {
+        return res.status(400).json({ success: false, result: { errorCode: "INVALID_PHOTO_SWAP", message: photoSwapMode === "location" ? "A location is required" : "Exactly one source photo is required" } });
+      }
+      customDetail = typeof customDetail === "string" ? customDetail : null;
+      // Kayıt ve geçmiş için okunur bir özgün istem (asıl istem photoSwapPrompt'ta kurulur)
+      promptText = (typeof promptText === "string" && promptText.trim()) || `[photo-swap] ${photoSwapMode}`;
+      isEditMode = false;
+      isRefinerMode = false;
+      isColorChange = false;
+      isPoseChange = false;
+      styleProfileId = null;
+      styleReferenceImage = null;
+      sizeReferenceImage = null;
+      kombinOriginalImages = null;
+      kombinPieces = null;
+      angleOriginalImages = null;
+      poseImage = null;
+      hairStyleImage = null;
+      editorialMode = false;
+      enableAutomaticTrialVariation = false;
+      upscaleMp = 4;
+      isMultipleImages = false;
+      isMultipleAnglesMode = false;
+      multipleAnglesCount = 0;
+      settings = { ...settings, qualityVersion: "v1", photoSwapMode, source: `photo-swap-${photoSwapMode}` };
+      logger.log(`🔁 [PHOTO SWAP] ${photoSwapMode} isteği gen:${String(generationId || "-").slice(0, 8)} model:${modelPhoto ? "seçili" : "-"} mekân:${locationImage ? "görsel" : settings.location ? "metin" : settings.backgroundColorHex ? "renk" : "-"}`);
+    }
+
     // 🩱 İç giyim / erotik ürün kilidi (23 Eyl 2026, kullanıcı isteği): client
     // /api/product-type/intimate-check ile ürünü iç giyim bulduysa kullanıcının
     // KENDİ seçtiği model fotoğrafı kullanılmaz — yalnız "Yapay Zekaya Bırak"
@@ -5259,6 +5418,7 @@ router.post("/generate", async (req, res) => {
 
     if (
       !modelPhoto &&
+      !photoSwapMode &&
       !legacyFlags.skipAutoPoolModel &&
       !isEditMode &&
       !isRefinerMode &&
@@ -5841,6 +6001,23 @@ router.post("/generate", async (req, res) => {
     await updateGenerationStatus(finalGenerationId, userId, "processing");
     // 🧭 Results kartındaki kullanıcı dostu aşama yazısı (services/generationProgress)
     setGenerationProgress(finalGenerationId, "preparing");
+
+    // 🔁 Model / Mekân Değiştir: moda hattına girmeden kaynak kare üzerinde düzenleme
+    if (photoSwapMode) {
+      generationStage = "photo_swap";
+      return runPhotoSwapGeneration({
+        res,
+        mode: photoSwapMode,
+        userId,
+        generationId: finalGenerationId,
+        sourceUrl: referenceImageUrls[0],
+        modelUrl: modelReferenceImage?.uri || modelPhoto || null,
+        locationImage,
+        settings,
+        customDetail,
+        safetyTolerance,
+      });
+    }
 
     logger.log("🎛️ [BACKEND] Gelen settings parametresi:", settings);
     logger.log("🏞️ [BACKEND] Settings içindeki location:", settings?.location);
@@ -9393,6 +9570,9 @@ router.get("/user-generations/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     const { status, platform } = req.query; // Opsiyonel: belirli statusleri filtrelemek için, platform: 'web' veya 'mobile'
+    // 🔁 Model / Mekân Değiştir ekranları yalnız kendi sonuçlarını ister (son 7 gün, en çok 30 gün)
+    const photoSwapFilter = normalizePhotoSwapMode(req.query.photoSwapMode);
+    const historySinceHours = photoSwapFilter ? Math.min(720, Math.max(1, Number(req.query.sinceHours) || 168)) : 1;
 
     if (!userId) {
       return res.status(400).json({
@@ -9425,7 +9605,7 @@ router.get("/user-generations/:userId", async (req, res) => {
 
     // 🕐 Her zaman son 1 saatlik data'yı döndür
     const oneHourAgo = new Date();
-    oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+    oneHourAgo.setHours(oneHourAgo.getHours() - historySinceHours);
     const oneHourAgoISO = oneHourAgo.toISOString();
 
     logger.log(
@@ -9447,6 +9627,7 @@ router.get("/user-generations/:userId", async (req, res) => {
       .in("user_id", memberIds)
       .gte("created_at", oneHourAgoISO) // Her zaman 1 saatlik filtreleme
       .order("created_at", { ascending: false });
+    if (photoSwapFilter) query = query.eq("settings->>photoSwapMode", photoSwapFilter).limit(40);
 
     // Status filtresi varsa uygula
     if (status) {

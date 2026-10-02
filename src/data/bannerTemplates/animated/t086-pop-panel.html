@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="4">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  /* Pow! — pop-art comic page: Ben-Day dots, a caption box, a speech bubble and a starburst offer */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFFDF4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FFFDF4; color: #111; font-family: "Patrick Hand", "Comic Sans MS", "Chalkboard SE", sans-serif; }
+
+  /* TALL — two stacked comic panels */
+  .pa { position: absolute; top: 3.4vmin; left: 3.4vmin; right: 3.4vmin; height: calc(60% - 5vmin); border: .9vmin solid #111; overflow: hidden; background: #111; }
+  .pa img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .pb { position: absolute; top: calc(60% + 1.4vmin); left: 3.4vmin; right: 3.4vmin; bottom: 3.4vmin; border: .9vmin solid #111; overflow: hidden;
+        background-color: #FFD83A; background-image: radial-gradient(circle, #F2912E .62vmin, transparent .72vmin); background-size: 2.5vmin 2.5vmin; }
+
+  .capt { position: absolute; top: 0; left: 0; background: #FFFDF4; border-right: .6vmin solid #111; border-bottom: .6vmin solid #111; padding: 1.2vmin 2.4vmin; font-size: 2.7vmin; text-transform: uppercase; letter-spacing: .02em; line-height: 1.1; }
+  .bubble { position: absolute; left: 3.4vmin; bottom: 13vmin; width: 44vmin; padding: 3vmin 3.4vmin; background: #FFFDF4; border: .6vmin solid #111; border-radius: 50%; text-align: center; font-family: "Bangers", Impact, sans-serif; font-size: 5.4vmin; line-height: .95; letter-spacing: .03em; }
+  .bubble::before { content: ""; position: absolute; left: 30%; top: -5.6vmin; width: 6vmin; height: 7vmin; background: #111; clip-path: polygon(20% 0, 100% 100%, 0 100%); }
+  .bubble::after { content: ""; position: absolute; left: calc(30% + .9vmin); top: -3.8vmin; width: 4.4vmin; height: 5vmin; background: #FFFDF4; clip-path: polygon(20% 0, 100% 100%, 0 100%); }
+  .bubble em { font-style: normal; color: #E4312B; }
+
+  .burst { position: absolute; right: 1.4vmin; top: 6vmin; width: 33vmin; height: 33vmin; }
+  .burst::before, .burst::after { content: ""; position: absolute; clip-path: polygon(50.0% 3.8%, 57.0% 19.3%, 70.4% 7.7%, 69.8% 25.2%, 85.4% 21.7%, 79.7% 35.7%, 98.3% 39.0%, 85.0% 50.0%, 97.6% 60.9%, 78.9% 63.9%, 87.3% 79.7%, 70.2% 75.3%, 69.9% 91.3%, 57.0% 80.7%, 50.0% 96.1%, 42.1% 84.7%, 28.7% 94.3%, 28.2% 77.4%, 11.7% 80.6%, 21.2% 63.9%, 4.6% 60.4%, 15.9% 50.0%, 2.6% 39.2%, 18.2% 34.7%, 11.4% 19.2%, 30.4% 25.4%, 29.2% 6.7%, 42.4% 16.5%); }
+  .burst::before { inset: 0; background: #111; }
+  .burst::after { inset: 1.4vmin; background: #E4312B; }
+  .burst div { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-8deg); font-family: "Bangers", Impact, sans-serif; color: #FFD83A; text-align: center; }
+  .burst small { font-size: 5vmin; letter-spacing: .06em; color: #FFFDF4; line-height: 1; -webkit-text-stroke: .3vmin #111; paint-order: stroke fill; }
+  .burst b { font-weight: 400; font-size: 9.6vmin; line-height: .9; letter-spacing: .02em; -webkit-text-stroke: .45vmin #111; paint-order: stroke fill; }
+
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: stretch; justify-content: space-between; border-top: .6vmin solid #111; background: #FFFDF4; font-size: 2.6vmin; text-transform: uppercase; }
+  .foot span { padding: 1.4vmin 2.4vmin; display: flex; align-items: center; }
+  .foot .cta { background: #2E6FD8; color: #FFFDF4; border-left: .6vmin solid #111; font-family: "Bangers", Impact, sans-serif; font-size: 3.8vmin; letter-spacing: .06em; white-space: nowrap; }
+
+  /* SHORTER PORTRAIT & SQUARE — panels side by side */
+  @media (min-aspect-ratio: 7/10) {
+    .pa { right: auto; width: calc(55% - 5vmin); height: auto; bottom: 3.4vmin; }
+    .pb { top: 3.4vmin; left: calc(55% + 1.4vmin); }
+    .capt { font-size: 2.3vmin; padding: 1vmin 1.8vmin; right: 0; border-right: 0; }
+    .bubble { left: 3vmin; right: 3vmin; top: auto; bottom: 13vmin; width: auto; padding: 2.6vmin 2.4vmin; font-size: 4.6vmin; }
+    .bubble::before { left: -4.4vmin; top: 40%; width: 7vmin; height: 5vmin; clip-path: polygon(0 20%, 100% 0, 100% 100%); }
+    .bubble::after { left: -2.2vmin; top: calc(40% + .9vmin); width: 4.6vmin; height: 3.2vmin; clip-path: polygon(0 20%, 100% 0, 100% 100%); }
+    .burst { left: 50%; right: auto; top: 9vmin; width: 30vmin; height: 30vmin; margin-left: -15vmin; }
+    .burst small { font-size: 4vmin; }
+    .burst b { font-size: 8.6vmin; }
+    .foot { font-size: 2vmin; }
+    .foot span { padding: 1.2vmin 1.6vmin; }
+    .foot .cta { font-size: 3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .pa { width: calc(52% - 5vmin); }
+    .pb { left: calc(52% + 1.4vmin); }
+    .burst { top: 8vmin; width: 27vmin; height: 27vmin; margin-left: -13.5vmin; }
+    .burst b { font-size: 7.6vmin; }
+    .burst small { font-size: 3.6vmin; }
+    .bubble { font-size: 4vmin; bottom: 11.4vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .pa { width: calc(44% - 5vmin); }
+    .pb { left: calc(44% + 1.4vmin); }
+    .capt { right: auto; border-right: .6vmin solid #111; font-size: 2.6vmin; }
+    .bubble { left: 5vmin; right: auto; top: auto; bottom: 14vmin; width: 40vmin; font-size: 5vmin; padding: 3.2vmin 3vmin; }
+    .burst { left: auto; right: 3vmin; top: 5vmin; margin: 0; width: 38vmin; height: 38vmin; }
+    .burst b { font-size: 10.6vmin; }
+    .burst small { font-size: 4.8vmin; }
+    .foot { font-size: 2.4vmin; }
+    .foot .cta { font-size: 3.6vmin; }
+  }
+
+  /* ───────── motion: 4s loop, t=0 = the static design — comic-book energy: dots drift, POW lands, the bubble speaks ───────── */
+  /* Ben-Day dots drift diagonally, exactly one dot cell per loop */
+  .pb { animation: dots 4s linear infinite; }
+  @keyframes dots { from { background-position: 0 0; } to { background-position: 2.5vmin 2.5vmin; } }
+  /* POW! — the starburst winds up and hits, with a shake */
+  .burst { animation: pow 4s linear infinite; }
+  @keyframes pow {
+    0%, 14% { transform: scale(1) rotate(0deg); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    20% { transform: scale(.78) rotate(-8deg); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    25% { transform: scale(1.18) rotate(6deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    28% { transform: scale(1.04) rotate(-3deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    31% { transform: scale(1.08) rotate(2deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    35%, 100% { transform: scale(1) rotate(0deg); }
+  }
+  /* impact flash inside the burst */
+  .burst::after { animation: flash 4s linear infinite; }
+  @keyframes flash {
+    0%, 21% { background: #E4312B; animation-timing-function: steps(1, end); }
+    22%, 24% { background: #FFFDF4; animation-timing-function: steps(1, end); }
+    25%, 100% { background: #E4312B; }
+  }
+  /* the speech bubble pops as it "speaks" */
+  .bubble { transform-origin: 30% 0; animation: speak 4s linear infinite; }
+  @media (min-aspect-ratio: 7/10) { .bubble { transform-origin: 0 50%; } }
+  @keyframes speak {
+    0%, 48% { transform: scale(1); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    52% { transform: scale(.9); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    57% { transform: scale(1.06); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    62%, 100% { transform: scale(1); }
+  }
+  .bubble em { display: inline-block; animation: shout 4s linear infinite; }
+  @keyframes shout {
+    0%, 52% { transform: scale(1) rotate(0deg); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    57% { transform: scale(1.12) rotate(-3deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    64%, 100% { transform: scale(1) rotate(0deg); }
+  }
+  /* CTA shakes for attention */
+  .foot .cta { animation: shake 4s linear infinite; }
+  @keyframes shake {
+    0%, 78% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    81% { transform: rotate(-3deg) scale(1.04); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    84% { transform: rotate(3deg) scale(1.04); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    87% { transform: rotate(-2deg); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    90%, 100% { transform: rotate(0deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="pa"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="pb">
+    <div class="capt">Meanwhile, at the new drop…</div>
+    <div class="bubble">I’ll take <em>the whole</em> collection!</div>
+    <div class="burst"><div><small>Pow!</small><b>−50%</b></div></div>
+    <div class="foot"><span>Code POW50 · ends Sunday</span><span class="cta">Shop now!</span></div>
+  </div>
+</div>
+</body>
+</html>

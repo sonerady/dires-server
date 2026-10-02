@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Swap Ticket — the free size-swap promise issued as a cloakroom ticket: a coral two-part stub with a big
+     slab number, punched hole, perforation and matching "keep this half" counterfoil. Not quite right?
+     Hand it back, get your size — any size from XS to 4XL, free for 60 days.
+     tall → photo above, headline and ticket below · square / wide → photo left, ticket right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE7DA; }
+  .banner { --panel: max(76vmin, 45%); --bg: #EFE7DA; --t: #E4533B; position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: #231A15; font-family: "Courier Prime", "Courier New", monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.9vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .kick span:last-child { color: #B23A26; }
+  h1 { margin: 2vmin 0 0; font-family: "Alfa Slab One", Rockwell, Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: .98; letter-spacing: -.01em; }
+  h1 em { font-style: normal; color: var(--t); }
+
+  .ticket { position: relative; margin-top: 3.6vmin; display: flex; color: #FFF4EA; filter: drop-shadow(0 1vmin 1.6vmin rgba(60,20,10,.22)); transform: rotate(-1.6deg); }
+  .stub, .keep { position: relative; background: var(--t); }
+  .stub { flex: 1; padding: 3vmin 3.4vmin 3vmin 8.4vmin; }
+  .stub::before { content: ""; position: absolute; left: 2.6vmin; top: 50%; width: 3.2vmin; height: 3.2vmin; margin-top: -1.6vmin; border-radius: 50%; background: var(--bg); box-shadow: inset 0 .3vmin .5vmin rgba(0,0,0,.2); }
+  .stub small, .keep small { display: block; font-weight: 700; font-size: 1.7vmin; letter-spacing: .18em; text-transform: uppercase; }
+  .stub b { display: block; margin: 1.4vmin 0 .6vmin; font-family: "Alfa Slab One", Rockwell, serif; font-weight: 400; font-size: 12vmin; line-height: .9; }
+  .stub p { margin: 0; font-size: 2.2vmin; line-height: 1.3; }
+  .keep { flex: none; width: 21vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1vmin; padding: 2vmin 1.4vmin;
+    border-left: .5vmin dotted var(--bg); }
+  .keep b { font-family: "Alfa Slab One", Rockwell, serif; font-weight: 400; font-size: 7vmin; line-height: .9; }
+  .keep::before, .keep::after { content: ""; position: absolute; left: -2vmin; width: 3.6vmin; height: 3.6vmin; border-radius: 50%; background: var(--bg); }
+  .keep::before { top: -1.8vmin; } .keep::after { bottom: -1.8vmin; }
+
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 2vmin; border-top: 1px solid rgba(35,26,21,.3); }
+  .foot p { margin: 0; font-size: 2vmin; line-height: 1.35; }
+  .cta { flex: none; background: #231A15; color: #EFE7DA; padding: 1.9vmin 3vmin; font-weight: 700; font-size: 2.2vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .panel { bottom: 4vmin; height: calc(var(--panel) - 8vmin); }
+    h1 { font-size: 8.6vmin; }
+    .ticket { margin-top: 2.8vmin; }
+    .stub { padding: 2.4vmin 3vmin 2.4vmin 8vmin; }
+    .stub b { font-size: 10vmin; }
+  }
+  /* square → photo left, ticket right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; }
+    .panel { left: calc(48% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .kick { flex-direction: column; gap: .6vmin; font-size: 1.7vmin; }
+    h1 { margin-top: 2.4vmin; font-size: 7vmin; }
+    .ticket { flex-direction: column; margin-top: 3vmin; transform: rotate(-2deg); }
+    .stub { padding: 2.6vmin 3vmin 2.6vmin 7.6vmin; }
+    .stub b { font-size: 8.4vmin; }
+    .stub p { font-size: 2vmin; }
+    .keep { width: auto; flex-direction: row; justify-content: space-between; padding: 1.4vmin 3vmin; border-left: 0; border-top: .5vmin dotted var(--bg); }
+    .keep b { font-size: 5vmin; }
+    .keep::before, .keep::after { top: -2vmin; bottom: auto; }
+    .keep::before { left: -1.8vmin; } .keep::after { left: auto; right: -1.8vmin; }
+    .foot { flex-direction: column; align-items: stretch; gap: 1.6vmin; }
+    .foot p { font-size: 1.8vmin; }
+    .cta { text-align: center; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 28%; }
+    .panel { left: calc(44% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .kick { flex-direction: row; font-size: 1.8vmin; }
+    h1 { margin-top: 2.6vmin; font-size: 8.8vmin; }
+    .ticket { flex-direction: row; margin-top: 4.4vmin; transform: rotate(-1.6deg); }
+    .stub { padding: 3vmin 3.4vmin 3vmin 8.4vmin; }
+    .stub b { font-size: 11vmin; }
+    .keep { width: 20vmin; flex-direction: column; justify-content: center; padding: 2vmin 1.4vmin; border-top: 0; border-left: .5vmin dotted var(--bg); }
+    .keep b { font-size: 6.6vmin; }
+    .keep::before { left: -2vmin; top: -1.8vmin; right: auto; } .keep::after { left: -2vmin; right: auto; top: auto; bottom: -1.8vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .foot p { font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><span>Studio Oro · Size desk</span><span>Free for 60 days</span></div>
+    <h1>Not quite right?<br><em>Swap</em> your size.</h1>
+    <div class="ticket">
+      <div class="stub"><small>Size swap · Free</small><b>Nº 042</b><p>Any size, XS to 4XL.<br>No questions, no fee.</p></div>
+      <div class="keep"><small>Keep<br>this half</small><b>042</b></div>
+    </div>
+    <div class="foot"><p>New collection in every size.<br>Swaps in store or by post.</p><span class="cta">Shop now</span></div>
+  </div>
+</div>
+</body>
+</html>

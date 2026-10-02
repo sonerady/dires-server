@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;700;900&family=Kaushan+Script&display=swap" rel="stylesheet">
+<style>
+  /* Bandana Paisley — the copy printed on a turkey-red bandana: dotted hem, a border of white paisleys with black keylines,
+     a field of four-dot flowers and a plain centre medallion framed in white rules for the offer.
+     tall → photo above, bandana below · square & wide → photo left, bandana right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #B51F2A; }
+  .banner { --red: #B51F2A; --ink: #1B1414; --white: #FBF6EE; --panel: 86vmin; --bd: 10vmin; --rim: 3vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--red); color: var(--white); font-family: "Rokkitt", Rockwell, Georgia, serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .cloth { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); overflow: hidden; background: var(--red);
+    box-shadow: inset 0 .8vmin 1.4vmin -.4vmin rgba(60,0,5,.5); }
+  .weave { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; z-index: 5; }
+  /* hem: a white rule and a row of dots */
+  .hem { position: absolute; inset: 1.2vmin; border: .4vmin solid var(--white); }
+  .hem::after { content: ""; position: absolute; inset: .9vmin; border: .55vmin dotted var(--white); }
+  /* paisley border */
+  .bd { position: absolute; background-color: var(--red); }
+  .bd.t, .bd.b { left: var(--rim); right: var(--rim); height: var(--bd); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg transform='rotate(0 20 20)'%3E%3Cpath d='M14 34C6 33 4 24 9 18c4-5 12-6 15-12 2 6 1 11 3 16 3 8-3 13-13 12z' fill='%23fff'/%3E%3Cpath d='M14 30c-5-1-6-6-3-10 3-3 8-4 10-8 1 4 1 7 2 10 1 6-3 9-9 8z' fill='none' stroke='%231B1414' stroke-width='1.2'/%3E%3Ccircle cx='14' cy='24' r='2.6' fill='%23B51F2A'/%3E%3Ccircle cx='14' cy='24' r='1' fill='%23fff'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='31' cy='31' r='1.7'/%3E%3Ccircle cx='34' cy='24' r='1'/%3E%3Ccircle cx='36' cy='9' r='1.3'/%3E%3Ccircle cx='4' cy='6' r='1.3'/%3E%3Ccircle cx='9' cy='3' r='.9'/%3E%3C/g%3E%3Cg fill='%231B1414'%3E%3Ccircle cx='31' cy='31' r='.6'/%3E%3Ccircle cx='36' cy='9' r='.5'/%3E%3Ccircle cx='4' cy='6' r='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); background-size: var(--bd) var(--bd); background-repeat: repeat-x; background-position: center; }
+  .bd.t { top: var(--rim); } .bd.b { bottom: var(--rim); transform: scaleY(-1); }
+  .bd.l, .bd.r { top: calc(var(--rim) + var(--bd)); bottom: calc(var(--rim) + var(--bd)); width: var(--bd); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cg transform='rotate(90 20 20)'%3E%3Cpath d='M14 34C6 33 4 24 9 18c4-5 12-6 15-12 2 6 1 11 3 16 3 8-3 13-13 12z' fill='%23fff'/%3E%3Cpath d='M14 30c-5-1-6-6-3-10 3-3 8-4 10-8 1 4 1 7 2 10 1 6-3 9-9 8z' fill='none' stroke='%231B1414' stroke-width='1.2'/%3E%3Ccircle cx='14' cy='24' r='2.6' fill='%23B51F2A'/%3E%3Ccircle cx='14' cy='24' r='1' fill='%23fff'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='31' cy='31' r='1.7'/%3E%3Ccircle cx='34' cy='24' r='1'/%3E%3Ccircle cx='36' cy='9' r='1.3'/%3E%3Ccircle cx='4' cy='6' r='1.3'/%3E%3Ccircle cx='9' cy='3' r='.9'/%3E%3C/g%3E%3Cg fill='%231B1414'%3E%3Ccircle cx='31' cy='31' r='.6'/%3E%3Ccircle cx='36' cy='9' r='.5'/%3E%3Ccircle cx='4' cy='6' r='.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); background-size: var(--bd) var(--bd); background-repeat: repeat-y; background-position: center; }
+  .bd.l { left: var(--rim); transform: scaleX(-1); } .bd.r { right: var(--rim); }
+  /* flower field */
+  .field { position: absolute; inset: calc(var(--rim) + var(--bd)); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg fill='%23fff'%3E%3Ccircle cx='10' cy='7.4' r='1.5'/%3E%3Ccircle cx='10' cy='12.6' r='1.5'/%3E%3Ccircle cx='7.4' cy='10' r='1.5'/%3E%3Ccircle cx='12.6' cy='10' r='1.5'/%3E%3Ccircle cx='0' cy='0' r='.9'/%3E%3Ccircle cx='20' cy='0' r='.9'/%3E%3Ccircle cx='0' cy='20' r='.9'/%3E%3Ccircle cx='20' cy='20' r='.9'/%3E%3C/g%3E%3Ccircle cx='10' cy='10' r='1.1' fill='%231B1414'/%3E%3C/svg%3E"); background-size: 6vmin 6vmin; background-position: center; opacity: .95; }
+  .field::before { content: ""; position: absolute; inset: -.2vmin; border: .4vmin solid var(--white); outline: .3vmin dotted var(--white); outline-offset: -1.4vmin; }
+
+  /* centre medallion */
+  .med { position: absolute; left: calc(var(--rim) + var(--bd) + 5vmin); right: calc(var(--rim) + var(--bd) + 5vmin); top: calc(var(--rim) + var(--bd) + 5vmin); bottom: calc(var(--rim) + var(--bd) + 5vmin);
+    background: var(--red); border: .4vmin solid var(--white); box-shadow: 0 0 0 1.2vmin var(--red), 0 0 0 1.6vmin var(--white);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-sizing: border-box; padding: 2vmin 3vmin; }
+  .k { display: flex; align-items: center; gap: 1.6vmin; font-weight: 700; font-size: 2vmin; letter-spacing: .34em; text-transform: uppercase; white-space: nowrap; }
+  .k::before, .k::after { content: ""; width: 1.4vmin; height: 1.4vmin; background: var(--white); transform: rotate(45deg); }
+  h1 { margin: 1.8vmin 0 0; font-weight: 900; font-size: 11.6vmin; line-height: .9; letter-spacing: -.01em; white-space: nowrap; text-shadow: .45vmin .45vmin 0 var(--ink); }
+  .script { margin-top: .6vmin; font-family: "Kaushan Script", cursive; font-size: 5.2vmin; line-height: 1.2; white-space: nowrap; }
+  .offer { margin-top: 2.2vmin; display: flex; align-items: center; gap: 2vmin; font-weight: 700; font-size: 2.6vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .offer b { font-weight: 900; font-size: 4.6vmin; letter-spacing: 0; background: var(--white); color: var(--red); padding: .3vmin 1.4vmin .1vmin; }
+  .cta { margin-top: 2vmin; font-weight: 700; font-size: 2.2vmin; letter-spacing: .26em; text-transform: uppercase; white-space: nowrap; padding-bottom: .6vmin; border-bottom: .3vmin solid var(--white); }
+
+  /* 3:4 – 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 70vmin; --bd: 8.4vmin; }
+    .med { padding: 1.4vmin 3vmin; }
+    h1 { font-size: 10.4vmin; margin-top: 1.2vmin; }
+    .script { font-size: 4.6vmin; }
+    .offer { margin-top: 1.6vmin; }
+    .cta { margin-top: 1.6vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --bd: 7.4vmin; --rim: 2.8vmin; }
+    .photo { width: 45%; height: 100%; object-position: 50% 25%; }
+    .cloth { left: 45%; top: 0; height: auto; box-shadow: inset .8vmin 0 1.4vmin -.4vmin rgba(60,0,5,.5); }
+    .med { left: calc(var(--rim) + var(--bd) + 3.4vmin); right: calc(var(--rim) + var(--bd) + 3.4vmin); top: calc(var(--rim) + var(--bd) + 4vmin); bottom: calc(var(--rim) + var(--bd) + 4vmin); padding: 2vmin 1.6vmin; }
+    .k { font-size: 1.7vmin; letter-spacing: .24em; gap: 1vmin; }
+    .k::before, .k::after { width: 1vmin; height: 1vmin; }
+    h1 { font-size: 7.4vmin; text-shadow: .35vmin .35vmin 0 var(--ink); }
+    .script { font-size: 3.8vmin; }
+    .offer { flex-direction: column; gap: 1vmin; font-size: 1.9vmin; margin-top: 2vmin; }
+    .offer b { font-size: 3.8vmin; }
+    .cta { font-size: 1.8vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --bd: 8.4vmin; --rim: 3vmin; }
+    .photo { width: 48%; }
+    .cloth { left: 48%; }
+    .med { left: calc(var(--rim) + var(--bd) + 5vmin); right: calc(var(--rim) + var(--bd) + 5vmin); top: calc(var(--rim) + var(--bd) + 5vmin); bottom: calc(var(--rim) + var(--bd) + 5vmin); padding: 2vmin 3vmin; }
+    .k { font-size: 1.9vmin; letter-spacing: .3em; }
+    h1 { font-size: 10vmin; }
+    .script { font-size: 4.8vmin; }
+    .offer { flex-direction: row; font-size: 2.3vmin; }
+    .offer b { font-size: 4.2vmin; }
+    .cta { font-size: 2vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the printed bandana) ─────────
+     constant: the paisley border runs clockwise round the square exactly one motif per loop; the flower field drifts one tile diagonally; photo push-in
+     beats: 1.2s headline lifts off its ink shadow and presses back · 2.8s the 20% tag punches · 4.0s the script is hand-written back in ·
+            5.0s the CTA underline is re-ruled */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .bd.t { animation: bdx 6s linear infinite; }
+  .bd.b { animation: bdx 6s linear infinite reverse; }
+  .bd.r { animation: bdy 6s linear infinite; }
+  .bd.l { animation: bdy 6s linear infinite reverse; }
+  @keyframes bdx { from { background-position: 50% 50%; } to { background-position: calc(50% + var(--bd)) 50%; } }
+  @keyframes bdy { from { background-position: 50% 50%; } to { background-position: 50% calc(50% + var(--bd)); } }
+
+  .field { animation: drift 6s linear infinite; }
+  @keyframes drift { from { background-position: 50% 50%; } to { background-position: calc(50% + 6vmin) calc(50% + 6vmin); } }
+
+  h1 { animation: press 6s linear infinite; }
+  @keyframes press {
+    0%, 14%, 100% { transform: translate(0,0); text-shadow: .45vmin .45vmin 0 var(--ink); }
+    20% { transform: translate(-.35vmin,-.35vmin); text-shadow: .9vmin .9vmin 0 var(--ink); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    25% { transform: translate(.1vmin,.1vmin); text-shadow: .25vmin .25vmin 0 var(--ink); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    31% { transform: translate(0,0); text-shadow: .45vmin .45vmin 0 var(--ink); }
+  }
+
+  .offer b { display: inline-block; transform-origin: 50% 55%; animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 44%, 100% { transform: scale(1) rotate(0deg); }
+    47.5% { transform: scale(1.16) rotate(-3deg); animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    51% { transform: scale(.95) rotate(1deg); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    56% { transform: scale(1.02) rotate(0deg); }
+    61% { transform: scale(1) rotate(0deg); }
+  }
+
+  .script { animation: write 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes write {
+    0%, 60%, 100% { clip-path: inset(-20% -5% -20% -5%); }
+    65% { clip-path: inset(-20% -5% -20% 105%); }
+    65.5% { clip-path: inset(-20% 105% -20% -5%); }
+    78% { clip-path: inset(-20% -5% -20% -5%); }
+  }
+
+  .cta { position: relative; border-bottom-color: transparent; }
+  .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.3vmin; height: .3vmin; background: var(--white);
+    animation: rule 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes rule {
+    0%, 80%, 100% { clip-path: inset(0 0 0 0); }
+    85% { clip-path: inset(0 0 0 100%); }
+    85.5% { clip-path: inset(0 100% 0 0); }
+    95% { clip-path: inset(0 0 0 0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cloth">
+    <div class="hem"></div>
+    <div class="bd t"></div><div class="bd b"></div><div class="bd l"></div><div class="bd r"></div>
+    <div class="field"></div>
+    <div class="med">
+      <div class="k">Rodeo Red · Nº 26</div>
+      <h1>Tie it on.</h1>
+      <div class="script">the print edit</div>
+      <div class="offer"><b>20% off</b><span>Code PAISLEY20</span></div>
+      <div class="cta">Shop now →</div>
+    </div>
+    <svg class="weave" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="w"><feTurbulence type="fractalNoise" baseFrequency="1.1 .9" numOctaves="2" seed="5"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .1  0 0 0 0 .12  0 0 0 -1.5 .9"/></filter><rect width="100%" height="100%" filter="url(#w)" opacity=".35"/></svg>
+  </div>
+</div>
+</body>
+</html>

@@ -51,7 +51,7 @@
       "id": "quality-refund-entry",
       "status": "approved",
       "question": "Görseli beğenmedim; kredi iadesi nerede?",
-      "answer": "Oluşturduğun ana görseli tam ekran aç, görsel ekranındaki Kredi iadesi / İade düğmesini kullan. Daha önce kullanıldıysa düğme yalnız ikon olarak görünebilir. Bu yol SimpleImageModal ana sonuç içindir; varyant ya da kit sonucu seçiliyken görünmeyebilir. Ana görsele dön ve gizlenmiş ekran kontrollerini aç. İlk inceleme için gerekçe yazmak zorunlu değil; sistem ürün referansı ve sonucu karşılaştırır. İnceleme ücretsizdir; iade, bu üretimde gerçekten kesilen krediyi aşamaz.",
+      "answer": "Oluşturduğun ana görseli tam ekran aç; görselin yanındaki Kredi iadesi düğmesine dokun. Daha önce kullanıldıysa düğme yalnız ikon olarak görünebilir. Bir kit ya da çeşitlendirme görseli seçiliyken iade yapılamaz; ana görsele dön. İlk inceleme için gerekçe yazmak zorunlu değil; sistem ürün fotoğrafını ve sonucu karşılaştırır. İnceleme ücretsizdir; iade, bu üretimde gerçekten kesilen krediyi aşamaz.",
       "source": "client/components/SimpleImageModal.js; client/components/CreditRefundSheet.js",
       "verifiedAt": "2026-09-20",
       "verificationScope": "local source code / owner confirmation; not a live account lookup"
@@ -68,8 +68,8 @@
     {
       "id": "refund-eligibility",
       "status": "approved",
-      "question": "İade butonu yok / süre doldu / limit doldu.",
-      "answer": "İade özelliğinin açık olması, uygun ana sonuç, kredi kesintisi, ürün referans fotoğrafı, başvuru süresi ve günlük inceleme hakkı sunucuda kontrol edilir. Süre ve günlük hak app_config ayarlarına bağlıdır: sabit 24 saat veya 3 hak vaadi verme. Daha önce başvurulan üretimde yeni başvuru yerine mevcut karar gösterilir. Kullanıcının gördüğü uygunluk mesajına göre yardımcı ol; veriyi görmeden kesin neden söyleme.",
+      "question": "İade butonu yok / pasif (kırmızı) / süre doldu.",
+      "answer": "Kredi iadesi yalnız ürünü birebir korumayı amaçlayan ANA oluşturmalar içindir (modelde ürün, takı, Ürün Rötuşu, arka yüz, poz değiştirme). Başvuru oluşturmadan sonra en geç 24 saat içinde yapılabilir; günlük başvuru sınırı yoktur. Kapsam dışı olanlar: deneme (trial) sürümündeki üretimler; kit ve çeşitlendirme görselleri; renk değiştirme ve AI düzenleme gibi görseli bilerek değiştiren araçların sonuçları; görsel düzenleme ekranında (Düzenle) değiştirilmiş görseller. Her görsel yalnız bir kez incelenir; daha önce başvurulan görselde mevcut karar gösterilir. İadenin mümkün olmadığı durumlarda buton kırmızı görünür; dokununca nedenini söyleyen açıklama çıkar — kullanıcıya o açıklamaya göre yardımcı ol, hesabı göremediğin için kesin nedeni tahmin etme.",
       "source": "server/src/routes/creditRefundRoutes.js: eligibility",
       "verifiedAt": "2026-09-20",
       "verificationScope": "local source code / owner confirmation; not a live account lookup"

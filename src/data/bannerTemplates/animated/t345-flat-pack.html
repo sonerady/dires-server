@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&family=Noto+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Flat Pack — a wordless assembly sheet: document number, a "contents" box where the product itself is the
+     only part (1×), a crossed-out hex key (tools: none), three numbered line-drawn steps and the offer.
+     tall → photo above the sheet; 3:4 and wider → sheet beside the photo */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5F4F0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F5F4F0; color: #121212; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; box-sizing: border-box; padding: 4.4vmin 5vmin 0; display: flex; flex-direction: column; }
+  .doc { display: flex; justify-content: space-between; font-family: "Noto Sans Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .08em; color: #555; white-space: nowrap; }
+  h1 { margin: 2vmin 0 0; font-weight: 800; font-size: 8.4vmin; line-height: .94; letter-spacing: -.035em; }
+
+  .parts { margin-top: 3.6vmin; display: grid; grid-template-columns: 1.55fr 1fr; gap: 2vmin; }
+  .box { border: .35vmin solid #121212; border-radius: 1.6vmin; padding: 2vmin; display: flex; align-items: center; gap: 2.4vmin; min-width: 0; }
+  .thumb { flex: none; width: 15vmin; height: 15vmin; object-fit: cover; object-position: 50% 28%; display: block; }
+  .qty { font-weight: 800; font-size: 7vmin; letter-spacing: -.04em; line-height: 1; }
+  .qty small { display: block; margin-top: .8vmin; font-weight: 600; font-size: 1.8vmin; letter-spacing: 0; color: #444; }
+  .box svg { flex: none; width: 13vmin; height: 13vmin; }
+
+  .steps { margin-top: 2.4vmin; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2vmin; }
+  .step { position: relative; }
+  .step b { position: absolute; left: 0; top: 0; font-weight: 800; font-size: 4.6vmin; line-height: 1; }
+  .step svg { display: block; width: 100%; height: 15vmin; }
+  .step span { display: block; margin-top: .6vmin; font-weight: 600; font-size: 1.9vmin; text-align: center; white-space: nowrap; }
+
+  .offer { margin: auto -5vmin 0; flex: none; height: 11vmin; background: #121212; color: #F5F4F0; display: flex; align-items: center; justify-content: space-between; padding: 0 5vmin; white-space: nowrap; }
+  .offer strong { font-weight: 800; font-size: 5.4vmin; letter-spacing: -.035em; }
+  .offer span { font-family: "Noto Sans Mono", Menlo, monospace; font-size: 1.9vmin; letter-spacing: .08em; }
+  .offer span b { display: inline-block; margin-left: 1vmin; padding: .6vmin 1.2vmin; background: #F5F4F0; color: #121212; font-weight: 500; }
+
+  /* 3:4 / 4:5 → sheet column right */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .sheet { left: 50%; top: 0; height: auto; padding: 4.4vmin 4vmin 0; }
+    .doc { flex-direction: column; gap: .6vmin; }
+    h1 { font-size: 6.8vmin; margin-top: 2.6vmin; }
+    .parts { grid-template-columns: 1fr; gap: 1.6vmin; margin-top: 4vmin; }
+    .thumb { width: 12vmin; height: 12vmin; }
+    .box svg { width: 10vmin; height: 10vmin; }
+    .qty { font-size: 6vmin; }
+    .steps { gap: 1.2vmin; margin-top: 3vmin; }
+    .step b { font-size: 3.6vmin; }
+    .step svg { height: 11vmin; }
+    .step span { font-size: 1.7vmin; }
+    .offer { margin: auto -4vmin 0; padding: 0 4vmin; height: 15vmin; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1.2vmin; }
+    .offer strong { font-size: 5vmin; }
+    .offer span { font-size: 1.7vmin; }
+    .offer span b { margin-left: .6vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .sheet { left: 46%; padding: 4vmin 4vmin 0; }
+    .doc { flex-direction: row; justify-content: space-between; font-size: 1.6vmin; }
+    h1 { font-size: 6vmin; margin-top: 1.8vmin; }
+    .parts { grid-template-columns: 1.25fr 1fr; margin-top: 2.6vmin; gap: 1.4vmin; }
+    .box { padding: 1.4vmin; gap: 1.6vmin; border-radius: 1.2vmin; }
+    .thumb { width: 10vmin; height: 10vmin; }
+    .box svg { width: 7vmin; height: 7vmin; }
+    .qty { font-size: 4.6vmin; }
+    .qty small { font-size: 1.6vmin; }
+    .steps { margin-top: 2vmin; }
+    .step svg { height: 10vmin; }
+    .step b { font-size: 3.4vmin; }
+    .step span { font-size: 1.6vmin; }
+    .offer { height: 9.6vmin; flex-direction: row; align-items: center; justify-content: space-between; }
+    .offer strong { font-size: 4vmin; }
+    .offer span { font-size: 1.6vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; object-position: 50% 28%; }
+    .sheet { left: 50%; padding: 4.4vmin 5vmin 0; }
+    .doc { font-size: 1.7vmin; }
+    h1 { font-size: 7.4vmin; }
+    .parts { margin-top: 3vmin; gap: 2vmin; }
+    .box { padding: 1.6vmin; }
+    .thumb { width: 12vmin; height: 12vmin; }
+    .box svg { width: 10vmin; height: 10vmin; }
+    .qty { font-size: 6vmin; }
+    .step svg { height: 11vmin; }
+    .step span { font-size: 1.8vmin; }
+    .offer { margin: auto -5vmin 0; padding: 0 5vmin; height: 10.6vmin; }
+    .offer strong { font-size: 5vmin; }
+    .offer span { font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* 1 · "0× tools": the strike through the hex key is re-drawn */
+  .box svg .x { stroke-dasharray: 1 1; animation: strike 6s linear infinite; }
+  @keyframes strike {
+    0%, 5% { stroke-dashoffset: 0; animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    8% { stroke-dashoffset: -1; animation-timing-function: steps(1, end); }
+    9% { stroke-dashoffset: 1; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    14%, 100% { stroke-dashoffset: 0; }
+  }
+  /* 2 · the three steps are re-drawn in order, like a pen going over the assembly sheet */
+  .step svg [pathLength] { stroke-dasharray: 1 1; animation: draw 6s linear infinite; }
+  @keyframes draw {
+    0%, 18% { stroke-dashoffset: 0; animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    22% { stroke-dashoffset: -1; animation-timing-function: steps(1, end); }
+    23% { stroke-dashoffset: 1; animation-timing-function: cubic-bezier(.35,0,.25,1); }
+    34%, 100% { stroke-dashoffset: 0; }
+  }
+  .step svg path[stroke-dasharray] { animation: dash 6s linear infinite; }
+  @keyframes dash { 0%, 18% { opacity: 1; } 21%, 26% { opacity: 0; } 32%, 100% { opacity: 1; } }
+  .step b { transform-origin: 0 0; animation: num 6s linear infinite; }
+  @keyframes num {
+    0%, 22% { transform: scale(1); color: #121212; animation-timing-function: cubic-bezier(.2,.8,.3,1.3); }
+    25.5% { transform: scale(1.18); color: #121212; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    30%, 100% { transform: scale(1); color: #121212; }
+  }
+  .step:nth-child(2) [pathLength], .step:nth-child(2) path[stroke-dasharray], .step:nth-child(2) b { animation-delay: -5.28s; }
+  .step:nth-child(3) [pathLength], .step:nth-child(3) b { animation-delay: -4.56s; }
+  /* 3 · the tick on "Keep" lands with a final beat → the offer bar: sheen + code chip punch */
+  .offer { position: relative; overflow: hidden; }
+  .offer::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 26%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(245,244,240,0), rgba(245,244,240,.16) 50%, rgba(245,244,240,0));
+    transform: translateX(-120%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen { 0%, 62% { transform: translateX(-120%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.3,1); } 80%, 100% { transform: translateX(480%) skewX(-18deg); } }
+  .offer span b { animation: chip 6s linear infinite; }
+  @keyframes chip {
+    0%, 76% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1.4); }
+    79.5% { transform: scale(1.14) rotate(-3deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    85%, 100% { transform: scale(1) rotate(0); }
+  }
+  /* 4 · "1×" counts the one part: a quiet flip */
+  .parts .box:first-child .qty { animation: qty 6s linear infinite; }
+  @keyframes qty {
+    0%, 88% { transform: translateY(0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+    91% { transform: translateY(-.8vmin); opacity: 0; animation-timing-function: steps(1, end); }
+    91.5% { transform: translateY(.8vmin); opacity: 0; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    96%, 100% { transform: translateY(0); opacity: 1; }
+  }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sheet">
+    <div class="doc"><span>ATELIER NORD · AW26</span><span>AA-2604 · 1/1</span></div>
+    <h1>Some assembly<br>not required.</h1>
+    <div class="parts">
+      <div class="box"><img class="thumb" src="{{PRODUCT_IMAGE}}" alt=""><div class="qty">1×<small>The new season</small></div></div>
+      <div class="box">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 12h9l15 20" fill="none" stroke="#121212" stroke-width="4.2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="24" cy="24" r="20" fill="none" stroke="#121212" stroke-width="2.6"/><path class="x" pathLength="1" d="M10 38L38 10" stroke="#121212" stroke-width="2.6"/></svg>
+        <div class="qty">0×<small>Tools</small></div>
+      </div>
+    </div>
+    <div class="steps">
+      <div class="step"><b>1</b><svg viewBox="8 3 44 34" aria-hidden="true"><path pathLength="1" d="M22 8h20l6 6v20H22z" fill="none" stroke="#121212" stroke-width="2" stroke-linejoin="round"/><circle pathLength="1" cx="42.5" cy="13.5" r="1.8" fill="none" stroke="#121212" stroke-width="1.4"/><path pathLength="1" d="M29 28l9-10" stroke="#121212" stroke-width="2"/><circle pathLength="1" cx="29.5" cy="19.5" r="2" fill="none" stroke="#121212" stroke-width="1.4"/><circle pathLength="1" cx="37.5" cy="27" r="2" fill="none" stroke="#121212" stroke-width="1.4"/></svg><span>Pick</span></div>
+      <div class="step"><b>2</b><svg viewBox="8 3 44 34" aria-hidden="true"><path pathLength="1" d="M27.5 10a2.5 2.5 0 1 1 2.5 2.5v2.4L16 25h28L30 14.9" fill="none" stroke="#121212" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M20 31h20" stroke="#121212" stroke-width="1.2" stroke-dasharray="2 2"/><path pathLength="1" d="M40 29l3 2-3 2" fill="none" stroke="#121212" stroke-width="1.2"/></svg><span>Try on</span></div>
+      <div class="step"><b>3</b><svg viewBox="8 3 44 34" aria-hidden="true"><circle pathLength="1" cx="30" cy="20" r="13" fill="none" stroke="#121212" stroke-width="2"/><path pathLength="1" d="M23.5 20.5l4.5 4.5 9-10" fill="none" stroke="#121212" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg><span>Keep</span></div>
+    </div>
+    <div class="offer"><strong>−25% this week</strong><span>Code<b>KIT25</b></span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Lacing Diagram — an instruction sheet: a two-colour criss-cross lacing figure through six eyelets
+     with numbered callouts (1 bar, 2 cross, 3 bow) that map onto three shopping steps, set in
+     serif italics and small technical sans. tall → photo above the sheet; 3:4 and wider → sheet right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F1EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4F1EA; color: #1D2A5E; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 86vmin; box-sizing: border-box; padding: 4.4vmin 5vmin 4.6vmin; display: flex; flex-direction: column; }
+  .head { display: flex; justify-content: space-between; padding-bottom: 1.4vmin; border-bottom: 1px solid #1D2A5E; font-size: 1.7vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .head span:last-child { font-weight: 500; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .9; letter-spacing: -.02em; }
+  h1 em { color: #D8412F; }
+  .body { flex: 1; min-height: 0; display: flex; gap: 4vmin; margin-top: 2.6vmin; }
+  .fig { flex: none; width: 36vmin; display: flex; flex-direction: column; }
+  .fig svg { flex: 1; min-height: 0; width: 100%; display: block; }
+  .fig figcaption { margin-top: 1vmin; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 2.3vmin; text-align: center; }
+  .steps { flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; justify-content: center; }
+  .steps li { display: grid; grid-template-columns: 4.6vmin 1fr; column-gap: 1.8vmin; padding: 1.8vmin 0; border-top: 1px solid rgba(29,42,94,.3); }
+  .steps li:last-child { border-bottom: 1px solid rgba(29,42,94,.3); }
+  .steps li > b { grid-row: span 2; width: 4.6vmin; height: 4.6vmin; border-radius: 50%; border: .3vmin solid #1D2A5E; box-sizing: border-box; display: grid; place-items: center; font-weight: 700; font-size: 2.2vmin; }
+  .steps li:nth-child(2) > b { background: #D8412F; border-color: #D8412F; color: #F4F1EA; }
+  .steps strong { font-weight: 700; font-size: 2.5vmin; line-height: 1.1; }
+  .steps span { margin-top: .4vmin; font-size: 1.9vmin; line-height: 1.35; color: #45507A; }
+  .steps span b { color: #D8412F; font-weight: 700; letter-spacing: .04em; }
+  .foot { display: flex; justify-content: space-between; align-items: baseline; margin-top: 2.6vmin; padding-top: 1.8vmin; border-top: 1px solid #1D2A5E; white-space: nowrap; }
+  .foot small { font-size: 1.7vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+  .cta { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 4.2vmin; line-height: 1; border-bottom: .3vmin solid #D8412F; }
+
+  /* 3:4 / 4:5 → photo left, sheet right; figure above the steps */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .sheet { left: 48%; top: 0; height: auto; padding: 4.6vmin 3.8vmin 4vmin; }
+    .head span:last-child { display: none; }
+    h1 { font-size: 9vmin; }
+    .body { flex-direction: column; gap: 2vmin; }
+    .fig { flex: 1; width: auto; min-height: 0; }
+    .steps { flex: none; }
+    .steps li { padding: 1.3vmin 0; grid-template-columns: 4vmin 1fr; }
+    .steps li > b { width: 4vmin; height: 4vmin; font-size: 1.9vmin; }
+    .steps strong { font-size: 2.2vmin; }
+    .steps span { font-size: 1.7vmin; }
+    .cta { font-size: 3.6vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .sheet { left: 46%; padding: 4.4vmin 4vmin 4vmin; }
+    h1 { font-size: 7.8vmin; margin-top: 2vmin; }
+    .body { flex-direction: row; gap: 2.6vmin; margin-top: 2.4vmin; }
+    .fig { flex: none; width: 21vmin; }
+    .fig figcaption { font-size: 1.9vmin; }
+    .steps { flex: 1; }
+    .steps li { grid-template-columns: 1fr; row-gap: .6vmin; }
+    .steps li > b { grid-row: auto; }
+    .foot small { display: none; }
+  }
+  /* wide → photo 50%, sheet with figure beside the steps */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; object-position: 50% 30%; }
+    .sheet { left: 50%; padding: 4.6vmin 5vmin 4.4vmin; }
+    .head span:last-child { display: inline; }
+    h1 { font-size: 9.6vmin; }
+    .fig { width: 26vmin; }
+    .fig figcaption { font-size: 2.1vmin; }
+    .steps li { grid-template-columns: 4.4vmin 1fr; row-gap: 0; padding: 1.6vmin 0; }
+    .steps li > b { grid-row: span 2; width: 4.4vmin; height: 4.4vmin; }
+    .steps strong { font-size: 2.4vmin; }
+    .steps span { font-size: 1.8vmin; }
+    .foot small { display: inline; }
+    .cta { font-size: 3.8vmin; }
+  }
+
+  /* ───────── motion (6s loop), t=0 = static design ─────────
+     0.8s the lacing figure blinks out, then 1.2s–3.3s it is re-laced eyelet by eyelet, bottom bar → criss-cross rows → bow ·
+     the matching step numbers light up as their part of the figure lands (1 bar, 2 cross, 3 bow) · 4.5s CTA underline re-inked */
+  .fig svg g[fill="none"] { animation: laceg 6s linear infinite; }
+  @keyframes laceg { 0%, 13% { opacity: 1; animation-timing-function: cubic-bezier(.5,0,.8,.5); } 16%, 17.5% { opacity: 0; } 18%, 100% { opacity: 1; } }
+  .ln { stroke-dasharray: 100 100; stroke-dashoffset: 0; animation: 6s linear infinite; }
+  .l0 { animation-name: lace0; }
+  @keyframes lace0 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 19.99% { stroke-dashoffset: 100; opacity: 0; } 20.00% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 25.00%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l1 { animation-name: lace1; }
+  @keyframes lace1 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 22.49% { stroke-dashoffset: 100; opacity: 0; } 22.50% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 27.50%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l2 { animation-name: lace2; }
+  @keyframes lace2 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 24.99% { stroke-dashoffset: 100; opacity: 0; } 25.00% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 30.00%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l3 { animation-name: lace3; }
+  @keyframes lace3 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 27.49% { stroke-dashoffset: 100; opacity: 0; } 27.50% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 32.50%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l4 { animation-name: lace4; }
+  @keyframes lace4 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 29.99% { stroke-dashoffset: 100; opacity: 0; } 30.00% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 35.00%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l5 { animation-name: lace5; }
+  @keyframes lace5 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 32.49% { stroke-dashoffset: 100; opacity: 0; } 32.50% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 37.50%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l6 { animation-name: lace6; }
+  @keyframes lace6 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 34.99% { stroke-dashoffset: 100; opacity: 0; } 35.00% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 40.00%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l7 { animation-name: lace7; }
+  @keyframes lace7 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 37.49% { stroke-dashoffset: 100; opacity: 0; } 37.50% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 42.50%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l8 { animation-name: lace8; }
+  @keyframes lace8 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 39.99% { stroke-dashoffset: 100; opacity: 0; } 40.00% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 45.00%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l9 { animation-name: lace9; }
+  @keyframes lace9 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 42.49% { stroke-dashoffset: 100; opacity: 0; } 42.50% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 47.50%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l10 { animation-name: lace10; }
+  @keyframes lace10 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 44.99% { stroke-dashoffset: 100; opacity: 0; } 45.00% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 50.00%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l11 { animation-name: lace11; }
+  @keyframes lace11 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 47.49% { stroke-dashoffset: 100; opacity: 0; } 47.50% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 52.50%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l12 { animation-name: lace12; }
+  @keyframes lace12 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 49.99% { stroke-dashoffset: 100; opacity: 0; } 50.00% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 55.00%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .l13 { animation-name: lace13; }
+  @keyframes lace13 { 0%, 16.5% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: steps(1, end); } 16.6%, 52.49% { stroke-dashoffset: 100; opacity: 0; } 52.50% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); } 57.50%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+  .steps li > b { animation: stepno 6s linear infinite; }
+  .steps li:nth-child(1) > b { animation-delay: -3.2s; }
+  .steps li:nth-child(2) > b { animation-delay: -2.2s; }
+  .steps li:nth-child(3) > b { animation-delay: -1.2s; }
+  @keyframes stepno {
+    0%, 73% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1.4); }
+    77% { transform: scale(1.25); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    84%, 100% { transform: scale(1); }
+  }
+  .cta { border-bottom-color: transparent; background: linear-gradient(#D8412F, #D8412F) 0 100% / 100% .3vmin no-repeat; background-origin: border-box; animation: reink 6s linear infinite; }
+  @keyframes reink {
+    0%, 74% { background-size: 100% .3vmin; background-position: 100% 100%; animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    78% { background-size: 0% .3vmin; background-position: 100% 100%; animation-timing-function: steps(1, end); }
+    79% { background-size: 0% .3vmin; background-position: 0 100%; animation-timing-function: cubic-bezier(.3,.1,.2,1); }
+    88%, 100% { background-size: 100% .3vmin; background-position: 0 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sheet">
+    <div class="head"><span>Lacing guide · Fig. 04</span><span>Sheet 1 / 1</span></div>
+    <h1>Tie it all <em>together.</em></h1>
+    <div class="body">
+      <figure class="fig" style="margin:0">
+        <svg viewBox="0 0 100 150" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+          <!-- throat of the upper -->
+          <path d="M18 30 C18 22 24 18 32 18 L68 18 C76 18 82 22 82 30 L86 138 C86 144 82 146 76 146 L24 146 C18 146 14 144 14 138 Z" fill="none" stroke="#1D2A5E" stroke-width=".5" stroke-dasharray="1.6 1.4"/>
+          <path d="M40 16 L40 8 C40 5 42 4 45 4 L55 4 C58 4 60 5 60 8 L60 16" fill="none" stroke="#1D2A5E" stroke-width=".5" stroke-dasharray="1.6 1.4"/>
+          <g fill="none" stroke-linecap="round">
+            <!-- bar -->
+            <path class="ln l0" pathLength="100" d="M30 130 L70 130" stroke="#1D2A5E" stroke-width="2.6"/>
+            <!-- row gaps: under strand first, then halo + over strand -->
+            <path class="ln l1" pathLength="100" d="M70 130 L30 110" stroke="#D8412F" stroke-width="2.6"/>
+            <path class="ln l2" pathLength="100" d="M30 130 L70 110" stroke="#F4F1EA" stroke-width="5"/><path class="ln l2" pathLength="100" d="M30 130 L70 110" stroke="#1D2A5E" stroke-width="2.6"/>
+            <path class="ln l3" pathLength="100" d="M70 110 L30 90" stroke="#1D2A5E" stroke-width="2.6"/>
+            <path class="ln l4" pathLength="100" d="M30 110 L70 90" stroke="#F4F1EA" stroke-width="5"/><path class="ln l4" pathLength="100" d="M30 110 L70 90" stroke="#D8412F" stroke-width="2.6"/>
+            <path class="ln l5" pathLength="100" d="M70 90 L30 70" stroke="#D8412F" stroke-width="2.6"/>
+            <path class="ln l6" pathLength="100" d="M30 90 L70 70" stroke="#F4F1EA" stroke-width="5"/><path class="ln l6" pathLength="100" d="M30 90 L70 70" stroke="#1D2A5E" stroke-width="2.6"/>
+            <path class="ln l7" pathLength="100" d="M70 70 L30 50" stroke="#1D2A5E" stroke-width="2.6"/>
+            <path class="ln l8" pathLength="100" d="M30 70 L70 50" stroke="#F4F1EA" stroke-width="5"/><path class="ln l8" pathLength="100" d="M30 70 L70 50" stroke="#D8412F" stroke-width="2.6"/>
+            <path class="ln l9" pathLength="100" d="M70 50 L30 30" stroke="#D8412F" stroke-width="2.6"/>
+            <path class="ln l10" pathLength="100" d="M30 50 L70 30" stroke="#F4F1EA" stroke-width="5"/><path class="ln l10" pathLength="100" d="M30 50 L70 30" stroke="#1D2A5E" stroke-width="2.6"/>
+            <!-- bow -->
+            <path class="ln l11" pathLength="100" d="M30 30 C36 24 44 22 50 22" stroke="#D8412F" stroke-width="2.6"/>
+            <path class="ln l11" pathLength="100" d="M70 30 C64 24 56 22 50 22" stroke="#1D2A5E" stroke-width="2.6"/>
+            <path class="ln l12" pathLength="100" d="M50 22 C40 12 26 12 27 20 C28 27 42 25 50 22" stroke="#D8412F" stroke-width="2.4"/>
+            <path class="ln l12" pathLength="100" d="M50 22 C60 12 74 12 73 20 C72 27 58 25 50 22" stroke="#1D2A5E" stroke-width="2.4"/>
+            <path class="ln l13" pathLength="100" d="M50 22 C46 30 40 36 34 40" stroke="#D8412F" stroke-width="2.4"/>
+            <path class="ln l13" pathLength="100" d="M50 22 C55 31 61 37 67 42" stroke="#1D2A5E" stroke-width="2.4"/>
+          </g>
+          <circle cx="50" cy="22" r="2.4" fill="#1D2A5E"/>
+          <!-- eyelets -->
+          <g fill="#F4F1EA" stroke="#1D2A5E" stroke-width="1.1">
+            <circle cx="30" cy="30" r="3"/><circle cx="70" cy="30" r="3"/>
+            <circle cx="30" cy="50" r="3"/><circle cx="70" cy="50" r="3"/>
+            <circle cx="30" cy="70" r="3"/><circle cx="70" cy="70" r="3"/>
+            <circle cx="30" cy="90" r="3"/><circle cx="70" cy="90" r="3"/>
+            <circle cx="30" cy="110" r="3"/><circle cx="70" cy="110" r="3"/>
+            <circle cx="30" cy="130" r="3"/><circle cx="70" cy="130" r="3"/>
+          </g>
+          <!-- callouts -->
+          <g font-family="Instrument Sans, Arial, sans-serif" font-weight="700" font-size="5.6" text-anchor="middle">
+            <line x1="70" y1="130" x2="90" y2="140" stroke="#1D2A5E" stroke-width=".5"/>
+            <circle cx="92" cy="141" r="5" fill="#F4F1EA" stroke="#1D2A5E" stroke-width=".7"/><text x="92" y="143" fill="#1D2A5E">1</text>
+            <line x1="50" y1="80" x2="90" y2="80" stroke="#1D2A5E" stroke-width=".5"/>
+            <circle cx="92" cy="80" r="5" fill="#D8412F"/><text x="92" y="82" fill="#F4F1EA">2</text>
+            <line x1="27" y1="17" x2="8" y2="10" stroke="#1D2A5E" stroke-width=".5"/>
+            <circle cx="7" cy="9" r="5" fill="#F4F1EA" stroke="#1D2A5E" stroke-width=".7"/><text x="7" y="11" fill="#1D2A5E">3</text>
+          </g>
+        </svg>
+        <figcaption>Fig. 1 — criss-cross, six eyelets</figcaption>
+      </figure>
+      <ol class="steps">
+        <li><b>1</b><strong>Pick your pair</strong><span>The new season edit, online now.</span></li>
+        <li><b>2</b><strong>Cross off 15%</strong><span>Use code <b>LACE15</b> at checkout.</span></li>
+        <li><b>3</b><strong>Tie it off</strong><span>Free returns within 30 days.</span></li>
+      </ol>
+    </div>
+    <div class="foot"><small>Studio Oro · SS26</small><span class="cta">Shop the edit →</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=DM+Sans:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  /* Retro 70s — responsive: tall photo → copy on top, arch window centred below; square/wide → copy left, arch right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5E7CF; }
+  .banner { --w: 62vmin; --h: 50%; position: fixed; inset: 0; overflow: hidden; background: #F5E7CF; color: #5A2E1A; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif; }
+  /* arch + three rings on one centre line; --w = arch width, --h = arch height */
+  .stage { position: absolute; bottom: 0; top: 0; left: 50%; transform: translateX(-50%); width: calc(var(--w) + 18vmin); }
+  .ring, .arch { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); border-radius: 999vmin 999vmin 0 0; }
+  .r3 { width: calc(var(--w) + 18vmin); height: calc(var(--h) + 9vmin); background: #6B3E26; }
+  .r2 { width: calc(var(--w) + 12vmin); height: calc(var(--h) + 6vmin); background: #E0892B; }
+  .r1 { width: calc(var(--w) + 6vmin); height: calc(var(--h) + 3vmin); background: #D9512C; }
+  .arch { width: var(--w); height: var(--h); overflow: hidden; }
+  .arch img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; }
+  .k { font-size: 2.2vmin; font-weight: 900; letter-spacing: .24em; text-transform: uppercase; color: #D9512C; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Shrikhand", "Cooper Black", Georgia, serif; font-weight: 400; font-size: 10.5vmin; line-height: 1; }
+  h1 span { color: #D9512C; }
+  .deal { margin-top: 3vmin; display: flex; align-items: center; gap: 2.6vmin; }
+  .deal b { font-family: "Shrikhand", "Cooper Black", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .9; }
+  .deal span { font-size: 2.7vmin; font-weight: 900; letter-spacing: .08em; line-height: 1.15; text-transform: uppercase; }
+  .d { margin-top: 2.4vmin; font-size: 2.8vmin; font-weight: 500; line-height: 1.4; max-width: 62vmin; }
+  .cta { display: inline-block; margin-top: 3vmin; background: #5A2E1A; color: #F5E7CF; border-radius: 99vmin; padding: 2.2vmin 4.4vmin; font-size: 2.6vmin; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .sticker { position: absolute; left: calc(50% + var(--w) / 2 - 2vmin); bottom: calc(var(--h) + 1vmin); width: 15vmin; height: 15vmin; border-radius: 50%; background: #F3B53F; color: #5A2E1A; display: flex; align-items: center; justify-content: center; text-align: center; transform: rotate(14deg); font-size: 2.1vmin; font-weight: 900; line-height: 1.1; letter-spacing: .06em; text-transform: uppercase; box-shadow: 0 .8vmin 0 #5A2E1A; }
+  /* shorter portrait: a smaller arch gives the copy room */
+  @media (min-aspect-ratio: 7/10) { .banner { --h: 42%; --w: 52vmin; } h1 { font-size: 9vmin; } .deal b { font-size: 11vmin; } .d { display: none; } }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --w: 40vmin; --h: 72%; }
+    .stage { left: auto; right: 3vmin; transform: none; }
+    .copy { right: auto; width: calc(100% - 70vmin); }
+    h1 { font-size: 7.6vmin; }
+    .deal { display: block; }
+    .deal b { display: block; font-size: 10.5vmin; }
+    .deal span { display: block; margin-top: 1vmin; }
+    .deal span br { display: none; }
+    .sticker { left: auto; bottom: auto; right: 4vmin; top: 5vmin; width: 13vmin; height: 13vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) { .d { display: block; max-width: none; } }
+
+  /* ───────── motion: 6s loop, t=0 = the static design — groovy, round and warm ───────── */
+  /* the rainbow rings ripple outward from the arch, one after another, like a slow 70s wave */
+  .ring { transform-origin: 50% 100%; animation: ripple 6s linear infinite; }
+  .r2 { animation-delay: -5.85s; }
+  .r3 { animation-delay: -5.7s; }
+  @keyframes ripple {
+    0%, 8% { transform: translateX(-50%) scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    16% { transform: translateX(-50%) scale(1.035); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    28%, 100% { transform: translateX(-50%) scale(1); }
+  }
+  /* the sticker is slapped back on: a wobble with overshoot, then a lazy bob */
+  .sticker { animation: slap 6s linear infinite; }
+  @keyframes slap {
+    0%, 40% { transform: rotate(14deg) scale(1); animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    44% { transform: rotate(4deg) scale(1.16); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    48% { transform: rotate(22deg) scale(.95); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    53% { transform: rotate(11deg) scale(1.03); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    58%, 100% { transform: rotate(14deg) scale(1); }
+  }
+  /* the discount bounces like a Cooper-black cartoon */
+  .deal b { transform-origin: 50% 100%; animation: bounce 6s linear infinite; }
+  @keyframes bounce {
+    0%, 62% { transform: translateY(0) scale(1, 1); animation-timing-function: cubic-bezier(.3,0,.5,1); }
+    65% { transform: translateY(0) scale(1.08, .88); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    70% { transform: translateY(-2.2vmin) scale(.95, 1.07); animation-timing-function: cubic-bezier(.6,0,.8,.5); }
+    75% { transform: translateY(0) scale(1.05, .93); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    80%, 100% { transform: translateY(0) scale(1, 1); }
+  }
+  /* "Weekend" warms through the sunset palette and back */
+  h1 span { animation: sunset 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sunset { 0%, 15%, 60%, 100% { color: #D9512C; } 35% { color: #E0892B; } }
+  /* CTA pill: a warm sheen rolls across */
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(243,181,63,0) 0%, rgba(243,181,63,.35) 50%, rgba(243,181,63,0) 100%);
+    transform: translateX(-160%) skewX(-20deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 82% { transform: translateX(-160%) skewX(-20deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    96%, 100% { transform: translateX(380%) skewX(-20deg); }
+  }
+  /* the photo in the arch: a gentle push */
+  .arch img { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="stage">
+    <div class="ring r3"></div>
+    <div class="ring r2"></div>
+    <div class="ring r1"></div>
+    <div class="arch"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  </div>
+  <div class="copy">
+    <div class="k">The vintage drop</div>
+    <h1>Groovy <span>Weekend</span></h1>
+    <div class="deal"><b>30%</b><span>off <br>everything</span></div>
+    <div class="d">Embroidered maxis, crochet and sun-faded colour with a 70s soul.</div>
+    <div class="cta">Shop the drop</div>
+  </div>
+  <div class="sticker">Sat–Sun<br>only</div>
+</div>
+</body>
+</html>

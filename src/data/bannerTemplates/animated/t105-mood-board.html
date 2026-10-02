@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Caveat:wght@500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Mood Board — a pinned-up board: the full look, two taped detail crops of the same photo, paint-chip swatches and loose words.
+     tall → title / look + crops / words stacked; square / wide → look left, board right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E7DFD2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E7DFD2; color: #2A2521; font-family: "DM Mono", ui-monospace, Menlo, monospace; }
+  .banner::before { content: ""; position: absolute; inset: 0; opacity: .55; pointer-events: none;
+    background-image: radial-gradient(rgba(60,45,30,.08) .1vmin, transparent .13vmin); background-size: 1.1vmin 1.1vmin; }
+  .micro { font-size: 1.7vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
+
+  .title { position: absolute; left: 6vmin; top: 4.4vmin; }
+  h1 { margin: 0; font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 19vmin; line-height: .86; letter-spacing: -.03em; }
+  .title .micro { margin-top: 1.6vmin; }
+  .note { position: absolute; right: 7vmin; top: 8vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 5vmin; line-height: .95; color: #A2472B; transform: rotate(-5deg); text-align: center; }
+
+  .pic { position: absolute; overflow: hidden; box-shadow: 0 .6vmin 1.6vmin rgba(40,28,18,.18); }
+  .pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .hero { left: 6vmin; top: 29vmin; width: 58vmin; height: calc(64% - 29vmin); }
+  .ca { left: 69vmin; top: 31vmin; width: 25vmin; height: 25vmin; transform: rotate(3deg); }
+  .ca img { transform: scale(2.3); transform-origin: 50% 32%; }
+  .cb { left: 6vmin; top: calc(64% + 5vmin); width: 34vmin; bottom: 7vmin; transform: rotate(-2deg); }
+  .cb img { transform: scale(1.8); transform-origin: 50% 68%; object-position: 50% 50%; }
+
+  .tape { position: absolute; width: 12vmin; height: 3.4vmin; background: rgba(236,226,200,.78); box-shadow: 0 .2vmin .5vmin rgba(40,28,18,.12); }
+  .t1 { left: 1.5vmin; top: 27.4vmin; transform: rotate(-32deg); }
+  .t2 { left: 56vmin; top: 27.4vmin; transform: rotate(28deg); }
+  .t3 { left: 76.5vmin; top: 29vmin; transform: rotate(-4deg); width: 10vmin; }
+  .t4 { left: 17vmin; top: calc(64% + 3.2vmin); transform: rotate(3deg); width: 11vmin; }
+
+  .chips { position: absolute; left: 69vmin; top: 61vmin; width: 25vmin; display: grid; grid-template-columns: 1fr 1fr; gap: 1.6vmin; }
+  .chip { background: #F7F3EA; padding: .9vmin .9vmin 1vmin; box-shadow: 0 .3vmin .8vmin rgba(40,28,18,.12); }
+  .chip i { display: block; height: 6vmin; }
+  .chip span { display: block; margin-top: .8vmin; font-size: 1.6vmin; line-height: 1.1; letter-spacing: .04em; }
+
+  .words { position: absolute; left: 45vmin; right: 6vmin; top: calc(64% + 5vmin); }
+  .w1 { font-family: "Gloock", Georgia, serif; font-size: 7vmin; line-height: 1; }
+  .w2 { font-family: "Caveat", cursive; font-weight: 500; font-size: 6.4vmin; line-height: 1; color: #A2472B; margin: .4vmin 0 0 3vmin; }
+  .w3 { font-family: "Gloock", Georgia, serif; font-style: italic; font-size: 7vmin; line-height: 1; }
+  .cta { position: absolute; left: 45vmin; right: 6vmin; bottom: 7vmin; display: flex; justify-content: space-between; padding-top: 1.4vmin; border-top: 1px solid #2A2521; }
+
+  @media (min-aspect-ratio: 7/10) {
+    h1 { font-size: 15vmin; }
+    .note { font-size: 4.4vmin; top: 6vmin; }
+    .hero { top: 25vmin; height: calc(62% - 25vmin); width: 54vmin; }
+    .t1 { top: 23.4vmin; } .t2 { left: 52vmin; top: 23.4vmin; }
+    .ca { left: 66vmin; top: 26vmin; width: 27vmin; height: 22vmin; }
+    .t3 { left: 74vmin; top: 24.2vmin; }
+    .chips { left: 66vmin; top: 52vmin; width: 28vmin; gap: 1.2vmin; }
+    .chip i { height: 4.4vmin; }
+    .cb { top: calc(62% + 4vmin); bottom: 5.5vmin; }
+    .t4 { top: calc(62% + 2.2vmin); }
+    .words { top: calc(62% + 3.4vmin); }
+    .w1, .w3 { font-size: 6vmin; } .w2 { font-size: 5.4vmin; }
+    .cta { bottom: 5.5vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .hero { left: 5vmin; top: 7vmin; bottom: 6vmin; width: 42%; height: auto; }
+    .t1 { left: 0; top: 5vmin; } .t2 { left: calc(42% - 4vmin); top: 5vmin; }
+    .title { left: calc(42% + 10vmin); top: 6vmin; }
+    h1 { font-size: 13vmin; }
+    .note { display: none; }
+    .ca { left: calc(42% + 10vmin); top: 32vmin; width: 19vmin; height: 23vmin; }
+    .t3 { left: calc(42% + 14.5vmin); top: 30.4vmin; width: 9vmin; }
+    .chips { left: auto; right: 5vmin; top: 32vmin; width: calc(58% - 39vmin); gap: 1.2vmin; }
+    .chip i { height: 4.2vmin; }
+    .cb, .t4 { display: none; }
+    .words { left: calc(42% + 10vmin); right: 5vmin; top: 63vmin; }
+    .w1, .w3 { font-size: 5.6vmin; } .w2 { font-size: 5.2vmin; margin-left: 2.4vmin; }
+    .cta { left: calc(42% + 10vmin); right: 6vmin; bottom: 6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .hero { width: 38%; }
+    .t2 { left: calc(38% - 4vmin); }
+    .title { left: calc(38% + 11vmin); }
+    h1 { font-size: 15vmin; }
+    .ca { left: calc(38% + 11vmin); width: 26vmin; height: 26vmin; top: 33vmin; }
+    .t3 { left: calc(38% + 19vmin); top: 31.4vmin; }
+    .cb, .t4 { display: block; }
+    .cb { left: calc(38% + 11vmin); top: 66vmin; width: 26vmin; }
+    .t4 { left: calc(38% + 18vmin); top: 64.4vmin; }
+    .note { display: block; right: 6vmin; top: 8vmin; font-size: 4.2vmin; }
+    .chips { left: calc(38% + 42vmin); right: 6vmin; width: auto; top: 33vmin; grid-template-columns: repeat(4, 1fr); }
+    .chip i { height: 7vmin; }
+    .words { left: calc(38% + 42vmin); right: 6vmin; top: 58vmin; }
+    .w1, .w3 { font-size: 6vmin; } .w2 { font-size: 5.6vmin; margin-left: 3vmin; }
+    .cta { display: flex; left: calc(38% + 42vmin); right: 6vmin; bottom: 7vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  /* a board in a draught: pinned crops sway on their tape, the paint chips get picked one by one,
+     "sun-washed," is re-written by hand, the note's arrow points down */
+  .hero img { animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  /* taped crops sway around their rest angle (tiny amplitude, tape stays over the corner) */
+  .ca { transform-origin: 50% 0; animation: swaya 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes swaya { 0%, 100% { transform: rotate(3deg); } 50% { transform: rotate(1.8deg); } }
+  .cb { transform-origin: 40% 0; animation: swayb 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes swayb { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(-3deg); } }
+  /* paint chips: lifted one after another like being picked off the board */
+  .chip { animation: pick 8s linear infinite; }
+  .chip:nth-child(2) { animation-delay: -7.6s; } .chip:nth-child(3) { animation-delay: -7.2s; } .chip:nth-child(4) { animation-delay: -6.8s; }
+  @keyframes pick {
+    0%, 20% { transform: translateY(0) rotate(0); box-shadow: 0 .3vmin .8vmin rgba(40,28,18,.12); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    24% { transform: translateY(-1.2vmin) rotate(-2deg); box-shadow: 0 1.4vmin 2.2vmin rgba(40,28,18,.2); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    32%, 100% { transform: translateY(0) rotate(0); box-shadow: 0 .3vmin .8vmin rgba(40,28,18,.12); }
+  }
+  /* "sun-washed," is erased and handwritten back in, left → right */
+  .w2 { width: fit-content; animation: write 8s linear infinite; }
+  @keyframes write {
+    0%, 50% { clip-path: inset(-20% -5% -30% -5%); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    54% { clip-path: inset(-20% -5% -30% -5%); opacity: 0; animation-timing-function: steps(1, end); }
+    55% { clip-path: inset(-20% 105% -30% -5%); opacity: 1; animation-timing-function: cubic-bezier(.45,.1,.55,.9); }
+    70%, 100% { clip-path: inset(-20% -5% -30% -5%); opacity: 1; }
+  }
+  /* the note's arrow keeps pointing down at the look */
+  .note .arr { display: inline-block; animation: arr 2s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes arr { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(1vmin); } 70% { transform: translateY(0); } }
+  /* CTA arrow nudges at the end of the loop */
+  .cta span + span { display: inline-block; animation: nudge 8s linear infinite; }
+  @keyframes nudge {
+    0%, 82% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    85% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    91% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    94%, 100% { transform: translateX(0); }
+  }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="title"><h1>Mood</h1><div class="micro">Board 03 — New season</div></div>
+  <div class="note">the new<br>season <span class="arr">↓</span></div>
+  <div class="pic hero"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="pic ca"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="pic cb"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <i class="tape t1"></i><i class="tape t2"></i><i class="tape t3"></i><i class="tape t4"></i>
+  <div class="chips">
+    <div class="chip"><i style="background:#EFE4CC"></i><span>Ecru<br>01</span></div>
+    <div class="chip"><i style="background:#C2714C"></i><span>Clay<br>02</span></div>
+    <div class="chip"><i style="background:#848A67"></i><span>Sage<br>03</span></div>
+    <div class="chip"><i style="background:#2F2925"></i><span>Ink<br>04</span></div>
+  </div>
+  <div class="words">
+    <div class="w1">soft,</div>
+    <div class="w2">sun-washed,</div>
+    <div class="w3">unhurried.</div>
+  </div>
+  <div class="cta micro"><span>Shop the edit</span><span>→</span></div>
+</div>
+</body>
+</html>

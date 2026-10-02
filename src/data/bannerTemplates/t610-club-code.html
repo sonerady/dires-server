@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@500;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Club Code — loyalty referral: a champagne-foil membership card (tier, chip, the member's personal code in mono),
+     a five-step friends tracker toward the next tier and the points-per-friend offer.
+     tall / 3:4 → headline, photo, card, tracker, offer · square / wide → photo left, headline + card + tracker right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE9E3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE9E3; color: #1A1A1C; box-sizing: border-box;
+    font-family: "Sora", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column; padding: 5.4vmin 6vmin 5vmin; }
+
+  .head { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .kick { font-family: "JetBrains Mono", monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #7A746A; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-weight: 300; font-size: 8vmin; line-height: .98; letter-spacing: -.04em; }
+  h1 b { font-weight: 700; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 3.4vmin; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .card { position: relative; flex: none; height: 27vmin; margin-top: 3vmin; box-sizing: border-box; border-radius: 2.6vmin; overflow: hidden; padding: 3vmin 3.6vmin;
+    display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr auto; column-gap: 2.6vmin;
+    background: linear-gradient(118deg, #EAD9B6 0%, #F6EBD2 28%, #CDB386 55%, #EFDFBE 78%, #C4A874 100%);
+    box-shadow: 0 1.6vmin 3.6vmin rgba(60,45,20,.22), inset 0 0 0 1px rgba(255,255,255,.5); color: #2A2216; }
+  .card::after { content: ""; position: absolute; right: -8vmin; top: -10vmin; width: 34vmin; height: 34vmin; border-radius: 50%; border: 1px solid rgba(80,60,25,.18); box-shadow: 0 0 0 4vmin rgba(255,255,255,.08); pointer-events: none; }
+  .brand { grid-column: 1 / 2; font-weight: 700; font-size: 2.2vmin; letter-spacing: .28em; white-space: nowrap; }
+  .tier { grid-column: 2; justify-self: end; font-family: "JetBrains Mono", monospace; font-size: 1.6vmin; font-weight: 700; letter-spacing: .2em; padding: .5vmin 1.2vmin; border: 1px solid rgba(42,34,22,.5); border-radius: 99vmin; }
+  .chipc { grid-column: 1; grid-row: 2; align-self: center; width: 6.4vmin; height: 4.8vmin; border-radius: .9vmin;
+    background: linear-gradient(90deg, transparent 32%, rgba(80,60,25,.35) 32% 34%, transparent 34% 66%, rgba(80,60,25,.35) 66% 68%, transparent 68%),
+      linear-gradient(0deg, transparent 46%, rgba(80,60,25,.35) 46% 54%, transparent 54%), linear-gradient(135deg, #F3E2B8, #B9985C); }
+  .code { grid-column: 2; grid-row: 2; align-self: center; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 5.4vmin; letter-spacing: .06em; white-space: nowrap; }
+  .code small { display: block; font-size: 1.6vmin; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: #6E5D3E; margin-bottom: .4vmin; }
+  .mem { grid-column: 1 / 3; grid-row: 3; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .06em; color: #5C4C30; white-space: nowrap; }
+  .mem b { color: #2A2216; font-weight: 600; }
+
+  .track { flex: none; margin-top: 3vmin; display: flex; align-items: center; gap: 2.4vmin; }
+  .dots { flex: none; display: flex; align-items: center; }
+  .dots i { width: 3.2vmin; height: 3.2vmin; border-radius: 50%; box-sizing: border-box; border: .3vmin solid #1A1A1C; background: #1A1A1C; }
+  .dots i + i { margin-left: 1.6vmin; position: relative; }
+  .dots i + i::before { content: ""; position: absolute; right: 100%; top: 50%; width: 1.9vmin; height: .3vmin; margin-top: -.15vmin; background: #1A1A1C; }
+  .dots i.o { background: transparent; }
+  .dots i.o::before { background: rgba(26,26,28,.3); }
+  .track p { margin: 0; font-size: 1.9vmin; line-height: 1.35; color: #5B574F; }
+  .track p b { display: block; color: #1A1A1C; font-weight: 600; }
+
+  .foot { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; margin-top: 2.8vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(26,26,28,.18); }
+  .offer { font-size: 1.9vmin; line-height: 1.35; color: #5B574F; }
+  .offer b { color: #1A1A1C; font-weight: 700; }
+  .cta { flex: none; padding: 1.8vmin 3vmin; border-radius: 1.2vmin; background: #1A1A1C; color: #F4EEDF; font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.6vmin 6vmin 4.2vmin; }
+    h1 { font-size: 6.8vmin; margin-top: 1vmin; }
+    .photo { margin-top: 2.8vmin; }
+    .card { height: 22vmin; margin-top: 2.6vmin; padding: 2.4vmin 3.2vmin; }
+    .code { font-size: 4.6vmin; }
+    .chipc { width: 5.6vmin; height: 4.2vmin; }
+    .track { margin-top: 2.4vmin; }
+    .dots i { width: 2.8vmin; height: 2.8vmin; }
+    .foot { margin-top: 2.2vmin; padding-top: 1.8vmin; }
+  }
+  /* ── square / wide: photo left, the club column right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: grid; padding: 5vmin; column-gap: 5vmin; grid-template-columns: 45% 1fr;
+      grid-template-rows: auto 1fr auto auto auto; grid-template-areas: "photo head" "photo card" "photo track" "photo foot" "photo ."; }
+    .head { grid-area: head; flex-direction: column; align-items: flex-start; gap: 0; }
+    .photo { grid-area: photo; margin: 0; }
+    .card { grid-area: card; align-self: center; height: 25vmin; margin: 3vmin 0; padding: 2.6vmin 3vmin; }
+    .code { font-size: 4.2vmin; }
+    .brand { letter-spacing: .2em; }
+    .chipc { width: 5vmin; height: 3.8vmin; }
+    .track { grid-area: track; margin: 0; gap: 2vmin; }
+    .dots i { width: 2.6vmin; height: 2.6vmin; }
+    .dots i + i { margin-left: 1.2vmin; }
+    .dots i + i::before { width: 1.5vmin; }
+    .track p { font-size: 1.7vmin; }
+    .foot { grid-area: foot; flex-direction: column; align-items: flex-start; gap: 2vmin; margin-top: 2.6vmin; }
+    .offer { font-size: 1.8vmin; }
+    h1 { font-size: 6.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { padding: 6vmin 7vmin; column-gap: 7vmin; grid-template-columns: 44% 1fr; }
+    h1 { font-size: 7.6vmin; }
+    .card { height: 28vmin; padding: 3vmin 3.6vmin; }
+    .code { font-size: 5.4vmin; }
+    .chipc { width: 6.4vmin; height: 4.8vmin; }
+    .track p { font-size: 1.9vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div><div class="kick">Vara Club · Refer &amp; earn</div><h1>Your circle,<br><b>your rewards.</b></h1></div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="card">
+    <div class="brand">VARA CLUB</div><div class="tier">GOLD</div>
+    <i class="chipc"></i>
+    <div class="code"><small>Your referral code</small>MAYA-7Q4X</div>
+    <div class="mem"><span>Member <b>Maya R.</b></span><span>since 2024 · 2,450 pts</span></div>
+  </div>
+  <div class="track">
+    <div class="dots"><i></i><i></i><i></i><i class="o"></i><i class="o"></i></div>
+    <p><b>3 of 5 friends joined</b>2 more to unlock Icon tier</p>
+  </div>
+  <div class="foot">
+    <div class="offer">Friends get <b>15% off</b> · you earn <b>500 pts</b> each</div>
+    <div class="cta">Share my code →</div>
+  </div>
+</div>
+</body>
+</html>

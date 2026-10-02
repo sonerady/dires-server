@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Colophon — the last page of the lookbook: a printer's-mark roundel, a centred classical colophon (where it
+     was shot, how it was set and printed, the edition), the launch date and a reader's code, hand-numbered copy
+     "Nº 127 of 500" in pencil, a centred folio. One family, Garamond, in roman, italic and letter-spaced capitals.
+     tall → the last look above, the colophon page below · square & wide → look on the facing page, left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EEE3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EEE3; color: #2A251F; font-family: "EB Garamond", Garamond, "Times New Roman", serif; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 22%; }
+  .col { position: absolute; left: 10vmin; right: 10vmin; bottom: 4.5vmin; height: calc(86vmin - 10vmin); display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .mark { width: 10vmin; height: 10vmin; flex: none; margin-top: auto; }
+  .mark svg { display: block; width: 100%; height: 100%; }
+  .caps { margin-top: 2.6vmin; font-size: 2vmin; font-weight: 500; letter-spacing: .42em; text-transform: uppercase; padding-left: .42em; }
+  .body { margin: 2.8vmin 0 0; font-size: 3.2vmin; line-height: 1.3; max-width: 74vmin; text-wrap: balance; }
+  .body i { font-style: italic; }
+  .orn { margin: 2.6vmin 0; display: flex; gap: 1.6vmin; }
+  .orn b { width: .9vmin; height: .9vmin; background: #8C3B2A; transform: rotate(45deg); }
+  .avail { margin: 0; font-size: 2.6vmin; line-height: 1.35; max-width: 70vmin; text-wrap: balance; }
+  .code { margin-top: 2.6vmin; display: flex; flex-direction: column; align-items: center; }
+  .code i { font-size: 2.6vmin; }
+  .code b { font-style: italic; font-weight: 400; font-size: 9vmin; line-height: 1; color: #8C3B2A; letter-spacing: -.01em; }
+  .code span { margin-top: 1.8vmin; font-size: 1.9vmin; letter-spacing: .3em; text-transform: uppercase; padding-left: .3em; }
+  .ed { margin-top: auto; padding-top: 2vmin; width: 100%; display: flex; justify-content: space-between; align-items: flex-end; }
+  .ed span { font-size: 1.8vmin; letter-spacing: .3em; text-transform: uppercase; }
+  .ed .pencil { letter-spacing: .02em; text-transform: none; font-style: italic; font-size: 3vmin; color: #6D6760; transform: rotate(-3deg); }
+  .pencil u { text-decoration: none; border-bottom: 1px solid #8F8A83; padding: 0 .6vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 70vmin); }
+    .col { height: calc(70vmin - 9vmin); bottom: 4vmin; }
+    .mark { width: 9vmin; height: 9vmin; }
+    .caps { margin-top: 2vmin; }
+    .body { font-size: 3vmin; margin-top: 2vmin; }
+    .orn { margin: 2vmin 0; }
+    .avail, .code i { font-size: 2.4vmin; }
+    .code b { font-size: 7.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 24%; }
+    .col { left: calc(50% + 6vmin); right: 6vmin; top: 5.5vmin; bottom: 4.5vmin; height: auto; }
+    .mark { width: 8vmin; height: 8vmin; }
+    .caps { margin-top: 2vmin; font-size: 1.7vmin; }
+    .body { font-size: 2.5vmin; margin-top: 2vmin; }
+    .orn { margin: 1.8vmin 0; gap: 1.2vmin; }
+    .orn b { width: .75vmin; height: .75vmin; }
+    .avail, .code i { font-size: 2.1vmin; }
+    .code { margin-top: 1.6vmin; }
+    .code b { font-size: 6vmin; }
+    .code span { font-size: 1.6vmin; }
+    .ed span { font-size: 1.6vmin; letter-spacing: .24em; }
+    .ed .pencil { font-size: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .col { left: calc(48% + 9vmin); right: 9vmin; top: 6vmin; bottom: 5vmin; }
+    .mark { width: 10vmin; height: 10vmin; }
+    .caps { margin-top: 2.4vmin; font-size: 1.9vmin; }
+    .body { font-size: 3vmin; margin-top: 2.4vmin; max-width: 66vmin; }
+    .orn { margin: 2.2vmin 0; }
+    .avail, .code i { font-size: 2.4vmin; }
+    .code b { font-size: 7.4vmin; }
+    .code span { font-size: 1.8vmin; }
+    .ed span { font-size: 1.7vmin; }
+    .ed .pencil { font-size: 2.8vmin; }
+  }
+
+  /* ───────── motion (8s loop, quiet) ─────────
+     0.8s the printer's mark is re-drawn stroke by stroke (stem, cross-bar, the two barbs), its centre dot sets ·
+     2.9s the three ornaments pulse in turn · 4s "15% off" is written in again · 5.9s the pencilled copy number is re-written */
+  .anc { stroke-dasharray: 100 100; animation: draw 8s linear infinite; }
+  .anc.s2 { animation-delay: -.8s; }
+  .anc.s3 { animation-delay: -.4s; }
+  .anc.s4 { animation-delay: -.25s; }
+  .anc.s1 { animation-delay: -1.2s; }
+  @keyframes draw {
+    0%, 20% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    23% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    23.5%, 25% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    33%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+  .cdot { transform-box: fill-box; transform-origin: center; animation: cdot 8s linear infinite; }
+  @keyframes cdot {
+    0%, 32% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    35% { transform: scale(1.7); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+    40%, 100% { transform: scale(1); }
+  }
+  .orn b { animation: orn 8s linear infinite; }
+  .orn b:nth-child(1) { animation-delay: -.4s; }
+  .orn b:nth-child(2) { animation-delay: -.2s; }
+  @keyframes orn {
+    0%, 36% { transform: rotate(45deg) scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    39% { transform: rotate(135deg) scale(1.6); animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    44%, 100% { transform: rotate(225deg) scale(1); }
+  }
+  .code b { animation: ink 8s linear infinite; }
+  @keyframes ink {
+    0%, 48% { clip-path: inset(-15% -8% -15% -8%); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    50% { clip-path: inset(-15% -8% -15% -8%); opacity: 0; animation-timing-function: steps(1, end); }
+    50.5% { clip-path: inset(-15% 108% -15% -8%); opacity: 1; animation-timing-function: cubic-bezier(.35,.15,.45,1); }
+    64%, 100% { clip-path: inset(-15% -8% -15% -8%); opacity: 1; }
+  }
+  .ed .pencil { animation: pencil 8s linear infinite; }
+  @keyframes pencil {
+    0%, 71% { clip-path: inset(-20% -6% -30% -6%); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    73% { clip-path: inset(-20% -6% -30% -6%); opacity: 0; animation-timing-function: steps(1, end); }
+    73.5% { clip-path: inset(-20% 106% -30% -6%); opacity: 1; animation-timing-function: cubic-bezier(.35,.15,.45,1); }
+    86%, 100% { clip-path: inset(-20% -6% -30% -6%); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="col">
+    <div class="mark"><svg viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="#2A251F" stroke-width="1.6"/>
+      <circle cx="50" cy="50" r="41" fill="none" stroke="#2A251F" stroke-width=".8"/>
+      <g fill="none" stroke="#8C3B2A" stroke-width="2.2" stroke-linecap="round"><path class="anc s1" pathLength="100" d="M50 18V82"/><path class="anc s2" pathLength="100" d="M38 30H62"/><path class="anc s3" pathLength="100" d="M50 82L40 70"/><path class="anc s4" pathLength="100" d="M50 82L60 70"/></g>
+      <circle class="cdot" cx="50" cy="50" r="5" fill="#8C3B2A"/>
+      <text x="29" y="58" font-family="EB Garamond, Garamond, serif" font-size="20" fill="#2A251F" text-anchor="middle">A</text>
+      <text x="71" y="58" font-family="EB Garamond, Garamond, serif" font-size="20" fill="#2A251F" text-anchor="middle">N</text>
+    </svg></div>
+    <div class="caps">Colophon</div>
+    <p class="body"><i>Atelier Nord, Autumn/Winter 2026.</i> Photographed in Lisbon over three days in June, set in Garamond and printed on uncoated paper in an edition of five hundred.</p>
+    <div class="orn"><b></b><b></b><b></b></div>
+    <p class="avail">The collection is available from the first of October, in store and at atelier-nord.com.</p>
+    <div class="code"><i>Readers take</i><b>15% off</b><span>Code READER15</span></div>
+    <div class="ed"><span>Fin.</span><span class="pencil">Nº <u>127</u> of 500</span><span>64</span></div>
+  </div>
+</div>
+</body>
+</html>

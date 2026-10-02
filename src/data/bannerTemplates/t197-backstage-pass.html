@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Backstage Pass — an all-areas laminate hanging from a printed lanyard that slips out from under the photo:
+     punched slot, metal clip, black header band, a giant AAA, the offer as access rights, holographic foil strip, barcode.
+     tall → photo above, landscape pass below · square & wide → photo left, portrait pass right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #141416; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #141416; color: #141416; font-family: "Space Mono", "Courier New", monospace; }
+  .anton { font-family: "Anton", "Impact", "Arial Narrow", sans-serif; font-weight: 400; }
+
+  .panel { position: absolute; left: 0; right: 0; top: 56%; bottom: 0; background: radial-gradient(ellipse 70% 60% at 50% 40%, #26262B 0%, #141416 70%); }
+  .strap { position: absolute; top: calc(56% - 4vmin); left: calc(50% - 2.8vmin); width: 5.6vmin; height: 21vmin; background: #FF4FA0; overflow: hidden; transform-origin: 50% 100%; box-shadow: 0 0 1.2vmin rgba(0,0,0,.4); }
+  .strap.l { transform: rotate(-26deg); }
+  .strap.r { transform: rotate(26deg); }
+  .strap p { margin: 0; position: absolute; left: 50%; top: 0; height: 100%; overflow: hidden; transform: translateX(-50%); writing-mode: vertical-rl; white-space: nowrap; font-family: "Anton", sans-serif; font-size: 2.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #141416; line-height: 5.6vmin; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 56%; object-fit: cover; object-position: 50% 20%; }
+  .clip { position: absolute; left: calc(50% - 2.6vmin); top: calc(56% + 15vmin); width: 5.2vmin; height: 6.4vmin; border-radius: 1vmin 1vmin .6vmin .6vmin; background: linear-gradient(90deg, #8d8d92, #f1f1f3 45%, #9a9aa0 70%, #5d5d62); box-shadow: 0 .5vmin 1vmin rgba(0,0,0,.45); z-index: 3; }
+  .clip::after { content: ""; position: absolute; left: 1.3vmin; right: 1.3vmin; top: 1.1vmin; height: 1.6vmin; border-radius: .8vmin; background: #3a3a3e; }
+
+  .pass { position: absolute; left: 8vmin; right: 8vmin; top: calc(56% + 19vmin); height: 45vmin; box-sizing: border-box; background: #F5F3EE; transform: rotate(-2deg); box-shadow: 0 1.6vmin 3vmin rgba(0,0,0,.5); display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 6.4vmin 1fr 6.6vmin; grid-template-areas: "band band" "big info" "foil foil"; overflow: hidden; }
+  .pass::before { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.55) 42%, rgba(255,255,255,0) 54%); pointer-events: none; z-index: 2; }
+  .slot { position: absolute; left: 50%; top: 1.4vmin; width: 7vmin; height: 1.6vmin; margin-left: -3.5vmin; border-radius: .8vmin; background: #141416; z-index: 3; }
+  .band { grid-area: band; background: #141416; color: #F5F3EE; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 2.4vmin 1vmin; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .band b { font-weight: 700; color: #FF4FA0; }
+  .big { grid-area: big; display: flex; flex-direction: column; justify-content: center; padding-left: 2.6vmin; }
+  .big b { font-family: "Anton", sans-serif; font-weight: 400; font-size: 18vmin; line-height: .86; letter-spacing: -.01em; }
+  .big span { font-size: 1.7vmin; letter-spacing: .18em; text-transform: uppercase; margin-top: 1vmin; }
+  .info { grid-area: info; display: flex; flex-direction: column; justify-content: center; gap: .9vmin; padding-right: 2.6vmin; border-left: 1px solid rgba(20,20,22,.25); padding-left: 2.4vmin; }
+  .info small { font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #55555c; }
+  .info .off { font-family: "Anton", sans-serif; font-size: 10vmin; line-height: .9; color: #FF4FA0; }
+  .info .off i { font-style: normal; font-size: .5em; color: #141416; margin-left: .2em; }
+  .info .c { font-size: 1.9vmin; font-weight: 700; letter-spacing: .1em; }
+  .foil { grid-area: foil; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; padding: 0 2.4vmin; border-top: 1px solid rgba(20,20,22,.2); }
+  .holo { flex: 1; height: 3.4vmin; background: linear-gradient(100deg, #b8f3ff 0%, #ffd1f3 18%, #fff6b8 34%, #c6ffd9 50%, #c9c8ff 66%, #ffc9e0 82%, #b8f3ff 100%); position: relative; }
+  .holo::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, rgba(255,255,255,.55) 0 .3vmin, transparent .3vmin 1vmin); }
+  .bars { width: 15vmin; height: 3.4vmin; background: repeating-linear-gradient(90deg, #141416 0 .3vmin, transparent .3vmin .6vmin, #141416 .6vmin 1.2vmin, transparent 1.2vmin 1.5vmin, #141416 1.5vmin 1.7vmin, transparent 1.7vmin 2.2vmin); }
+  .ser { font-size: 1.6vmin; letter-spacing: .08em; }
+
+  .cap { position: absolute; left: 6vmin; right: 6vmin; bottom: 4vmin; display: flex; justify-content: space-between; align-items: center; color: #F5F3EE; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .cap b { color: #FF4FA0; }
+  .top { position: absolute; left: 5vmin; top: 5vmin; padding: 1vmin 1.6vmin; background: #FF4FA0; color: #141416; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .pass { left: 12vmin; right: 12vmin; height: 37vmin; }
+    .big b { font-size: 15vmin; }
+    .info .off { font-size: 8.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 50%; }
+    .panel { top: 50%; }
+    .strap { top: calc(50% - 4vmin); height: 17vmin; }
+    .clip { top: calc(50% + 11vmin); }
+    .pass { top: calc(50% + 15vmin); height: 34vmin; left: 14vmin; right: 14vmin; }
+    .big b { font-size: 13.6vmin; }
+    .info .off { font-size: 7.4vmin; }
+    .cap { bottom: 3.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { top: 0; left: 50%; }
+    .strap { top: -4vmin; left: calc(75% - 2.6vmin); width: 5.2vmin; height: 16vmin; }
+    .strap.l { transform: rotate(-18deg); }
+    .strap.r { transform: rotate(18deg); }
+    .strap p { font-size: 2.4vmin; line-height: 5.2vmin; }
+    .clip { left: calc(75% - 2.4vmin); top: 10vmin; width: 4.8vmin; height: 6vmin; }
+    .pass { left: calc(75% - 19vmin); right: auto; width: 38vmin; top: 14vmin; height: 70vmin; transform: rotate(2deg); grid-template-columns: 1fr; grid-template-rows: 6.4vmin auto 1fr 6.6vmin; grid-template-areas: "band" "big" "info" "foil"; }
+    .band { font-size: 1.6vmin; padding: 0 2vmin 1vmin; }
+    .band span:first-child { display: none; }
+    .big { padding: 3vmin 2.6vmin 1vmin; }
+    .big b { font-size: 16vmin; }
+    .info { border-left: 0; border-top: 1px solid rgba(20,20,22,.25); margin: 0 2.6vmin; padding: 1.4vmin 0 0; justify-content: flex-start; }
+    .info .off { font-size: 9vmin; }
+    .bars { width: 10vmin; }
+    .ser { display: none; }
+    .cap { left: calc(50% + 4vmin); right: 4vmin; bottom: 4vmin; font-size: 1.6vmin; letter-spacing: .08em; }
+    .cap span:first-child { display: none; }
+    .cap { justify-content: center; }
+    .top { left: 4vmin; top: 4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .panel { left: 44%; }
+    .strap { left: calc(72% - 2.8vmin); width: 5.6vmin; height: 16vmin; }
+    .clip { left: calc(72% - 2.6vmin); width: 5.2vmin; }
+    .pass { left: calc(72% - 21vmin); width: 42vmin; top: 14vmin; height: 72vmin; }
+    .big b { font-size: 17vmin; }
+    .band span:first-child { display: inline; }
+    .ser { display: inline; }
+    .cap { left: calc(44% + 5vmin); right: 5vmin; bottom: 4.4vmin; font-size: 1.7vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="panel"></div>
+  <div class="strap l"><p>All areas ✶ All areas ✶ All areas ✶ All areas</p></div>
+  <div class="strap r"><p>Oro fields ✶ Oro fields ✶ Oro fields ✶ Oro fields</p></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="top">Backstage · Summer 26</div>
+  <div class="clip"></div>
+  <div class="pass">
+    <i class="slot"></i>
+    <div class="band"><span>Oro Fields ’26</span><b>All areas</b></div>
+    <div class="big"><b>AAA</b><span>Access all areas</span></div>
+    <div class="info">
+      <small>Festival edit</small>
+      <div class="off">30%<i>off</i></div>
+      <div class="c">Code AAA30</div>
+      <small>Valid Fri 03 — Sun 05</small>
+    </div>
+    <div class="foil"><i class="holo"></i><i class="bars"></i><span class="ser">Nº 000726</span></div>
+  </div>
+  <div class="cap"><span>Crew · Guests · You</span><span>Shop the edit <b>→</b></span></div>
+</div>
+</body>
+</html>

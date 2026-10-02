@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Boarding Pass — the drop as a flight from GRY (grey days) to SUN (the sun edit): airline band, airport codes,
+     a dashed flight path, fare stub behind a notched perforation, barcode. Ink-navy apron, signal orange.
+     tall & wide → photo + landscape pass; square → photo left, a vertical mobile-style pass right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #13223E; }
+  .banner { --bg: #13223E; --ink: #121A2B; --pap: #FBF9F4; --or: #FF5A1F; --mute: #6C7486;
+    position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 71vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .zone { position: absolute; left: 0; right: 0; bottom: 0; height: 71vmin; box-sizing: border-box; padding: 3.6vmin 5vmin 5vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .hdr { display: flex; justify-content: space-between; align-items: center; gap: 3vmin; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.9vmin; letter-spacing: .14em; text-transform: uppercase; color: #E9ECF3; white-space: nowrap; }
+  .hdr i { display: inline-block; width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: var(--or); margin-right: 1.2vmin; vertical-align: .05em; box-shadow: 0 0 0 .5vmin rgba(255,90,31,.25); }
+  .hdr span:last-child { color: #9AA6C0; }
+
+  .pass { position: relative; display: flex; height: 56vmin; filter: drop-shadow(0 1.2vmin 2vmin rgba(0,0,0,.35)); }
+  .main, .stub { position: relative; background: var(--pap); display: flex; flex-direction: column; min-width: 0; }
+  .main { flex: 1; border-radius: 1.6vmin 0 0 1.6vmin; }
+  .stub { flex: none; width: 27vmin; border-radius: 0 1.6vmin 1.6vmin 0; }
+  .band { flex: none; height: 7.4vmin; background: var(--or); color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; padding: 0 3.4vmin; box-sizing: border-box; }
+  .main .band { border-radius: 1.6vmin 0 0 0; }
+  .stub .band { border-radius: 0 1.6vmin 0 0; justify-content: center; }
+  .band b { font-weight: 800; font-stretch: 125%; font-size: 2.6vmin; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+  .band b::before { content: "✈"; font-stretch: 100%; margin-right: 1vmin; }
+  .band span { font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
+  .route { display: flex; align-items: flex-start; justify-content: space-between; gap: 2vmin; padding: 3.4vmin 3.6vmin 0; }
+  .apt { display: flex; flex-direction: column; }
+  .apt.r { align-items: flex-end; text-align: right; }
+  .apt b { font-weight: 800; font-stretch: 62%; font-size: 15vmin; line-height: .82; letter-spacing: -.01em; }
+  .apt.r b { color: var(--or); }
+  .apt span { margin-top: 1.2vmin; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); white-space: nowrap; }
+  .fly { flex: 1; position: relative; height: 12.2vmin; min-width: 8vmin; }
+  .fly::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; border-top: .3vmin dashed rgba(18,26,43,.45); }
+  .fly svg { position: absolute; left: 50%; top: 50%; width: 4.6vmin; height: 4.6vmin; transform: translate(-50%, -50%) rotate(90deg); background: var(--pap); padding: .6vmin; }
+
+  .note { display: none; margin: auto 3.6vmin 0; padding-top: 2vmin; border-top: 1px solid rgba(18,26,43,.14); font-size: 2.2vmin; line-height: 1.35; font-stretch: 100%; color: #3A4152; }
+  .note b { color: var(--ink); }
+  .fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.2vmin 2.4vmin; padding: 0 3.6vmin 3.4vmin; margin-top: auto; border-top: 0; }
+  .fields div { font-weight: 700; font-stretch: 100%; font-size: 3vmin; line-height: 1.05; text-transform: uppercase; white-space: nowrap; }
+  .fields small, .stub small { display: block; margin-bottom: .7vmin; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 400; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: var(--mute); }
+
+  .perf { position: relative; flex: none; width: 0; border-left: .35vmin dashed rgba(18,26,43,.3); background: var(--pap); }
+  .perf::before, .perf::after { content: ""; position: absolute; left: -2.1vmin; width: 3.9vmin; height: 3.9vmin; border-radius: 50%; background: var(--bg); }
+  .perf::before { top: -1.95vmin; }
+  .perf::after { bottom: -1.95vmin; }
+
+  .stub .body { flex: 1; display: flex; flex-direction: column; padding: 3.2vmin 3.2vmin 3.2vmin; gap: 2.2vmin; }
+  .fare b { display: block; font-weight: 800; font-stretch: 62%; font-size: 11vmin; line-height: .85; color: var(--or); white-space: nowrap; }
+  .code { font-family: "JetBrains Mono", Menlo, monospace; font-weight: 700; font-size: 2.8vmin; letter-spacing: .08em; }
+  .bar { margin-top: auto; height: 7vmin; background:
+      repeating-linear-gradient(90deg, #121A2B 0 .28vmin, transparent .28vmin .74vmin),
+      repeating-linear-gradient(90deg, transparent 0 .9vmin, #121A2B .9vmin 1.5vmin, transparent 1.5vmin 2.3vmin),
+      repeating-linear-gradient(90deg, transparent 0 1.9vmin, #121A2B 1.9vmin 2.35vmin, transparent 2.35vmin 3.1vmin); }
+  .cta { font-weight: 800; font-stretch: 110%; font-size: 2vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .zone { height: 64vmin; padding: 3vmin 6vmin 4vmin; }
+    .pass { height: 52vmin; }
+    .apt b { font-size: 13.4vmin; }
+    .fly { height: 11vmin; }
+    .route { padding-top: 2.8vmin; }
+    .fields { padding-bottom: 3vmin; gap: 1.8vmin 2.4vmin; }
+    .fare b { font-size: 10vmin; }
+    .bar { height: 6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 24%; }
+    .zone { left: 46%; top: 0; height: 100%; padding: 5vmin 4vmin 5vmin; justify-content: flex-start; gap: 3.4vmin; }
+    .hdr { font-size: 1.7vmin; letter-spacing: .1em; }
+    .hdr span:last-child { display: none; }
+    .pass { flex-direction: column; height: auto; flex: 1; }
+    .main { border-radius: 1.6vmin 1.6vmin 0 0; }
+    .stub { width: auto; flex: none; border-radius: 0 0 1.6vmin 1.6vmin; }
+    .stub .band { display: none; }
+    .band { height: 6.6vmin; padding: 0 3vmin; }
+    .band b { font-size: 2.3vmin; }
+    .band span { font-size: 1.6vmin; letter-spacing: .1em; }
+    .route { padding: 3vmin 2.8vmin 0; gap: 1vmin; }
+    .apt b { font-size: 9.6vmin; }
+    .note { display: block; margin: auto 3vmin 0; font-size: 2vmin; }
+    .fields { margin-top: 2.4vmin; padding-top: 0; }
+    .apt span { font-size: 1.6vmin; letter-spacing: .06em; }
+    .fly { height: 7.8vmin; min-width: 5vmin; }
+    .fly svg { width: 4vmin; height: 4vmin; }
+    .fields { grid-template-columns: repeat(2, 1fr); gap: 1.8vmin 2vmin; padding: 0 3vmin 3vmin; }
+    .fields div { font-size: 2.6vmin; }
+    .perf { width: auto; height: 0; border-left: 0; border-top: .35vmin dashed rgba(18,26,43,.3); }
+    .perf::before, .perf::after { top: -2.1vmin; bottom: auto; }
+    .perf::before { left: -1.95vmin; }
+    .perf::after { left: auto; right: -1.95vmin; }
+    .stub .body { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 1.6vmin 3vmin; padding: 3vmin; align-items: end; }
+    .fare { grid-row: 1 / 3; }
+    .fare b { font-size: 10.4vmin; }
+    .code { font-size: 2.4vmin; }
+    .bar { grid-column: 2; height: 4.6vmin; margin-top: 0; }
+    .cta { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .zone { left: 44%; padding: 7vmin 5vmin 7vmin; justify-content: center; gap: 4vmin; }
+    .hdr { font-size: 1.9vmin; letter-spacing: .14em; }
+    .hdr span:last-child { display: inline; }
+    .pass { flex-direction: row; flex: none; height: 64vmin; }
+    .main { border-radius: 1.6vmin 0 0 1.6vmin; }
+    .stub { width: 24vmin; border-radius: 0 1.6vmin 1.6vmin 0; }
+    .stub .band { display: flex; }
+    .band { height: 7.4vmin; padding: 0 3.2vmin; }
+    .band b { font-size: 2.5vmin; }
+    .band span { font-size: 1.7vmin; }
+    .route { padding: 3.6vmin 3.4vmin 0; }
+    .apt b { font-size: 9.8vmin; }
+    .fly { height: 8vmin; }
+    .note { margin: auto 3.4vmin 0; font-size: 2.1vmin; }
+    .fields { grid-template-columns: repeat(3, 1fr); gap: 2.4vmin 2vmin; padding: 0 3.4vmin 3.6vmin; }
+    .fields div { font-size: 2.7vmin; }
+    .perf { width: 0; height: auto; border-top: 0; border-left: .35vmin dashed rgba(18,26,43,.3); }
+    .perf::before, .perf::after { left: -2.1vmin; right: auto; }
+    .perf::before { top: -1.95vmin; }
+    .perf::after { top: auto; bottom: -1.95vmin; }
+    .stub .body { display: flex; flex-direction: column; align-items: stretch; gap: 2.4vmin; padding: 3.4vmin 3vmin; }
+    .fare b { font-size: 8.4vmin; }
+    .code { font-size: 2.5vmin; }
+    .bar { height: 7vmin; margin-top: auto; }
+    .cta { display: block; font-size: 1.6vmin; letter-spacing: .05em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="zone">
+    <div class="hdr"><span><i></i>Now boarding</span><span>Flight SS27 · On time</span></div>
+    <div class="pass">
+      <div class="main">
+        <div class="band"><b>Atelier Air</b><span>Boarding pass</span></div>
+        <div class="route">
+          <div class="apt"><b>GRY</b><span>Grey days</span></div>
+          <div class="fly"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#121A2B" d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+          <div class="apt r"><b>SUN</b><span>The Sun Edit</span></div>
+        </div>
+        <div class="note"><b>Travel light.</b> The resort edit lands 12 June, online and in store.</div>
+        <div class="fields">
+          <div><small>Passenger</small>You</div>
+          <div><small>Flight</small>SS27</div>
+          <div><small>Date</small>12 Jun</div>
+          <div><small>Gate</small>A30</div>
+          <div><small>Seat</small>1A</div>
+          <div><small>Boards</small>Now</div>
+        </div>
+      </div>
+      <div class="perf"></div>
+      <div class="stub">
+        <div class="band"><span>SS27 · 1A</span></div>
+        <div class="body">
+          <div class="fare"><small>Fare</small><b>−30%</b></div>
+          <div class="code"><small>Code</small>FLY30</div>
+          <div class="bar"></div>
+          <div class="cta">Shop the edit →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

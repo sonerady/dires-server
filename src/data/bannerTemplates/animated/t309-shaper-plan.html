@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Shaper's Plan — a surfboard shaper's pencil drawing on a pale-blue foam blank: planshape with dashed stringer,
+     fin boxes, dimension lines and a rocker profile, red-pencil notes circling the tail with the offer, and the
+     order ticket written up in mono. Hand-shaped, made in small batches.
+     tall → photo above, plan below · square → photo left, board drawn upright beside the notes · wide → photo left, plan right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCE9EF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #DCE9EF; color: #3A3F45; font-family: "DM Mono", "SF Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; }
+  .bay { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; }
+  .dust { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .kick { position: absolute; left: 6vmin; right: 6vmin; top: 4.4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; padding-bottom: 1.2vmin; border-bottom: 1px solid rgba(58,63,69,.5); }
+  h1 { position: absolute; left: 6vmin; right: 6vmin; top: 9vmin; margin: 0; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 12vmin; line-height: .95; }
+  h1 span { color: #C8412F; }
+  .hand { font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; fill: #3A3F45; }
+  .hand.red { fill: #C8412F; }
+  .mono { font-family: "DM Mono", "SF Mono", Menlo, monospace; fill: #3A3F45; }
+  .ph { position: absolute; left: 4vmin; right: 4vmin; top: 25vmin; }
+  .ph svg, .pv svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .pv { display: none; }
+  .ticket { position: absolute; left: 6vmin; right: 6vmin; top: 63vmin; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #3A3F45; border-bottom: 1px solid #3A3F45; }
+  .ticket div { padding: 1.2vmin 0; }
+  .ticket div + div { padding-left: 2vmin; border-left: 1px solid rgba(58,63,69,.4); }
+  .ticket small { display: block; font-size: 1.6vmin; letter-spacing: .16em; text-transform: uppercase; opacity: .75; }
+  .ticket b { display: block; margin-top: .4vmin; font-weight: 500; font-size: 2.3vmin; white-space: nowrap; }
+  .ticket div:first-child b { font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 4vmin; line-height: 1; color: #C8412F; margin-top: 0; }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.6vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 2vmin; }
+  .sig { font-family: "Caveat", "Bradley Hand", cursive; font-weight: 500; font-size: 4.6vmin; line-height: 1; transform: rotate(-4deg); white-space: nowrap; }
+  .cta { font-size: 2.2vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; padding: 1.4vmin 2.6vmin; background: #3A3F45; color: #DCE9EF; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 78vmin); }
+    .bay { height: 78vmin; }
+    h1 { font-size: 11vmin; }
+    .ph { left: 7vmin; right: 7vmin; top: 23vmin; }
+    .ticket { top: 58vmin; }
+    .foot { bottom: 3.6vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .bay { height: 64vmin; }
+    .kick { top: 3.6vmin; }
+    h1 { top: 7.6vmin; font-size: 8.4vmin; }
+    .ph { left: 14vmin; right: 14vmin; top: 17vmin; }
+    .ticket { top: 46vmin; }
+    .ticket div { padding: .8vmin 0; }
+    .ticket b { font-size: 2.1vmin; }
+    .foot { bottom: 3vmin; }
+    .sig { font-size: 4vmin; }
+    .cta { padding: 1.1vmin 2.2vmin; font-size: 2vmin; }
+  }
+  /* square → photo left, board upright beside the notes */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .bay { left: 50%; top: 0; height: auto; }
+    .kick { left: 5vmin; right: 5vmin; top: 5vmin; font-size: 1.6vmin; }
+    .kick span:last-child { display: none; }
+    h1 { left: 5vmin; right: 4vmin; top: 9.5vmin; font-size: 7.6vmin; }
+    .ph { display: none; }
+    .pv { display: block; position: absolute; left: 3vmin; top: 28vmin; width: 22vmin; }
+    .ticket { left: 26vmin; right: 4vmin; top: 31vmin; grid-template-columns: 1fr; }
+    .ticket div { padding: 1.2vmin 0; }
+    .ticket div + div { padding-left: 0; border-left: 0; border-top: 1px solid rgba(58,63,69,.4); }
+    .ticket b { font-size: 2vmin; }
+    .foot { left: 26vmin; right: 4vmin; bottom: 5vmin; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .sig { font-size: 3.4vmin; white-space: normal; }
+    .cta { font-size: 1.7vmin; padding: 1.1vmin 1.8vmin; }
+    .ticket div:first-child b { font-size: 3.6vmin; }
+  }
+  /* wide → photo left, plan right */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .bay { left: 46%; }
+    .kick { left: 6vmin; right: 6vmin; font-size: 1.7vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { left: 6vmin; top: 9.5vmin; font-size: 9vmin; }
+    .pv { display: none; }
+    .ph { display: block; left: 5vmin; right: 5vmin; top: 23vmin; }
+    .ticket { left: 6vmin; right: 6vmin; top: 60vmin; grid-template-columns: repeat(3, 1fr); }
+    .ticket div { padding: 1vmin 0; }
+    .ticket div + div { padding-left: 2vmin; border-left: 1px solid rgba(58,63,69,.4); border-top: 0; }
+    .ticket b { font-size: 2.1vmin; }
+    .foot { left: 6vmin; right: 6vmin; bottom: 5vmin; flex-direction: row; align-items: flex-end; }
+    .sig { font-size: 4.4vmin; white-space: nowrap; }
+    .cta { font-size: 2vmin; padding: 1.3vmin 2.4vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the finished pencil plan) ─────────
+     0.8s the red-pencil ring round the tail is rubbed out and re-drawn in one stroke · 2.5s "−25% !" gets an emphatic pop ·
+     3.2s the shaper's signature is wiped and written again left→right · 4.8s the 25% off note wiggles · 5.3s arrow nudges */
+  .ring { stroke-dasharray: 1 1; stroke-dashoffset: 0; animation: ring 6s linear infinite; }
+  @keyframes ring {
+    0%, 13% { stroke-dashoffset: 0; animation-timing-function: cubic-bezier(.6,0,.9,.6); }
+    19% { stroke-dashoffset: -1; animation-timing-function: steps(1, end); }
+    21% { stroke-dashoffset: -1; animation-timing-function: cubic-bezier(.4,.1,.3,1); }
+    40%, 100% { stroke-dashoffset: -2; }
+  }
+  .ph .pop, .pv .pop { transform-box: fill-box; transform-origin: 50% 60%; animation: pop 6s linear infinite; }
+  @keyframes pop {
+    0%, 40% { transform: scale(1) rotate(0deg); animation-timing-function: cubic-bezier(.2,.8,.3,1.2); }
+    43.5% { transform: scale(1.22) rotate(-6deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    47% { transform: scale(.96) rotate(3deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    50.5% { transform: scale(1.02) rotate(-1deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    53%, 100% { transform: scale(1) rotate(0deg); }
+  }
+  .sig { animation: write 6s linear infinite; }
+  @keyframes write {
+    0%, 53% { clip-path: inset(-20% -2% -20% 0); animation-timing-function: cubic-bezier(.6,0,.8,.6); }
+    58% { clip-path: inset(-20% -2% -20% 100%); animation-timing-function: steps(1, end); }
+    60% { clip-path: inset(-20% 100% -20% 0); animation-timing-function: cubic-bezier(.35,.15,.4,1); }
+    77%, 100% { clip-path: inset(-20% -2% -20% 0); }
+  }
+  .ticket div:first-child b { transform-origin: 20% 70%; animation: wiggle 6s linear infinite; }
+  @keyframes wiggle {
+    0%, 79% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    81% { transform: rotate(-5deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    83.5% { transform: rotate(4deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    86% { transform: rotate(-1.5deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88%, 100% { transform: rotate(0deg); }
+  }
+  .cta i { display: inline-block; font-style: normal; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 87% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    90% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    93% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    96% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    99%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="bay">
+    <svg class="dust" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="d"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="15"/><feColorMatrix values="0 0 0 0 .98  0 0 0 0 1  0 0 0 0 1  0 0 0 -2 1.1"/></filter><rect width="100%" height="100%" filter="url(#d)" opacity=".5"/></svg>
+    <div class="kick"><span>Shaping bay · Order 0426</span><span>Oro Surfboards</span></div>
+    <h1>Shaped for <span>summer.</span></h1>
+    <div class="ph">
+      <svg viewBox="0 0 300 110" aria-hidden="true">
+          <path d="M15 45 C 40 30, 90 18, 150 17 C 210 17, 258 24, 279 35 L 285 37 L 285 53 L 279 55 C 258 66, 210 73, 150 73 C 90 72, 40 60, 15 45 Z" fill="#F7FAFB" fill-opacity=".55" stroke="#3A3F45" stroke-width="1.3" stroke-linejoin="round"/>
+          <path d="M22 45 H279" stroke="#3A3F45" stroke-width=".6" stroke-dasharray="4 2"/>
+          <path d="M150 17 V73" stroke="#3A3F45" stroke-width=".4" stroke-dasharray="1.5 1.5"/>
+          <g fill="#3A3F45"><rect x="252" y="43.4" width="12" height="3.2"/><rect x="238" y="30" width="10" height="2.6" transform="rotate(-6 243 31)"/><rect x="238" y="58" width="10" height="2.6" transform="rotate(6 243 59)"/></g>
+          <path d="M15 8 H285 M15 4 V12 M285 4 V12" stroke="#3A3F45" stroke-width=".6"/>
+          <path d="M160 17 V73 M157 17 H163 M157 73 H163" stroke="#C8412F" stroke-width=".7"/>
+          <path d="M15 92 C 70 101, 200 103, 285 90 M15 92 C 70 96, 200 97, 285 86" fill="none" stroke="#3A3F45" stroke-width=".8"/>
+          <ellipse class="ring" pathLength="1" cx="262" cy="45" rx="26" ry="20" fill="none" stroke="#C8412F" stroke-width="1" transform="rotate(-8 262 45)"/>
+          <rect x="126" y="3" width="48" height="10" fill="#DCE9EF"/>
+          <text class="hand" x="150" y="11.5" font-size="11" text-anchor="middle">6′2″ quiver</text>
+          <text class="hand red" x="167" y="49" font-size="10">19¾″</text>
+          <text class="mono" x="150" y="108" font-size="5.4" text-anchor="middle" letter-spacing="1.4">ROCKER · SINGLE TO DOUBLE CONCAVE</text>
+          <text class="hand red pop" x="236" y="84" font-size="13" text-anchor="middle">−25% !</text>
+      </svg>
+    </div>
+    <div class="pv">
+      <svg viewBox="0 0 110 300" aria-hidden="true">
+          <g transform="translate(0 300) rotate(-90)"><path d="M15 45 C 40 30, 90 18, 150 17 C 210 17, 258 24, 279 35 L 285 37 L 285 53 L 279 55 C 258 66, 210 73, 150 73 C 90 72, 40 60, 15 45 Z" fill="#F7FAFB" fill-opacity=".55" stroke="#3A3F45" stroke-width="1.3" stroke-linejoin="round"/>
+          <path d="M22 45 H279" stroke="#3A3F45" stroke-width=".6" stroke-dasharray="4 2"/>
+          <path d="M150 17 V73" stroke="#3A3F45" stroke-width=".4" stroke-dasharray="1.5 1.5"/>
+          <g fill="#3A3F45"><rect x="252" y="43.4" width="12" height="3.2"/><rect x="238" y="30" width="10" height="2.6" transform="rotate(-6 243 31)"/><rect x="238" y="58" width="10" height="2.6" transform="rotate(6 243 59)"/></g>
+          <path d="M15 8 H285 M15 4 V12 M285 4 V12" stroke="#3A3F45" stroke-width=".6"/>
+          <path d="M160 17 V73 M157 17 H163 M157 73 H163" stroke="#C8412F" stroke-width=".7"/>
+          <path d="M15 92 C 70 101, 200 103, 285 90 M15 92 C 70 96, 200 97, 285 86" fill="none" stroke="#3A3F45" stroke-width=".8"/>
+          <ellipse class="ring" pathLength="1" cx="262" cy="45" rx="26" ry="20" fill="none" stroke="#C8412F" stroke-width="1" transform="rotate(-8 262 45)"/></g>
+          <rect x="3" y="126" width="10" height="48" fill="#DCE9EF"/>
+          <text class="hand" x="11.5" y="150" font-size="10" text-anchor="middle" transform="rotate(-90 11.5 150)">6′2″ quiver</text>
+          <text class="hand red" x="30" y="136" font-size="10">19¾″</text>
+          <text class="hand red pop" x="84" y="62" font-size="12" text-anchor="middle">−25% !</text>
+      </svg>
+    </div>
+    <div class="ticket">
+      <div><small>Offer</small><b>25% off</b></div>
+      <div><small>Code</small><b>SHAPE25</b></div>
+      <div><small>Batch</small><b>Small run</b></div>
+    </div>
+    <div class="foot"><span class="sig">— hand-shaped, M. Oro</span><span class="cta">Order yours <i>→</i></span></div>
+  </div>
+</div>
+</body>
+</html>

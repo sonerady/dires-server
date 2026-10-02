@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,400;1,6..96,500&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Gift Tag — holiday gifting without the red & green: the copy panel is a wrapped box in cocoa paper,
+     powder-blue satin ribbon + bow, and a hanging gift tag that carries the offer.
+     tall → photo above the box; square/wide → photo left, box right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2C1C17; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #2C1C17; color: #F3EADF; font-family: "Outfit", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 58%; object-fit: cover; object-position: 50% 16%; }
+  .box { position: absolute; left: 0; right: 0; top: 58%; bottom: 0; background: #2C1C17; }
+  .rib-h { position: absolute; left: 0; right: 0; top: 3vmin; height: 6vmin; background: linear-gradient(180deg, #7F9DB4 0%, #A9C4D8 22%, #D5E4EE 48%, #A9C4D8 74%, #7F9DB4 100%); box-shadow: 0 .6vmin 1.4vmin rgba(0,0,0,.35); }
+  .rib-v { position: absolute; top: 3vmin; bottom: 0; left: 70%; width: 6vmin; background: linear-gradient(90deg, #7F9DB4 0%, #A9C4D8 22%, #D5E4EE 48%, #A9C4D8 74%, #7F9DB4 100%); box-shadow: .6vmin 0 1.4vmin rgba(0,0,0,.35); }
+  .bow { position: absolute; left: calc(70% + 3vmin - 12vmin); top: -3vmin; width: 24vmin; height: 18vmin; overflow: visible; }
+  .tag { position: absolute; left: calc(70% + 7.5vmin); top: 16vmin; width: 19vmin; padding: 6vmin 1.8vmin 2.4vmin; background: #F4EDE2; color: #2C1C17; text-align: center; transform: rotate(7deg); transform-origin: 50% 0; clip-path: polygon(22% 0, 78% 0, 100% 13%, 100% 100%, 0 100%, 0 13%); box-shadow: 0 1vmin 2vmin rgba(0,0,0,.3); }
+  .tag::before { content: ""; position: absolute; left: 50%; top: 2vmin; width: 2vmin; height: 2vmin; margin-left: -1vmin; border-radius: 50%; background: #2C1C17; box-shadow: 0 0 0 .5vmin #C9B9A4; }
+  .tag small { display: block; font-size: 1.6vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; line-height: 1.5; border-bottom: 1px solid rgba(44,28,23,.4); padding-bottom: 1vmin; }
+  .tag b { display: block; margin-top: 1.2vmin; font-family: "Bodoni Moda", Didot, Georgia, serif; font-style: italic; font-weight: 500; font-size: 7.4vmin; line-height: .9; }
+  .tag span { display: block; margin-top: .4vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .tag em { display: block; margin-top: 1.6vmin; padding-top: 1vmin; border-top: 1px dashed rgba(44,28,23,.55); font-style: normal; font-size: 1.9vmin; font-weight: 600; letter-spacing: .14em; }
+  .string { position: absolute; left: calc(70% + 3vmin); top: 7vmin; width: 14vmin; height: 12vmin; overflow: visible; }
+  .copy { position: absolute; left: 6vmin; width: calc(70% - 11vmin); top: 14vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+  .k { font-size: 1.8vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #C9B9A4; }
+  h1 { margin: 2.6vmin 0 0; font-family: "Bodoni Moda", Didot, Georgia, serif; font-weight: 400; font-style: italic; font-size: 11.6vmin; line-height: .92; letter-spacing: -.02em; }
+  h1 b { font-weight: 500; font-style: normal; }
+  .p { margin-top: 2.6vmin; font-size: 2.3vmin; line-height: 1.45; color: #E3D6C6; }
+  .cta { margin-top: auto; align-self: flex-start; font-size: 2.1vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; padding-bottom: .8vmin; border-bottom: .3vmin solid #A9C4D8; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 54%; }
+    .box { top: 54%; }
+    h1 { font-size: 10vmin; }
+    .p { font-size: 2.1vmin; }
+  }
+  .cta2, .ship { display: none; }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 30%; }
+    .box { top: 0; left: 50%; }
+    .rib-h { top: 34vmin; }
+    .rib-v { top: 34vmin; left: 22vmin; }
+    .bow { left: 13vmin; top: 28vmin; }
+    .string { left: 25vmin; top: 38vmin; }
+    .tag { left: 29.5vmin; top: 47vmin; width: 15vmin; padding: 5.6vmin 1.4vmin 2vmin; }
+    .tag b { font-size: 6.2vmin; }
+    .tag small { font-size: 1.6vmin; letter-spacing: .12em; }
+    .copy { left: 5vmin; right: 5vmin; width: auto; top: 6vmin; bottom: auto; }
+    h1 { font-size: 9vmin; margin-top: 2vmin; }
+    .copy .p, .copy .cta { display: none; }
+    .ship { display: block; position: absolute; left: 5vmin; width: 15vmin; top: 45vmin; font-size: 1.9vmin; line-height: 1.45; color: #E3D6C6; }
+    .cta2 { display: block; position: absolute; left: 5vmin; bottom: 5vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; padding-bottom: .8vmin; border-bottom: .3vmin solid #A9C4D8; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 55% 30%; }
+    .box { left: 48%; }
+    .rib-h { top: 8vmin; }
+    .rib-v { top: 0; left: 64%; }
+    .bow { left: calc(64% + 3vmin - 12vmin); top: 3vmin; }
+    .string { left: calc(64% + 3vmin); top: 12vmin; }
+    .tag { left: calc(64% + 7.5vmin); top: 21vmin; width: 19vmin; padding: 6vmin 1.8vmin 2.4vmin; }
+    .tag b { font-size: 7.4vmin; }
+    .tag small { letter-spacing: .18em; }
+    .copy { left: 6vmin; right: auto; width: calc(64% - 11vmin); top: 21vmin; bottom: 6vmin; }
+    h1 { font-size: 11vmin; margin-top: 2.6vmin; }
+    .copy .p, .copy .cta { display: block; }
+    .ship, .cta2 { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="box">
+    <div class="rib-h"></div>
+    <div class="rib-v"></div>
+    <svg class="string" viewBox="0 0 140 120" aria-hidden="true"><path d="M2 4 C 40 30, 70 50, 88 108" fill="none" stroke="#E6D9C6" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>
+    <svg class="bow" viewBox="0 0 240 180" aria-hidden="true">
+      <defs>
+        <linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9E6EF"/><stop offset=".55" stop-color="#A9C4D8"/><stop offset="1" stop-color="#6F8DA4"/></linearGradient>
+        <linearGradient id="gr" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D9E6EF"/><stop offset=".55" stop-color="#A9C4D8"/><stop offset="1" stop-color="#6F8DA4"/></linearGradient>
+      </defs>
+      <path d="M112 96 C 96 128, 88 150, 74 176 L 96 170 L 104 180 C 112 150, 118 124, 120 100 Z" fill="#8FAEC5"/>
+      <path d="M128 96 C 144 128, 152 150, 166 176 L 144 170 L 136 180 C 128 150, 122 124, 120 100 Z" fill="#7F9DB4"/>
+      <path d="M118 88 C 90 50, 40 24, 22 44 C 6 62, 30 104, 64 110 C 86 114, 106 104, 118 94 Z" fill="url(#gl)"/>
+      <path d="M122 88 C 150 50, 200 24, 218 44 C 234 62, 210 104, 176 110 C 154 114, 134 104, 122 94 Z" fill="url(#gr)"/>
+      <path d="M112 90 C 90 70, 58 58, 44 64" fill="none" stroke="#6F8DA4" stroke-width="2"/>
+      <path d="M128 90 C 150 70, 182 58, 196 64" fill="none" stroke="#6F8DA4" stroke-width="2"/>
+      <rect x="106" y="78" width="28" height="26" rx="8" fill="#A9C4D8"/>
+      <rect x="112" y="80" width="10" height="22" rx="4" fill="#D9E6EF" opacity=".7"/>
+    </svg>
+    <div class="tag"><small>To: you<br>From: Studio Oro</small><b>25%</b><span>off all gifts</span><em>GIFTED</em></div>
+    <div class="copy">
+      <div class="k">The Gift Edit — 2026</div>
+      <h1>Wrapped<br><b>&amp;</b> ready.</h1>
+      <div class="p">Free gift wrap on every order. Order by 20 Dec for delivery before the holidays.</div>
+      <div class="cta">Shop gifts →</div>
+    </div>
+    <div class="ship">Free gift wrap on every order. Order by 20 Dec.</div>
+    <div class="cta2">Shop gifts →</div>
+  </div>
+</div>
+</body>
+</html>

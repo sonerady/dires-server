@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Wall Label — the look hung like a work in a museum, with a proper object label (maker, title, year, materials, accession no.).
+     tall → work above, label at eye level below; square/wide → work left, label to its right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DEDAD3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #DEDAD3; color: #22201D; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  /* the work: sharp, unframed, with the soft shadow a gallery spotlight casts */
+  .work { position: absolute; left: 9vmin; top: 11vmin; width: calc(100% - 18vmin); height: calc(100% - 58vmin); object-fit: cover; object-position: 50% 18%; box-shadow: 0 1.6vmin 3.2vmin rgba(60,52,42,.22), 0 .3vmin .6vmin rgba(60,52,42,.16); }
+  .room { position: absolute; left: 9vmin; right: 9vmin; top: 4.2vmin; display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: #6A6259; }
+  /* the object label */
+  .label { position: absolute; left: 9vmin; bottom: 7vmin; width: 58vmin; box-sizing: border-box; background: #FAF9F6; padding: 3.4vmin 3.6vmin 3vmin; box-shadow: 0 .4vmin 1vmin rgba(60,52,42,.14); }
+  .maker { font-size: 2.9vmin; font-weight: 700; letter-spacing: .01em; }
+  .born { font-size: 2vmin; color: #6A6259; margin-top: .4vmin; }
+  .title { margin-top: 2vmin; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 4vmin; line-height: 1.15; }
+  .title span { font-style: normal; }
+  .med { margin-top: 1vmin; font-size: 2.2vmin; line-height: 1.45; color: #45403A; }
+  .hr { height: 1px; background: rgba(34,32,29,.25); margin: 2.2vmin 0 1.6vmin; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; }
+  .acc { white-space: nowrap; font-size: 1.7vmin; letter-spacing: .06em; color: #6A6259; }
+  .price { font-family: "Newsreader", Georgia, serif; font-size: 3.4vmin; }
+  .aside { position: absolute; right: 9vmin; bottom: 7vmin; width: 22vmin; text-align: right; }
+  .aside .note { font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 3.2vmin; line-height: 1.2; }
+  .aside .cta { margin-top: 1.8vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; padding-bottom: .6vmin; border-bottom: 1px solid #22201D; display: inline-block; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .work { top: 10vmin; height: 58%; left: 12vmin; width: calc(100% - 24vmin); }
+    .room { left: 12vmin; right: 12vmin; }
+    .label { left: 12vmin; bottom: 6vmin; width: 50vmin; padding: 2.6vmin 3vmin 2.4vmin; }
+    .maker { font-size: 2.6vmin; }
+    .med { font-size: 2vmin; }
+    .title { margin-top: 1.4vmin; font-size: 3.2vmin; }
+    .hr { margin: 1.6vmin 0 1.2vmin; }
+    .aside { right: 12vmin; bottom: 6vmin; }
+    .aside .note { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .work { left: 8vmin; top: 8vmin; width: 52%; height: calc(100% - 16vmin); object-position: 50% 25%; }
+    .room { left: calc(52% + 15vmin); right: 7vmin; top: 8vmin; flex-direction: column; gap: 1vmin; }
+    .label { left: calc(52% + 15vmin); right: 7vmin; width: auto; bottom: 26vmin; padding: 2.6vmin 2.8vmin 2.4vmin; }
+    .maker { font-size: 2.3vmin; }
+    .born { font-size: 1.7vmin; }
+    .title { font-size: 2.9vmin; }
+    .med { font-size: 1.8vmin; }
+    .acc { font-size: 1.6vmin; letter-spacing: 0; }
+    .price { font-size: 3vmin; }
+    .aside { left: calc(52% + 15vmin); right: 7vmin; width: auto; bottom: 8vmin; text-align: left; }
+    .aside .note { font-size: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .work { left: 9vmin; top: 9vmin; width: 56%; height: calc(100% - 18vmin); object-position: 60% 25%; }
+    .room { left: calc(56% + 18vmin); right: 9vmin; top: 9vmin; }
+    .label { left: calc(56% + 18vmin); right: 9vmin; bottom: 27vmin; }
+    .aside { left: calc(56% + 18vmin); right: 9vmin; bottom: 9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="room"><span>Room 4</span><span>New Arrivals</span></div>
+  <img class="work" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="label">
+    <div class="maker">Atelier Nord</div>
+    <div class="born">Copenhagen, est. 2014</div>
+    <div class="title">The New Season, <span>2026</span></div>
+    <div class="med">Natural fibres and early light</div>
+    <div class="hr"></div>
+    <div class="row"><span class="acc">Acc. no. 2026.041</span><span class="price">€129</span></div>
+  </div>
+  <div class="aside">
+    <div class="note">Please do touch.</div>
+    <div class="cta">On view now</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Vox Pop — the campaign written by its customers: three real-voice quotes printed on colour strips
+     (sky, butter, tomato) pasted at slight angles like a street vox-pop spread, each signed with the
+     size the customer wears, from S to 3XL. "In your words."
+     tall → photo above, the quote strips below · square / wide → photo left, voices right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EEE6; }
+  .banner { --panel: max(84vmin, 48%); position: fixed; inset: 0; overflow: hidden; background: #F3EEE6; color: #191715; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+  .mic { position: absolute; left: 5vmin; top: calc(100% - var(--panel) - 3.2vmin); display: flex; align-items: center; gap: 1.2vmin; background: #191715; color: #F3EEE6; padding: 1.4vmin 2.2vmin; font-weight: 700; font-size: 1.9vmin; letter-spacing: .14em; text-transform: uppercase; z-index: 2; }
+  .mic i { width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #FF5A36; }
+
+  .panel { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  h1 { margin: 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .86; letter-spacing: -.02em; }
+  h1 em { color: #E0472A; }
+  .count { flex: none; text-align: right; font-size: 1.8vmin; line-height: 1.4; letter-spacing: .1em; text-transform: uppercase; }
+  .count b { display: block; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 6vmin; line-height: 1; letter-spacing: 0; }
+  .voices { margin-top: 3.4vmin; display: flex; flex-direction: column; gap: 1.8vmin; }
+  .v { align-self: flex-start; max-width: 88%; padding: 2vmin 2.6vmin 1.8vmin; box-shadow: 0 .5vmin 1.2vmin rgba(25,23,21,.12); }
+  .v p { margin: 0; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 4.1vmin; line-height: 1.05; }
+  .v small { display: block; margin-top: 1vmin; font-weight: 500; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .v small b { font-weight: 700; padding: .2vmin 1vmin; margin-left: .6vmin; border: 1px solid currentColor; }
+  .v1 { background: #BFD9EE; transform: rotate(-1.4deg); }
+  .v2 { align-self: flex-end; background: #F7DE72; transform: rotate(1.2deg); }
+  .v3 { background: #E0472A; color: #FFF6EE; transform: rotate(-.6deg); margin-left: 5vmin; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 2.2vmin; border-top: 1px solid rgba(25,23,21,.3); }
+  .foot span:first-child { font-size: 1.9vmin; line-height: 1.4; letter-spacing: .08em; text-transform: uppercase; }
+  .cta { flex: none; background: #191715; color: #F3EEE6; padding: 1.9vmin 3vmin; font-weight: 700; font-size: 2.2vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 80vmin; }
+    .panel { bottom: 4vmin; height: calc(var(--panel) - 8vmin); }
+    h1 { font-size: 11vmin; }
+    .voices { margin-top: 2.6vmin; gap: 1.3vmin; }
+    .v { padding: 1.6vmin 2.4vmin 1.5vmin; }
+    .v p { font-size: 3.6vmin; }
+    .v small { margin-top: .7vmin; }
+  }
+  /* square → photo left, voices right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; }
+    .mic { left: calc(46% - 3vmin); top: 5vmin; }
+    .panel { left: calc(46% + 5vmin); right: 4.6vmin; top: 12vmin; bottom: 4.6vmin; height: auto; }
+    .head { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    h1 { font-size: 10vmin; }
+    .count { text-align: left; display: flex; align-items: baseline; gap: 1.4vmin; }
+    .count b { display: inline; font-size: 4.4vmin; }
+    .voices { margin-top: 2.6vmin; gap: 1.4vmin; }
+    .v { max-width: 94%; padding: 1.5vmin 2.2vmin 1.4vmin; }
+    .v p { font-size: 3.1vmin; }
+    .v small { font-size: 1.6vmin; margin-top: .6vmin; }
+    .v3 { margin-left: 2vmin; }
+    .foot { padding-top: 1.8vmin; }
+    .foot span:first-child { font-size: 1.7vmin; }
+    .cta { font-size: 2vmin; padding: 1.7vmin 2.4vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 50% 28%; }
+    .mic { left: calc(42% - 3vmin); }
+    .panel { left: calc(42% + 6vmin); right: 6vmin; top: 13vmin; bottom: 5.4vmin; }
+    .head { flex-direction: row; align-items: flex-end; }
+    h1 { font-size: 12vmin; }
+    .count { text-align: right; display: block; }
+    .count b { display: block; font-size: 5.6vmin; }
+    .voices { margin-top: 3.4vmin; gap: 1.8vmin; }
+    .v { max-width: 80%; padding: 1.8vmin 2.6vmin 1.6vmin; }
+    .v p { font-size: 3.6vmin; }
+    .v3 { margin-left: 6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="mic"><i></i>Vox pop</div>
+  <div class="panel">
+    <div class="head">
+      <h1>In <em>your</em><br>words.</h1>
+      <div class="count"><b>4.9★</b>fit score · 1,240 reviews</div>
+    </div>
+    <div class="voices">
+      <div class="v v1"><p>“Finally, a fit that feels like mine.”</p><small>Maya · wears <b>3XL</b></small></div>
+      <div class="v v2"><p>“Same piece as my sister. We both glow.”</p><small>Inès · wears <b>S</b></small></div>
+      <div class="v v3"><p>“Sleeves, hem, shoulders — just right.”</p><small>Dee · wears <b>XL</b></small></div>
+    </div>
+    <div class="foot"><span>New collection<br>Sizes XS – 4XL</span><span class="cta">Find yours</span></div>
+  </div>
+</div>
+</body>
+</html>

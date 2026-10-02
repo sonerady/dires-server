@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,500;0,700;0,800;1,500&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Colorway Chips — the colourway spelled out the way release notes do it ("Sail / Bone / Gum"),
+     broken down into a strip of punched paint chips, each with its role, name and CW code.
+     tall → photo above the chip panel; 3:4 and wider → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F8F6F1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F8F6F1; color: #1E1C19; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .no { position: absolute; left: 0; top: 5vmin; background: #1E1C19; color: #F8F6F1; padding: 1.2vmin 2.2vmin 1.2vmin 4vmin; font-family: "Red Hat Mono", Menlo, monospace; font-weight: 600; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; box-sizing: border-box; padding: 4.4vmin 5vmin 5vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-family: "Red Hat Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #6E6A62; white-space: nowrap; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 800; font-size: 10.4vmin; line-height: .92; letter-spacing: -.045em; }
+  h1 i { font-style: normal; font-weight: 500; color: #B4623F; }
+  .chips { flex: 1; min-height: 0; margin-top: 3.4vmin; display: flex; gap: 1.2vmin; }
+  .chip { position: relative; flex: 1; min-width: 0; background: var(--c); color: var(--t); box-shadow: 0 .3vmin .8vmin rgba(30,28,25,.14); display: flex; flex-direction: column; justify-content: space-between; padding: 1.6vmin 1.4vmin 1.8vmin; box-sizing: border-box; }
+  .chip::before { content: ""; width: 1.8vmin; height: 1.8vmin; border-radius: 50%; background: #F8F6F1; box-shadow: inset 0 .2vmin .3vmin rgba(0,0,0,.25); align-self: center; }
+  .chip small { font-family: "Red Hat Mono", Menlo, monospace; font-weight: 500; font-size: 1.6vmin; letter-spacing: .06em; text-transform: uppercase; opacity: .85; white-space: nowrap; }
+  .chip b { display: block; margin-top: .6vmin; font-weight: 700; font-size: 2.8vmin; line-height: 1; letter-spacing: -.02em; white-space: nowrap; }
+  .chip span { display: block; }
+  .chip em { display: block; margin-top: .5vmin; font-family: "Red Hat Mono", Menlo, monospace; font-style: normal; font-size: 1.6vmin; opacity: .7; white-space: nowrap; }
+  .chip:first-child { flex: 1.6; }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; margin-top: 3.4vmin; }
+  .offer { font-family: "Red Hat Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .06em; line-height: 1.5; white-space: nowrap; }
+  .offer b { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 3.4vmin; letter-spacing: -.02em; display: block; }
+  .cta { display: flex; align-items: center; gap: 1.4vmin; border-radius: 10vmin; background: #1E1C19; color: #F8F6F1; padding: 1.8vmin 3vmin; font-weight: 700; font-size: 2.4vmin; white-space: nowrap; }
+  .cta i { width: 1.6vmin; height: 1.6vmin; border-radius: 50%; background: #B4623F; }
+
+  /* 3:4 / 4:5 → photo left, panel right, chips stacked as horizontal strips */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .no { left: 0; top: 4vmin; padding-left: 3vmin; font-size: 1.6vmin; }
+    .panel { left: 50%; top: 0; height: auto; padding: 5vmin 4vmin 4vmin; }
+    .kick span:last-child { display: none; }
+    h1 { font-size: 7.8vmin; }
+    .chips { flex-direction: column; gap: 1vmin; margin-top: 3vmin; }
+    .chip { flex-direction: row; align-items: center; justify-content: flex-start; gap: 2vmin; padding: 0 2vmin; }
+    .chip:first-child { flex: 1.4; }
+    .chip::before { align-self: center; }
+    .chip b { font-size: 2.8vmin; }
+    .foot { flex-direction: column; align-items: stretch; gap: 2.2vmin; margin-top: 3vmin; }
+    .cta { justify-content: space-between; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .panel { left: 48%; padding: 4.4vmin 4vmin 4vmin; }
+    h1 { font-size: 7.4vmin; }
+    .chips { margin-top: 2.6vmin; }
+    .chip b { font-size: 2.5vmin; }
+    .foot { margin-top: 2.6vmin; }
+    .chip em { display: none; }
+    .offer b { font-size: 3vmin; }
+    .cta { font-size: 2.1vmin; padding: 1.6vmin 2.4vmin; }
+  }
+  /* wide → chips go back to a vertical strip row */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 50% 30%; }
+    .panel { left: 46%; padding: 4.6vmin 5vmin 4.6vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { font-size: 9vmin; }
+    .chips { flex-direction: row; gap: 1.2vmin; margin-top: 3vmin; }
+    .chip { flex-direction: column; align-items: stretch; justify-content: space-between; padding: 1.6vmin 1.4vmin 1.8vmin; }
+    .chip b { font-size: 2.7vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .chip em { display: block; }
+    .offer b { font-size: 3.2vmin; }
+    .cta { font-size: 2.3vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* constant: photo breathes in; the CTA dot cycles through the five chip colours (one per beat, back to Clay)
+     beats: 1.2s the chips lift off the card one after another like a fanned swatch deck ·
+     3.6s the " / " separators flip in sequence · 4.6s the colourway tag wipes out and back in */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .chip { animation: lift 6s linear infinite; }
+  .chip:nth-child(1) { animation-delay: -3.5s; }
+  .chip:nth-child(2) { animation-delay: -3.35s; }
+  .chip:nth-child(3) { animation-delay: -3.2s; }
+  .chip:nth-child(4) { animation-delay: -3.05s; }
+  .chip:nth-child(5) { animation-delay: -2.9s; }
+  @keyframes lift {
+    0%, 78% { transform: translateY(0); box-shadow: 0 .3vmin .8vmin rgba(30,28,25,.14); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    84% { transform: translateY(-1.6vmin) rotate(-1.2deg); box-shadow: 0 1.6vmin 2.2vmin rgba(30,28,25,.2); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    94%, 100% { transform: translateY(0); box-shadow: 0 .3vmin .8vmin rgba(30,28,25,.14); }
+  }
+  @keyframes liftx {
+    0%, 78% { transform: translateX(0); box-shadow: 0 .3vmin .8vmin rgba(30,28,25,.14); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    84% { transform: translateX(-1.6vmin); box-shadow: 0 1vmin 2.2vmin rgba(30,28,25,.22); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    94%, 100% { transform: translateX(0); box-shadow: 0 .3vmin .8vmin rgba(30,28,25,.14); }
+  }
+  @media (min-aspect-ratio: 7/10) { .chip { animation-name: liftx; } }
+  @media (min-aspect-ratio: 6/5) { .chip { animation-name: lift; } }
+
+  h1 i { display: inline-block; animation: flip 6s linear infinite; }
+  h1 i:nth-of-type(2) { animation-delay: -.2s; }
+  h1 i:nth-of-type(1) { animation-delay: 0s; }
+  @keyframes flip {
+    0%, 60% { transform: rotate(0); animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    70%, 100% { transform: rotate(180deg); }
+  }
+
+  .no { animation: tag 6s linear infinite; }
+  @keyframes tag {
+    0%, 76% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    81% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(1, end); }
+    81.5% { clip-path: inset(0 0 0 100%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    88%, 100% { clip-path: inset(0 0 0 0); }
+  }
+
+  .cta i { animation: dot 6s linear infinite; }
+  @keyframes dot {
+    0%, 16% { background: #B4623F; transform: scale(1); }
+    18% { transform: scale(1.35); } 20%, 36% { background: #25221E; transform: scale(1); }
+    38% { transform: scale(1.35); } 40%, 56% { background: #ECE5D4; transform: scale(1); box-shadow: inset 0 0 0 .2vmin #F8F6F1; }
+    58% { transform: scale(1.35); } 60%, 76% { background: #D8CAAE; transform: scale(1); box-shadow: none; }
+    78% { transform: scale(1.35); } 80%, 96% { background: #B98441; transform: scale(1); }
+    98% { transform: scale(1.35); } 100% { background: #B4623F; transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="no">Colourway 04 / 06</div>
+  <div class="panel">
+    <div class="kick"><span>Colourway breakdown</span><span>CW04 · SS26</span></div>
+    <h1>Sail <i>/</i> Bone <i>/</i> Gum.</h1>
+    <div class="chips">
+      <div class="chip" style="--c:#ECE5D4; --t:#1E1C19"><span><small>01 Main</small><b>Sail</b><em>CW04-01</em></span></div>
+      <div class="chip" style="--c:#D8CAAE; --t:#1E1C19"><span><small>02 Base</small><b>Bone</b><em>CW04-02</em></span></div>
+      <div class="chip" style="--c:#B98441; --t:#1E1C19"><span><small>03 Trim</small><b>Gum</b><em>CW04-03</em></span></div>
+      <div class="chip" style="--c:#B4623F; --t:#FFF8EE"><span><small>04 Accent</small><b>Clay</b><em>CW04-04</em></span></div>
+      <div class="chip" style="--c:#25221E; --t:#F3EEE4"><span><small>05 Detail</small><b>Ink</b><em>CW04-05</em></span></div>
+    </div>
+    <div class="foot">
+      <div class="offer">New colourways · code CW20<b>20% off first order</b></div>
+      <div class="cta">Shop colourways <i></i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

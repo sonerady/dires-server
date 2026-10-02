@@ -49,8 +49,30 @@ const BANNER_STUDIO_PROVIDER = (
 const FAL_OPENROUTER_VISION_ENDPOINT = "openrouter/router/vision";
 // 26 Ağu 2026 (kullanıcı): HTML banner hattı fal/openrouter üzerinden
 // Gemini 3.7 Flash'a gider. Fable pahalı kalıyordu, Replicate varsayılanı bırakıldı.
+// 24 Eyl 2026 (kullanıcı): banner üretimi + AI düzenleme Claude Opus 5.5'e geçti
+// (aynı fal → openrouter/router/vision geçidi, fatura fal'a). Yeni env adı bilerek
+// ayrı: canlıda eski FAL_BANNER_STUDIO_MODEL ayarlıysa Opus'u ezmesin. Opus iki
+// denemede de düşerse Flash yedek olarak bir kez denenir. Şablon kataloglama
+// (generateTemplateMeta, arka plan JSON'u) ucuz Flash'ta kalır.
+const BANNER_STUDIO_LLM_MODEL =
+  process.env.BANNER_STUDIO_LLM_MODEL || "anthropic/claude-opus-5.5";
 const FAL_BANNER_STUDIO_MODEL =
   process.env.FAL_BANNER_STUDIO_MODEL || "google/gemini-3.7-flash";
+// Opus + zorunlu reasoning: düşünme token'ları max_tokens'tan yer; tek dosya HTML
+// ~10–20K token tuttuğu için sınır geniş.
+const BANNER_HTML_MAX_TOKENS = 48000;
+/** 💰 fal router yanıtındaki token/maliyet özeti (usage.prompt_tokens / completion_tokens / cost) */
+function bannerUsageText(result) {
+  const u = result?.data?.usage || result?.usage;
+  if (!u) return "usage yok";
+  return `${u.prompt_tokens ?? "?"} girdi + ${u.completion_tokens ?? "?"} çıktı token → $${Number(u.cost || 0).toFixed(4)}`;
+}
+/** Deneme sırası: birincil model 2 kez, sonra (farklıysa) yedek model 1 kez */
+function bannerModelAttempts() {
+  return BANNER_STUDIO_LLM_MODEL === FAL_BANNER_STUDIO_MODEL
+    ? [BANNER_STUDIO_LLM_MODEL, BANNER_STUDIO_LLM_MODEL]
+    : [BANNER_STUDIO_LLM_MODEL, BANNER_STUDIO_LLM_MODEL, FAL_BANNER_STUDIO_MODEL];
+}
 // Replicate'in `Prefer: wait` başlığı en fazla ~60 sn bekletir; banner HTML'i
 // bundan uzun sürebiliyor, o yüzden bitmediyse prediction'ı yoklamaya geçiyoruz.
 const REPLICATE_POLL_INTERVAL_MS = 2000;
@@ -312,13 +334,16 @@ async function callBannerModelViaFal(options, ratio, language) {
   if (!credentials) throw new Error("FAL_API_KEY missing");
   fal.config({ credentials });
 
-  const maxAttempts = 2;
+  const models = bannerModelAttempts();
+  const maxAttempts = models.length;
   let lastError = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const model = models[attempt - 1];
     try {
+      const startedAt = Date.now();
       const result = await fal.subscribe(FAL_OPENROUTER_VISION_ENDPOINT, {
         input: {
-          model: FAL_BANNER_STUDIO_MODEL,
+          model,
           prompt: buildUserPrompt(options, ratio, language),
           system_prompt: BANNER_SYSTEM_PROMPT,
           // Ürün fotoğrafı modele GÖRSEL olarak veriliyor; prompt'taki URL
@@ -326,7 +351,7 @@ async function callBannerModelViaFal(options, ratio, language) {
           image_urls: [options.imageUrl],
           temperature: 1,
           // Tek dosya HTML uzun — çıktı sınırı geniş tutuluyor.
-          max_tokens: 32000,
+          max_tokens: BANNER_HTML_MAX_TOKENS,
           // ⚠️ Bu uçta reasoning UÇ GENELİNDE zorunlu (400: "Reasoning is
           // mandatory for this endpoint") — model fark etmeksizin true.
           reasoning: true,
@@ -339,12 +364,15 @@ async function callBannerModelViaFal(options, ratio, language) {
       if (falError) throw new Error(falError);
 
       const html = extractHtml(result?.data?.output || result?.output || "");
-      if (html) return html;
+      if (html) {
+        console.log(`🎨 [BANNER_STUDIO] ${model} · ${Math.round((Date.now() - startedAt) / 1000)} sn · ${html.length} karakter · ${bannerUsageText(result)}`);
+        return html;
+      }
       lastError = new Error("Model output did not contain valid banner HTML");
     } catch (err) {
       lastError = err;
       console.error(
-        `🎨 [BANNER_STUDIO] fal/openrouter ${FAL_BANNER_STUDIO_MODEL} attempt ${attempt} failed:`,
+        `🎨 [BANNER_STUDIO] fal/openrouter ${model} attempt ${attempt} failed:`,
         err?.status,
         err?.message
       );
@@ -1312,16 +1340,18 @@ async function callBannerEditModel(html, instructions, language) {
     "----- END REQUEST -----",
   ].join("\n");
 
-  const maxAttempts = 2;
+  const models = bannerModelAttempts();
+  const maxAttempts = models.length;
   let lastError = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const model = models[attempt - 1];
     try {
       const result = await fal.subscribe(FAL_OPENROUTER_VISION_ENDPOINT, {
         input: {
-          model: FAL_BANNER_STUDIO_MODEL,
+          model,
           prompt,
           temperature: 0.4,
-          max_tokens: 32000,
+          max_tokens: BANNER_HTML_MAX_TOKENS,
           // ⚠️ Bu uçta reasoning uç genelinde zorunlu.
           reasoning: true,
         },
@@ -1330,12 +1360,15 @@ async function callBannerEditModel(html, instructions, language) {
       const falError = result?.data?.error || result?.error;
       if (falError) throw new Error(falError);
       const out = extractHtml(result?.data?.output || result?.output || "");
-      if (out) return out;
+      if (out) {
+        console.log(`🪄 [BANNER_EDIT] ${model} · ${bannerUsageText(result)}`);
+        return out;
+      }
       lastError = new Error("Edit output did not contain valid banner HTML");
     } catch (err) {
       lastError = err;
       console.error(
-        `🪄 [BANNER_EDIT] attempt ${attempt} failed:`,
+        `🪄 [BANNER_EDIT] ${model} attempt ${attempt} failed:`,
         err?.status,
         err?.message
       );
@@ -1527,6 +1560,442 @@ router.delete("/result/:id", async (req, res) => {
   } catch (error) {
     console.error("🎨 [BANNER_STUDIO] delete error:", error?.message);
     return res.status(500).json({ success: false, error: "DELETE_FAILED" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// 🧩 ŞABLON GALERİSİ (25 Eyl 2026, kullanıcı isteği) — Film Lab gibi paralaks
+// galeride 10 hazır banner. Kullanıcı birini "olduğu gibi" indirebilir (istemci
+// hazır JPG'yi kaydeder, sunucuya gelmez) ya da:
+//   • Ürünüme uyarla → şablon + kullanıcının ürün fotoğrafı (+ varsa içerik)
+//   • Metni değiştir → mevcut kart (şablon ya da önceki uyarlama) + içerik
+// Model (Replicate Gemini 3.5 Flash) şablonun tasarım sistemini korur; fotoğrafı yeniden kadrajlar,
+// vurgu renklerini üründen türetir, yazıları ürüne/içeriğe göre yeniden yazar.
+// Kayıt banner_studio_results'a düşer (banner_type "template") → geçmişte görünür.
+// ─────────────────────────────────────────────────────────────────────────
+const { getBannerTemplate, SAMPLE_ASPECT, TEMPLATES: GALLERY_TEMPLATES, readRaw: readGalleryTemplate, readAnimated: readGalleryAnimated } = require("../data/bannerTemplates");
+const { localizeTemplates, normalizeLanguage } = require("../data/bannerTemplates/localize");
+
+const TEMPLATE_ADAPT_SYSTEM_PROMPT = `You are a senior art director and front-end craftsman. You receive a FINISHED, hand-designed HTML banner (a house template, or an earlier adaptation of one) plus an adaptation request, and you return the complete updated HTML document.
+
+## Keep the design
+- The result must be recognisably the SAME template: same layout grid and composition logic, same font families and scale relationships, same graphic devices, spacing rhythm and overall mood. You are adapting, not redesigning.
+- Keep the <link> to Google Fonts. Only if the copy language uses a script the current families cannot render (Arabic, Hebrew, Cyrillic, Greek, CJK, Thai, Devanagari…), switch to Google Fonts that cover it (e.g. the matching Noto Sans / Noto Serif family) with the same character (weight, serif vs sans, condensed vs wide). For right-to-left languages set dir="rtl" on <html> and mirror the text alignment sensibly.
+
+## When the product photo changed
+- The attached image is the merchant's product photo. Its URL is ALREADY in every <img src>; keep it exactly, never add other images.
+- Look at it carefully and re-fit it: tune object-position, crops, scale and any zoomed "detail" crop coordinates so the product reads completely, faces are not awkwardly cut, and NO text or panel covers the product.
+- Where the design melts the photo into a flat colour (gradients, panels, page background meeting the photo edge), sample the new photo's ground at that join and update every stop of those gradients consistently (keep them many-stop and eased).
+- Re-derive accent colours (headline accents, badges, buttons, swatches, rings) from the product's own colours so the banner feels made for it; keep neutrals in their roles and keep strong contrast.
+- Rewrite the copy for THIS product: its category, fabric, cut and mood. A shirt must not be sold as a dress; menswear copy for menswear.
+
+## Copy rules
+- Write EVERY visible word in the requested copy language — headline, offer, labels, captions, CTA, small print, even words inside stamps, tags and badges — natural and idiomatic (a native copywriter, not a translation). This holds even when the brief or the current banner is in another language: translate any leftover text. Only promo codes, brand names, prices and numbers stay exactly as given. Keep each text roughly as long as the one it replaces so the layout holds; shorten rather than overflow.
+- If a content brief is given, the banner is about that content: build the headline, offer and supporting lines from it. Use prices, discounts, codes, dates and CTA wording from the brief verbatim. Drop template fields the brief makes irrelevant rather than keeping stale numbers; keep the template's offer fields only when no brief is given.
+- Format numbers, percentages, currencies and dates by the copy language's own conventions: Turkish writes the percent sign BEFORE the number (%40, never 40%), French puts a space before it (40 %), German uses 40 %… When the design splits a number and its sign into separate elements (e.g. a huge "40" with a small "%"), reorder those elements too so the result reads correctly in that language.
+- No lorem, no clichés, no brand names that are not in the brief.
+
+## Legibility (non-negotiable)
+Every text block must strongly contrast with the exact pixels behind it (≈ WCAG AA). Keep copy on calm regions or on the template's own panels/scrims; if a new photo puts a busy or mid-tone area behind text, move the block within the template's logic or strengthen its scrim.
+
+## Technical contract
+- Return ONLY the raw HTML document — no markdown fences, no commentary.
+- Single file, CSS in <style>. No JavaScript. No contenteditable, designMode, input, textarea or button elements.
+- The only external resources: the product image URL and fonts.googleapis.com / fonts.gstatic.com.
+- Keep html,body at 100vw × 100vh with overflow hidden. The template is RESPONSIVE: the frame takes the product photo's own aspect ratio and the layout switches with @media (min-aspect-ratio …) queries; sizes are in vmin. Keep that system intact (keep every media query working, keep vmin sizing) and make sure the layout for the given aspect ratio fits with nothing scrolling or overflowing.
+- If the banner is ANIMATED (it has @keyframes and <meta name="loop-duration">): keep every animation, keyframe, duration, delay and the loop-duration meta exactly; keep the class names / elements the animations target (when you change a text, change it inside the same element). The rest pose (t = 0) must stay the complete design.`;
+
+// "tr" → "Turkish", "pt-BR" → "Brazilian Portuguese" — the model follows a language NAME more reliably than a code
+function copyLanguageLabel(code) {
+  try {
+    const name = new Intl.DisplayNames(["en"], { type: "language" }).of(code);
+    if (name && name !== code) return `${name} (${code})`;
+  } catch (e) { /* unknown tag → the code itself */ }
+  return code;
+}
+
+function buildTemplateAdaptPrompt({ html, arn, language, photoChanged, photoUrl, brief, adaptColors = false }) {
+  const lines = [
+    `Frame aspect ratio (width/height) = ${arn.toFixed(4)} — the product photo's own ratio; the banner renders at exactly this ratio.`,
+    `Copy language: ${copyLanguageLabel(language)} — the merchant's app language. Every visible word of the banner must be in this language, whatever language the brief or the current banner uses.`,
+  ];
+  if (photoChanged) {
+    lines.push(`NEW PRODUCT PHOTO: the attached image (already set as src: ${photoUrl}). Adapt framing, colours and copy to this product.`);
+  } else if (adaptColors) {
+    // 25 Eyl 2026 (kullanıcı isteği): "Renkleri kıyafete göre uyarla" (varsayılan açık) — içerik değişirken vurgu
+    // renkleri fotoğraftaki ürünün kendi renklerinden yeniden türetilir; kadraj aynı kalır
+    // 25 Eyl 2026 (kullanıcı): "temanın kendi renkleri çok değişmesin, yalnız değişmesi gereken yerler" → yalnız vurgu tonu
+    lines.push(`The product photo is unchanged (the attached image) — keep its framing. HARMONISE THE ACCENT WITH THE GARMENT, subtly: the template's own palette stays — backgrounds, panels, large colour areas, neutrals, text colours and the template's signature colour roles do NOT change. Only the one or two ACCENT colours (the highlight used for the big number/headline accent, the badge/sticker, the ticker band) shift toward a hue taken from the product, keeping roughly the same lightness and saturation as the original accent so the mood and contrast hold. If the current accent already suits the product, keep it. Never recolour backgrounds or large areas.`);
+  } else {
+    lines.push(`The product photo is unchanged (the attached image). Keep the photo framing and EVERY colour exactly as it is; change only the text the brief requires.`);
+  }
+  if (brief) {
+    lines.push(`Merchant's content brief — the banner's new topic. Rewrite the copy around it:\n"""\n${brief}\n"""`);
+    // 25 Eyl 2026: modeller şablonun eski ürün sözcüklerini ya da uydurma koşulları ("stoklarla sınırlı", ürün listesi) bırakıyordu
+    lines.push(`Every supporting line must come from the brief or from what is visible in the photo. Do NOT invent product categories, stock limits, shipping promises or conditions the brief does not mention, and remove the template's old product words; if a line has nothing new to say, restate the brief's offer or date in fresh words.`);
+  } else {
+    lines.push(`No content brief: keep the template's offer mechanics (numbers, code, CTA) and rewrite the product-specific words for the new product.`);
+  }
+  lines.push("", "----- CURRENT BANNER HTML -----", html, "----- END HTML -----");
+  return lines.join("\n");
+}
+
+// 25 Eyl 2026 (kullanıcı isteği): banner içeriği düzenleme Replicate'teki Gemini 3.5 Flash'a gider
+// (önce fal üzerinden Opus 5.5'ti). Model env'den değiştirilebilir; Gemini girdi alanları buildReplicateInput ile aynı.
+const TEMPLATE_ADAPT_REPLICATE_MODEL = process.env.TEMPLATE_ADAPT_REPLICATE_MODEL || "google/gemini-3.5-flash";
+
+async function callTemplateAdaptModel(promptInput, photoUrl) {
+  const token = process.env.REPLICATE_API_TOKEN;
+  if (!token) throw new Error("REPLICATE_API_TOKEN missing");
+  const model = TEMPLATE_ADAPT_REPLICATE_MODEL;
+  const maxAttempts = 2;
+  let lastError = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const startedAt = Date.now();
+      const response = await axios.post(
+        `https://api.replicate.com/v1/models/${model}/predictions`,
+        {
+          input: {
+            prompt: buildTemplateAdaptPrompt(promptInput),
+            system_instruction: TEMPLATE_ADAPT_SYSTEM_PROMPT,
+            // the product photo goes in as an IMAGE; the URL in the html is only the <img src>
+            images: [photoUrl],
+            videos: [],
+            temperature: 0.6,
+            top_p: 0.95,
+            // enum: none | low | high — reasoning eats the output budget, the html is long
+            thinking_level: "low",
+            max_output_tokens: 65535,
+          },
+        },
+        {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", Prefer: "wait" },
+          timeout: 180000,
+        }
+      );
+      const prediction = await waitForReplicatePrediction(response.data, token);
+      if (prediction?.error) throw new Error(prediction.error);
+      if (prediction?.status !== "succeeded") throw new Error(`Prediction failed with status: ${prediction?.status || "unknown"}`);
+      const output = prediction.output;
+      let out = extractHtml((Array.isArray(output) ? output.join("") : output || "").trim());
+      if (out) out = out.replace(/<script[\s\S]*?<\/script>/gi, "");
+      // ürün görseli kaybolduysa (ya da başka görsele döndüyse) çıktı geçersiz
+      if (out && out.includes(photoUrl)) {
+        console.log(`🧩 [BANNER_TEMPLATE] replicate ${model} · ${Math.round((Date.now() - startedAt) / 1000)} sn · ${out.length} karakter`);
+        return out;
+      }
+      lastError = new Error("Adapt output did not contain valid banner HTML");
+    } catch (err) {
+      lastError = err;
+      console.error(`🧩 [BANNER_TEMPLATE] replicate ${model} attempt ${attempt} failed:`, err?.response?.status, err?.message);
+    }
+    if (attempt < maxAttempts) await new Promise((r) => setTimeout(r, 1500 * attempt));
+  }
+  throw lastError || new Error("Template adapt failed");
+}
+
+// GET /api/banner-studio/gallery-templates — the template gallery, page by page (25 Eyl 2026, kullanıcı isteği:
+// "backend'den gelsin, pagination ile sıralı yüklensin"). The app places the product photo itself
+// ({{PRODUCT_IMAGE}} stays in the html).
+//   ?order=shuffle&seed=N  → a stable shuffle per seed (the carousel reshuffles on every open, pages stay consistent)
+//   ?order=category        → grouped in category order (the list sheet)
+//   ?cat=all|<cat> · ?offset=0 · ?limit=12 (≤ 30) · ?lang=tr → display names in that language when known
+const GALLERY_CATEGORY_ORDER = ["sale", "seasonal", "luxury", "editorial", "minimal", "street", "retro", "art", "collection", "social"];
+function seededShuffle(list, seed) {
+  // mulberry32 — the app's offline fallback uses the same function, so both give the same order
+  let a = seed >>> 0;
+  const rand = () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let x = a;
+    x = Math.imul(x ^ (x >>> 15), x | 1);
+    x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+  const out = list.slice();
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+router.get("/gallery-templates", async (req, res) => {
+  try {
+    const cat = String(req.query.cat || "all");
+    const order = req.query.order === "category" ? "category" : "shuffle";
+    const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
+    const limit = Math.min(30, Math.max(1, parseInt(req.query.limit, 10) || 12));
+    const lang = normalizeLanguage(req.query.lang);
+    const seed = parseInt(req.query.seed, 10) || 1;
+    let list = req.query.id
+      ? GALLERY_TEMPLATES.filter((t) => t.id === req.query.id)
+      : GALLERY_TEMPLATES.filter((t) => cat === "all" || t.cat === cat);
+    list = order === "category"
+      ? list.slice().sort((a, b) => GALLERY_CATEGORY_ORDER.indexOf(a.cat) - GALLERY_CATEGORY_ORDER.indexOf(b.cat))
+      : seededShuffle(list, seed);
+    // ?anim=1 → each template also carries its looping animated version (animHtml, null when it has none yet)
+    const withAnim = req.query.anim === "1";
+    const pageEntries = list.slice(offset, offset + limit);
+    const page = await localizeTemplates(pageEntries, lang, { db: supabase, animated: withAnim, partial: !req.query.id });
+    if (pageEntries.length && !page.length) throw new Error("No localized banners available");
+    const next = offset + pageEntries.length;
+    res.set("Cache-Control", "public, max-age=300");
+    return res.json({ success: true, total: list.length, offset, nextOffset: next < list.length ? next : null, templates: page });
+  } catch (error) {
+    console.error("🧩 [BANNER_TEMPLATE] gallery list error:", error?.message);
+    return res.status(503).json({ success: false, error: "GALLERY_LOCALIZATION_FAILED" });
+  }
+});
+
+router.use("/gallery-favorites", require("./bannerFavoritesRoutes").createBannerFavoritesRouter({
+  db: supabase,
+  templates: GALLERY_TEMPLATES,
+  serialize: async (tpl, lang) => (await localizeTemplates([tpl], lang, { db: supabase }))[0],
+}));
+
+// POST /api/banner-studio/template-adapt
+// { userId, templateId, imageUrl?, brief?, baseResultId?, language, ratioValue? }
+//   ratioValue = ürün fotoğrafının genişlik/yükseklik oranı — banner bu oranda çizilir (şablonlar oran-duyarlı)
+//   imageUrl → şablondan temiz başlanır, ürün fotoğrafı takılır (baseResultId yok sayılır)
+//   yalnız brief → baseResultId varsa o kayıt, yoksa örnek fotoğraflı şablon
+router.post("/template-adapt", async (req, res) => {
+  try {
+    const { userId, templateId, imageUrl, baseResultId } = req.body || {};
+    const brief = String(req.body?.brief || "").trim().slice(0, 1500);
+    // "Renkleri kıyafete göre uyarla" — istemci göndermezse (eski sürüm) eski davranış: renkler korunur
+    const adaptColors = req.body?.adaptColors === true;
+    const language = String(req.body?.language || "en").slice(0, 16);
+    const effectiveUserId = userId || "anonymous_user";
+    const newPhoto = typeof imageUrl === "string" && /^https?:\/\//i.test(imageUrl) ? imageUrl : null;
+    const rv = Number(req.body?.ratioValue);
+    let arn = Number.isFinite(rv) && rv > 0 ? Math.min(2.4, Math.max(0.4, rv)) : null;
+    if (!templateId || (!newPhoto && !brief)) {
+      return res.status(400).json({ success: false, error: "templateId and imageUrl or brief are required" });
+    }
+    // Hareketli mod: şablonun animasyonlu sürümü uyarlanır (yoksa statik)
+    const animated = req.body?.animated === true;
+    const template = getBannerTemplate(templateId, newPhoto, { animated });
+    if (!template) return res.status(404).json({ success: false, error: "TEMPLATE_NOT_FOUND" });
+
+    // 🔒 /generate ile aynı kapı: PRO/deneme ya da kredi > 0
+    if (!(await isProUser(effectiveUserId))) {
+      const gateCredit = await getUserCredit(effectiveUserId);
+      if (!(typeof gateCredit === "number" && gateCredit > 0)) {
+        return res.status(403).json({ success: false, error: "PRO_REQUIRED" });
+      }
+    }
+
+    let baseHtml = template.html;
+    const sourceEntry = GALLERY_TEMPLATES.find((entry) => entry.id === templateId);
+    if (sourceEntry && normalizeLanguage(language) !== "en") {
+      const [localized] = await localizeTemplates([sourceEntry], language, { db: supabase, animated });
+      baseHtml = (animated && localized.animHtml || localized.html).split("{{PRODUCT_IMAGE}}").join(template.imageUrl);
+    }
+    let photoUrl = template.imageUrl;
+    if (!newPhoto && baseResultId) {
+      const { data: base, error } = await supabase
+        .from("banner_studio_results")
+        .select("id, user_id, html, image_url, options")
+        .eq("id", baseResultId)
+        .single();
+      if (error || !base?.html) return res.status(404).json({ success: false, error: "NOT_FOUND" });
+      if (base.user_id !== effectiveUserId) return res.status(403).json({ success: false, error: "FORBIDDEN" });
+      baseHtml = stripEditingArtifacts(base.html);
+      photoUrl = base.image_url || photoUrl;
+      if (!arn && base.options?.ratioValue) arn = base.options.ratioValue;
+    }
+    if (!arn) arn = newPhoto ? 4 / 5 : SAMPLE_ASPECT;
+
+    const startedAt = Date.now();
+    const adaptInput = { html: baseHtml, arn, language, photoChanged: !!newPhoto, photoUrl, brief, adaptColors };
+    // 25 Eyl 2026 (kullanıcı kararı): "İçeriği değiştir" de dahil tüm uyarlamalar Replicate'teki Gemini'de
+    // (kısa süreli DeepSeek denemesi geri alındı)
+    const html = await callTemplateAdaptModel(adaptInput, photoUrl);
+
+    const options = { source: "template_gallery", templateId, ratioValue: arn, language, brief: brief || null, photoChanged: !!newPhoto, baseResultId: newPhoto ? null : baseResultId || null, adaptColors, animated: /@keyframes/.test(html) };
+    const { data: record, error: insertError } = await supabase
+      .from("banner_studio_results")
+      .insert({
+        user_id: effectiveUserId,
+        image_url: photoUrl,
+        banner_type: "template",
+        ratio: "original",
+        options,
+        html,
+        credits_used: 0,
+        processing_time_seconds: Math.round((Date.now() - startedAt) / 1000),
+      })
+      .select("id, created_at")
+      .single();
+    if (insertError) console.error("🧩 [BANNER_TEMPLATE] insert failed:", insertError?.message);
+
+    // Önizleme JPG'i = istemcideki kart ve "indir" dosyası. Kayıt yoksa geçici yola yazılır.
+    let previewUrl = null;
+    try {
+      const shot = await renderBannerScreenshot(html, arn);
+      const previewPath = `bannerStudio/previews/${record?.id || `tpl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`}.jpg`;
+      const { error: upErr } = await supabase.storage
+        .from("images")
+        .upload(previewPath, shot, { contentType: "image/jpeg", upsert: true, cacheControl: "31536000" });
+      if (!upErr) {
+        const { data: pub } = supabase.storage.from("images").getPublicUrl(previewPath);
+        previewUrl = pub?.publicUrl || null;
+        if (previewUrl && record?.id) {
+          await supabase.from("banner_studio_results").update({ preview_url: previewUrl }).eq("id", record.id);
+        }
+      }
+    } catch (previewError) {
+      console.error("🧩 [BANNER_TEMPLATE] preview render failed:", previewError?.message);
+    }
+    if (!previewUrl) {
+      // kartın gösterecek görseli yoksa kullanıcıya boş sonuç verme
+      return res.status(500).json({ success: false, error: "PREVIEW_FAILED", id: record?.id || null });
+    }
+
+    return res.json({
+      success: true,
+      result: {
+        id: record?.id || null,
+        templateId,
+        ratio: "original",
+        ratioValue: arn,
+        html,
+        imageUrl: photoUrl,
+        previewUrl,
+        options,
+        createdAt: record?.created_at || new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("🧩 [BANNER_TEMPLATE] error:", error?.message);
+    return res.status(500).json({ success: false, error: "TEMPLATE_ADAPT_FAILED", message: error?.message });
+  }
+});
+
+// POST /api/banner-studio/template-video — the looping MP4 of an animated gallery banner (25 Eyl 2026, kullanıcı
+// isteği: "hareketli modda indirince MP4 olarak insin, hızlıca"). Same frame-exact pipeline as Banner Studio videos,
+// tuned for speed (30 fps, 1920 px long edge, one tab — measured fastest: tab start-up outweighs parallel capture). Identical html + ratio → the stored MP4 is reused.
+// { userId, templateId, imageUrl?, resultId?, ratioValue }  → { success, videoUrl, durationSeconds }
+// 25 Eyl 2026 (kullanıcı: "video inerken kalitesi bozuluyor"): 1080 px uzun kenar dikeyde ~608×1080'di → tam HD
+// (1080×1920). Kalite değişince eski önbellek kullanılmasın diye anahtara sürüm girer.
+const TEMPLATE_VIDEO_QUALITY = "fhd-v2";
+const templateVideoJobs = new Map(); // key → Promise<{ videoUrl, durationSeconds }>
+router.post("/template-video", async (req, res) => {
+  try {
+    const { userId, templateId, resultId } = req.body || {};
+    const effectiveUserId = userId || "anonymous_user";
+    const imageUrl = typeof req.body?.imageUrl === "string" && /^https?:\/\//i.test(req.body.imageUrl) ? req.body.imageUrl : null;
+    const rv = Number(req.body?.ratioValue);
+    let arn = Number.isFinite(rv) && rv > 0 ? Math.min(2.4, Math.max(0.4, rv)) : null;
+    let html = null;
+    if (resultId) {
+      const { data: record, error } = await supabase
+        .from("banner_studio_results")
+        .select("id, user_id, html, options")
+        .eq("id", resultId)
+        .single();
+      if (error || !record?.html) return res.status(404).json({ success: false, error: "NOT_FOUND" });
+      if (record.user_id !== effectiveUserId) return res.status(403).json({ success: false, error: "FORBIDDEN" });
+      html = stripEditingArtifacts(record.html);
+      if (!arn && record.options?.ratioValue) arn = record.options.ratioValue;
+    } else {
+      const template = templateId ? getBannerTemplate(templateId, imageUrl, { animated: true }) : null;
+      if (!template) return res.status(404).json({ success: false, error: "TEMPLATE_NOT_FOUND" });
+      const lang = normalizeLanguage(req.body?.language);
+      if (lang === "en") html = template.html;
+      else {
+        const entry = GALLERY_TEMPLATES.find((item) => item.id === templateId);
+        const [localized] = await localizeTemplates([entry], lang, { db: supabase, animated: true });
+        html = (localized.animHtml || localized.html).split("{{PRODUCT_IMAGE}}").join(template.imageUrl);
+      }
+      if (!arn) arn = imageUrl ? 4 / 5 : SAMPLE_ASPECT;
+    }
+    if (!/@keyframes/.test(html)) return res.status(400).json({ success: false, error: "NOT_ANIMATED" });
+
+    const key = require("crypto").createHash("sha1").update(`${TEMPLATE_VIDEO_QUALITY}|${arn.toFixed(4)}|${html}`).digest("hex");
+    const storagePath = `bannerStudio/templateVideos/${key}.mp4`;
+    const { data: pub } = supabase.storage.from("images").getPublicUrl(storagePath);
+    const publicUrl = pub?.publicUrl;
+    if (!templateVideoJobs.has(key)) {
+      const job = (async () => {
+        // rendered before (same banner, same photo, same ratio) → reuse. 29 Eyl 2026: dosyalar 1 gün sonra siliniyor
+        // (services/templateVideoCleanup) → yalnız TAZE kopya (< 20 sa) verilir; eskiyse yeniden basılır (upsert
+        // yazılış zamanını yeniler), böylece kullanıcının bağlantısı en az ~1 gün açık kalır.
+        try {
+          const head = await axios.head(publicUrl, { timeout: 5000 });
+          const writtenAt = Date.parse(head.headers?.["last-modified"] || "");
+          const fresh = Number.isFinite(writtenAt) ? Date.now() - writtenAt < 20 * 60 * 60 * 1000 : false;
+          if (head.status === 200 && fresh) return { videoUrl: publicUrl, durationSeconds: null };
+        } catch (e) { /* not stored yet */ }
+        const startedAt = Date.now();
+        const { filePath, cleanup, durationSeconds } = await renderBannerVideo(html, arn, { fps: 30, longEdge: 1920, workers: 1 });
+        try {
+          const { error: uploadError } = await supabase.storage
+            .from("images")
+            .upload(storagePath, fs.readFileSync(filePath), { contentType: "video/mp4", upsert: true, cacheControl: "31536000" });
+          if (uploadError) throw uploadError;
+        } finally {
+          cleanup();
+        }
+        console.log(`🧩 [BANNER_TEMPLATE] video ${templateId || resultId} · ${Math.round((Date.now() - startedAt) / 1000)} sn`);
+        return { videoUrl: publicUrl, durationSeconds };
+      })();
+      templateVideoJobs.set(key, job);
+      job.finally(() => setTimeout(() => templateVideoJobs.delete(key), 60000)).catch(() => {});
+    }
+    const out = await templateVideoJobs.get(key);
+    return res.json({ success: true, ...out });
+  } catch (error) {
+    console.error("🧩 [BANNER_TEMPLATE] video error:", error?.message);
+    return res.status(500).json({ success: false, error: "TEMPLATE_VIDEO_FAILED" });
+  }
+});
+
+// POST /api/banner-studio/gallery-download — the banner gallery logs every save / share (25 Eyl 2026, kullanıcı
+// isteği: "kullanıcının indirdikleri DB'ye kaydolsun, admin'de göreyim") → banner_gallery_downloads.
+// { userId, templateId, format: image|video, action: save|share, mode: still|motion, resultId?, videoUrl?,
+//   imageBase64? (the exact JPG the user got), ratioValue?, language?, isSample? }
+// The app fires this and forgets it: a failure here never blocks the user's download.
+router.post("/gallery-download", async (req, res) => {
+  try {
+    const b = req.body || {};
+    const entry = GALLERY_TEMPLATES.find((t) => t.id === b.templateId);
+    if (!entry) return res.status(404).json({ success: false, error: "TEMPLATE_NOT_FOUND" });
+    const format = b.format === "video" ? "video" : "image";
+    const id = require("crypto").randomUUID();
+    let fileUrl = null;
+    if (format === "video" && typeof b.videoUrl === "string" && /^https:\/\//i.test(b.videoUrl)) {
+      fileUrl = b.videoUrl;
+    } else if (format === "image" && typeof b.imageBase64 === "string" && b.imageBase64.length > 100) {
+      const buffer = Buffer.from(b.imageBase64.replace(/^data:image\/\w+;base64,/, ""), "base64");
+      if (buffer.length <= 12 * 1024 * 1024) {
+        const storagePath = `bannerStudio/downloads/${id}.jpg`;
+        const { error: upErr } = await supabase.storage.from("images")
+          .upload(storagePath, buffer, { contentType: "image/jpeg", upsert: true, cacheControl: "31536000" });
+        if (!upErr) fileUrl = supabase.storage.from("images").getPublicUrl(storagePath).data?.publicUrl || null;
+      }
+    }
+    const rv = Number(b.ratioValue);
+    const { error } = await supabase.from("banner_gallery_downloads").insert({
+      id,
+      user_id: String(b.userId || "anonymous_user").slice(0, 80),
+      template_id: entry.id,
+      template_name: entry.name,
+      category: entry.cat,
+      format,
+      action: b.action === "share" ? "share" : "save",
+      mode: b.mode === "motion" ? "motion" : "still",
+      result_id: /^[0-9a-f-]{36}$/i.test(String(b.resultId || "")) ? b.resultId : null,
+      file_url: fileUrl,
+      ratio_value: Number.isFinite(rv) && rv > 0 ? rv : null,
+      language: b.language ? String(b.language).slice(0, 16) : null,
+      is_sample_photo: b.isSample === true,
+    });
+    if (error) throw error;
+    return res.json({ success: true, id });
+  } catch (error) {
+    console.error("🧩 [BANNER_TEMPLATE] download log error:", error?.message);
+    return res.status(500).json({ success: false, error: "DOWNLOAD_LOG_FAILED" });
   }
 });
 

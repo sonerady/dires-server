@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..700&family=IBM+Plex+Sans+Condensed:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Dictionary Entry — the collection defined like a headword: running head with guide words,
+     a heavy serif "edit", pronunciation, numbered senses, a usage example, synonyms and a folio.
+     TALL → photo above the entry · 7/10+ → the entry as a column left, the photo as the plate right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5F2EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F5F2EA; color: #17150F; font-family: "Newsreader", Georgia, "Times New Roman", serif; display: flex; flex-direction: column; }
+  .sans { font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif; }
+  .ph { position: relative; flex: 1; min-height: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .entry { flex: none; box-sizing: border-box; padding: 3vmin 5vmin 4.4vmin; display: flex; flex-direction: column; }
+  .rh { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; padding-bottom: 1.2vmin; border-bottom: 1px solid #17150F; font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .rh b { font-weight: 600; }
+  .hw { margin-top: 2.4vmin; display: flex; align-items: baseline; gap: 3vmin; flex-wrap: wrap; }
+  .hw h1 { margin: 0; font-weight: 800; font-size: 20vmin; line-height: .8; letter-spacing: -.045em; font-variation-settings: "opsz" 72; }
+  .hw h1 sup { font-size: .22em; font-weight: 500; letter-spacing: 0; vertical-align: 2.9em; margin-left: .15em; color: #A3261E; }
+  .pr { font-size: 3vmin; line-height: 1.3; }
+  .pr i { color: #A3261E; }
+  .senses { margin: 2.4vmin 0 0; padding: 0; list-style: none; font-size: 2.8vmin; line-height: 1.28; font-variation-settings: "opsz" 16; }
+  .senses li { display: flex; gap: 1.6vmin; }
+  .senses li + li { margin-top: 1vmin; }
+  .s3 { display: none !important; }
+  .senses b { font-weight: 700; flex: none; }
+  .senses em { color: #5E594E; }
+  .syn { margin-top: 1.6vmin; font-size: 1.8vmin; letter-spacing: .02em; color: #5E594E; }
+  .syn b { color: #17150F; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+  .ft { margin-top: 2.6vmin; padding-top: 2vmin; border-top: 1px solid #17150F; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .ft p { margin: 0; font-size: 2vmin; line-height: 1.35; }
+  .ft p b { font-weight: 600; color: #A3261E; }
+  .cta { flex: none; background: #17150F; color: #F5F2EA; font-size: 2.1vmin; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 1.7vmin 2.6vmin; white-space: nowrap; }
+  .tall-only { display: inline; }
+
+  /* SHORTER PORTRAIT — entry column left, photo right */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { flex-direction: row-reverse; }
+    .entry { width: 52%; height: 100%; padding: 4.4vmin 4.4vmin 4.4vmin 5vmin; }
+    .hw h1 { font-size: 19.5vmin; }
+    .hw { margin-top: 3.4vmin; }
+    .pr { font-size: 3.2vmin; }
+    .senses { font-size: 2.9vmin; margin-top: 3vmin; }
+    .senses li + li { margin-top: 1.6vmin; }
+    .s3 { display: flex !important; }
+    .syn { margin-top: 2.4vmin; font-size: 2vmin; }
+    .ft { margin-top: auto; flex-direction: column; align-items: stretch; gap: 1.8vmin; }
+    .cta { text-align: center; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .entry { width: 52%; padding: 3.6vmin 3.8vmin 3.6vmin 4.2vmin; }
+    .rh { font-size: 1.6vmin; }
+    .rh .fol { display: none; }
+    .hw { margin-top: 2vmin; gap: 2vmin; }
+    .hw h1 { font-size: 16vmin; }
+    .pr { font-size: 2.6vmin; }
+    .senses { font-size: 2.35vmin; margin-top: 2.2vmin; }
+    .senses li + li { margin-top: 1vmin; }
+    .tall-only { display: none; }
+    .syn { font-size: 1.6vmin; margin-top: 1.2vmin; }
+    .ft p { font-size: 1.7vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.4vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .entry { width: 54%; padding: 4.4vmin 5vmin; }
+    .rh { font-size: 1.7vmin; }
+    .rh .fol { display: inline; }
+    .hw h1 { font-size: 20vmin; }
+    .pr { font-size: 2.8vmin; }
+    .senses { font-size: 2.6vmin; margin-top: 2.4vmin; }
+    .tall-only { display: inline; }
+    .syn { font-size: 1.7vmin; }
+    .ft { flex-direction: row; align-items: center; }
+    .ft p { font-size: 1.9vmin; }
+    .cta { font-size: 2vmin; padding: 1.6vmin 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="entry">
+    <div class="rh sans"><span><b>edge</b> — effortless</span><span class="fol">The Wardrobe Dictionary</span><span>p. 26</span></div>
+    <div class="hw"><h1>edit<sup>1</sup></h1><div class="pr">/ˈɛd·ɪt/ <i>noun</i></div></div>
+    <ol class="senses">
+      <li><b>1</b><span>A short, sharp selection of pieces made to be worn together. <em class="tall-only">“the new season edit.”</em></span></li>
+      <li><b>2</b><span>What’s left when you take away everything you don’t need.</span></li>
+      <li class="s3"><b>3</b><span><i>verb</i> To choose with intent. <em>“she edited her wardrobe.”</em></span></li>
+    </ol>
+    <div class="syn sans"><b>Syn.</b> capsule, collection, the good stuff.</div>
+    <div class="ft sans">
+      <p>New this week — <b>20% off</b> the edit<br>with code DEFINE20</p>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

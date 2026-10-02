@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=RocknRoll+One&family=VT323&display=swap" rel="stylesheet">
+<style>
+  /* Claw Catch — an Akihabara crane-game cabinet: bulb-lit marquee, the claw hanging on its rail above the prize
+     (the photo sits clear beneath it), and a control deck with joystick, DROP button, credit LED and a prize chute
+     that pays out the code.
+     tall → marquee / glass / deck stacked · square & wide → marquee across, glass left, deck right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FF8FB8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2A1433; font-family: "RocknRoll One", "Arial Rounded MT Bold", sans-serif;
+    background: linear-gradient(90deg, #F07AA6 0%, #FF9BC0 18%, #FF8FB8 50%, #FF9BC0 82%, #F07AA6 100%); }
+
+  /* marquee */
+  .marquee { position: absolute; left: 4vmin; right: 4vmin; top: 3.4vmin; height: 20vmin; background: #2A1433; border-radius: 2vmin; box-shadow: 0 .8vmin 0 #B8466F; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .marquee::before, .marquee::after { content: ""; position: absolute; left: 1vmin; right: 1vmin; height: 2.6vmin; background: radial-gradient(circle, #FFFBD6 0 .55vmin, #FFC83D .75vmin, rgba(255,200,61,.35) 1vmin, transparent 1.25vmin) 0 50% / 3.6vmin 2.6vmin repeat-x; }
+  .marquee::before { top: .6vmin; } .marquee::after { bottom: .6vmin; }
+  .marquee h1 { margin: 0; font-weight: 400; font-size: 8vmin; line-height: 1; letter-spacing: .01em; color: #FFE66D; text-shadow: 0 0 1.6vmin rgba(255,200,61,.65), 0 .5vmin 0 #E2437A; white-space: nowrap; }
+  .marquee p { margin: .8vmin 0 0; font-family: "VT323", "Courier New", monospace; font-size: 2.8vmin; letter-spacing: .14em; color: #8FF3E0; white-space: nowrap; }
+
+  /* glass case: rail + claw above, prize (photo) below */
+  .glass { position: absolute; left: 4vmin; right: 4vmin; top: 27vmin; height: calc(100% - 77vmin); background: #1E0F29; border: 1.4vmin solid #F2F2F5; border-radius: 1.2vmin; box-shadow: inset 0 0 0 .4vmin #BFC2CC, 0 .6vmin 0 #B8466F; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
+  .ceiling { position: relative; flex: none; height: 16vmin; background: linear-gradient(180deg, #2E1A3C, #1E0F29); }
+  .rail { position: absolute; left: 0; right: 0; top: 1.6vmin; height: 1.4vmin; background: linear-gradient(180deg, #F5F5F8, #9EA2AE); }
+  .claw { position: absolute; left: 50%; top: .6vmin; width: 11vmin; height: 15vmin; margin-left: -5.5vmin; }
+  .claw .cable { stroke: #CFD2DA; stroke-width: 1.4; }
+  .claw .hub { fill: url(#chrome); }
+  .claw .prong { fill: none; stroke: url(#chrome); stroke-width: 3.4; stroke-linecap: round; }
+  .ceiling .lamp { position: absolute; top: 5vmin; width: 3.4vmin; height: 3.4vmin; border-radius: 50%; background: radial-gradient(circle, #FFF7C2 0%, #FFC83D 50%, rgba(255,200,61,0) 72%); }
+  .ceiling .l1 { left: 8%; } .ceiling .l2 { right: 8%; }
+  .prize { position: relative; flex: 1; min-height: 0; }
+  .prize img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .prize::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3vmin; z-index: 1; background: linear-gradient(180deg, rgba(30,15,41,1) 0%, rgba(30,15,41,.985) 7.7%, rgba(30,15,41,.943) 15.4%, rgba(30,15,41,.874) 23.1%, rgba(30,15,41,.784) 30.8%, rgba(30,15,41,.677) 38.5%, rgba(30,15,41,.56) 46.2%, rgba(30,15,41,.44) 53.8%, rgba(30,15,41,.323) 61.5%, rgba(30,15,41,.216) 69.2%, rgba(30,15,41,.126) 76.9%, rgba(30,15,41,.057) 84.6%, rgba(30,15,41,.015) 92.3%, rgba(30,15,41,0) 100%); }
+
+  /* control deck */
+  .deck { position: absolute; left: 4vmin; right: 4vmin; bottom: 4vmin; height: 42vmin; background: linear-gradient(180deg, #FFF3F8, #FFD9E7); border-radius: 2vmin; box-shadow: 0 .8vmin 0 #B8466F; display: grid; grid-template-columns: 18vmin minmax(0, 1fr) 30vmin; grid-template-rows: auto 1fr; align-items: center; column-gap: 3vmin; row-gap: 1.6vmin; padding: 3vmin 3.4vmin 2.6vmin; box-sizing: border-box; }
+  .ctrl { grid-column: 1; grid-row: 2; }
+  .drop { grid-column: 2; grid-row: 2; justify-self: center; }
+  .chute { grid-column: 3; grid-row: 2; }
+  .info { min-width: 0; display: flex; grid-column: 1 / -1; grid-row: 1; flex-direction: row; align-items: center; gap: 3vmin; }
+  .credit { flex: none; flex-direction: column; gap: .6vmin; }
+  .ctrl { display: flex; flex-direction: column; align-items: center; gap: 2vmin; }
+  .stick { position: relative; width: 14vmin; height: 16vmin; }
+  .stick::before { content: ""; position: absolute; left: 50%; bottom: 1.6vmin; width: 1.8vmin; height: 10vmin; margin-left: -.9vmin; background: linear-gradient(90deg, #8A8E99, #E6E8ED, #8A8E99); transform: rotate(-12deg); transform-origin: 50% 100%; }
+  .stick::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 12vmin; height: 3.6vmin; margin-left: -6vmin; border-radius: 50%; background: #2A1433; }
+  .stick i { position: absolute; left: 1.4vmin; top: 0; width: 7.4vmin; height: 7.4vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFB3CE, #E2437A 55%, #9E2350); z-index: 1; }
+  .drop { width: 12vmin; height: 12vmin; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #FF8A7A, #E23B2E 60%, #A8231A); box-shadow: 0 0 0 1vmin #2A1433, 0 1.2vmin 0 1vmin #1A0B21; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2.4vmin; }
+  .ctrl span { font-family: "VT323", monospace; font-size: 2.4vmin; letter-spacing: .12em; }
+
+  .credit { background: #1E0F29; color: #8FF3E0; font-family: "VT323", monospace; font-size: 3vmin; line-height: 1; letter-spacing: .08em; padding: 1.2vmin 1.6vmin; border-radius: .8vmin; display: flex; justify-content: space-between; text-shadow: 0 0 .8vmin rgba(143,243,224,.7); white-space: nowrap; }
+  .credit b { font-weight: 400; color: #FFE66D; text-shadow: 0 0 .8vmin rgba(255,230,109,.7); }
+  .info p { margin: 0; font-size: 2.6vmin; line-height: 1.3; }
+  .info p em { font-style: normal; color: #E2437A; }
+
+  .chute { position: relative; height: 24vmin; background: #2A1433; border-radius: 1.6vmin; padding: 1.8vmin; box-sizing: border-box; display: flex; flex-direction: column; }
+  .chute .lbl { font-family: "VT323", monospace; font-size: 2.4vmin; letter-spacing: .2em; color: #FFE66D; text-align: center; }
+  .ticket { flex: 1; margin-top: 1.2vmin; background: #FFE66D; color: #2A1433; border-radius: .6vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; transform: rotate(-3deg);
+    -webkit-mask: radial-gradient(circle at 0 50%, transparent 1.4vmin, #000 1.5vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 50%, transparent 1.4vmin, #000 1.5vmin) right / 51% 100% no-repeat;
+            mask: radial-gradient(circle at 0 50%, transparent 1.4vmin, #000 1.5vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 50%, transparent 1.4vmin, #000 1.5vmin) right / 51% 100% no-repeat; }
+  .ticket b { font-weight: 400; font-size: 7vmin; line-height: 1; }
+  .ticket span { font-family: "VT323", monospace; font-size: 2.8vmin; letter-spacing: .12em; margin-top: .4vmin; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .marquee { height: 17vmin; }
+    .marquee h1 { font-size: 7vmin; }
+    .glass { top: 23.6vmin; height: calc(100% - 66vmin); }
+    .ceiling { height: 13vmin; }
+    .claw { height: 12.4vmin; width: 9vmin; margin-left: -4.5vmin; }
+    .deck { height: 35vmin; bottom: 3.6vmin; grid-template-columns: 16vmin minmax(0, 1fr) 27vmin; padding: 2.4vmin 3vmin 2vmin; }
+    .info p { font-size: 2.3vmin; }
+    .stick { transform: scale(.85); margin: -1vmin 0; }
+    .drop { width: 10vmin; height: 10vmin; }
+    .chute { height: 20vmin; }
+    .ticket b { font-size: 6vmin; }
+  }
+  /* SQUARE — marquee across; glass left, deck right */
+  @media (min-aspect-ratio: 9/10) {
+    .marquee { height: 17vmin; }
+    .marquee h1 { font-size: 7vmin; }
+    .glass { top: 24vmin; bottom: 4vmin; height: auto; right: auto; width: 50%; }
+    .ceiling { height: 12vmin; }
+    .claw { height: 11.4vmin; width: 8.4vmin; margin-left: -4.2vmin; }
+    .deck { left: calc(50% + 8vmin); top: 24vmin; bottom: 4vmin; height: auto; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr 1fr; align-items: center; row-gap: 1.6vmin; column-gap: 2vmin; padding: 3vmin 2.8vmin; }
+    .info { flex-direction: column; align-items: stretch; gap: 1.4vmin; }
+    .info p { font-size: 2.2vmin; }
+    .credit { flex-direction: row; }
+    .credit { font-size: 2.6vmin; }
+    .ctrl { grid-column: 1; grid-row: 2; }
+    .stick { transform: scale(.7); margin: -3vmin 0 -2vmin; }
+    .drop { grid-column: 1; grid-row: 3; width: 10vmin; height: 10vmin; font-size: 2vmin; }
+    .ctrl span { font-size: 2vmin; }
+    .chute { grid-column: 2; grid-row: 2 / 4; height: 30vmin; padding: 1.4vmin; }
+    .ticket b { font-size: 5vmin; }
+    .ticket span { font-size: 2.2vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .marquee h1 { font-size: 8vmin; }
+    .glass { width: 46%; }
+    .deck { left: calc(46% + 8vmin); grid-template-columns: 17vmin minmax(0, 1fr) 24vmin; grid-template-rows: auto 1fr; align-items: center; column-gap: 3vmin; padding: 3.4vmin 3.4vmin; }
+    .info { flex-direction: row; align-items: center; gap: 3vmin; }
+    .info p { font-size: 2.4vmin; }
+    .credit { flex: none; flex-direction: column; gap: .6vmin; }
+    .ctrl { grid-column: 1; grid-row: 2; align-self: center; }
+    .stick { transform: scale(.8); margin: -2vmin 0 -1vmin; }
+    .drop { display: flex; grid-column: 2; grid-row: 2; justify-self: center; align-self: center; width: 13vmin; height: 13vmin; font-size: 2.6vmin; }
+    .chute { grid-column: 3; grid-row: 2; align-self: center; height: 28vmin; padding: 1.8vmin; }
+    .ticket b { font-size: 6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="marquee"><h1>Catch the look</h1><p>★ CRANE GAME · 1 PLAY = 1 PRIZE ★</p></div>
+  <div class="glass">
+    <div class="ceiling">
+      <div class="rail"></div>
+      <div class="lamp l1"></div><div class="lamp l2"></div>
+      <svg class="claw" viewBox="0 0 60 80" preserveAspectRatio="xMidYMin meet"><defs><linearGradient id="chrome" x1="0" x2="1"><stop offset="0" stop-color="#8A8E99"/><stop offset=".45" stop-color="#F4F5F8"/><stop offset="1" stop-color="#9EA2AE"/></linearGradient></defs><rect x="21" y="0" width="18" height="7" rx="2" class="hub"/><line x1="30" y1="7" x2="30" y2="34" class="cable"/><rect x="19" y="34" width="22" height="11" rx="4" class="hub"/><path class="prong" d="M22 45C11 52 7 62 12 74l5-3"/><path class="prong" d="M38 45C49 52 53 62 48 74l-5-3"/><path class="prong" d="M30 45v26"/></svg>
+    </div>
+    <div class="prize"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  </div>
+  <div class="deck">
+    <div class="ctrl"><div class="stick"><i></i></div><span>MOVE</span></div>
+    <div class="info">
+      <div class="credit"><span>CREDIT 01</span><b>WIN 30%</b></div>
+      <p>Every order is a play — <em>win up to 30% off</em> the new drop.</p>
+    </div>
+    <div class="chute"><div class="lbl">PRIZE ▼</div><div class="ticket"><b>−30%</b><span>CATCH30</span></div></div>
+    <div class="drop">DROP</div>
+  </div>
+</div>
+</body>
+</html>

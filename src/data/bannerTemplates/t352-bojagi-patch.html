@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Bojagi Patch — a Korean patchwork wrapping cloth in sheer ramie: pastel panels overlap and deepen where they
+     cross (multiply), every seam is a white running stitch, and the photo is the one opaque patch sewn into the middle,
+     with a little knotted tie in the corner.
+     tall → photo patch above, copy on the lower patches · square & wide → photo patch left, copy patches right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F8F2EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F8F2EA; color: #2E2A38;
+    font-family: "Outfit", "Helvetica Neue", Arial, sans-serif; }
+
+  .p { position: absolute; mix-blend-mode: multiply; outline: .28vmin dashed rgba(255,255,255,.95); outline-offset: -1.3vmin; }
+  .p1 { left: 0; top: 0; width: 58%; height: 11%; background: rgba(247,193,172,.55); }
+  .p2 { left: 50%; top: 0; width: 50%; height: 17%; background: rgba(182,224,206,.62); }
+  .p3 { left: 86%; top: 13%; width: 14%; height: 50%; background: rgba(204,192,236,.6); }
+  .p4 { left: 0; top: 8%; width: 11%; height: 46%; background: rgba(250,224,150,.6); }
+  .p5 { left: 0; top: 64%; width: 66%; height: 36%; background: rgba(188,214,242,.55); }
+  .p6 { left: 56%; top: 58%; width: 44%; height: 42%; background: rgba(246,196,212,.58); }
+  .p7 { left: 0; top: 50%; width: 22%; height: 22%; background: rgba(214,232,196,.55); }
+  .p8 { left: 76%; top: 86%; width: 24%; height: 14%; background: rgba(250,224,150,.5); }
+
+  .ph { position: absolute; left: 11%; width: 75%; top: 12.5%; height: 55%; outline: .3vmin dashed rgba(255,255,255,.95); outline-offset: 1.1vmin; box-shadow: 0 1.4vmin 3vmin rgba(90,70,90,.12); }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .tie { position: absolute; right: 4.5vmin; top: 3vmin; width: 11vmin; height: 7vmin; fill: none; stroke: #8FBFAA; stroke-width: 2.4; stroke-linecap: round; }
+  .lbl { position: absolute; left: 5.5vmin; top: 3.6vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .lbl span { letter-spacing: .1em; margin-left: 1.2vmin; color: #6B6278; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; }
+  .no { font-size: 1.8vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #5D5670; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Gowun Batang", Georgia, serif; font-weight: 400; font-size: 9vmin; line-height: 1.08; letter-spacing: -.02em; }
+  h1 i { font-style: normal; color: #B0587A; }
+  .row { margin-top: 2.6vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .row p { margin: 0; font-size: 2.2vmin; line-height: 1.4; font-weight: 300; max-width: 36vmin; }
+  .offer { flex: none; text-align: right; white-space: nowrap; }
+  .offer b { display: block; font-family: "Gowun Batang", Georgia, serif; font-weight: 700; font-size: 4.8vmin; line-height: 1; }
+  .offer span { display: inline-block; margin-top: 1.2vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .12em; background: #fff; border-radius: 3vmin; padding: .8vmin 1.8vmin; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .ph { top: 12%; height: 51%; left: 13%; width: 71%; }
+    .p5 { top: 60%; height: 40%; }
+    .p6 { top: 54%; height: 46%; }
+    .p7 { top: 46%; }
+    h1 { font-size: 7vmin; }
+    .copy { bottom: 5vmin; }
+    .row { margin-top: 2vmin; }
+  }
+  /* SQUARE — photo patch left, copy patches right */
+  @media (min-aspect-ratio: 9/10) {
+    .p1 { left: 0; top: 0; width: 40%; height: 10%; }
+    .p2 { left: 46%; top: 0; width: 54%; height: 21%; }
+    .p3 { left: 0; top: 18%; width: 8%; height: 82%; }
+    .p4 { left: 30%; top: 90%; width: 40%; height: 10%; }
+    .p5 { left: 55%; top: 19%; width: 45%; height: 50%; }
+    .p6 { left: 62%; top: 64%; width: 38%; height: 36%; }
+    .p7 { left: 0; top: 0; width: 14%; height: 24%; }
+    .p8 { left: 0; top: 84%; width: 22%; height: 16%; }
+    .ph { left: 9%; top: 11%; width: 42%; height: 76%; }
+    .lbl { left: calc(55% + 4vmin); top: 5vmin; }
+    .lbl span { display: block; margin: .8vmin 0 0; }
+    .tie { right: 4vmin; top: 4vmin; }
+    .copy { left: calc(55% + 4vmin); right: 5vmin; top: 25vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+    h1 { font-size: 6vmin; }
+    .row { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+    .row p { font-size: 2vmin; }
+    .offer { text-align: left; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .p1 { width: 34%; }
+    .p2 { left: 40%; width: 60%; height: 22%; }
+    .p5 { left: 48%; top: 20%; width: 40%; height: 52%; }
+    .p6 { left: 70%; top: 58%; width: 30%; height: 42%; }
+    .p4 { left: 26%; width: 34%; }
+    .p8 { left: 0; width: 18%; top: 82%; height: 18%; }
+    .ph { left: 7%; top: 10%; width: 36%; height: 80%; }
+    .lbl { left: calc(48% + 5vmin); top: 6vmin; }
+    .lbl span { display: inline; margin-left: 1.2vmin; }
+    .copy { left: calc(48% + 5vmin); right: 7vmin; top: 25vmin; bottom: 7vmin; }
+    h1 { font-size: 7.4vmin; }
+    .row { flex-direction: row; align-items: flex-end; }
+    .row p { max-width: 34vmin; }
+    .offer { text-align: right; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="p p1"></div><div class="p p2"></div><div class="p p3"></div><div class="p p4"></div>
+  <div class="p p5"></div><div class="p p6"></div><div class="p p7"></div><div class="p p8"></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <svg class="tie" viewBox="0 0 44 28"><path d="M22 14c-6-9-16-10-17-4s11 5 17 4c6 1 18 2 17-4s-11-5-17 4M22 14c-3 5-6 9-11 12M22 14c3 5 7 9 12 11"/><circle cx="22" cy="14" r="2.4" fill="#8FBFAA" stroke="none"/></svg>
+  <div class="lbl">Patchwork edit<span>조각보 · SS27</span></div>
+  <div class="copy">
+    <div class="no">Pieces 01 — 08</div>
+    <h1>Pieced together,<br><i>softly.</i></h1>
+    <div class="row"><p>Sheer layers and quiet colour for the new season.</p><div class="offer"><b>Up to 30% off</b><span>CODE PATCH30</span></div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,800;1,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* VIP Wristband — Friends & Family as an event pass: a fluoro-orange Tyvek wristband slashed across a black
+     panel, printed "All access" with its serial number and peel-off tab, then the offer in hard condensed caps.
+     tall → photo above, black panel below; square/wide → photo left, black panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E0E0E; }
+  .banner { --panel: 84vmin; position: fixed; inset: 0; overflow: hidden; background: #0E0E0E; color: #F3F1EC; font-family: "Space Mono", "Courier New", monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 0; bottom: 0; width: 100%; height: var(--panel); overflow: hidden; background: #0E0E0E; }
+
+  /* wristband */
+  .band { position: absolute; left: -12%; width: 124%; top: 6vmin; height: 12vmin; transform: rotate(-5deg); display: flex; align-items: stretch; box-shadow: 0 1.6vmin 2.4vmin rgba(0,0,0,.6);
+    background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 30%, rgba(0,0,0,.12)), #FF5B1A; color: #120C08; }
+  .band svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; mix-blend-mode: multiply; pointer-events: none; }
+  .print { position: relative; flex: 1; min-width: 0; overflow: hidden; display: flex; align-items: center; white-space: nowrap; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 800; font-style: italic; font-size: 5.8vmin; letter-spacing: .01em; text-transform: uppercase; }
+  .print span { flex: none; padding-left: 2vmin; }
+  .print span::after { content: "✱"; font-style: normal; font-size: .7em; padding-left: 2vmin; vertical-align: .15em; }
+  .tab { position: relative; flex: none; width: 30vmin; display: flex; flex-direction: column; justify-content: center; padding: 0 2.6vmin 0 5vmin; border-left: .3vmin dashed rgba(18,12,8,.55); border-right: .3vmin dashed rgba(18,12,8,.55);
+    background: repeating-linear-gradient(90deg, rgba(18,12,8,.08) 0 .4vmin, transparent .4vmin 1.2vmin); }
+  .tab small { display: table; font-size: 1.6vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .tab b { display: table; margin-top: .5vmin; font-size: 3vmin; font-weight: 700; letter-spacing: .06em; line-height: 1.1; }
+  .tab::after { content: ""; position: absolute; left: 1.2vmin; top: 50%; width: 2.4vmin; height: 2.4vmin; margin-top: -1.2vmin; border-radius: 50%; background: #0E0E0E; }
+  .tail { flex: none; width: 18vmin; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - var(--panel) + 26vmin); bottom: 5vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #FF5B1A; }
+  h1 { margin: 2.6vmin 0 0; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 800; font-size: 17vmin; line-height: .84; letter-spacing: -.01em; text-transform: uppercase; }
+  h1 span { color: #FF5B1A; }
+  .deal { margin: 2.6vmin 0 0; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 600; font-size: 4.2vmin; line-height: 1.1; text-transform: uppercase; }
+  .grid { display: flex; margin-top: auto; border-top: .3vmin solid #F3F1EC; }
+  .grid div { flex: 1; padding-top: 1.6vmin; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: rgba(243,241,236,.65); }
+  .grid div + div { padding-left: 2vmin; border-left: 1px solid rgba(243,241,236,.3); }
+  .grid b { display: block; margin-top: .6vmin; font-size: 2.3vmin; letter-spacing: .04em; color: #F3F1EC; white-space: nowrap; }
+  .grid .c b { color: #120C08; background: #FF5B1A; display: table; padding: .3vmin 1vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .band { top: 5vmin; height: 10.4vmin; }
+    .print { font-size: 5vmin; }
+    .copy { top: calc(100% - var(--panel) + 22vmin); bottom: 4.5vmin; }
+    h1 { font-size: 14.4vmin; }
+    .deal { font-size: 3.6vmin; margin-top: 2vmin; }
+  }
+  /* square — photo left, black panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; }
+    .panel { left: 50%; width: 50%; height: 100%; }
+    .band { top: 7vmin; height: 9.6vmin; left: -20%; width: 140%; transform: rotate(-8deg); }
+    .print { font-size: 4.6vmin; }
+    .tab { width: 22vmin; padding: 0 1.6vmin 0 4.6vmin; }
+    .tab b { font-size: 2.4vmin; }
+    .tail { width: 11vmin; }
+    .copy { left: calc(50% + 5vmin); right: 5vmin; top: 27vmin; bottom: 5vmin; }
+    h1 { font-size: 11vmin; }
+    .deal { font-size: 3.2vmin; }
+    .grid { flex-direction: column; }
+    .grid div { display: flex; justify-content: space-between; align-items: baseline; padding: 1vmin 0; border-bottom: 1px solid rgba(243,241,236,.25); }
+    .grid div + div { padding-left: 0; border-left: 0; }
+    .grid b { margin: 0; font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { left: 46%; width: 54%; }
+    .band { top: 7vmin; height: 11vmin; left: -12%; width: 124%; transform: rotate(-5deg); }
+    .print { font-size: 5.4vmin; }
+    .tab { width: 28vmin; }
+    .tab b { font-size: 2.8vmin; }
+    .copy { left: calc(46% + 6vmin); right: 6vmin; top: 28vmin; bottom: 6vmin; }
+    h1 { font-size: 13vmin; }
+    h1 br { display: none; }
+    .deal { font-size: 3.6vmin; }
+    .grid { flex-direction: row; }
+    .grid div { display: block; padding: 1.6vmin 0 0; border-bottom: 0; }
+    .grid div + div { padding-left: 2vmin; border-left: 1px solid rgba(243,241,236,.3); }
+    .grid b { margin-top: .6vmin; font-size: 2.2vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     constant: the band's print crawls one "All access ✱ Friends & Family" repeat per loop; the band sways a hair
+     beat: 1.4s a door-scanner beam sweeps the wristband, 2.5s the serial flashes (read), 2.7s "& Family" strobes
+           white — access granted — 3.4s the FAM30 code chip pulses */
+  .print .run { display: flex; flex: none; animation: crawl 6s linear infinite; }
+  @keyframes crawl { from { transform: translateX(0); } to { transform: translateX(-33.3333%); } }
+  .band { animation: bandA 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bandA { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(-4.3deg) translateY(.4vmin); } }
+  @keyframes bandB { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(-7.3deg) translateY(.4vmin); } }
+  .band::after { content: ""; position: absolute; top: -1vmin; bottom: -1vmin; left: 0; width: 100%; pointer-events: none; opacity: 0;
+    background: linear-gradient(90deg, rgba(150,255,215,0) 0, rgba(150,255,215,.18) 3vmin, rgba(190,255,230,.6) 4.4vmin, #F6FFFB 4.8vmin, #F6FFFB 5.2vmin, rgba(190,255,230,.6) 5.6vmin, rgba(150,255,215,0) 7vmin) no-repeat;
+    filter: drop-shadow(0 0 1vmin rgba(120,255,210,.9)); animation: scan 6s linear infinite; }
+  @keyframes scan {
+    0%, 22% { transform: translateX(-3%); opacity: 0; animation-timing-function: linear; }
+    23% { transform: translateX(0%); opacity: 1; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    40% { transform: translateX(98%); opacity: 1; animation-timing-function: linear; }
+    41.5%, 100% { transform: translateX(100%); opacity: 0; }
+  }
+  .tab b { align-self: flex-start; animation: serial 6s linear infinite; }
+  @keyframes serial {
+    0%, 40.9%, 43%, 43.9%, 46%, 100% { background-color: rgba(18,12,8,0); box-shadow: 0 0 0 .5vmin rgba(18,12,8,0); color: #120C08; }
+    41%, 42.9%, 44%, 45.9% { background-color: #120C08; box-shadow: 0 0 0 .5vmin #120C08; color: #FF5B1A; }
+  }
+  h1 span { animation: grant 6s linear infinite; }
+  @keyframes grant {
+    0%, 44.9%, 46.5%, 47.4%, 50%, 100% { color: #FF5B1A; text-shadow: 0 0 0 rgba(255,91,26,0); }
+    45%, 46.4%, 47.5%, 49.9% { color: #FFF4EC; text-shadow: 0 0 2.4vmin rgba(255,91,26,.8); }
+  }
+  .grid .c b { animation: chip 6s linear infinite; }
+  @keyframes chip {
+    0%, 56% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,91,26,0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    59% { transform: scale(1.08); box-shadow: 0 0 0 .8vmin rgba(255,91,26,.35); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    66%, 100% { transform: scale(1); box-shadow: 0 0 0 1.6vmin rgba(255,91,26,0); }
+  }
+  @media (min-aspect-ratio: 9/10) { .band { animation-name: bandB; } }
+  @media (min-aspect-ratio: 6/5) { .band { animation-name: bandA; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="band">
+      <svg aria-hidden="true"><filter id="t"><feTurbulence type="fractalNoise" baseFrequency=".04 .6" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#t)"/></svg>
+      <div class="tail"></div>
+      <div class="tab"><small>VIP · Peel</small><b>Nº 004217</b></div>
+      <div class="print"><div class="run"><span>All access</span><span>Friends &amp; Family</span><span>All access</span><span>Friends &amp; Family</span><span>All access</span><span>Friends &amp; Family</span></div></div>
+    </div>
+  </div>
+  <div class="copy">
+    <div class="kick">Wristband required</div>
+    <h1>Friends <br><span>&amp; Family</span></h1>
+    <div class="deal">30% off everything. Three days only.</div>
+    <div class="grid">
+      <div>Dates<b>7–9 Nov</b></div>
+      <div class="c">Code<b>FAM30</b></div>
+      <div>Where<b>Online + stores</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

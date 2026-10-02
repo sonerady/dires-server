@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Season Close — an archive sale indexed by season code: SS24 to AW25 set in extra-expanded type, the older the season the deeper the cut */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3F2EE; }
+  .banner { --panel: 90vmin; --code: 9.4vmin; position: fixed; inset: 0; overflow: hidden; background: #F3F2EE; color: #0F0F0E; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .tag { position: absolute; left: 0; top: calc(100% - var(--panel) - 4.6vmin); height: 4.6vmin; display: flex; align-items: center; gap: 2vmin; padding: 0 2.4vmin 0 6vmin; background: #0F0F0E; color: #F3F2EE; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { margin: 2.4vmin 0 0; font-weight: 300; font-stretch: 125%; font-size: 6.4vmin; line-height: 1; letter-spacing: -.02em; text-transform: uppercase; white-space: nowrap; }
+  h1 b { font-weight: 800; }
+  .list { margin-top: auto; border-top: .35vmin solid #0F0F0E; }
+  .row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 2.4vmin; padding: 1.5vmin 0 1.3vmin; border-bottom: 1px solid #0F0F0E; }
+  .code { font-weight: 800; font-stretch: 125%; font-size: var(--code); line-height: .9; letter-spacing: -.02em; }
+  .meta { font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.6vmin; line-height: 1.35; letter-spacing: .06em; color: #55534D; }
+  .pct { font-weight: 300; font-stretch: 125%; font-size: var(--code); line-height: .9; letter-spacing: -.03em; white-space: nowrap; }
+  .row.deep .pct { font-weight: 800; color: #C8341C; }
+  .row.deep .meta b { color: #C8341C; font-weight: 700; }
+  .foot { display: flex; justify-content: space-between; align-items: center; gap: 3vmin; margin-top: 3vmin; }
+  .foot p { margin: 0; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; }
+  .cta { flex: none; font-weight: 700; font-stretch: 112%; font-size: 2vmin; letter-spacing: .14em; text-transform: uppercase; background: #0F0F0E; color: #F3F2EE; padding: 1.8vmin 2.8vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 76vmin; --code: 7.6vmin; }
+    .panel { bottom: 4.4vmin; height: calc(var(--panel) - 8.8vmin); }
+    h1 { font-size: 5.6vmin; margin-top: 1.8vmin; }
+    .row { padding: 1.1vmin 0 1vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  /* square — archive index on the left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --code: 5.6vmin; }
+    .photo { left: auto; right: 0; width: 44%; height: 100%; object-position: 50% 25%; }
+    .tag { left: auto; right: 0; top: auto; bottom: 0; padding: 0 3vmin; }
+    .panel { left: 5vmin; right: calc(44% + 5vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    .kick span:last-child { display: none; }
+    h1 { font-size: 6.2vmin; line-height: 1.02; margin-top: 2.6vmin; white-space: normal; }
+    h1 b { display: block; }
+    .row { gap: 1.6vmin; padding: 1.2vmin 0 1vmin; }
+    .meta { font-size: 1.6vmin; }
+    .meta { display: none; }
+    .row { grid-template-columns: 1fr auto; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; margin-top: 2.4vmin; }
+    .foot p { font-size: 1.6vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.5vmin 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --code: 7vmin; }
+    .photo { width: 42%; object-position: 66% 25%; }
+    .panel { left: 6vmin; right: calc(42% + 6vmin); top: 6vmin; bottom: 6vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { font-size: 6vmin; white-space: nowrap; }
+    h1 b { display: inline; }
+    .row { gap: 2.4vmin; }
+    .meta { display: block; }
+    .row { grid-template-columns: auto 1fr auto; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+  /* ───────── motion (6s loop, t=0 = the static index) ─────────
+     constant: the look in a slow push-in
+     beats: 1.3s the index is scanned from the newest season to the oldest — each row inverts in turn, AW25 → SS24 ·
+            2.7s the final −70% punches in red · 3.6s the black archive tag rolls its labels over · 4.8s sheen on the CTA */
+  .photo { animation: look 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes look { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.456%); } }
+
+  .row { position: relative; }
+  .row::before { content: ""; position: absolute; left: -1.2vmin; right: -1.2vmin; top: 0; bottom: 0; background: #FFFFFF; mix-blend-mode: difference; pointer-events: none;
+    opacity: 0; animation: scan 6s linear infinite; }
+  .row:nth-child(1)::before { animation-delay: 0s; }
+  .row:nth-child(2)::before { animation-delay: -.3s; }
+  .row:nth-child(3)::before { animation-delay: -.6s; }
+  .row:nth-child(4)::before { animation-delay: -.9s; }
+  @keyframes scan {
+    0%, 36% { opacity: 0; }
+    36.5%, 41% { opacity: 1; }
+    43%, 100% { opacity: 0; }
+  }
+  .row.deep .pct { transform-origin: 100% 60%; animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 44% { transform: scale(1); filter: brightness(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.4); }
+    47.5% { transform: scale(1.16); filter: brightness(1.25); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    54%, 100% { transform: scale(1); filter: brightness(1); }
+  }
+
+  .tag { overflow: hidden; }
+  .tag span { display: inline-block; animation: slide 6s linear infinite; }
+  .tag span + span { animation-delay: -.1s; }
+  @keyframes slide {
+    0%, 58% { transform: translateY(0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    62% { transform: translateY(-100%); opacity: 0; animation-timing-function: steps(1, end); }
+    62.5% { transform: translateY(100%); opacity: 0; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    68%, 100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.28) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    92%, 100% { transform: translateX(300%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tag"><span>Archive</span><span>Look 14</span></div>
+  <div class="panel">
+    <div class="kick"><span>Season close</span><span>Index 04 seasons</span></div>
+    <h1>Archive <b>sale</b></h1>
+    <div class="list">
+      <div class="row deep"><div class="code">SS24</div><div class="meta"><b>Final</b><span><br>Spring · Summer</span></div><div class="pct">−70%</div></div>
+      <div class="row"><div class="code">AW24</div><div class="meta">Autumn<span><br>Winter</span></div><div class="pct">−60%</div></div>
+      <div class="row"><div class="code">SS25</div><div class="meta">Spring<span><br>Summer</span></div><div class="pct">−50%</div></div>
+      <div class="row"><div class="code">AW25</div><div class="meta">Autumn<span><br>Winter</span></div><div class="pct">−40%</div></div>
+    </div>
+    <div class="foot"><p>The older the season,<br>the deeper the cut.</p><div class="cta">Shop the archive</div></div>
+  </div>
+</div>
+</body>
+</html>

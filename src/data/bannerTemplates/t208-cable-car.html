@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&family=Inter:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Cable Car — a 1930s Swiss travel poster: a flat sky field crossed by the haul cable, a red gondola riding up it,
+     the offer set in tall condensed caps ("Up to 30%"), and a navy ticket strip.
+     tall → sky above the photo; square/wide → sky panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #A8CBE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #10233F; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; background: #10233F; }
+  .sky { position: absolute; left: 0; right: 0; top: 0; height: 52vmin; overflow: hidden;
+    background: radial-gradient(ellipse at 80% 0%, rgba(255,255,255,.55), transparent 60%), linear-gradient(180deg, #9FC4E1, #C5DCEC); }
+  .sky::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle, rgba(16,35,63,.07) 0 .12vmin, transparent .16vmin) 0 0 / .9vmin .9vmin; }
+  .ridge { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 55%; }
+  .cable { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cable path { vector-effect: non-scaling-stroke; }
+  .gondola { position: absolute; left: calc(74% - 8vmin); top: 21.1vmin; width: 16vmin; height: 22vmin; z-index: 1; }
+  .kick { position: absolute; left: 6vmin; top: 5vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .26em; text-transform: uppercase; z-index: 1; }
+  .alt { position: absolute; right: 6vmin; top: 5vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .2em; text-transform: uppercase; z-index: 1; text-align: right; }
+  h1 { position: absolute; left: 5.4vmin; bottom: 3vmin; margin: 0; z-index: 1; font-family: "Antonio", "Arial Narrow", sans-serif; font-weight: 700; line-height: .84; text-transform: uppercase; letter-spacing: -.01em; }
+  h1 small { display: block; font-size: 9vmin; letter-spacing: .02em; }
+  h1 b { display: block; font-weight: 700; font-size: 25vmin; color: #C8272D; }
+  h1 b i { font-style: normal; font-size: .5em; vertical-align: .9em; margin-left: .04em; color: #10233F; }
+  .photo { position: absolute; left: 0; top: 52vmin; width: 100%; height: calc(100% - 52vmin - 15vmin); object-fit: cover; object-position: 50% 18%; }
+  .strip { position: absolute; left: 0; right: 0; bottom: 0; height: 15vmin; padding: 0 6vmin; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; background: #10233F; color: #F4EFE4; }
+  .strip .who { font-family: "Antonio", "Arial Narrow", sans-serif; font-weight: 400; font-size: 4.2vmin; line-height: 1; letter-spacing: .06em; text-transform: uppercase; }
+  .strip .who small { display: block; margin-top: .8vmin; font-family: "Inter", Arial, sans-serif; font-weight: 500; font-size: 1.8vmin; letter-spacing: .14em; color: #A8CBE4; }
+  .strip .btn { flex: none; padding: 1.6vmin 2.6vmin; background: #C8272D; color: #fff; font-weight: 700; font-size: 2.1vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .sky { height: 48vmin; }
+    .photo { top: 48vmin; height: calc(100% - 48vmin - 13vmin); }
+    .strip { height: 13vmin; }
+    .gondola { top: 19.4vmin; width: 14.5vmin; height: 20vmin; left: calc(74% - 7.25vmin); }
+    h1 small { font-size: 8.4vmin; }
+    h1 b { font-size: 23vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .sky { height: 42vmin; }
+    .photo { top: 42vmin; height: calc(100% - 42vmin - 12vmin); }
+    .strip { height: 12vmin; }
+    .kick { top: 4vmin; }
+    .alt { top: 4vmin; }
+    .gondola { top: 17.3vmin; width: 13vmin; height: 18vmin; left: calc(76% - 6.5vmin); }
+    h1 { bottom: 2.4vmin; }
+    h1 small { font-size: 7.4vmin; }
+    h1 b { font-size: 20vmin; }
+    .strip .who { font-size: 3.6vmin; }
+    .strip .btn { font-size: 1.9vmin; padding: 1.3vmin 2.2vmin; }
+  }
+  /* square / wide → sky left (full height), photo right, strip under the sky */
+  @media (min-aspect-ratio: 9/10) {
+    .sky { right: auto; width: 50%; height: calc(100% - 17vmin); }
+    .photo { left: 50%; top: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .strip { right: auto; width: 50%; height: 17vmin; padding: 0 4.6vmin; flex-direction: column; align-items: stretch; justify-content: center; gap: 1.6vmin; }
+    .strip .who { font-size: 3.4vmin; }
+    .strip .who small { display: none; }
+    .strip .btn { font-size: 1.8vmin; padding: 1.2vmin 2vmin; text-align: center; }
+    .kick { left: 4.6vmin; top: 5vmin; font-size: 1.7vmin; }
+    .alt { display: none; }
+    .gondola { top: 32.4vmin; width: 13vmin; height: 18vmin; left: calc(66% - 6.5vmin); }
+    h1 { left: 4vmin; bottom: 3vmin; }
+    h1 small { font-size: 7.4vmin; }
+    h1 b { font-size: 21vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .sky { width: 52%; height: calc(100% - 15vmin); }
+    .photo { left: 52%; width: 48%; }
+    .strip { width: 52%; height: 15vmin; padding: 0 6vmin; flex-direction: row; align-items: center; justify-content: space-between; gap: 3vmin; }
+    .strip .who { font-size: 3.8vmin; }
+    .strip .who small { display: block; }
+    .strip .btn { font-size: 2vmin; padding: 1.5vmin 2.4vmin; }
+    .kick { left: 6vmin; top: 6vmin; font-size: 1.8vmin; }
+    .alt { display: block; top: 6vmin; }
+    .gondola { top: 34.6vmin; width: 17vmin; height: 23.4vmin; left: calc(72% - 8.5vmin); }
+    h1 { left: 5.4vmin; bottom: 4vmin; }
+    h1 small { font-size: 9vmin; }
+    h1 b { font-size: 27vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sky">
+    <svg class="ridge" viewBox="0 0 200 60" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <path d="M0 60 L0 40 L22 26 L34 32 L58 10 L74 24 L92 18 L118 38 L140 22 L160 30 L182 14 L200 26 L200 60 Z" fill="#FFFFFF" fill-opacity=".55"/>
+      <path d="M58 10 L64 26 L56 40 L74 24 Z M182 14 L186 30 L178 44 L200 26 Z" fill="#9FC4E1" fill-opacity=".35"/>
+    </svg>
+    <svg class="cable" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M-2 18 L102 52" stroke="#10233F" stroke-width="1.6" fill="none"/>
+      <path d="M-2 24 L102 58" stroke="#10233F" stroke-opacity=".45" stroke-width="1" fill="none"/>
+    </svg>
+    <svg class="gondola" viewBox="0 0 80 110" aria-hidden="true">
+      <circle cx="40" cy="6" r="5" fill="#10233F"/><circle cx="40" cy="6" r="2" fill="#C5DCEC"/>
+      <path d="M40 10 V38 M28 38 H52" stroke="#10233F" stroke-width="3" fill="none"/>
+      <path d="M14 44 Q40 32 66 44 Z" fill="#10233F"/>
+      <rect x="10" y="44" width="60" height="58" rx="8" fill="#C8272D"/>
+      <rect x="10" y="80" width="60" height="4" fill="#9E1C22"/>
+      <g fill="#F4EFE4"><rect x="16" y="52" width="13" height="22" rx="2"/><rect x="33.5" y="52" width="13" height="22" rx="2"/><rect x="51" y="52" width="13" height="22" rx="2"/></g>
+      <g fill="#A8CBE4" opacity=".6"><rect x="16" y="52" width="13" height="8" rx="2"/><rect x="33.5" y="52" width="13" height="8" rx="2"/><rect x="51" y="52" width="13" height="8" rx="2"/></g>
+      <text x="40" y="96" text-anchor="middle" font-family="Antonio, Arial Narrow, sans-serif" font-weight="700" font-size="10" fill="#F4EFE4" letter-spacing="1">Nº 30</text>
+    </svg>
+    <div class="kick">Atelier Nord · Winter line</div>
+    <div class="alt">Summit 2 480 m</div>
+    <h1><small>Ride up to</small><b>30<i>%</i></b></h1>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="strip">
+    <div class="who">The winter edit<small>Code GONDOLA30 · till 06.01</small></div>
+    <div class="btn">Board now →</div>
+  </div>
+</div>
+</body>
+</html>

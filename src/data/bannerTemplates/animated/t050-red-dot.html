@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  /* Red Dot — white-cube gallery opening. Airy light title, one hung work, and the tiny red "sold" sticker
+     beside its number: the first hang went fast. tall → title, work, caption stacked; square/wide → work left, poster text right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FBFBF9; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FBFBF9; color: #141414; font-family: "Albert Sans", "Helvetica Neue", Arial, sans-serif; }
+  .head { position: absolute; left: 8vmin; right: 8vmin; top: 7vmin; }
+  h1 { margin: 0; font-weight: 300; font-size: 10.4vmin; line-height: .92; letter-spacing: -.035em; }
+  .dates { margin-top: 2vmin; display: flex; justify-content: space-between; font-size: 2.2vmin; letter-spacing: .04em; color: #555; }
+  .work { position: absolute; left: 8vmin; top: calc(7vmin + 24vmin); width: calc(100% - 16vmin); height: calc(100% - 60vmin); object-fit: cover; object-position: 50% 16%; }
+  .cap { position: absolute; left: 8vmin; right: 8vmin; bottom: 7vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 4vmin; }
+  .lab { font-size: 2.4vmin; line-height: 1.5; color: #333; }
+  .lab b { font-weight: 600; color: #141414; }
+  .lab .no { display: flex; align-items: center; gap: 1.4vmin; font-size: 2vmin; letter-spacing: .12em; text-transform: uppercase; color: #141414; margin-bottom: .8vmin; }
+  /* the sticker: a small matte red dot with a faint highlight */
+  .dot { width: 2.6vmin; height: 2.6vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F0544A, #D22A20 60%, #B81F17); box-shadow: 0 .15vmin .3vmin rgba(0,0,0,.18); flex: none; }
+  .right { text-align: right; }
+  .note { font-size: 2.4vmin; color: #333; line-height: 1.45; }
+  .cta { display: inline-block; white-space: nowrap; margin-top: 1.6vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; padding-bottom: .5vmin; border-bottom: 1px solid #141414; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .head { top: 6vmin; }
+    h1 { font-size: 9vmin; }
+    .work { top: calc(6vmin + 21vmin); height: calc(100% - 52vmin); left: 12vmin; width: calc(100% - 24vmin); }
+    .cap { bottom: 5.4vmin; }
+    .lab, .note { font-size: 2.1vmin; }
+    .lab .no { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .work { left: 8vmin; top: 8vmin; width: 50%; height: calc(100% - 16vmin); object-position: 50% 22%; }
+    .head { left: calc(50% + 15vmin); right: 7vmin; top: 8vmin; }
+    h1 { font-size: 8.4vmin; }
+    .dates { flex-direction: column; gap: .6vmin; margin-top: 2.6vmin; }
+    .cap { left: calc(50% + 15vmin); right: 7vmin; bottom: 8vmin; flex-direction: column; align-items: flex-start; gap: 3.4vmin; }
+    .right { text-align: left; }
+    .lab, .note { font-size: 2.1vmin; }
+    .cta { letter-spacing: .16em; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .work { left: 9vmin; top: 9vmin; width: 54%; height: calc(100% - 18vmin); object-position: 60% 25%; }
+    .head { left: calc(54% + 18vmin); right: 9vmin; top: 9vmin; }
+    h1 { font-size: 9.4vmin; }
+    .cap { left: calc(54% + 18vmin); right: 9vmin; bottom: 9vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design — white-cube calm, one decisive red gesture ───────── */
+  /* the title is re-hung: it lifts away and settles back into place */
+  h1 { animation: hang 6s linear infinite; }
+  @keyframes hang {
+    0%, 10% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    16% { opacity: 0; transform: translateY(-1vmin); animation-timing-function: steps(1, end); }
+    17% { opacity: 0; transform: translateY(1.4vmin); animation-timing-function: cubic-bezier(.16,.8,.3,1); }
+    32%, 100% { opacity: 1; transform: none; }
+  }
+  /* the gallerist sticks the red dot on: it vanishes, then lands with a squash and a quick ripple */
+  .lab .no { position: relative; }
+  .dot { position: relative; animation: stick 6s linear infinite; }
+  @keyframes stick {
+    0%, 40% { transform: scale(1); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    44% { transform: scale(0); opacity: 0; animation-timing-function: steps(1, end); }
+    50% { transform: scale(1.9) translateY(-1vmin); opacity: 0; animation-timing-function: cubic-bezier(.55,0,.9,.5); }
+    55% { transform: scale(.82); opacity: 1; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    60% { transform: scale(1.08); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    65%, 100% { transform: scale(1); opacity: 1; }
+  }
+  .dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .25vmin solid #D22A20; opacity: 0; animation: ripple 6s linear infinite; }
+  @keyframes ripple {
+    0%, 55% { transform: scale(1); opacity: 0; }
+    56% { transform: scale(1); opacity: .8; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    75%, 100% { transform: scale(2.6); opacity: 0; }
+  }
+  /* "Only a few left." — a quiet urgency blink right after the sale */
+  .note { animation: few 6s linear infinite; }
+  @keyframes few {
+    0%, 66% { opacity: 1; } 68% { opacity: .25; } 70% { opacity: 1; } 72% { opacity: .25; } 74%, 100% { opacity: 1; }
+  }
+  /* CTA underline redrawn */
+  .cta { position: relative; border-bottom-color: transparent; }
+  .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #141414; animation: rule 6s linear infinite; }
+  @keyframes rule {
+    0%, 76% { transform: scaleX(1); transform-origin: 100% 50%; animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    83% { transform: scaleX(0); transform-origin: 100% 50%; }
+    83.1% { transform: scaleX(0); transform-origin: 0 50%; animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    94%, 100% { transform: scaleX(1); transform-origin: 0 50%; }
+  }
+  /* the hung work: a gallery spotlight that brightens a touch and settles */
+  .work { animation: spot 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes spot { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.05); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1>New<br>Arrivals</h1>
+    <div class="dates"><span>25.09 — 19.10.2026</span><span>Online &amp; in store</span></div>
+  </div>
+  <img class="work" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cap">
+    <div class="lab">
+      <div class="no"><span class="dot"></span>Nº 01 — Sold</div>
+      <b>The First Hang</b>, 2026<br>Restocked this week
+    </div>
+    <div class="right">
+      <div class="note">Only a few left.</div>
+      <div class="cta">View the collection</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

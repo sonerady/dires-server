@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Cue Light — the stage manager's prompt corner: a two-lamp cue-light box (amber STANDBY dim, red GO lit),
+     the calling script for the last cues of the show, and the sale as the final "GO".
+     tall → photo above melting into the dark desk · square & wide → the desk left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E0E10; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0E0E10; color: #ECE8E0; font-family: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; }
+  .mono { font-family: "DM Mono", "Courier New", monospace; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 60%; object-fit: cover; object-position: 50% 20%; }
+  .melt { position: absolute; left: 0; right: 0; top: calc(60% - 16vmin); height: 16.2vmin;
+    background: linear-gradient(to top, rgba(14,14,16,1) 0%, rgba(14,14,16,.985) 7.7%, rgba(14,14,16,.943) 15.4%, rgba(14,14,16,.874) 23.1%, rgba(14,14,16,.784) 30.8%, rgba(14,14,16,.677) 38.5%, rgba(14,14,16,.56) 46.2%, rgba(14,14,16,.44) 53.8%, rgba(14,14,16,.323) 61.5%, rgba(14,14,16,.216) 69.2%, rgba(14,14,16,.126) 76.9%, rgba(14,14,16,.057) 84.6%, rgba(14,14,16,.015) 92.3%, rgba(14,14,16,0) 100%); }
+  .corner { position: absolute; left: 5vmin; top: 5vmin; display: flex; gap: 1vmin; font-family: "DM Mono", monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .corner span { background: #0E0E10; color: #ECE8E0; padding: .8vmin 1.3vmin; }
+  .corner span + span { background: #FF2F1F; color: #0E0E10; font-weight: 500; }
+
+  .desk { position: absolute; left: 6vmin; right: 6vmin; top: 60%; bottom: 5vmin; display: flex; flex-direction: column; }
+  .top { display: flex; align-items: center; gap: 4vmin; margin-top: -3vmin; }
+  /* the cue-light box */
+  .box { flex: none; display: flex; gap: 2.4vmin; padding: 2vmin 2.4vmin 1.4vmin; background: linear-gradient(#2A2A2E, #1B1B1E); border: 1px solid #3A3A40; border-radius: 1.2vmin; box-shadow: inset 0 .3vmin 0 rgba(255,255,255,.06), 0 1.4vmin 3vmin rgba(0,0,0,.6); }
+  .lamp { display: flex; flex-direction: column; align-items: center; gap: 1vmin; font-family: "DM Mono", monospace; font-size: 1.6vmin; letter-spacing: .14em; color: #8C8A86; }
+  .lamp i { display: block; width: 8.4vmin; height: 8.4vmin; border-radius: 50%; border: .5vmin solid #0B0B0C; box-sizing: border-box; }
+  .lamp.st i { background: radial-gradient(circle at 42% 38%, #6E5420 0%, #4A3712 45%, #2A1F0A 100%); }
+  .lamp.go i { background: radial-gradient(circle at 42% 38%, #FFE6DE 0%, #FF6A52 22%, #FF2F1F 52%, #A0140A 100%); box-shadow: 0 0 3vmin rgba(255,47,31,.75), 0 0 8vmin rgba(255,47,31,.35); }
+  .lamp.go { color: #FF5A48; }
+  .cue { min-width: 0; }
+  .cue small { display: block; white-space: nowrap; font-family: "DM Mono", monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #8C8A86; }
+  .cue b { display: block; white-space: nowrap; font-weight: 800; font-size: 11vmin; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; }
+
+  h1 { margin: 3.4vmin 0 0; font-weight: 800; font-size: 13.4vmin; line-height: .84; letter-spacing: -.012em; text-transform: uppercase; }
+  h1 span { color: transparent; -webkit-text-stroke: .25vmin #ECE8E0; }
+  h1 em { font-style: normal; color: #FF2F1F; }
+
+  .script { margin-top: auto; border-top: 1px solid rgba(236,232,224,.4); }
+  .ln { display: grid; grid-template-columns: 9vmin 1fr auto; column-gap: 2vmin; align-items: baseline; padding: 1.1vmin 0; border-bottom: 1px solid rgba(236,232,224,.16); font-size: 3vmin; font-weight: 500; letter-spacing: .01em; }
+  .ln .q { font-family: "DM Mono", monospace; font-size: 1.8vmin; letter-spacing: .08em; color: #8C8A86; }
+  .ln .t { font-family: "DM Mono", monospace; font-size: 1.8vmin; color: #8C8A86; }
+  .ln.go { border-bottom: 0; }
+  .ln.go .q, .ln.go .t { color: #FF2F1F; font-weight: 500; }
+  .ln.go b { font-weight: 800; color: #FF2F1F; text-transform: uppercase; font-size: 1.12em; }
+  .foot { margin-top: 1.6vmin; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; font-family: "DM Mono", monospace; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; color: #B9B5AD; }
+  .foot b { font-weight: 500; color: #0E0E10; background: #ECE8E0; padding: .9vmin 1.6vmin; letter-spacing: .12em; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .photo { height: 55%; }
+    .melt { top: calc(55% - 16vmin); }
+    .desk { top: 55%; }
+    h1 { font-size: 11.6vmin; margin-top: 2.6vmin; }
+    .ln { font-size: 2.7vmin; padding: .8vmin 0; }
+  }
+  /* shorter portrait — tighter: two script lines */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 52%; }
+    .melt { top: calc(52% - 14vmin); height: 14.2vmin; }
+    .desk { top: 52%; bottom: 4vmin; }
+    .lamp i { width: 7vmin; height: 7vmin; }
+    .cue b { font-size: 9vmin; }
+    h1 { font-size: 9.6vmin; }
+    .ln.x { display: none; }
+  }
+  /* square — desk left, photo right, melting leftwards */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 48%; height: 100%; object-position: 50% 25%; }
+    .melt { top: 0; bottom: 0; height: auto; left: 52%; right: auto; width: 12vmin;
+      background: linear-gradient(to right, rgba(14,14,16,1) 0%, rgba(14,14,16,.985) 7.7%, rgba(14,14,16,.943) 15.4%, rgba(14,14,16,.874) 23.1%, rgba(14,14,16,.784) 30.8%, rgba(14,14,16,.677) 38.5%, rgba(14,14,16,.56) 46.2%, rgba(14,14,16,.44) 53.8%, rgba(14,14,16,.323) 61.5%, rgba(14,14,16,.216) 69.2%, rgba(14,14,16,.126) 76.9%, rgba(14,14,16,.057) 84.6%, rgba(14,14,16,.015) 92.3%, rgba(14,14,16,0) 100%); }
+    .corner { left: auto; right: 4vmin; top: 4vmin; }
+    .desk { left: 5vmin; right: 52%; top: 5vmin; bottom: 5vmin; }
+    .top { margin-top: 0; gap: 3vmin; }
+    .lamp i { width: 7.4vmin; height: 7.4vmin; }
+    .cue b { font-size: 8.4vmin; }
+    h1 { font-size: 10vmin; margin-top: 5vmin; white-space: nowrap; }
+    .ln { grid-template-columns: 7.4vmin 1fr auto; font-size: 2.4vmin; }
+    .ln.x { display: grid; }
+    .foot { font-size: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .melt { left: 56%; width: 14vmin; }
+    .desk { left: 6vmin; right: calc(44% + 4vmin); top: 6vmin; bottom: 6vmin; }
+    .top { gap: 4vmin; }
+    .lamp i { width: 8.6vmin; height: 8.6vmin; }
+    .cue b { font-size: 10vmin; }
+    h1 { font-size: 15vmin; margin-top: 4.4vmin; }
+    .ln { font-size: 2.8vmin; grid-template-columns: 8.4vmin 1fr auto; }
+    .foot { font-size: 1.7vmin; }
+  }
+
+  /* ── motion (6s loop) · calling the cue: GO drops out and the amber STANDBY lamp warms up while "Stand by."
+     fills in solid and the red line dims · on the call the GO lamp bangs back on, "Sale — go." punches and a red
+     sweep runs along the GO 27 line · the LIVE tally blinks throughout; the photo breathes */
+  .photo { transform-origin: 50% 100%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .corner span + span { animation: tally 1s steps(1, end) infinite; }
+  @keyframes tally { 0%, 100% { background: #FF2F1F; } 50% { background: #7A1A12; } }
+
+  .lamp.go i { animation: goLamp 6s linear infinite; }
+  @keyframes goLamp {
+    0%, 14%, 60%, 61.5%, 62.5%, 100% { background: radial-gradient(circle at 42% 38%, #FFE6DE 0%, #FF6A52 22%, #FF2F1F 52%, #A0140A 100%); box-shadow: 0 0 3vmin rgba(255,47,31,.75), 0 0 8vmin rgba(255,47,31,.35); }
+    16%, 58%, 61%, 62% { background: radial-gradient(circle at 42% 38%, #6A2A22 0%, #4A1A12 45%, #2A0E0A 100%); box-shadow: 0 0 0 rgba(255,47,31,0), 0 0 0 rgba(255,47,31,0); }
+  }
+  .lamp.go { animation: goTxt 6s linear infinite; }
+  @keyframes goTxt { 0%, 14%, 60%, 100% { color: #FF5A48; } 16%, 58% { color: #8C8A86; } }
+  .lamp.st i { animation: stLamp 6s ease-in-out infinite; }
+  @keyframes stLamp {
+    0%, 16%, 58%, 100% { background: radial-gradient(circle at 42% 38%, #6E5420 0%, #4A3712 45%, #2A1F0A 100%); box-shadow: 0 0 0 rgba(255,176,40,0), 0 0 0 rgba(255,176,40,0); }
+    22%, 54% { background: radial-gradient(circle at 42% 38%, #FFF3D0 0%, #FFC34A 22%, #F29A12 52%, #8A5006 100%); box-shadow: 0 0 3vmin rgba(255,170,40,.7), 0 0 8vmin rgba(255,170,40,.3); }
+  }
+  .lamp.st { animation: stTxt 6s ease-in-out infinite; }
+  @keyframes stTxt { 0%, 16%, 58%, 100% { color: #8C8A86; } 22%, 54% { color: #FFB43A; } }
+
+  h1 span { animation: fill 6s ease-in-out infinite; }
+  @keyframes fill { 0%, 18%, 58%, 100% { color: rgba(236,232,224,0); } 26%, 54% { color: #ECE8E0; } }
+  h1 em { display: inline-block; transform-origin: 0 60%; animation: goEm 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes goEm { 0%, 16% { opacity: 1; transform: none; } 22%, 58% { opacity: .22; transform: none; } 61% { opacity: 1; transform: scale(1.06); } 66% { transform: scale(.99); } 70%, 100% { opacity: 1; transform: none; } }
+
+  .ln.go { background: linear-gradient(90deg, rgba(255,47,31,0), rgba(255,47,31,.22) 50%, rgba(255,47,31,0)) no-repeat; background-size: 40% 100%; background-position: -70% 0;
+    animation: goSweep 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes goSweep { 0%, 61% { background-position: -70% 0; } 80%, 100% { background-position: 170% 0; } }
+  .foot b { animation: nudge 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 78%, 100% { transform: none; } 86% { transform: translateX(-.8vmin); } }
+  @media (min-aspect-ratio: 9/10) { .photo { transform-origin: 0 25%; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="melt"></div>
+  <div class="corner"><span>Prompt corner · SL</span><span>Live</span></div>
+  <div class="desk">
+    <div class="top">
+      <div class="box">
+        <div class="lamp st"><i></i>STBY</div>
+        <div class="lamp go"><i></i>GO</div>
+      </div>
+      <div class="cue"><small>Studio Oro · SS27</small><b>Cue 27</b></div>
+    </div>
+    <h1><span>Stand by.</span><br><em>Sale — go.</em></h1>
+    <div class="script">
+      <div class="ln x"><span class="q">LX 25</span><span>House to half</span><span class="t">19:58</span></div>
+      <div class="ln"><span class="q">SQ 26</span><span>Music in, final walk</span><span class="t">20:00</span></div>
+      <div class="ln go"><span class="q">GO 27</span><span><b>Up to 40% off</b> the show</span><span class="t">20:01</span></div>
+    </div>
+    <div class="foot"><span>Thu 09.10 · online</span><b>Shop the show →</b></div>
+  </div>
+</div>
+</body>
+</html>

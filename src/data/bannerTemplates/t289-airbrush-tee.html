@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Rubik:wght@500;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Airbrush Tee — the boardwalk airbrush-stand shirt: soft sprayed sunset haze on white cotton, a glowing script
+     name, sparkle stars, the look "printed" in the middle with a sprayed halo, chunky 3D block letters and a scroll
+     ribbon with the code.
+     tall → script / photo / block letters + ribbon · square & wide → photo left, airbrushed lettering right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FBF9F6; }
+  .banner { --cot: #FBF9F6; --pk: #FF4FA0; --vi: #7A4DFF; --cy: #27C3F2; --yl: #FFD447; --ink: #1B1433;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Rubik", "Arial Black", Arial, sans-serif;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.018) 0 1px, rgba(0,0,0,0) 1px .5vmin), repeating-linear-gradient(90deg, rgba(0,0,0,.014) 0 1px, rgba(0,0,0,0) 1px .7vmin), var(--cot); }
+  .haze { position: absolute; inset: 0; filter: blur(5vmin); }
+  .haze i { position: absolute; border-radius: 50%; }
+  .h1 { left: -10%; top: 4%; width: 120%; height: 34%; background: radial-gradient(closest-side, rgba(255,79,160,.55), rgba(255,79,160,0)); }
+  .h2 { left: 10%; top: 18%; width: 80%; height: 38%; background: radial-gradient(closest-side, rgba(122,77,255,.42), rgba(122,77,255,0)); }
+  .h3 { left: -20%; top: 44%; width: 80%; height: 30%; background: radial-gradient(closest-side, rgba(39,195,242,.45), rgba(39,195,242,0)); }
+  .h4 { left: 45%; top: 50%; width: 80%; height: 30%; background: radial-gradient(closest-side, rgba(255,212,71,.6), rgba(255,212,71,0)); }
+
+  .script { position: absolute; left: 4vmin; right: 4vmin; top: 5vmin; text-align: center; font-family: "Pacifico", "Brush Script MT", cursive; font-size: 13vmin; line-height: 1.25; white-space: nowrap; transform: rotate(-5deg); z-index: 2; }
+  .script span { position: relative; display: inline-block; }
+  .script .gl { position: absolute; left: 0; top: 0; color: #fff; -webkit-text-stroke: 2.4vmin #fff; filter: drop-shadow(0 0 1.6vmin rgba(122,77,255,.75)); }
+  .script .fi { position: relative; background: linear-gradient(180deg, #FFD447 12%, #FF7A59 45%, #FF4FA0 62%, #7A4DFF 88%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(.25vmin .25vmin 0 rgba(27,20,51,.55)); }
+
+  .photo { position: absolute; left: 12vmin; right: 12vmin; top: 30vmin; height: calc(100% - 30vmin - 50vmin); z-index: 1;
+    box-shadow: 0 0 3vmin 1.4vmin rgba(255,255,255,.95), 0 0 7vmin 4vmin rgba(255,79,160,.45), 0 0 12vmin 6vmin rgba(122,77,255,.28); }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .spk { position: absolute; z-index: 3; width: 6vmin; height: 6vmin; background: #fff; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); filter: drop-shadow(0 0 1vmin #fff); }
+  .spk::after { content: ""; position: absolute; inset: 35%; border-radius: 50%; background: #fff; box-shadow: 0 0 1.4vmin 1vmin rgba(255,255,255,.9); }
+  .s1 { right: 7vmin; top: 27vmin; } .s2 { left: 6vmin; top: 54%; width: 4.4vmin; height: 4.4vmin; } .s3 { right: 9vmin; bottom: 44vmin; width: 3.6vmin; height: 3.6vmin; }
+  .spk { background: radial-gradient(circle, #fff 30%, #FFF4B8 60%, #FFD447); }
+
+  .low { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 40vmin; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2.6vmin; z-index: 2; }
+  .blk { font-weight: 900; font-size: 11vmin; line-height: .9; letter-spacing: -.01em; text-transform: uppercase; text-align: center; color: #fff; white-space: nowrap;
+    -webkit-text-stroke: .5vmin var(--ink); paint-order: stroke fill;
+    text-shadow: .35vmin .35vmin 0 var(--vi), .7vmin .7vmin 0 var(--vi), 1.05vmin 1.05vmin 0 var(--vi), 1.4vmin 1.4vmin 0 var(--vi), 1.75vmin 1.75vmin 0 var(--ink); }
+  .rib { position: relative; background: var(--pk); color: #fff; padding: 1.6vmin 9vmin; text-align: center; white-space: nowrap;
+    clip-path: polygon(0 0, 100% 0, 95% 50%, 100% 100%, 0 100%, 5% 50%); }
+  .rib b { display: block; font-weight: 800; font-size: 3.6vmin; letter-spacing: .06em; text-transform: uppercase; }
+  .rib span { display: block; font-weight: 500; font-size: 2vmin; letter-spacing: .18em; text-transform: uppercase; margin-top: .4vmin; }
+  .sm { font-weight: 800; font-size: 2vmin; letter-spacing: .24em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .script { font-size: 11.6vmin; top: 4vmin; }
+    .photo { left: 20vmin; right: 20vmin; top: 26vmin; height: calc(100% - 26vmin - 44vmin); }
+    .low { height: 36vmin; bottom: 4vmin; gap: 2vmin; }
+    .blk { font-size: 10vmin; }
+    .s1 { top: 23vmin; right: 12vmin; } .s3 { bottom: 38vmin; right: 13vmin; }
+  }
+
+  /* square & wide: photo left, lettering right */
+  @media (min-aspect-ratio: 9/10) {
+    .h1 { left: 30%; top: -5%; width: 80%; height: 60%; } .h2 { left: -10%; top: 10%; width: 60%; height: 80%; }
+    .h3 { left: 45%; top: 50%; width: 60%; height: 50%; } .h4 { left: 10%; top: 60%; width: 60%; height: 40%; }
+    .photo { left: 7vmin; right: auto; top: 7vmin; bottom: 7vmin; width: 44%; height: calc(100% - 14vmin); }
+    .script { left: calc(44% + 11vmin); right: 3vmin; top: 8vmin; font-size: 9.4vmin; white-space: normal; line-height: 1.2; }
+    .low { left: calc(44% + 11vmin); right: 4vmin; bottom: 8vmin; height: auto; gap: 3vmin; }
+    .blk { font-size: 7.4vmin; white-space: normal; }
+    .rib { padding: 1.4vmin 5vmin; }
+    .rib b { font-size: 2.8vmin; }
+    .rib span { font-size: 1.7vmin; letter-spacing: .12em; }
+    .sm { font-size: 1.7vmin; letter-spacing: .18em; }
+    .s1 { right: 5vmin; top: 36vmin; } .s2 { left: 4vmin; top: 4vmin; } .s3 { left: 46%; right: auto; bottom: 10vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; left: 8vmin; }
+    .script { left: calc(40% + 14vmin); right: 6vmin; top: 7vmin; font-size: 11vmin; white-space: nowrap; }
+    .low { left: calc(40% + 14vmin); right: 6vmin; bottom: 10vmin; gap: 3.4vmin; }
+    .blk { font-size: 10vmin; white-space: normal; line-height: .92; }
+    .rib { padding: 1.6vmin 7vmin; }
+    .rib b { font-size: 3.2vmin; }
+    .rib span { font-size: 1.8vmin; }
+    .sm { font-size: 1.9vmin; }
+    .s1 { right: 8vmin; top: 32vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="haze"><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i></div>
+  <div class="script"><span><span class="gl">Boardwalk</span><span class="fi">Boardwalk</span></span></div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <i class="spk s1"></i><i class="spk s2"></i><i class="spk s3"></i>
+  <div class="low">
+    <div class="blk">Summer drop</div>
+    <div class="rib"><b>25% off · code SPRAY25</b><span>Custom fits, all weekend</span></div>
+    <div class="sm">Shop the stand →</div>
+  </div>
+</div>
+</body>
+</html>

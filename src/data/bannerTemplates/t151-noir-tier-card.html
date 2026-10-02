@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Noir Tier Card — a tier upgrade told by the object: a brushed black-metal membership card
+     (chip, embossed number, member-since) on bone paper, with the tier's perks beside it.
+     tall → photo above, paper panel below; square/wide → paper left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE6DE; }
+  .banner { --panel: 76vmin; --cw: 50vmin; position: fixed; inset: 0; overflow: hidden; background: #ECE6DE; color: #1B1A18; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .paper { position: absolute; left: 0; bottom: 0; width: 100%; height: var(--panel); overflow: hidden; }
+  .paper svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .16; mix-blend-mode: multiply; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(27,26,24,.4); font-size: 1.7vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; }
+  .top span:last-child { font-weight: 400; letter-spacing: .14em; }
+  h1 { margin: 3vmin 0 0; font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-weight: 400; font-size: 9.6vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 em { font-style: italic; }
+  h1 br { display: none; }
+  .mid { display: flex; align-items: center; gap: 4vmin; margin: auto 0; }
+
+  /* the card */
+  .card { position: relative; flex: none; width: var(--cw); aspect-ratio: 1.586; border-radius: calc(var(--cw) * .052); overflow: hidden; color: #DCD8CF; transform: rotate(-2.5deg);
+    background:
+      linear-gradient(112deg, rgba(255,255,255,0) 28%, rgba(255,255,255,.11) 40%, rgba(255,255,255,0) 54%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 .12vmin, rgba(255,255,255,0) .12vmin .42vmin),
+      linear-gradient(160deg, #2B2B2E 0%, #0F0F11 52%, #212124 100%);
+    box-shadow: 0 2.6vmin 4.2vmin rgba(52,40,28,.34), 0 .5vmin 1vmin rgba(52,40,28,.22), inset 0 0 0 1px rgba(255,255,255,.09); }
+  .c-brand { position: absolute; left: 8%; top: 10%; font-size: max(1.6vmin, calc(var(--cw) * .036)); font-weight: 600; letter-spacing: .32em; text-transform: uppercase; }
+  .c-tier { position: absolute; right: 8%; top: 6.5%; font-family: "Bodoni Moda", Didot, serif; font-style: italic; font-size: calc(var(--cw) * .1); line-height: 1; color: #EFEBE2; }
+  .chip { position: absolute; left: 8%; top: 35%; width: 14%; height: 17%; border-radius: calc(var(--cw) * .018);
+    background:
+      linear-gradient(90deg, transparent 32%, rgba(90,64,24,.55) 32% 34%, transparent 34% 66%, rgba(90,64,24,.55) 66% 68%, transparent 68%),
+      linear-gradient(0deg, transparent 47%, rgba(90,64,24,.55) 47% 53%, transparent 53%),
+      linear-gradient(135deg, #F0D99A, #BE9447 45%, #E6C77E 70%, #A9803A); }
+  .num { position: absolute; left: 8%; top: 59%; font-family: "IBM Plex Mono", "Courier New", monospace; font-weight: 500; font-size: calc(var(--cw) * .058); letter-spacing: .1em; white-space: nowrap; color: #D6D2C8;
+    text-shadow: 0 -.12vmin 0 rgba(0,0,0,.9), 0 .14vmin 0 rgba(255,255,255,.28); }
+  .c-foot { position: absolute; left: 8%; right: 8%; bottom: 9%; display: flex; justify-content: space-between; align-items: flex-end; }
+  .since { font-size: max(1.6vmin, calc(var(--cw) * .032)); letter-spacing: .2em; text-transform: uppercase; line-height: 1.35; color: #A9A59C; }
+  .since b { display: block; font-weight: 500; letter-spacing: .12em; color: #DCD8CF; }
+  .mono { width: calc(var(--cw) * .13); height: calc(var(--cw) * .13); border-radius: 50%; border: 1px solid rgba(220,216,207,.6); display: flex; align-items: center; justify-content: center; font-family: "Bodoni Moda", Didot, serif; font-size: calc(var(--cw) * .052); letter-spacing: .04em; }
+
+  .perks { flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; }
+  .perks li { display: flex; gap: 1.6vmin; align-items: baseline; padding: 1.5vmin 0; border-top: 1px solid rgba(27,26,24,.28); font-size: 2.2vmin; line-height: 1.25; }
+  .perks li:last-child { border-bottom: 1px solid rgba(27,26,24,.28); }
+  .perks i { flex: none; font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 1.6vmin; color: #7C766B; }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 1.9vmin; line-height: 1.4; color: #4A463F; }
+  .foot b { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: #1B1A18; letter-spacing: .06em; }
+  .cta { flex: none; background: #1B1A18; color: #ECE6DE; padding: 1.9vmin 3.4vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 66vmin; --cw: 46vmin; }
+    .copy { bottom: 4.5vmin; height: calc(var(--panel) - 9vmin); }
+    h1 { margin-top: 2.4vmin; font-size: 8.8vmin; }
+    .perks li { padding: 1.2vmin 0; font-size: 2vmin; }
+  }
+  /* square — paper left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --cw: 44vmin; }
+    .paper { width: 54%; height: 100%; }
+    .photo { left: 54%; width: 46%; height: 100%; object-position: 50% 22%; }
+    .copy { left: 5vmin; right: auto; width: calc(54% - 10vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    h1 { font-size: 8.4vmin; margin-top: 2.6vmin; }
+    h1 br { display: inline; }
+    .mid { flex-direction: column; align-items: stretch; gap: 3.4vmin; }
+    .card { align-self: flex-start; }
+    .perks li { padding: 1vmin 0; font-size: 1.9vmin; }
+    .foot { flex-direction: row; }
+    .foot p { font-size: 1.7vmin; }
+    .cta { padding: 1.6vmin 2.6vmin; font-size: 1.7vmin; letter-spacing: .14em; }
+  }
+  /* wide — card and perks side by side */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --cw: 40vmin; }
+    .paper { width: 52%; }
+    .photo { left: 52%; width: 48%; }
+    .copy { left: 6vmin; width: calc(52% - 12vmin); top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 9.6vmin; margin-top: 3vmin; }
+    .mid { flex-direction: row; align-items: center; gap: 4vmin; }
+    .perks li { font-size: 1.9vmin; padding: 1.2vmin 0; }
+    .foot p { font-size: 1.8vmin; }
+    .cta { padding: 1.8vmin 3vmin; font-size: 1.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="paper">
+    <svg aria-hidden="true"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  </div>
+  <div class="copy">
+    <div class="top"><span>Atelier Nord Club</span><span>Tier 3 of 3</span></div>
+    <h1>Welcome <br>to <em>Noir.</em></h1>
+    <div class="mid">
+      <div class="card">
+        <div class="c-brand">Atelier Nord</div>
+        <div class="c-tier">Noir</div>
+        <div class="chip"></div>
+        <div class="num">4417 0925 0031</div>
+        <div class="c-foot">
+          <div class="since">Member since<b>2021</b></div>
+          <div class="mono">AN</div>
+        </div>
+      </div>
+      <ul class="perks">
+        <li><i>01</i>25% off, every day</li>
+        <li><i>02</i>Free alterations</li>
+        <li><i>03</i>First look at every drop</li>
+      </ul>
+    </div>
+    <div class="foot"><p>Unlocked at €1,500 a year.<br>Code <b>NOIR25</b></p><div class="cta">Activate tier</div></div>
+  </div>
+</div>
+</body>
+</html>

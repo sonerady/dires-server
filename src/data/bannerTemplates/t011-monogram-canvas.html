@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Monogram Canvas — a maison launch: tonal monogram canvas band + a stitched leather tag.
+     tall → photo above the canvas band; square/wide → canvas band left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #4A1C20; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #4A1C20; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; color: #4A1C20; }
+  .photo { position: absolute; top: 0; left: 0; width: 100%; height: 67%; object-fit: cover; object-position: 50% 18%; }
+  .band { position: absolute; left: 0; bottom: 0; width: 100%; height: 33%; overflow: hidden; background: #4A1C20; }
+  .band svg { position: absolute; left: 50%; top: 50%; width: 190vmin; height: 190vmin; transform: translate(-50%, -50%); }
+  .band .edge { position: absolute; left: 0; right: 0; top: 0; height: .9vmin; background: #2E1013; }
+  .band .stitch { position: absolute; left: 0; right: 0; top: 2.4vmin; border-top: .3vmin dashed rgba(236,224,204,.55); }
+  .tag { position: absolute; left: 50%; top: 83.5%; transform: translate(-50%, -50%); width: 72vmin; box-sizing: border-box; padding: 4.2vmin 4vmin 4vmin; text-align: center;
+    background: #F1E8D8; border-radius: .5vmin; box-shadow: 0 .5vmin 0 #D9CBB3, 0 1.4vmin 3vmin rgba(20,4,6,.45); }
+  .tag::before { content: ""; position: absolute; inset: 1.4vmin; border: .25vmin dashed rgba(74,28,32,.5); border-radius: .3vmin; }
+  .k { font-size: 1.9vmin; font-weight: 500; letter-spacing: .55em; margin-right: -.55em; text-transform: uppercase; color: #8A5A4E; }
+  .name { margin-top: 1.2vmin; font-family: "Cormorant Garamond", Garamond, "Times New Roman", serif; font-weight: 600; font-size: 10vmin; line-height: .9; letter-spacing: .16em; margin-right: -.16em; }
+  .rule { display: flex; align-items: center; justify-content: center; gap: 1.6vmin; margin: 2.2vmin auto 1.8vmin; width: 60%; }
+  .rule i { flex: 1; height: 1px; background: rgba(74,28,32,.45); }
+  .rule b { width: 1.1vmin; height: 1.1vmin; background: #4A1C20; transform: rotate(45deg); }
+  .t { font-family: "Cormorant Garamond", Garamond, serif; font-style: italic; font-weight: 500; font-size: 5vmin; line-height: 1.05; }
+  .s { margin-top: 1.8vmin; white-space: nowrap; font-size: 1.9vmin; font-weight: 500; letter-spacing: .32em; margin-right: -.32em; text-transform: uppercase; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 63%; }
+    .band { height: 37%; }
+    .tag { top: 81.5%; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 44%; width: 56%; height: 100%; object-position: 50% 25%; }
+    .band { top: 0; width: 44%; height: 100%; }
+    .band .edge { left: auto; right: 0; top: 0; bottom: 0; width: .9vmin; height: auto; }
+    .band .stitch { left: auto; right: 2.4vmin; top: 0; bottom: 0; border-top: 0; border-right: .3vmin dashed rgba(236,224,204,.55); }
+    .tag { left: 22%; top: 50%; width: 36vmin; padding: 3.6vmin 2.6vmin 3.4vmin; }
+    .tag::before { inset: 1.1vmin; }
+    .name { font-size: 6.4vmin; letter-spacing: .12em; margin-right: -.12em; }
+    .k { letter-spacing: .4em; margin-right: -.4em; }
+    .t { font-size: 4.2vmin; }
+    .s { font-size: 1.6vmin; letter-spacing: .14em; margin-right: -.14em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 42%; width: 58%; }
+    .band { width: 42%; }
+    .tag { left: 21%; width: 50vmin; padding: 4.4vmin 3.4vmin 4.2vmin; }
+    .name { font-size: 8.6vmin; letter-spacing: .15em; margin-right: -.15em; }
+    .t { font-size: 5vmin; }
+    .s { font-size: 1.9vmin; letter-spacing: .3em; margin-right: -.3em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="band">
+    <svg viewBox="0 0 190 190" aria-hidden="true">
+      <defs>
+        <pattern id="mono" width="20" height="20" patternUnits="userSpaceOnUse">
+          <g fill="#6A2C32">
+            <text x="5" y="8.1" text-anchor="middle" font-family="Cormorant Garamond, Garamond, serif" font-weight="600" font-size="9">A</text>
+            <text x="15" y="18.1" text-anchor="middle" font-family="Cormorant Garamond, Garamond, serif" font-weight="600" font-size="9">A</text>
+            <g transform="translate(15 5)"><circle cx="0" cy="-1.5" r="1.25"/><circle cx="1.5" cy="0" r="1.25"/><circle cx="0" cy="1.5" r="1.25"/><circle cx="-1.5" cy="0" r="1.25"/><circle r=".55" fill="#4A1C20"/></g>
+            <g transform="translate(5 15)"><circle cx="0" cy="-1.5" r="1.25"/><circle cx="1.5" cy="0" r="1.25"/><circle cx="0" cy="1.5" r="1.25"/><circle cx="-1.5" cy="0" r="1.25"/><circle r=".55" fill="#4A1C20"/></g>
+            <path d="M10 0 l.8 .8 l-.8 .8 l-.8 -.8z M0 10 l.8 .8 l-.8 .8 l-.8 -.8z M20 10 l.8 .8 l-.8 .8 l-.8 -.8z M10 20 l.8 .8 l-.8 .8 l-.8 -.8z" transform="translate(0 -.8)"/>
+          </g>
+        </pattern>
+      </defs>
+      <rect width="190" height="190" fill="url(#mono)"/>
+    </svg>
+    <div class="edge"></div>
+    <div class="stitch"></div>
+  </div>
+  <div class="tag">
+    <div class="k">Maison</div>
+    <div class="name">AURÈLE</div>
+    <div class="rule"><i></i><b></b><i></i></div>
+    <div class="t">The Monogram Collection</div>
+    <div class="s">In boutiques now</div>
+  </div>
+</div>
+</body>
+</html>

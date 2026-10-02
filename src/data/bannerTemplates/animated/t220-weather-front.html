@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;900&family=Spline+Sans+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Weather Front — a synoptic chart: the seam between photo and page is drawn as a cold front (blue triangles
+     advancing into the page), faint isobars with pressure numbers, a red L and blue H, a warm front, and a map key
+     that turns the symbols into the offer. tall → photo above, chart below · square/wide → photo left, front down the seam */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEF1EC; }
+  .banner { --panel: 90vmin; position: fixed; inset: 0; overflow: hidden; background: #EEF1EC; color: #10212B; font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .mono { font-family: "Spline Sans Mono", Menlo, monospace; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .chart { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); overflow: hidden; }
+  .map { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .front { position: absolute; display: block; }
+  .front.h { left: 0; right: 0; top: calc(100% - var(--panel) - .35vmin); width: 100%; height: 3.4vmin; }
+  .front.v { display: none; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: 7vmin; bottom: 5.4vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; color: #3E5563; }
+  h1 { margin: 2.6vmin 0 0; font-weight: 900; font-size: 11.4vmin; line-height: .9; letter-spacing: -.045em; }
+  h1 em { font-style: normal; color: #2F63C9; }
+  .lede { margin: 2.6vmin 0 0; max-width: 60vmin; font-weight: 500; font-size: 2.5vmin; line-height: 1.4; color: #2D4250; }
+  .key { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 1.6vmin; }
+  .key div { display: flex; align-items: center; gap: 1.6vmin; padding: 1.6vmin 1.8vmin; background: #FFFFFF; box-shadow: 0 0 0 1px rgba(16,33,43,.12); }
+  .key svg { flex: none; width: 7vmin; height: 3vmin; }
+  .key span { font-size: 1.7vmin; line-height: 1.3; letter-spacing: .04em; text-transform: uppercase; color: #3E5563; }
+  .key b { display: block; font-family: "Schibsted Grotesk", sans-serif; font-weight: 900; font-size: 3.6vmin; letter-spacing: -.02em; text-transform: none; color: #10212B; line-height: 1.05; }
+  .foot { margin-top: 2vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .foot .code { font-size: 1.9vmin; line-height: 1.4; letter-spacing: .04em; color: #3E5563; }
+  .foot .code b { color: #10212B; font-weight: 600; letter-spacing: .12em; }
+  .cta { flex: none; padding: 1.9vmin 3.2vmin; background: #10212B; color: #EEF1EC; font-weight: 700; font-size: 2.1vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --panel: 82vmin; }
+    .copy { top: 6vmin; bottom: 4.6vmin; }
+    h1 { font-size: 10.2vmin; }
+    .lede { font-size: 2.3vmin; margin-top: 2vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 68vmin; }
+    .copy { top: 5.4vmin; bottom: 4vmin; }
+    h1 { font-size: 8.6vmin; margin-top: 2vmin; }
+    .lede { display: none; }
+    .key div { padding: 1.2vmin 1.6vmin; }
+    .key b { font-size: 3.2vmin; }
+    .foot { margin-top: 1.6vmin; }
+    .cta { padding: 1.6vmin 2.8vmin; }
+  }
+  /* square / wide → photo left, the front runs down the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 22%; }
+    .chart { left: 48%; top: 0; height: auto; }
+    .front.h { display: none; }
+    .front.v { display: block; left: calc(48% - .35vmin); top: 0; bottom: 0; width: 3.4vmin; height: 100%; }
+    .copy { left: 7.4vmin; right: 4.6vmin; top: 5vmin; bottom: 4.6vmin; }
+    .meta span:last-child { display: none; }
+    h1 { font-size: 7.6vmin; margin-top: 2.4vmin; }
+    .lede { display: block; font-size: 2vmin; margin-top: 2vmin; }
+    .key { grid-template-columns: 1fr; gap: 1vmin; }
+    .key div { padding: 1.1vmin 1.4vmin; }
+    .key svg { width: 5.6vmin; height: 2.4vmin; }
+    .key b { font-size: 2.8vmin; }
+    .key span { font-size: 1.6vmin; }
+    .foot { flex-direction: column; align-items: stretch; gap: 1.6vmin; margin-top: 1.6vmin; }
+    .foot .code { font-size: 1.7vmin; }
+    .cta { text-align: center; font-size: 1.8vmin; padding: 1.5vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 28%; }
+    .chart { left: 44%; }
+    .front.v { left: calc(44% - .35vmin); }
+    .copy { left: 8.4vmin; right: 6vmin; top: 6vmin; bottom: 5.6vmin; }
+    .meta span:last-child { display: inline; }
+    h1 { font-size: 9.6vmin; }
+    .lede { font-size: 2.2vmin; max-width: 58vmin; }
+    .key { grid-template-columns: 1fr 1fr; gap: 1.6vmin; }
+    .key div { padding: 1.4vmin 1.6vmin; }
+    .key b { font-size: 3.2vmin; }
+    .foot { flex-direction: row; align-items: center; margin-top: 2vmin; }
+    .foot .code { font-size: 1.8vmin; }
+    .cta { font-size: 2vmin; padding: 1.8vmin 3vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the cold-front triangles march along the seam (one pip per 1.5s), the isobars around the low breathe (3s),
+     the warm front shimmers · beats: 2.4s "moves in." blows out and sweeps back in from the photo side ·
+     3.4s the low deepens (L pulses) · 4.2s the two key cards lift in turn, −20% punches · 5.1s the CTA turns front-blue */
+  .front.h .tri { animation: marchx 1.5s linear infinite; }
+  @keyframes marchx { from { transform: translateX(0); } to { transform: translateX(-70px); } }
+  .front.v .tri { animation: marchy 1.5s linear infinite; }
+  @keyframes marchy { from { transform: translateY(0); } to { transform: translateY(-70px); } }
+  .iso { transform-origin: 330px 222px; animation: iso 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes iso { 0%, 100% { transform: scale(1); opacity: .75; } 50% { transform: scale(1.045); opacity: .5; } }
+  .warm { animation: warm 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes warm { 0%, 100% { opacity: .75; } 50% { opacity: .45; } }
+  .low { transform-origin: 330px 222px; animation: low 6s linear infinite; }
+  @keyframes low {
+    0%, 54% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    58% { transform: scale(1.22); animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    66%, 100% { transform: scale(1); }
+  }
+  h1 em { display: inline-block; clip-path: inset(-.1em -.1em -.15em -.1em); }
+  h1 em span { display: inline-block; animation: movein 6s linear infinite; }
+  @keyframes movein {
+    0%, 38% { transform: translateX(0); opacity: 1; filter: blur(0); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    44% { transform: translateX(115%); opacity: 1; filter: blur(.4vmin); animation-timing-function: steps(1, end); }
+    44.5% { transform: translateX(-115%); opacity: 1; filter: blur(.4vmin); animation-timing-function: cubic-bezier(.15,.8,.25,1); }
+    54%, 100% { transform: translateX(0); opacity: 1; filter: blur(0); }
+  }
+  .key div { animation: lift 6s linear infinite; }
+  .key div:nth-child(2) { animation-delay: -5.76s; }
+  @keyframes lift {
+    0%, 68% { transform: translateY(0); box-shadow: 0 0 0 1px rgba(16,33,43,.12), 0 0 0 rgba(16,33,43,0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    72% { transform: translateY(-.8vmin); box-shadow: 0 0 0 1px rgba(16,33,43,.12), 0 1.2vmin 2.4vmin rgba(16,33,43,.14); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    80%, 100% { transform: translateY(0); box-shadow: 0 0 0 1px rgba(16,33,43,.12), 0 0 0 rgba(16,33,43,0); }
+  }
+  .key div:nth-child(2) b { display: table; transform-origin: 0% 60%; animation: pop 6s linear infinite; }
+  @keyframes pop {
+    0%, 74% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    78% { transform: scale(1.18); animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    84%, 100% { transform: scale(1); }
+  }
+  .cta { animation: cta 6s linear infinite; }
+  @keyframes cta {
+    0%, 82% { background-color: #10212B; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    86%, 91% { background-color: #2F63C9; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    97%, 100% { background-color: #10212B; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="chart">
+    <svg class="map" viewBox="0 0 400 400" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
+      <g class="iso" fill="none" stroke="#8FA6B3" stroke-width=".9" opacity=".75">
+        <ellipse cx="330" cy="222" rx="28" ry="20" transform="rotate(-14 330 222)"/>
+        <ellipse cx="330" cy="222" rx="58" ry="42" transform="rotate(-14 330 222)"/>
+        <ellipse cx="330" cy="222" rx="92" ry="68" transform="rotate(-14 330 222)"/>
+        <ellipse cx="330" cy="222" rx="130" ry="98" transform="rotate(-14 330 222)"/>
+        <path d="M-10 70 C80 52 160 96 252 70 S340 20 420 12"/>
+        <path d="M-10 350 C90 330 170 380 262 354 S380 340 420 372"/>
+      </g>
+      <g font-family="Spline Sans Mono, Menlo, monospace" font-size="7" fill="#6D8795">
+        <text x="352" y="204">996</text><text x="372" y="182">1000</text><text x="382" y="152">1004</text>
+      </g>
+      <path d="M312 238 L40 272" stroke="#D2452F" stroke-width="2.2" fill="none" opacity=".75"/>
+      <path class="warm" fill="#D2452F" opacity=".75" d="M298.1 239.7 A6 6 0 0 1 286.2 241.2 Z M264.4 244.0 A6 6 0 0 1 252.5 245.4 Z M230.6 248.2 A6 6 0 0 1 218.7 249.7 Z M196.9 252.4 A6 6 0 0 1 185.0 253.9 Z M163.2 256.6 A6 6 0 0 1 151.3 258.1 Z M129.4 260.8 A6 6 0 0 1 117.5 262.3 Z M95.7 265.0 A6 6 0 0 1 83.8 266.5 Z M61.9 269.3 A6 6 0 0 1 50.0 270.7 Z"/>
+      <text class="low" x="330" y="234" text-anchor="middle" font-family="Schibsted Grotesk, Arial, sans-serif" font-weight="900" font-size="34" fill="#D2452F" opacity=".85">L</text>
+    </svg>
+
+    <div class="copy">
+      <div class="meta mono"><span>Synoptic chart · 00 UTC</span><span>Atelier Nord</span></div>
+      <h1>A cold front<br><em><span>moves in.</span></em></h1>
+      <p class="lede">The new season lands Thursday. Get in before the temperature drops.</p>
+      <div class="key">
+        <div><svg viewBox="0 0 70 30" aria-hidden="true"><path d="M0 6 H70" stroke="#2F63C9" stroke-width="3"/><path d="M6 6 L22 6 L14 22Z M38 6 L54 6 L46 22Z" fill="#2F63C9"/></svg><span class="mono">New arrivals<b>Thursday</b></span></div>
+        <div><svg viewBox="0 0 70 30" aria-hidden="true"><path d="M0 22 H70" stroke="#D2452F" stroke-width="3"/><path d="M6 22 A8 8 0 0 1 22 22Z M38 22 A8 8 0 0 1 54 22Z" fill="#D2452F"/></svg><span class="mono">Early access<b>−20%</b></span></div>
+      </div>
+      <div class="foot"><div class="code mono">Code <b>FRONTLINE</b><br>Until Wednesday 23:59</div><div class="cta">Get ahead</div></div>
+    </div>
+  </div>
+  <svg class="front h" viewBox="0 0 3000 30" preserveAspectRatio="xMinYMin slice" aria-hidden="true"><path d="M0 4 H3000" stroke="#2F63C9" stroke-width="4"/><path class="tri" fill="#2F63C9" d="M10 4 L50 4 L30 28Z M80 4 L120 4 L100 28Z M150 4 L190 4 L170 28Z M220 4 L260 4 L240 28Z M290 4 L330 4 L310 28Z M360 4 L400 4 L380 28Z M430 4 L470 4 L450 28Z M500 4 L540 4 L520 28Z M570 4 L610 4 L590 28Z M640 4 L680 4 L660 28Z M710 4 L750 4 L730 28Z M780 4 L820 4 L800 28Z M850 4 L890 4 L870 28Z M920 4 L960 4 L940 28Z M990 4 L1030 4 L1010 28Z M1060 4 L1100 4 L1080 28Z M1130 4 L1170 4 L1150 28Z M1200 4 L1240 4 L1220 28Z M1270 4 L1310 4 L1290 28Z M1340 4 L1380 4 L1360 28Z M1410 4 L1450 4 L1430 28Z M1480 4 L1520 4 L1500 28Z M1550 4 L1590 4 L1570 28Z M1620 4 L1660 4 L1640 28Z M1690 4 L1730 4 L1710 28Z M1760 4 L1800 4 L1780 28Z M1830 4 L1870 4 L1850 28Z M1900 4 L1940 4 L1920 28Z M1970 4 L2010 4 L1990 28Z M2040 4 L2080 4 L2060 28Z M2110 4 L2150 4 L2130 28Z M2180 4 L2220 4 L2200 28Z M2250 4 L2290 4 L2270 28Z M2320 4 L2360 4 L2340 28Z M2390 4 L2430 4 L2410 28Z M2460 4 L2500 4 L2480 28Z M2530 4 L2570 4 L2550 28Z M2600 4 L2640 4 L2620 28Z M2670 4 L2710 4 L2690 28Z M2740 4 L2780 4 L2760 28Z M2810 4 L2850 4 L2830 28Z M2880 4 L2920 4 L2900 28Z M2950 4 L2990 4 L2970 28Z"/></svg>
+  <svg class="front v" viewBox="0 0 30 3000" preserveAspectRatio="xMinYMin slice" aria-hidden="true"><path d="M4 0 V3000" stroke="#2F63C9" stroke-width="4"/><path class="tri" fill="#2F63C9" d="M4 10 L4 50 L28 30Z M4 80 L4 120 L28 100Z M4 150 L4 190 L28 170Z M4 220 L4 260 L28 240Z M4 290 L4 330 L28 310Z M4 360 L4 400 L28 380Z M4 430 L4 470 L28 450Z M4 500 L4 540 L28 520Z M4 570 L4 610 L28 590Z M4 640 L4 680 L28 660Z M4 710 L4 750 L28 730Z M4 780 L4 820 L28 800Z M4 850 L4 890 L28 870Z M4 920 L4 960 L28 940Z M4 990 L4 1030 L28 1010Z M4 1060 L4 1100 L28 1080Z M4 1130 L4 1170 L28 1150Z M4 1200 L4 1240 L28 1220Z M4 1270 L4 1310 L28 1290Z M4 1340 L4 1380 L28 1360Z M4 1410 L4 1450 L28 1430Z M4 1480 L4 1520 L28 1500Z M4 1550 L4 1590 L28 1570Z M4 1620 L4 1660 L28 1640Z M4 1690 L4 1730 L28 1710Z M4 1760 L4 1800 L28 1780Z M4 1830 L4 1870 L28 1850Z M4 1900 L4 1940 L28 1920Z M4 1970 L4 2010 L28 1990Z M4 2040 L4 2080 L28 2060Z M4 2110 L4 2150 L28 2130Z M4 2180 L4 2220 L28 2200Z M4 2250 L4 2290 L28 2270Z M4 2320 L4 2360 L28 2340Z M4 2390 L4 2430 L28 2410Z M4 2460 L4 2500 L28 2480Z M4 2530 L4 2570 L28 2550Z M4 2600 L4 2640 L28 2620Z M4 2670 L4 2710 L28 2690Z M4 2740 L4 2780 L28 2760Z M4 2810 L4 2850 L28 2830Z M4 2880 L4 2920 L28 2900Z M4 2950 L4 2990 L28 2970Z"/></svg>
+</div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Street Diary — a street-style photo diary: main frame with a point-and-shoot date stamp, two detail frames, time + place captions.
+     tall → main frame over two details · square → main left, details stacked right · wide → main left, details side by side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #171614; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #171614; color: #EDEAE3; font-family: "Space Mono", "Courier New", monospace; }
+
+  .head { position: absolute; left: 5vmin; right: 5vmin; top: 4vmin; display: flex; justify-content: space-between; align-items: flex-end; }
+  .head h1 { margin: 0; font-family: "Gloock", Georgia, "Times New Roman", serif; font-weight: 400; font-size: 10vmin; line-height: .85; letter-spacing: -.02em; }
+  .head h1 i { font-style: normal; color: #FF8A2A; }
+  .head .vol { text-align: right; font-size: 1.8vmin; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; color: #B9B4AA; }
+  .head .vol b { color: #EDEAE3; }
+
+  .main { position: absolute; left: 5vmin; right: 5vmin; top: 24vmin; height: calc(100% - 24vmin - 56vmin); overflow: hidden; }
+  .main img, .crop img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .stamp { position: absolute; right: 2.6vmin; bottom: 2vmin; font-weight: 700; font-size: 3.2vmin; letter-spacing: .08em; color: #FF8A2A; text-shadow: 0 0 .6vmin rgba(255,110,20,.85), 0 0 1.8vmin rgba(255,110,20,.45); }
+  .cap { position: absolute; left: 5vmin; right: 5vmin; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; line-height: 1.3; letter-spacing: .02em; white-space: nowrap; }
+  .cap b { color: #FF8A2A; font-weight: 700; margin-right: 1.2vmin; }
+  .cap span:last-child { color: #8F8A80; }
+  .cap.c0 { bottom: 51vmin; }
+
+  .dets { position: absolute; left: 5vmin; right: 5vmin; bottom: 12vmin; height: 34vmin; display: grid; grid-template-columns: 1fr 1fr; column-gap: 3vmin; }
+  .det { display: flex; flex-direction: column; gap: 1.2vmin; min-height: 0; }
+  .crop { flex: 1; min-height: 0; overflow: hidden; }
+  .crop img { transform: scale(2.1); }
+  .d1 img { transform-origin: 50% 46%; }
+  .d2 img { transform-origin: 38% 70%; }
+  .det .cap { position: static; font-size: 1.7vmin; }
+
+  .foot { position: absolute; left: 5vmin; right: 5vmin; bottom: 4vmin; display: flex; justify-content: space-between; align-items: center; padding-top: 2vmin; border-top: 1px solid rgba(237,234,227,.3); font-size: 1.9vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .foot b { display: flex; align-items: center; gap: 1.4vmin; }
+  .foot b i { display: block; width: 5vmin; height: 1px; background: #EDEAE3; position: relative; }
+  .foot b i::after { content: ""; position: absolute; right: 0; top: -.7vmin; width: 1.4vmin; height: 1.4vmin; border-top: 1px solid #EDEAE3; border-right: 1px solid #EDEAE3; transform: translateY(.05vmin) rotate(45deg); transform-origin: 100% 0; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .head h1 { font-size: 9.6vmin; }
+    .main { top: 23vmin; height: calc(100% - 23vmin - 44vmin); }
+    .cap.c0 { bottom: 39vmin; }
+    .dets { height: 24vmin; bottom: 11vmin; }
+    .foot { bottom: 3.4vmin; padding-top: 1.6vmin; }
+  }
+  /* square — main frame left, two details stacked on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .main { left: 0; right: auto; top: 0; width: 54%; height: 100%; }
+    .cap.c0 { display: none; }
+    .stamp { right: 2.6vmin; bottom: 2.6vmin; }
+    .head { left: calc(54% + 4vmin); right: 4vmin; top: 4vmin; flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .head h1 { font-size: 8.4vmin; }
+    .head .vol { text-align: left; font-size: 1.6vmin; }
+    .dets { left: calc(54% + 4vmin); right: 4vmin; top: 31vmin; bottom: 12vmin; height: auto; grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; row-gap: 2.4vmin; }
+    .det .cap { font-size: 1.6vmin; }
+    .foot { left: calc(54% + 4vmin); right: 4vmin; bottom: 4vmin; font-size: 1.6vmin; }
+    .foot span { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .main { width: 44%; }
+    .head { left: calc(44% + 5vmin); right: 5vmin; top: 5vmin; flex-direction: row; align-items: flex-end; }
+    .head h1 { font-size: 10vmin; }
+    .head .vol { text-align: right; font-size: 1.7vmin; }
+    .dets { left: calc(44% + 5vmin); right: 5vmin; top: 27vmin; bottom: 14vmin; grid-template-columns: 1fr 1fr; grid-template-rows: none; column-gap: 3vmin; }
+    .foot { left: calc(44% + 5vmin); right: 5vmin; bottom: 5vmin; font-size: 1.8vmin; }
+    .foot span { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1>Street<br>Diary<i>.</i></h1>
+    <div class="vol"><b>Vol. 03</b><br>Paris · 3 days<br>12 frames</div>
+  </div>
+  <div class="main"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="stamp">’26 9 25</div></div>
+  <div class="cap c0"><span><b>08:42</b>Canal Saint-Martin</span><span>Frame 01</span></div>
+  <div class="dets">
+    <div class="det d1"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="cap"><span><b>13:15</b>Le Marais</span><span>02</span></div></div>
+    <div class="det d2"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="cap"><span><b>18:40</b>Rue de Rivoli</span><span>03</span></div></div>
+  </div>
+  <div class="foot"><span>New in: the city edit</span><b>Shop the looks<i></i></b></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Details Accordion — the quiet lower half of a luxury product page: hairline accordion rows
+     (Description · Composition & care · Delivery & returns · Client services), one of them open with its
+     three service lines — complimentary express delivery, free collection returns, the signature box — each with
+     a drawn icon and an oxblood status. tall → photo above; 3:4 / square → photo left; wide → photo | title | accordion */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F3EE; }
+  .banner { --panel: 90vmin; --ox: #6E2A2A; position: fixed; inset: 0; overflow: hidden; background: #F6F3EE; color: #1C1B19; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 0 6vmin 5.5vmin; display: grid; column-gap: 6vmin;
+    grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; grid-template-areas: "top" "head" "acc" "cta"; }
+  .top { grid-area: top; display: flex; justify-content: space-between; align-items: center; height: 8.5vmin; border-bottom: 1px solid rgba(28,27,25,.2); font-size: 1.8vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .top span:first-child { color: #75706A; }
+  .head { grid-area: head; padding-top: 4vmin; }
+  .head .sub { display: none; }
+  h1 { margin: 0; font-family: "EB Garamond", Garamond, "Times New Roman", serif; font-weight: 400; font-size: 8.8vmin; line-height: .95; letter-spacing: -.015em; }
+  h1 i { color: var(--ox); }
+  .sub { margin-top: 1.6vmin; font-size: 1.8vmin; color: #75706A; letter-spacing: .02em; }
+
+  .acc { grid-area: acc; align-self: center; margin: 3vmin 0 0; padding: 0; list-style: none; border-top: 1px solid rgba(28,27,25,.28); }
+  .acc > li { border-bottom: 1px solid rgba(28,27,25,.28); }
+  .row { display: flex; align-items: center; justify-content: space-between; height: 6.4vmin; font-size: 1.9vmin; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .row i { position: relative; width: 2.2vmin; height: 2.2vmin; flex: none; }
+  .row i::before, .row i::after { content: ""; position: absolute; left: 0; top: 50%; width: 100%; height: .25vmin; margin-top: -.125vmin; background: #1C1B19; }
+  .row i::after { transform: rotate(90deg); }
+  .open .row i::after { display: none; }
+  .open .row { color: var(--ox); }
+  .open .row i::before { background: var(--ox); }
+  .body { margin: 0 0 2.6vmin; padding: 0; list-style: none; }
+  .body li { display: grid; grid-template-columns: 4.6vmin minmax(0, 1fr) auto; align-items: center; column-gap: 2vmin; padding: 1.3vmin 0; }
+  .body li + li { border-top: 1px dashed rgba(28,27,25,.18); }
+  .body svg { width: 4.6vmin; height: 4.6vmin; display: block; }
+  .body b { display: block; font-weight: 600; font-size: 1.9vmin; }
+  .body span { display: block; margin-top: .3vmin; font-size: 1.7vmin; color: #75706A; white-space: nowrap; }
+  .body em { font-family: "EB Garamond", Garamond, serif; font-size: 2.6vmin; color: var(--ox); white-space: nowrap; }
+
+  .cta { grid-area: cta; margin-top: 3.4vmin; display: flex; gap: 1.6vmin; }
+  .cta span { flex: 1; display: flex; align-items: center; justify-content: center; height: 7vmin; background: #1C1B19; color: #F6F3EE; font-size: 1.9vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .acc > li.x { display: none; }
+  .cta small { flex: none; display: flex; align-items: center; justify-content: center; padding: 0 2.6vmin; border: 1px solid rgba(28,27,25,.35); font-size: 1.7vmin; font-weight: 500; letter-spacing: .06em; white-space: nowrap; }
+
+  /* ── 3:4 / 4:5 and square: photo left, details right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 44%; height: 100%; }
+    .panel { left: 44%; top: 0; height: auto; padding: 0 4.5vmin 4.5vmin; }
+    .top { height: 8vmin; font-size: 1.6vmin; letter-spacing: .08em; }
+    .acc > li.x { display: block; }
+    .head .sub { display: block; }
+    .head { padding-top: 3.6vmin; }
+    h1 { font-size: 7vmin; }
+    .sub { font-size: 1.7vmin; }
+    .row { height: 5.6vmin; font-size: 1.7vmin; letter-spacing: .06em; }
+    .body li { grid-template-columns: 4vmin minmax(0, 1fr); column-gap: 1.6vmin; padding: 1.1vmin 0; }
+    .body svg { width: 4vmin; height: 4vmin; }
+    .body b { font-size: 1.7vmin; }
+    .body span { font-size: 1.6vmin; }
+    .body em { grid-column: 2; font-size: 2.2vmin; margin-top: .2vmin; }
+    .cta small { display: none; }
+    .cta span { height: 6.4vmin; font-size: 1.8vmin; letter-spacing: .14em; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 42%; }
+    .panel { left: 42%; padding: 0 5vmin 4.5vmin; }
+    .body li { grid-template-columns: 4vmin minmax(0, 1fr) auto; }
+    .body em { grid-column: auto; margin: 0; }
+    .acc > li.x { display: none; }
+    .body li { padding: .9vmin 0; }
+    .head { padding-top: 3vmin; }
+    h1 { font-size: 6.6vmin; }
+  }
+  /* ── wide: photo | title + CTA | accordion ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 38%; }
+    .panel { left: 38%; padding: 0 6vmin 6vmin; column-gap: 6vmin;
+      grid-template-columns: 30vmin minmax(0, 1fr); grid-template-rows: auto 1fr auto; grid-template-areas: "top top" "head acc" "cta acc"; }
+    .top { height: 9vmin; font-size: 1.7vmin; letter-spacing: .12em; }
+    .head { padding-top: 6vmin; }
+    h1 { font-size: 8.4vmin; }
+    .sub { font-size: 1.8vmin; line-height: 1.5; }
+    .acc { align-self: end; margin: 0; }
+    .acc > li.x { display: block; }
+    .row { height: 6vmin; font-size: 1.8vmin; letter-spacing: .1em; }
+    .body li { grid-template-columns: 4.4vmin minmax(0, 1fr) auto; column-gap: 2vmin; padding: 1.2vmin 0; }
+    .body svg { width: 4.4vmin; height: 4.4vmin; }
+    .body b { font-size: 1.8vmin; }
+    .body span { font-size: 1.7vmin; }
+    .body em { font-size: 2.4vmin; }
+    .cta { flex-direction: column; gap: 1.4vmin; }
+    .cta small { display: flex; height: 5.4vmin; }
+    .cta span { flex: none; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     0.5s  the open row's toggle spins a half turn, the row text blushes (a "click")
+     1.1s  the delivery van drives out of its icon and back in from the left · its "Complimentary" re-inks
+     2.3s  the return arrow loops a full turn · "Free" re-inks · 3.4s the gift box lid pops, the bow bounces · "Included" re-inks
+     4.6s  a sheen crosses "Add to bag" */
+  .open .row i::before { animation: toggle 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes toggle { 0%, 7% { transform: rotate(0deg); } 15%, 100% { transform: rotate(180deg); } }
+  .open .row { animation: blush 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes blush { 0%, 7% { color: #6E2A2A; } 11% { color: #A0413A; } 20%, 100% { color: #6E2A2A; } }
+
+  .body li:nth-child(1) svg > * { animation: drive 6s linear infinite; }
+  @keyframes drive {
+    0%, 18% { transform: translateX(0); opacity: 1; animation-timing-function: cubic-bezier(.55,0,.9,.5); }
+    25% { transform: translateX(24px); opacity: 1; animation-timing-function: step-end; }
+    26% { transform: translateX(-24px); opacity: 1; animation-timing-function: cubic-bezier(.15,.6,.3,1); }
+    34% { transform: translateX(0); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    36% { transform: translateX(-.6px); }
+    38%, 100% { transform: translateX(0); opacity: 1; }
+  }
+  .body li:nth-child(2) svg > * { transform-box: view-box; transform-origin: 12px 12.5px; animation: loop 6s linear infinite; }
+  @keyframes loop { 0%, 38% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.6,0,.3,1); } 52%, 100% { transform: rotate(-360deg); } }
+  .body li:nth-child(3) svg path:nth-child(2), .body li:nth-child(3) svg path:nth-child(4) { animation: lid 6s linear infinite; }
+  @keyframes lid {
+    0%, 56% { transform: translateY(0); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    59.5% { transform: translateY(-3.2px); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    63% { transform: translateY(0); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    65% { transform: translateY(-1px); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    67%, 100% { transform: translateY(0); }
+  }
+  .body em { animation: reink 6s linear infinite; animation-delay: -5.4s; }
+  .body li:nth-child(2) em { animation-delay: -4.2s; }
+  .body li:nth-child(3) em { animation-delay: -3.1s; }
+  @keyframes reink {
+    0%, 20% { opacity: 1; transform: translateX(0); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    23% { opacity: 0; transform: translateX(-.6vmin); animation-timing-function: step-end; }
+    24% { opacity: 0; transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    31%, 100% { opacity: 1; transform: translateX(0); }
+  }
+  .cta span { background-image: linear-gradient(105deg, transparent 40%, rgba(246,243,238,.22) 50%, transparent 60%); background-size: 300% 100%; background-repeat: no-repeat; background-position: 130% 0;
+    animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 76% { background-position: 130% 0; } 92%, 100% { background-position: -30% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="top"><span>Maison Vere — The Soleil Piece</span><span>$480</span></div>
+    <div class="head">
+      <h1>Delivered<br><i>with care.</i></h1>
+      <div class="sub">Every order, every season. No minimum spend.</div>
+    </div>
+    <ul class="acc">
+      <li><div class="row">Description<i></i></div></li>
+      <li class="x"><div class="row">Composition &amp; care<i></i></div></li>
+      <li class="open"><div class="row">Delivery &amp; returns<i></i></div>
+        <ul class="body">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#1C1B19" stroke-width="1.1" stroke-linejoin="round"><path d="M2.5 6.5h11v9h-11z"/><path d="M13.5 9.5h4l3 3v3h-7"/><circle cx="6.5" cy="17" r="1.6" fill="#F6F3EE"/><circle cx="17" cy="17" r="1.6" fill="#F6F3EE"/></svg><div><b>Express delivery</b><span>1–2 working days</span></div><em>Complimentary</em></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#1C1B19" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8H15a4.5 4.5 0 0 1 0 9H7"/><path d="M11 4.5L7.5 8l3.5 3.5"/></svg><div><b>Returns in 30 days</b><span>Collected from your door</span></div><em>Free</em></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#1C1B19" stroke-width="1.1" stroke-linejoin="round"><path d="M3.5 9.5h17v11h-17z"/><path d="M2.5 6.5h19v3h-19z"/><path d="M12 6.5v14"/><path d="M12 6.5C10 3 7 3.5 7.5 5.2 8 6.5 12 6.5 12 6.5zM12 6.5c2-3.5 5-3 4.5-1.3C16 6.5 12 6.5 12 6.5z"/></svg><div><b>Signature box</b><span>Tissue, ribbon &amp; a card</span></div><em>Included</em></li>
+        </ul>
+      </li>
+      <li><div class="row">Client services<i></i></div></li>
+    </ul>
+    <div class="cta"><span>Add to bag</span><small>Order by 2pm</small></div>
+  </div>
+</div>
+</body>
+</html>

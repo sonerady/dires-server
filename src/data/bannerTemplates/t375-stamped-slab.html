@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Stamped Slab — a leather-hard clay slab lying on the canvas of a wedging table; the headline is pressed into it
+     letter by letter with a steel alphabet set (each punch a little crooked, each impression debossed), finished with
+     a leaf stamp and a row of tool dots. tall → photo above, slab below · 3:4 and wider → photo left, slab right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E3DACB; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2C241D; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif;
+    background:
+      repeating-linear-gradient(0deg, rgba(110,90,60,.08) 0 1px, transparent 1px .5vmin),
+      repeating-linear-gradient(90deg, rgba(110,90,60,.07) 0 1px, transparent 1px .5vmin),
+      #E3DACB; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .area { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; height: 68vmin; display: flex; flex-direction: column; }
+
+  /* the slab */
+  .slab { position: relative; flex: none; height: 44vmin; transform: rotate(-1.6deg); filter: drop-shadow(0 1.2vmin 1.2vmin rgba(60,45,30,.28)); }
+  .clay { position: absolute; inset: 0; background: radial-gradient(90% 120% at 30% 20%, #D8C7B0, #C4AE93); clip-path: polygon(0.8% 2.4%, 22% 0.6%, 47% 1.8%, 71% 0.4%, 99% 1.6%, 99.4% 34%, 98.6% 67%, 99.6% 97.6%, 76% 99.4%, 51% 98.2%, 27% 99.6%, 0.4% 98.4%, 1.2% 64%, 0.2% 31%); }
+  .clay svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .inner { position: absolute; inset: 5vmin 5.4vmin 4.4vmin; display: flex; flex-direction: column; }
+  .k { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #5C4C3C; white-space: nowrap; }
+  h1 { margin: auto 0; font-family: "Zilla Slab", Rockwell, Georgia, serif; font-weight: 700; font-size: 12vmin; line-height: 1; text-transform: uppercase; color: #8A6E50;
+    text-shadow: -.2vmin -.24vmin 0 rgba(58,38,20,.75), .18vmin .22vmin 0 rgba(255,246,232,.85); }
+  h1 .w { display: inline-block; white-space: nowrap; }
+  h1 .w + .w { margin-left: .14em; }
+  h1 b { display: inline-block; font-weight: 700; margin-right: .04em; transform: rotate(var(--r, 0deg)) translateY(var(--y, 0)); }
+  .marks { display: flex; align-items: center; gap: 2.4vmin; }
+  .marks svg { width: 8vmin; height: 5vmin; flex: none; }
+  .dots { flex: 1; height: 1.4vmin; background: radial-gradient(circle, rgba(80,58,36,.55) 0 .35vmin, rgba(255,246,232,.6) .45vmin, transparent .6vmin) 0 50% / 2.6vmin 100% repeat-x; }
+  .marks span { font-family: "Zilla Slab", Georgia, serif; font-weight: 700; font-size: 3.6vmin; color: #8A6E50; text-shadow: -.1vmin -.14vmin 0 rgba(70,48,28,.62), .1vmin .12vmin 0 rgba(255,246,232,.75); white-space: nowrap; }
+
+  .under { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 4vmin; }
+  .under p { margin: 0; max-width: 50vmin; font-size: 2.3vmin; line-height: 1.5; color: #4A3E33; }
+  .under p b { font-weight: 600; color: #2C241D; }
+  .cta { flex: none; white-space: nowrap; font-size: 1.9vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; padding: 1.6vmin 2.4vmin; background: #2C241D; color: #EFE7D9; }
+
+  /* ── 3:4 / 4:5 → photo left, slab + copy on the right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .area { left: calc(50% + 5vmin); right: 5vmin; top: 7vmin; bottom: 7vmin; height: auto; }
+    .slab { height: 62vmin; transform: rotate(1.4deg); }
+    .inner { inset: 4.6vmin 4vmin 4vmin; }
+    .k span:last-child { display: none; }
+    h1 { font-size: 7.6vmin; line-height: 1.12; }
+    h1 .w { display: block; }
+    h1 .w + .w { margin-left: 0; }
+    h1 .br { display: none; }
+    .under { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .under p { font-size: 2.2vmin; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .area { left: calc(48% + 5vmin); top: 6vmin; bottom: 6vmin; }
+    .slab { height: 66vmin; }
+    .inner { inset: 4.4vmin 3.8vmin 4vmin; }
+    h1 { font-size: 8.4vmin; }
+    .marks svg { width: 6.6vmin; height: 4vmin; }
+    .marks span { font-size: 2.8vmin; }
+    .under { gap: 2.4vmin; }
+    .under p { font-size: 2vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.4vmin 2vmin; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 72% 30%; }
+    .area { left: calc(44% + 6vmin); right: 6vmin; top: 7vmin; bottom: 7vmin; }
+    .slab { height: 60vmin; transform: rotate(-1.4deg); }
+    .inner { inset: 5vmin 5vmin 4.4vmin; }
+    .k span:last-child { display: inline; }
+    h1 { font-size: 11.4vmin; line-height: 1.08; }
+    h1 .w { display: inline-block; }
+    h1 .w + .w { margin-left: .14em; }
+    h1 .br { display: inline; }
+    .under { flex-direction: row; align-items: flex-end; }
+    .under p { max-width: 44vmin; font-size: 2.2vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.6vmin 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="area">
+    <div class="slab">
+      <div class="clay">
+        <svg preserveAspectRatio="none" aria-hidden="true">
+          <filter id="grog" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="3" result="a"/>
+            <feColorMatrix in="a" type="matrix" values="0 0 0 0 .36  0 0 0 0 .26  0 0 0 0 .17  0 0 0 -7 4.1" result="sp"/>
+            <feTurbulence type="fractalNoise" baseFrequency=".02 .05" numOctaves="3" seed="8" result="b"/>
+            <feColorMatrix in="b" type="matrix" values="0 0 0 0 .98  0 0 0 0 .95  0 0 0 0 .9  0 0 0 -1.4 .8" result="lt"/>
+            <feMerge><feMergeNode in="lt"/><feMergeNode in="sp"/></feMerge>
+          </filter>
+          <rect width="100%" height="100%" filter="url(#grog)" opacity=".7"/>
+        </svg>
+      </div>
+      <div class="inner">
+        <div class="k"><span>The studio edit</span><span>Slab Nº 26</span></div>
+        <h1><span class="w"><b style="--r:-3deg">P</b><b style="--r:2deg;--y:.03em">r</b><b style="--r:-1deg">e</b><b style="--r:4deg;--y:-.02em">s</b><b style="--r:-2deg">s</b><b style="--r:1.5deg;--y:.02em">e</b><b style="--r:-4deg">d</b></span><br class="br"><span class="w"><b style="--r:3deg">b</b><b style="--r:-2deg;--y:.03em">y</b></span> <span class="w"><b style="--r:-1.5deg">h</b><b style="--r:3.5deg;--y:-.02em">a</b><b style="--r:-3deg">n</b><b style="--r:2deg;--y:.02em">d</b></span></h1>
+        <div class="marks">
+          <svg viewBox="0 0 80 50" aria-hidden="true">
+            <g fill="none" stroke-linecap="round">
+              <path d="M8 40 C22 10, 52 4, 74 10 C62 30, 36 44, 8 40 Z" stroke="rgba(70,48,28,.6)" stroke-width="2.4" transform="translate(-.6 -.8)"/>
+              <path d="M8 40 C22 10, 52 4, 74 10 C62 30, 36 44, 8 40 Z" stroke="rgba(255,246,232,.75)" stroke-width="2.4" transform="translate(.6 .8)"/>
+              <path d="M8 40 C28 30, 50 18, 74 10" stroke="rgba(70,48,28,.5)" stroke-width="1.6"/>
+            </g>
+          </svg>
+          <i class="dots"></i>
+          <span>−30%</span>
+        </div>
+      </div>
+    </div>
+    <div class="under">
+      <p>Pieces with the maker’s hand left in. <b>−30% this week</b> with code SLAB30.</p>
+      <div class="cta">Shop the edit</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

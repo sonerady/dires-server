@@ -19,7 +19,9 @@ const supabaseKey =
   process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const CREDIT_COST = 10;
+// 24 Eyl 2026 (kullanıcı kararı): görüntüleyicideki "Düzenle" ekranı (ImageEditChatScreen) KREDİSİZ.
+// Ücrete dönmek gerekirse kod değişmeden: CHAT_EDIT_CREDIT_COST=10 (Railway env).
+const CREDIT_COST = Math.max(0, Number(process.env.CHAT_EDIT_CREDIT_COST ?? 0) || 0);
 
 // ─── Replicate Gemini 2.5 Flash - Prompt Enhancement ───
 async function callReplicateGeminiFlash(prompt, imageUrls = [], maxRetries = 3) {
@@ -187,8 +189,8 @@ router.post("/generate", async (req, res) => {
     console.log(`\n🎨 [CHAT-EDIT] New request from user ${userId}`);
     console.log(`📝 [CHAT-EDIT] Prompt: "${prompt}" | Selections: ${hasSelections ? selections.length : 'none (full image)'}`);
 
-    // ── 2. Credit check ──
-    if (userId && userId !== "anonymous_user") {
+    // ── 2. Credit check (yalnız ücretliyse) ──
+    if (CREDIT_COST > 0 && userId && userId !== "anonymous_user") {
       console.log(`💳 [CHAT-EDIT] Checking credits for user ${userId}...`);
 
       const { data: userData, error: creditQueryError } = await supabase
@@ -265,6 +267,29 @@ router.post("/generate", async (req, res) => {
           .single();
         editRecordId = insertData?.id || null;
         console.log(`📊 [CHAT-EDIT] Record created: ${editRecordId}`);
+      } catch (dbErr) {
+        console.warn("⚠️ [CHAT-EDIT] Failed to insert chat_edits record:", dbErr.message);
+      }
+    } else if (userId && userId !== "anonymous_user") {
+      // Kredisiz düzenleme: kayıt yine tutulur (kullanım/maliyet takibi)
+      try {
+        const { data: insertData } = await supabase
+          .from("chat_edits")
+          .insert({
+            user_id: userId,
+            user_prompt: prompt,
+            original_image_url: originalImageUrl,
+            selection_count: hasSelections ? selections.length : 0,
+            selections_json: hasSelections ? selections : [],
+            display_dimensions: displayDimensions || null,
+            aspect_ratio: aspectRatio || null,
+            status: "processing",
+            credits_cost: 0,
+            credits_deducted: false,
+          })
+          .select("id")
+          .single();
+        editRecordId = insertData?.id || null;
       } catch (dbErr) {
         console.warn("⚠️ [CHAT-EDIT] Failed to insert chat_edits record:", dbErr.message);
       }
@@ -512,7 +537,7 @@ IMPORTANT: Output ONLY the enhanced prompt text, nothing else. No explanations, 
         imageUrl: supabaseResultUrl,
         enhancedPrompt: enhancedPrompt,
         currentCredit,
-        creditsDeducted: CREDIT_COST,
+        creditsDeducted: creditDeducted ? CREDIT_COST : 0,
       },
     });
   } catch (error) {

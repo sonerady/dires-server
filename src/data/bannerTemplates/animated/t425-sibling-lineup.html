@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;1,6..96,400;1,6..96,500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Sibling Line-up — the sibling set as a formal family line-up: the same look in three portrait strips of
+     descending height (eldest, middle, youngest) standing on one ground line, numbered like a portrait sitting.
+     The offer seal sits in the space above the youngest. tall/3:4 → title above the line-up; square/wide → title left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE5D8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE5D8; color: #1F2A40; font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    --H: 104vmin; --w: 26vmin; --g: 5vmin; --x: 6.5vmin; --base: 25vmin; }
+
+  .row { position: absolute; left: var(--x); bottom: var(--base); display: flex; align-items: flex-end; gap: var(--g); }
+  .kid { position: relative; width: var(--w); }
+  .kid img { display: block; width: 100%; height: calc(var(--H) * var(--s)); object-fit: cover; object-position: 50% 22%; }
+  .kid:nth-child(1) { --s: 1; } .kid:nth-child(2) { --s: .79; } .kid:nth-child(3) { --s: .6; }
+  .kid .cap { position: absolute; left: 0; right: 0; top: 100%; padding-top: 1.8vmin; display: flex; justify-content: space-between; align-items: baseline; gap: 1vmin; white-space: nowrap; }
+  .kid .cap b { font-family: "Bodoni Moda", Didot, Georgia, serif; font-weight: 500; font-size: 3.6vmin; line-height: 1; }
+  .kid .cap span { font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .ground { position: absolute; left: calc(var(--x) - 3vmin); right: 0; bottom: var(--base); border-top: 1px solid rgba(31,42,64,.55); }
+
+  .head { position: absolute; left: 6.5vmin; right: 6.5vmin; top: 6vmin; }
+  .k { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: 3vmin 0 0; font-family: "Bodoni Moda", Didot, Georgia, serif; font-weight: 500; font-size: 12vmin; line-height: .92; letter-spacing: -.02em; }
+  h1 i { font-weight: 400; color: #A0412D; }
+
+  .seal { position: absolute; right: 6.5vmin; bottom: calc(var(--base) + var(--H) * .6 + 5vmin); width: 21vmin; height: 21vmin; border-radius: 50%; background: #1F2A40; color: #ECE5D8;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 0 0 .5vmin #ECE5D8, 0 0 0 .75vmin #1F2A40; }
+  .seal span { font-size: 1.6vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .seal b { font-family: "Bodoni Moda", serif; font-style: italic; font-weight: 500; font-size: 6.4vmin; line-height: 1; margin: .5vmin 0 .7vmin; }
+
+  .foot { position: absolute; left: 6.5vmin; right: 6.5vmin; bottom: 5vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 2.2vmin; line-height: 1.4; max-width: 50vmin; }
+  .cta { flex: none; font-size: 1.9vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; padding-bottom: .6vmin; border-bottom: .3vmin solid #A0412D; white-space: nowrap; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --H: 86vmin; --w: 25vmin; --g: 6vmin; --x: 6.5vmin; --base: 23vmin; }
+    h1 { font-size: 10.6vmin; }
+    .seal { width: 19vmin; height: 19vmin; bottom: calc(var(--base) + var(--H) * .6 + 3vmin); }
+    .seal b { font-size: 5.6vmin; }
+  }
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --H: 70vmin; --w: 25vmin; --g: 6vmin; --base: 20vmin; }
+    .head { top: 5vmin; }
+    h1 { font-size: 9.4vmin; margin-top: 2.4vmin; }
+    .seal { width: 17vmin; height: 17vmin; bottom: calc(var(--base) + var(--H) * .6 + 2.6vmin); }
+    .seal b { font-size: 5vmin; }
+    .kid .cap b { font-size: 3.2vmin; }
+    .foot { bottom: 4vmin; }
+  }
+  /* square: title column left, line-up right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --H: 72vmin; --w: 15.6vmin; --g: 2.6vmin; --x: 44vmin; --base: 16vmin; }
+    .head { left: 6vmin; right: auto; width: 33vmin; top: 6vmin; }
+    .k { flex-direction: column; gap: .8vmin; }
+    h1 { font-size: 7.4vmin; }
+    .seal { left: auto; right: 3.4vmin; width: 13vmin; height: 13vmin; bottom: calc(var(--base) + var(--H) * .6 + 4vmin); }
+    .seal span { font-size: 1.6vmin; letter-spacing: .08em; }
+    .seal b { font-size: 4vmin; margin: .3vmin 0; }
+    .kid .cap { flex-direction: column; gap: .5vmin; }
+    .kid .cap b { font-size: 2.8vmin; }
+    .kid .cap span { font-size: 1.6vmin; letter-spacing: .1em; }
+    .foot { left: 6vmin; right: auto; width: 33vmin; bottom: auto; top: 58vmin; flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+    .foot p { font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --H: 74vmin; --w: 22vmin; --g: 3.6vmin; --x: calc(100% - 80vmin); --base: 15vmin; }
+    .head { left: 7vmin; width: auto; right: 86vmin; top: 8vmin; }
+    .k { flex-direction: row; }
+    h1 { font-size: 10.6vmin; }
+    .seal { right: 7vmin; width: 18vmin; height: 18vmin; bottom: calc(var(--base) + var(--H) * .6 + 3.4vmin); }
+    .seal b { font-size: 5.2vmin; }
+    .seal span { letter-spacing: .14em; }
+    .kid .cap { flex-direction: row; }
+    .kid .cap b { font-size: 3.2vmin; }
+    .foot { left: 7vmin; right: 86vmin; width: auto; top: auto; bottom: 8vmin; }
+    .foot p { font-size: 2.2vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) — restrained, portrait-studio pace ─────────
+     1.2 s the three sitters "step" in a wave (eldest → youngest: lift, settle) · 2.9 s a soft studio flash pops
+     and the seal answers with a small press · 4 s "all in step." wipes out & back · 5 s the CTA underline redraws */
+  .kid { animation: step 6s cubic-bezier(.45,0,.3,1) infinite; }
+  .kid:nth-child(2) { animation-delay: -5.76s; }
+  .kid:nth-child(3) { animation-delay: -5.52s; }
+  @keyframes step {
+    0%, 20%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-1.4vmin); }
+    30% { transform: translateY(.15vmin); }
+    33% { transform: translateY(0); }
+  }
+  .kid img { animation: tone 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes tone { 0%, 47%, 100% { filter: brightness(1); } 49% { filter: brightness(1.18) contrast(.95); } 56% { filter: brightness(1); } }
+
+  .banner::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(90% 70% at 70% 45%, #fff, rgba(255,255,255,0) 70%);
+    opacity: 0; animation: flash 6s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes flash { 0%, 47.5%, 100% { opacity: 0; } 48.5% { opacity: .38; } 58% { opacity: 0; } }
+
+  .seal { animation: seal 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes seal { 0%, 50%, 66%, 100% { transform: scale(1) rotate(0); } 54% { transform: scale(1.08) rotate(-4deg); } 59% { transform: scale(.98) rotate(1deg); } }
+
+  h1 i { display: inline-block; animation: wipe 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes wipe {
+    0%, 66%, 100% { clip-path: inset(-12% -4% -20% 0); transform: translateX(0); }
+    71% { clip-path: inset(-12% 104% -20% 0); transform: translateX(0); }
+    72% { clip-path: inset(-12% -4% -20% 100%); transform: translateX(-1.6vmin); }
+    80% { clip-path: inset(-12% -4% -20% 0); transform: translateX(0); }
+  }
+
+  .cta { position: relative; border-bottom-color: transparent; }
+  .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.3vmin; height: .3vmin; background: #A0412D; animation: rule 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes rule { 0%, 82%, 100% { clip-path: inset(0 0 0 0); } 86% { clip-path: inset(0 0 0 100%); } 87% { clip-path: inset(0 100% 0 0); } 94% { clip-path: inset(0 0 0 0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div class="k"><span>The Sibling Set</span><span>Sitting Nº 3</span></div>
+    <h1>All in a row, <i>all in step.</i></h1>
+  </div>
+  <div class="ground"></div>
+  <div class="row">
+    <div class="kid"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="cap"><b>I.</b><span>Eldest</span></div></div>
+    <div class="kid"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="cap"><b>II.</b><span>Middle</span></div></div>
+    <div class="kid"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="cap"><b>III.</b><span>Youngest</span></div></div>
+  </div>
+  <div class="seal"><span>Siblings</span><b>3 for 2</b><span>this month</span></div>
+  <div class="foot">
+    <p>One look, every size in the house — from 2Y to grown-up.</p>
+    <div class="cta">Shop sets →</div>
+  </div>
+</div>
+</body>
+</html>

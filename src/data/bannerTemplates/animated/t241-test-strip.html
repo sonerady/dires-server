@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Mono:wght@400;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* Test Strip — the darkroom exposure test: the final colour print, and beneath it a silver test strip in five
+     stepped exposures (4″ … 64″) with pencil timings; the correct step is ticked in china marker and carries the offer.
+     tall → print above, strip + copy below · square & wide → print left, strip + copy in a right column */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE9E3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE9E3; color: #151413; font-family: "Space Mono", "Courier New", monospace; }
+  .sheet { position: absolute; inset: 0; box-sizing: border-box; padding: 4.4vmin 5vmin 5vmin; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr) auto auto; grid-template-areas: "head head" "print print" "test test" "copy deal"; column-gap: 3vmin; }
+
+  .head { grid-area: head; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; padding-bottom: 1.6vmin; border-bottom: 1px solid #151413; }
+  .head b { font-weight: 700; }
+
+  .print { grid-area: print; position: relative; min-height: 0; margin-top: 2.6vmin; }
+  .print img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .print .tag { position: absolute; left: 0; bottom: -3.4vmin; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #5E5A54; }
+
+  /* the test strip: one silver print cut into five exposure steps */
+  .test { grid-area: test; margin-top: 7vmin; position: relative; }
+  .strip { position: relative; height: 13vmin; background: #F7F5F0; padding: .9vmin; box-shadow: 0 .5vmin 1.4vmin rgba(40,34,26,.18); transform: rotate(-.6deg); }
+  .strip .win { position: relative; height: 100%; overflow: hidden; }
+  .strip img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; filter: grayscale(1) contrast(1.12); }
+  .steps { position: absolute; inset: 0; display: flex; }
+  .steps i { flex: 1; }
+  .steps i + i { box-shadow: inset 1px 0 0 rgba(255,255,255,.35); }
+  .e1 { background: rgba(255,255,255,.62); }
+  .e2 { background: rgba(255,255,255,.3); }
+  .e4 { background: rgba(0,0,0,.38); }
+  .e5 { background: rgba(0,0,0,.66); }
+  .times { display: flex; margin-top: 1.4vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 600; font-size: 3.2vmin; line-height: 1; color: #4A4743; }
+  .times span { flex: 1; text-align: center; }
+  .times .ok { color: #C7301E; font-weight: 700; }
+  .ring { position: absolute; left: 38.5%; width: 23%; top: -1.6vmin; height: 16.2vmin; border: .55vmin solid rgba(199,48,30,.9); border-radius: 50%; transform: rotate(-3deg); }
+  .note { position: absolute; left: 62%; top: -6.4vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 4.4vmin; line-height: 1; color: #C7301E; transform: rotate(-5deg); white-space: nowrap; }
+
+  .copy { grid-area: copy; align-self: end; margin-top: 5vmin; }
+  h1 { margin: 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-style: italic; font-size: 15vmin; line-height: .82; letter-spacing: -.03em; }
+  .sub { margin-top: 1.8vmin; font-size: 1.8vmin; line-height: 1.45; letter-spacing: .02em; }
+  .deal { grid-area: deal; align-self: end; text-align: right; }
+  .deal .pct { font-family: "Instrument Serif", Georgia, serif; font-size: 11vmin; line-height: .8; letter-spacing: -.03em; }
+  .deal .code { display: inline-block; margin-top: 1.6vmin; background: #151413; color: #ECE9E3; padding: 1.2vmin 1.8vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .deal .until { margin-top: 1vmin; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #5E5A54; }
+
+  /* SHORTER PORTRAIT — print left, working column right */
+  @media (min-aspect-ratio: 7/10) {
+    .sheet { display: grid; grid-template-columns: 55% minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto; grid-template-areas: "print head" "print copy" "print test" "print deal"; column-gap: 4.4vmin; padding: 5vmin; }
+    .head { grid-area: head; flex-direction: column; gap: .5vmin; }
+    .print { grid-area: print; margin-top: 0; }
+    .print .tag { bottom: auto; top: calc(100% + 1vmin); }
+    .copy { grid-area: copy; margin-top: 0; align-items: flex-start; align-self: center; }
+    .test { grid-area: test; margin-top: 7vmin; }
+    .strip { height: 11vmin; }
+    .ring { height: 14.2vmin; }
+    .times { font-size: 2.8vmin; }
+    .note { font-size: 3.8vmin; top: -5.6vmin; left: 58%; }
+    .deal { grid-area: deal; text-align: left; margin-top: 4vmin; }
+    h1 { font-size: 11.5vmin; }
+    .deal .pct { font-size: 9vmin; }
+    .print .tag { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .sheet { grid-template-columns: 50% minmax(0, 1fr); padding: 4.6vmin; }
+    h1 { font-size: 10vmin; }
+    .sub { font-size: 1.7vmin; margin-top: 1.4vmin; }
+    .test { margin-top: 6vmin; }
+    .strip { height: 9.5vmin; }
+    .ring { height: 12.7vmin; top: -1.6vmin; }
+    .deal { margin-top: 3.4vmin; display: flex; align-items: flex-end; gap: 2.4vmin; flex-wrap: wrap; }
+    .deal .pct { font-size: 8vmin; }
+    .deal .code { margin-top: 0; }
+    .deal .until { width: 100%; }
+  }
+  /* WIDE — print left, strip right, copy row beneath */
+  @media (min-aspect-ratio: 6/5) {
+    .sheet { grid-template-columns: 44% minmax(0, 1fr); column-gap: 5vmin; padding: 5vmin 5.4vmin; }
+    .head { flex-direction: row; }
+    h1 { font-size: 12vmin; }
+    .sub { font-size: 1.8vmin; }
+    .test { margin-top: 7vmin; }
+    .strip { height: 12vmin; }
+    .ring { height: 15.2vmin; top: -1.6vmin; }
+    .times { font-size: 3vmin; }
+    .note { font-size: 4.2vmin; top: -6vmin; }
+    .deal .pct { font-size: 9vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     the test is run again: 1.6s the strip goes back to blank white paper, the five exposures step in one after
+     another 4″→64″ (as the enlarger timer runs) and the image develops back up · 3.6s the china-marker ring is
+     drawn again and "just right" is scribbled · 4.7s 16″ ✓ and −20% land. */
+  .steps i { position: relative; }
+  .steps i::after { content: ""; position: absolute; inset: 0; background: #F7F5F0; opacity: 0; animation: expose 6s linear infinite; }
+  .steps i:nth-child(2)::after { animation-delay: -5.72s; }
+  .steps i:nth-child(3)::after { animation-delay: -5.44s; }
+  .steps i:nth-child(4)::after { animation-delay: -5.16s; }
+  .steps i:nth-child(5)::after { animation-delay: -4.88s; }
+  /* written for 4″: blank paper at 1.5s, develops back 2.0s→2.9s; each longer exposure follows .28s later */
+  @keyframes expose {
+    0%, 25% { opacity: 0; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    28%, 34% { opacity: 1; animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    48%, 100% { opacity: 0; }
+  }
+  .ring { animation: ring 6s linear infinite; }
+  @keyframes ring {
+    0%, 26% { opacity: 1; clip-path: inset(-10% -10% -10% -10%); }
+    28% { opacity: 0; clip-path: inset(-10% -10% -10% -10%); }
+    28.1%, 58% { opacity: 0; clip-path: inset(-10% 110% -10% -10%); }
+    58.2% { opacity: 1; clip-path: inset(-10% 110% -10% -10%); animation-timing-function: cubic-bezier(.5,.05,.3,1); }
+    64%, 100% { opacity: 1; clip-path: inset(-10% -10% -10% -10%); }
+  }
+  .note { animation: scrib 6s linear infinite; }
+  @keyframes scrib {
+    0%, 26% { opacity: 1; clip-path: inset(-30% -5% -30% -5%); }
+    28% { opacity: 0; clip-path: inset(-30% -5% -30% -5%); }
+    28.1%, 64% { opacity: 0; clip-path: inset(-30% 105% -30% -5%); }
+    64.2% { opacity: 1; clip-path: inset(-30% 105% -30% -5%); animation-timing-function: cubic-bezier(.4,.1,.5,.95); }
+    75%, 100% { opacity: 1; clip-path: inset(-30% -5% -30% -5%); }
+  }
+  .times .ok { display: inline-block; animation: ok 6s linear infinite; }
+  @keyframes ok {
+    0%, 76% { transform: scale(1); animation-timing-function: cubic-bezier(.25,0,.2,1); }
+    79.5% { transform: scale(1.22); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+    84%, 100% { transform: scale(1); }
+  }
+  .deal .pct { transform-origin: 100% 80%; animation: pct 6s linear infinite; }
+  @keyframes pct {
+    0%, 80% { transform: scale(1); animation-timing-function: cubic-bezier(.25,0,.2,1); }
+    83.5% { transform: scale(1.08); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+    88%, 100% { transform: scale(1); }
+  }
+  @media (min-aspect-ratio: 7/10) { .deal .pct { transform-origin: 0 80%; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sheet">
+    <div class="head"><span>Test strip <b>Nº 07</b></span><span>f/8 · Grade 2 · 20×25</span></div>
+    <div class="print"><img src="{{PRODUCT_IMAGE}}" alt=""><span class="tag">Final print — full colour</span></div>
+    <div class="test">
+      <div class="strip"><div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="steps"><i class="e1"></i><i class="e2"></i><i class="e3"></i><i class="e4"></i><i class="e5"></i></div></div></div>
+      <div class="times"><span>4″</span><span>8″</span><span class="ok">16″ ✓</span><span>32″</span><span>64″</span></div>
+      <div class="ring"></div>
+      <div class="note">just right</div>
+    </div>
+    <div class="copy">
+      <div><h1>Exposed.</h1><div class="sub">The new season, developed<br>and printed just right.</div></div>
+    </div>
+    <div class="deal"><div class="pct">−20%</div><div class="code">Code STRIP20</div><div class="until">Until 12 October</div></div>
+  </div>
+</div>
+</body>
+</html>

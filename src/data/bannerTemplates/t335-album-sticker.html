@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* Album Sticker — a page from a collector's sticker album: halftone-printed page, the product stuck in as
+     card Nº 26 (white die-cut border, name band, lifting corner), a holographic club-crest foil, an empty
+     dotted slot still waiting for Nº 27, and the swap-shop offer. tall/4:5 → sticker above, collection row below ·
+     square/wide → sticker left, page notes right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E8EBEF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #17224A; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(circle, rgba(36,70,166,.13) 0 .22vmin, transparent .27vmin) 0 0 / 1.6vmin 1.6vmin, linear-gradient(180deg, #EEF0F3, #E1E5EB); }
+  .hd { position: absolute; left: 0; right: 0; top: 0; height: 7vmin; padding: 0 6vmin; display: flex; align-items: center; justify-content: space-between; background: #2446A6; color: #F3F5FA; font-family: "DM Mono", monospace; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .hd b { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 2.4vmin; letter-spacing: .06em; }
+
+  .stk { position: absolute; left: 7vmin; right: 7vmin; top: 12vmin; bottom: 54vmin; display: flex; flex-direction: column; padding: 1.6vmin; background: #fff; transform: rotate(-1.6deg);
+    box-shadow: 0 .3vmin .5vmin rgba(23,34,74,.18), 0 1.6vmin 2.6vmin rgba(23,34,74,.18); }
+  .stk::after { content: ""; position: absolute; right: 0; bottom: 0; width: 7vmin; height: 7vmin;
+    background: linear-gradient(315deg, #E1E5EB 0 49%, rgba(0,0,0,.12) 49.5%, #F7F7F7 51%, #D9DCE2 100%);
+    box-shadow: -.5vmin -.5vmin 1vmin rgba(23,34,74,.15); }
+  .stk img { display: block; width: 100%; height: calc(100% - 12vmin); object-fit: cover; object-position: 50% 20%; }
+  .nb { flex: none; height: 12vmin; display: flex; align-items: center; gap: 2.4vmin; padding: 0 2vmin; background: #2446A6; color: #fff; }
+  .no { flex: none; width: 8vmin; height: 8vmin; border-radius: 50%; background: #FF7A6B; color: #17224A; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 4.2vmin; letter-spacing: -.03em; }
+  .nm b { display: block; font-weight: 800; font-size: 4.4vmin; line-height: 1; text-transform: uppercase; letter-spacing: .01em; }
+  .nm small { display: block; margin-top: .7vmin; font-family: "DM Mono", monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #C9D3F2; }
+
+  .row { position: absolute; left: 7vmin; right: 7vmin; bottom: 17vmin; height: 30vmin; display: flex; align-items: center; gap: 4vmin; }
+  .foil { flex: none; position: relative; width: 20vmin; height: 25vmin; background: conic-gradient(from 200deg at 60% 40%, #C9F0FF, #F5D0FF, #FFF3C4, #CFFFE0, #C9F0FF, #F5D0FF, #C9F0FF); box-shadow: 0 0 0 1.2vmin #fff, 0 1.2vmin 2vmin rgba(23,34,74,.2); transform: rotate(3deg); }
+  .foil svg { position: absolute; left: 50%; top: 50%; width: 13vmin; height: 16vmin; margin: -8vmin 0 0 -6.5vmin; }
+  .slot { flex: none; width: 20vmin; height: 25vmin; box-sizing: border-box; border: .35vmin dashed rgba(23,34,74,.45); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .6vmin; color: rgba(23,34,74,.6); }
+  .slot b { font-weight: 800; font-size: 8vmin; line-height: 1; }
+  .slot small { font-family: "DM Mono", monospace; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .txt h2 { margin: 0; font-weight: 800; font-size: 6.8vmin; line-height: .95; letter-spacing: -.02em; }
+  .txt p { margin: 1.4vmin 0 0; font-weight: 500; font-size: 2.2vmin; line-height: 1.4; }
+  .txt p b { color: #D8483A; font-weight: 800; }
+
+  .cta { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: center; padding: 1.8vmin 2.8vmin; background: #17224A; color: #fff; font-weight: 800; font-size: 2.5vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .cta span:last-child { font-family: "DM Mono", monospace; font-weight: 500; font-size: 1.9vmin; letter-spacing: .12em; color: #FF7A6B; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .stk { top: 11vmin; bottom: 49vmin; }
+    .row { bottom: 15vmin; height: 28vmin; }
+    .foil, .slot { width: 18vmin; height: 23vmin; }
+    .txt h2 { font-size: 6.2vmin; }
+    .cta { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .hd { height: 6vmin; }
+    .stk { left: 8vmin; right: auto; width: 52vmin; top: 10vmin; bottom: 17vmin; }
+    .nb { height: 10vmin; gap: 1.8vmin; padding: 0 1.6vmin; }
+    .stk img { height: calc(100% - 10vmin); }
+    .no { width: 6.6vmin; height: 6.6vmin; font-size: 3.4vmin; }
+    .nm b { font-size: 3.4vmin; }
+    .nm small { font-size: 1.6vmin; }
+    .row { left: 66vmin; right: 6vmin; top: 12vmin; bottom: 17vmin; height: auto; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 2vmin; }
+    .foil, .slot { width: 14vmin; height: 18vmin; }
+    .foil { box-shadow: 0 0 0 1vmin #fff, 0 1vmin 1.6vmin rgba(23,34,74,.2); }
+    .foil svg { width: 10vmin; height: 12vmin; margin: -6vmin 0 0 -5vmin; }
+    .slot b { font-size: 6vmin; }
+    .txt h2 { font-size: 5vmin; }
+    .txt p { font-size: 1.9vmin; }
+    .cta { left: 8vmin; right: 6vmin; bottom: 4.5vmin; padding: 1.5vmin 2.4vmin; font-size: 2.2vmin; }
+    .cta span:last-child { font-size: 1.7vmin; }
+  }
+  /* square / wide → sticker left, notes right */
+  @media (min-aspect-ratio: 9/10) {
+    .hd { height: 6vmin; padding: 0 5vmin; font-size: 1.6vmin; }
+    .hd b { font-size: 2.1vmin; }
+    .stk { left: 5vmin; right: auto; width: 46%; top: 10vmin; bottom: 5vmin; }
+    .row { left: calc(46% + 12vmin); right: 5vmin; top: 12vmin; bottom: 17vmin; }
+    .foil, .slot { width: 14vmin; height: 18vmin; }
+    .cta { left: calc(46% + 12vmin); right: 5vmin; bottom: 6vmin; flex-direction: column; align-items: flex-start; gap: .8vmin; }
+    .row { justify-content: flex-start; gap: 6vmin; }
+    .txt h2 { font-size: 6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .stk { width: 44%; left: 6vmin; top: 10vmin; bottom: 6vmin; }
+    .row { left: calc(44% + 14vmin); right: 7vmin; top: 14vmin; bottom: 22vmin; }
+    .foil, .slot { width: 16vmin; height: 20vmin; }
+    .slot b { font-size: 7vmin; }
+    .foil svg { width: 11vmin; height: 13.6vmin; margin: -6.8vmin 0 0 -5.5vmin; }
+    .txt h2 { font-size: 7vmin; }
+    .txt p { font-size: 2.1vmin; }
+    .cta { left: calc(44% + 14vmin); right: 7vmin; bottom: 7vmin; flex-direction: row; align-items: center; padding: 1.7vmin 2.6vmin; font-size: 2.3vmin; }
+    .cta span:last-child { font-size: 1.8vmin; }
+  }
+  .row .pair { display: contents; }
+  @media (min-aspect-ratio: 7/10) { .row .pair { display: flex; gap: 3vmin; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="hd"><b>Nord League</b><span>Season 26/27 · Page 14</span></div>
+  <div class="stk">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="nb"><span class="no">26</span><span class="nm"><b>The new season</b><small>Atelier Nord · Squad</small></span></div>
+  </div>
+  <div class="row">
+    <div class="pair">
+      <div class="foil">
+        <svg viewBox="0 0 60 72" aria-hidden="true"><path d="M30 3 L56 12 V34 C56 52 44 63 30 69 C16 63 4 52 4 34 V12 Z" fill="#2446A6" stroke="#17224A" stroke-width="2"/><path d="M4 30 H56 V38 H4 Z" fill="#FF7A6B"/><path d="M30 8 L51 15 V30 H9 V15 Z" fill="none" stroke="#F3F5FA" stroke-width="1.2" opacity=".7"/><text x="30" y="28" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="15" fill="#F3F5FA">AN</text><text x="30" y="56" text-anchor="middle" font-family="DM Mono, monospace" font-size="7.5" fill="#F3F5FA">1926</text></svg>
+      </div>
+      <div class="slot"><b>27</b><small>Need</small></div>
+    </div>
+    <div class="txt"><h2>Got, got,<br>need.</h2><p>Swap three, pay for two<br>Code <b>SWAP32</b> · till 12.10</p></div>
+  </div>
+  <div class="cta"><span>Complete the set →</span><span>3 for 2</span></div>
+</div>
+</body>
+</html>

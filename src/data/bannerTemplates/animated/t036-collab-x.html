@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Collab Lockup — two invented labels meet: a heavy wide grotesk × an italic serif, joined by a hairline "×".
+     tall → lockup on top, photo, black info bar; square / wide → photo left, stacked lockup right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFEBE3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFEBE3; color: #111; font-family: "Unbounded", "Helvetica Neue", Arial, sans-serif; }
+  .top { position: absolute; left: 5vmin; right: 5vmin; top: 4.4vmin; display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .18em; text-transform: uppercase; }
+  .lock { position: absolute; left: 5vmin; right: 5vmin; top: 10vmin; height: 25vmin; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+  .a { font-weight: 800; font-size: 7.4vmin; line-height: .9; letter-spacing: -.03em; text-transform: uppercase; }
+  .a small { display: block; margin-top: 1.4vmin; font-weight: 400; font-size: 1.6vmin; letter-spacing: .24em; }
+  .x { position: relative; width: 17vmin; height: 17vmin; margin: 0 2vmin; }
+  .x::before, .x::after { content: ""; position: absolute; left: 50%; top: -8%; bottom: -8%; width: .45vmin; margin-left: -.225vmin; background: #111; transform: rotate(45deg); }
+  .x::after { transform: rotate(-45deg); }
+  .b { text-align: right; font-family: "Instrument Serif", Didot, Georgia, serif; font-style: italic; font-size: 11.4vmin; line-height: .82; letter-spacing: -.02em; }
+  .b small { display: block; margin-top: 1.6vmin; font-family: "Unbounded", sans-serif; font-style: normal; font-size: 1.6vmin; letter-spacing: .24em; text-transform: uppercase; }
+  .shot { position: absolute; left: 0; right: 0; top: 39vmin; bottom: 17vmin; overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 17vmin; background: #111; color: #EFEBE3; display: flex; align-items: center; justify-content: space-between; padding: 0 5vmin; box-sizing: border-box; gap: 4vmin; }
+  .when { font-size: 1.7vmin; letter-spacing: .16em; text-transform: uppercase; line-height: 1.6; color: #A7A29A; }
+  .when b { display: block; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 5.4vmin; line-height: 1; letter-spacing: -.01em; text-transform: none; color: #EFEBE3; }
+  .cta { flex: none; border: 1px solid #EFEBE3; padding: 2.2vmin 3.4vmin; font-weight: 800; font-size: 2vmin; letter-spacing: .16em; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .lock { top: 9vmin; height: 21vmin; }
+    .a { font-size: 6.4vmin; }
+    .b { font-size: 10vmin; }
+    .x { width: 14vmin; height: 14vmin; }
+    .shot { top: 33vmin; bottom: 15vmin; }
+    .bar { height: 15vmin; }
+    .when b { font-size: 4.8vmin; }
+  }
+  /* square / wide → photo left, stacked lockup right */
+  @media (min-aspect-ratio: 9/10) {
+    .top { left: calc(50% + 5vmin); flex-direction: column; gap: .8vmin; font-size: 1.6vmin; top: 5vmin; }
+    .shot { top: 0; bottom: 0; right: auto; width: 50%; }
+    .lock { left: calc(50% + 5vmin); right: 5vmin; top: 17vmin; height: auto; grid-template-columns: 1fr; justify-items: start; row-gap: 2.6vmin; }
+    .a { font-size: 6vmin; }
+    .x { width: 9vmin; height: 9vmin; margin: 0 0 0 .5vmin; }
+    .b { text-align: left; font-size: 10vmin; }
+    .bar { left: 50%; height: 26vmin; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2.6vmin; }
+    .when b { font-size: 4.6vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.8vmin 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 54%; }
+    .top { left: calc(54% + 6vmin); right: 6vmin; }
+    .lock { left: calc(54% + 6vmin); right: 6vmin; top: 18vmin; }
+    .a { font-size: 7vmin; }
+    .b { font-size: 11vmin; }
+    .x { width: 10vmin; height: 10vmin; }
+    .bar { left: 54%; padding: 0 6vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design — restrained, editorial ───────── */
+  /* product: a slow breath of a push-in */
+  .shot img { transform-origin: 50% 30%; animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  /* the two names withdraw into the ×, the × uncrosses and re-crosses, the names come back out of it */
+  .a { animation: nameA 8s linear infinite; }
+  .b { animation: nameB 8s linear infinite; }
+  @keyframes nameA {
+    0%, 40% { clip-path: inset(-10% 0 -10% 0); opacity: 1; animation-timing-function: cubic-bezier(.7,0,.84,0); }
+    48% { clip-path: inset(-10% 0 -10% 100%); opacity: 1; animation-timing-function: steps(1, end); }
+    49% { clip-path: inset(-10% 0 -10% 100%); opacity: 1; animation-timing-function: linear; }
+    64% { clip-path: inset(-10% 0 -10% 100%); animation-timing-function: cubic-bezier(.16,1,.3,1); }
+    78%, 100% { clip-path: inset(-10% 0 -10% 0); opacity: 1; }
+  }
+  @keyframes nameB {
+    0%, 41% { clip-path: inset(-10% 0 -10% 0); animation-timing-function: cubic-bezier(.7,0,.84,0); }
+    49% { clip-path: inset(-10% 100% -10% 0); animation-timing-function: linear; }
+    65% { clip-path: inset(-10% 100% -10% 0); animation-timing-function: cubic-bezier(.16,1,.3,1); }
+    79%, 100% { clip-path: inset(-10% 0 -10% 0); }
+  }
+  .x::before { animation: strokeA 8s linear infinite; }
+  .x::after { animation: strokeB 8s linear infinite; }
+  @keyframes strokeA {
+    0%, 48% { transform: rotate(45deg) scaleY(1); animation-timing-function: cubic-bezier(.7,0,.84,0); }
+    53% { transform: rotate(45deg) scaleY(0); animation-timing-function: linear; }
+    56% { transform: rotate(45deg) scaleY(0); animation-timing-function: cubic-bezier(.16,1,.3,1); }
+    63%, 100% { transform: rotate(45deg) scaleY(1); }
+  }
+  @keyframes strokeB {
+    0%, 48% { transform: rotate(-45deg) scaleY(1); animation-timing-function: cubic-bezier(.7,0,.84,0); }
+    53% { transform: rotate(-45deg) scaleY(0); animation-timing-function: linear; }
+    59% { transform: rotate(-45deg) scaleY(0); animation-timing-function: cubic-bezier(.16,1,.3,1); }
+    66%, 100% { transform: rotate(-45deg) scaleY(1); }
+  }
+  /* the × turns a quarter as it closes — a slow, weighted seal */
+  .x { animation: seal 8s linear infinite; }
+  @keyframes seal {
+    0%, 56% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.65,0,.35,1); }
+    70%, 100% { transform: rotate(90deg); }
+  }
+  /* launch time: a soft light passes over the serif date */
+  .when b { background: linear-gradient(100deg, #EFEBE3 0 40%, #FFFFFF 47%, #C9B79A 50%, #FFFFFF 53%, #EFEBE3 60% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: gleam 8s linear infinite; }
+  @keyframes gleam {
+    0%, 12% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    30%, 100% { background-position: 0% 0; }
+  }
+  /* CTA: an ink fill slides in, inverts the button, and slides out */
+  .cta { background: linear-gradient(90deg, rgba(239,235,227,0) 0 33.33%, #EFEBE3 33.33% 66.66%, rgba(239,235,227,0) 66.66% 100%) 0 0 / 300% 100% no-repeat; animation: fill 8s linear infinite; }
+  @keyframes fill {
+    0%, 80% { background-position: 0% 0; color: #EFEBE3; animation-timing-function: cubic-bezier(.65,0,.35,1); }
+    85% { background-position: 50% 0; color: #111; animation-timing-function: linear; }
+    92% { background-position: 50% 0; color: #111; animation-timing-function: cubic-bezier(.65,0,.35,1); }
+    97%, 100% { background-position: 100% 0; color: #EFEBE3; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><span>Capsule 01 · 03.03</span><span>14 pieces</span></div>
+  <div class="lock">
+    <div class="a">North<br>Supply<small>Oslo</small></div>
+    <div class="x"></div>
+    <div class="b">Maison<br>Oku<small>Kyoto</small></div>
+  </div>
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="bar">
+    <div class="when">Available<b>Friday 10.03, 10:00</b>Online &amp; in selected stores</div>
+    <div class="cta">Shop the capsule</div>
+  </div>
+</div>
+</body>
+</html>

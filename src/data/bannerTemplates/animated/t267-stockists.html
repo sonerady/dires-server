@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Source+Serif+4:ital,opsz,wght@1,8..60,400&display=swap" rel="stylesheet">
+<style>
+  /* Stockists — the back-of-the-magazine "where to buy" page: a heavy condensed headline, a dense alphabetical
+     two-column list of shops by city, and the brand's own line picked out with a yellow highlighter swipe,
+     carrying the code. The look is the facing page.
+     tall → photo above the list · square & wide → photo left, stockists page right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FBFAF6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FBFAF6; color: #151515;
+    font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; font-variation-settings: "opsz" 14, "wdth" 100; }
+  .it { font-family: "Source Serif 4", Georgia, serif; font-style: italic; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 88vmin); object-fit: cover; object-position: 50% 22%; }
+  .pg { position: absolute; left: 5.5vmin; right: 5.5vmin; bottom: 4.4vmin; height: calc(88vmin - 9.4vmin); display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .top span:last-child { font-weight: 500; color: #666; }
+  h1 { margin: 1.4vmin 0 0; font-size: 18vmin; font-weight: 800; font-variation-settings: "opsz" 96, "wdth" 75; line-height: .8; letter-spacing: -.015em; text-transform: uppercase; }
+  .kick { margin-top: 2.2vmin; padding-bottom: 1.6vmin; border-bottom: 2px solid #151515; font-size: 2.6vmin; }
+
+  .list { margin-top: 2.4vmin; columns: 2; column-gap: 5vmin; column-rule: 1px solid rgba(21,21,21,.18); }
+  .s { break-inside: avoid; padding: 0 0 1.5vmin; font-size: 1.95vmin; line-height: 1.3; }
+  .s b { display: block; font-size: 1.65vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .s span { color: #3C3C3C; }
+  .s.y { display: none; }
+  .hl { position: relative; margin: 0 -1vmin 1.5vmin; padding: 1vmin 1vmin 1.1vmin; }
+  .hl::before { content: ""; position: absolute; inset: 0; z-index: -1; background: #F4E23C; border-radius: .6vmin .2vmin .8vmin .3vmin; transform: rotate(-1.2deg) skewX(-6deg); }
+  .hl span { color: #151515; }
+  .hl em { font-style: normal; font-weight: 700; }
+  .list { position: relative; z-index: 0; }
+
+  .note { margin: auto 0 0; padding-top: 2vmin; font-size: 4vmin; line-height: 1.12; letter-spacing: -.01em; }
+  .note sup { font-family: "Bricolage Grotesque", Arial, sans-serif; font-style: normal; font-size: .55em; font-weight: 700; margin-right: .4vmin; }
+  .note mark { background: linear-gradient(to top, #F4E23C 0 42%, rgba(244,226,60,0) 42%); color: inherit; padding: 0 .4vmin; font-style: normal; font-family: "Bricolage Grotesque", Arial, sans-serif; font-weight: 800; font-variation-settings: "opsz" 48, "wdth" 80; }
+  .foot { margin-top: 2.4vmin; display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; padding-top: 1.4vmin; border-top: 1px solid #151515; font-size: 1.7vmin; }
+  .foot b { font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 80vmin); }
+    .pg { height: calc(80vmin - 8.4vmin); bottom: 4vmin; }
+    h1 { font-size: 16vmin; }
+    .kick { font-size: 2.3vmin; margin-top: 1.8vmin; }
+    .list { margin-top: 2vmin; }
+    .s { padding-bottom: 1.1vmin; font-size: 1.8vmin; }
+    .s.x { display: none; }
+    .note { font-size: 3.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 45%; height: 100%; object-position: 50% 24%; }
+    .pg { left: calc(45% + 4.5vmin); right: 4.5vmin; top: 4.5vmin; bottom: 4.5vmin; height: auto; }
+    .top { font-size: 1.55vmin; letter-spacing: .14em; }
+    h1 { font-size: 12.5vmin; margin-top: 1.2vmin; }
+    .kick { font-size: 2vmin; margin-top: 1.6vmin; padding-bottom: 1.2vmin; }
+    .list { margin-top: 1.8vmin; column-gap: 3.4vmin; }
+    .list { margin-top: 3vmin; }
+    .s { padding-bottom: 2vmin; font-size: 1.8vmin; }
+    .s b { font-size: 1.55vmin; letter-spacing: .1em; margin-bottom: .3vmin; }
+    .s.x { display: none; }
+    .s.y { display: block; }
+    .hl { margin-bottom: 2vmin; }
+    .note { font-size: 3.2vmin; }
+    .foot { font-size: 1.55vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .pg { left: calc(46% + 6vmin); right: 6vmin; top: 5.5vmin; bottom: 5.5vmin; }
+    .top { font-size: 1.7vmin; letter-spacing: .2em; }
+    h1 { font-size: 17vmin; }
+    .kick { font-size: 2.3vmin; }
+    .list { column-gap: 5vmin; }
+    .list { margin-top: 3.4vmin; }
+    .s { font-size: 2.1vmin; padding-bottom: 2.2vmin; }
+    .s b { font-size: 1.7vmin; }
+    .s.x, .s.y { display: block; }
+    .hl { margin-bottom: 2.2vmin; }
+    .note { font-size: 3.8vmin; }
+    .foot { font-size: 1.7vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static page) ─────────
+     0.6s  a reader's eye scans the stockist list, entry by entry (soft dip + nudge)
+     2.0s  the yellow highlighter lifts off the brand line and is swiped back on, the ✱ twirls
+     3.2s  the two "20% off / STOCK20" marks are re-highlighted, left to right
+     4.8s  the STOCKISTS headline is wiped off and re-set, like a proof being pulled */
+  .list .s { animation: scan 6s linear infinite; }
+  @keyframes scan {
+    0% { opacity: 1; transform: translateX(0); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    3% { opacity: .38; transform: translateX(.5vmin); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    8%, 100% { opacity: 1; transform: translateX(0); }
+  }
+  .list .s:nth-child(1)  { animation-delay: -5.4s; }
+  .list .s:nth-child(2)  { animation-delay: -5.28s; }
+  .list .s:nth-child(3)  { animation-delay: -5.16s; }
+  .list .s:nth-child(4)  { animation-delay: -5.04s; }
+  .list .s:nth-child(5)  { animation-delay: -4.92s; }
+  .list .s:nth-child(6)  { animation-delay: -4.8s; }
+  .list .s:nth-child(8)  { animation-delay: -4.56s; }
+  .list .s:nth-child(9)  { animation-delay: -4.44s; }
+  .list .s:nth-child(10) { animation-delay: -4.32s; }
+  .list .s:nth-child(11) { animation-delay: -4.2s; }
+  .list .s.hl { animation: none; }
+  .hl::before { animation: swipe 6s linear infinite; }
+  @keyframes swipe {
+    0%, 30% { clip-path: inset(-20% -4% -20% -4%); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    35% { clip-path: inset(-20% -4% -20% 104%); animation-timing-function: steps(1, end); }
+    35.5% { clip-path: inset(-20% 104% -20% -4%); animation-timing-function: cubic-bezier(.3,.1,.2,1); }
+    37% { clip-path: inset(-20% 104% -20% -4%); animation-timing-function: cubic-bezier(.55,.05,.25,1); }
+    45%, 100% { clip-path: inset(-20% -4% -20% -4%); }
+  }
+  .note sup { display: inline-block; }
+  .note sup { animation: twirl 6s linear infinite; }
+  @keyframes twirl {
+    0%, 41% { transform: rotate(0) scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    49% { transform: rotate(180deg) scale(1.25); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    56%, 100% { transform: rotate(360deg) scale(1); }
+  }
+  .note mark { background-repeat: no-repeat; background-size: 100% 100%; animation: marker 6s linear infinite; }
+  .note mark + mark { animation-delay: -5.55s; }
+  @keyframes marker {
+    0%, 50% { background-size: 100% 100%; background-position: 100% 0; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    54% { background-size: 0% 100%; background-position: 100% 0; animation-timing-function: steps(1, end); }
+    54.5% { background-size: 0% 100%; background-position: 0 0; animation-timing-function: cubic-bezier(.45,.05,.2,1); }
+    62%, 100% { background-size: 100% 100%; background-position: 0 0; }
+  }
+  h1 { animation: proof 6s linear infinite; }
+  @keyframes proof {
+    0%, 78% { clip-path: inset(-25% -3% -25% -3%); transform: translateY(0); animation-timing-function: cubic-bezier(.65,0,.85,.35); }
+    82.5% { clip-path: inset(-25% -3% 125% -3%); transform: translateY(-1.2vmin); animation-timing-function: steps(1, end); }
+    83% { clip-path: inset(125% -3% -25% -3%); transform: translateY(1.8vmin); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    92%, 100% { clip-path: inset(-25% -3% -25% -3%); transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="pg">
+    <div class="top"><span>Autumn Issue</span><span>p. 142</span></div>
+    <h1>Stockists</h1>
+    <div class="kick it">Where to find the pieces in this story.</div>
+    <div class="list">
+      <div class="s"><b>Antwerp</b><span>Kloet, Kammenstraat 41</span></div>
+      <div class="s"><b>Berlin</b><span>Haus Ohne, Linienstraße 88</span></div>
+      <div class="s"><b>Copenhagen</b><span>Sund &amp; Co., Pilestræde 9</span></div>
+      <div class="s y"><b>Istanbul</b><span>Kule Studio, Serdar-ı Ekrem 22</span></div>
+      <div class="s x"><b>Kraków</b><span>Pracownia Łąka, Józefa 14</span></div>
+      <div class="s"><b>Lisbon</b><span>Casa Alva, Rua da Rosa 57</span></div>
+      <div class="s hl"><b>Online ✱</b><span>Atelier Nord, atelier-nord.com</span></div>
+      <div class="s"><b>Milan</b><span>Spazio Nove, Via Solferino 3</span></div>
+      <div class="s"><b>Paris</b><span>Le Quai, Rue de Saintonge 18</span></div>
+      <div class="s y"><b>Seoul</b><span>Mun, Dosan-daero 45</span></div>
+      <div class="s x"><b>Tokyo</b><span>Hiraku, Jingumae 4-12</span></div>
+    </div>
+    <p class="note it"><sup>✱</sup>Readers take <mark>20% off</mark> online with the code <mark>STOCK20</mark></p>
+    <div class="foot"><b>Atelier Nord</b><span class="it">Offer ends 31 October</span></div>
+  </div>
+</div>
+</body>
+</html>

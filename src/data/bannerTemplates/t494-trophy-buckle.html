@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Diplomata&family=Spectral:ital,wght@0,500;1,400;1,500&family=Big+Shoulders+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Trophy Buckle — a rodeo champion's buckle (gold rope rim, engraved silver field, gold stars) cinched on a
+     saddle-tan strap that runs across oxblood suede; the offer is the trophy.
+     tall → photo above, suede below · square & wide → photo left, suede right. The buckle keeps a fixed 3:2 oval. */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #4A1818; }
+  .banner { --suede: #4A1818; --cream: #F4E6CC; --gold: #E8C06A; --panel: 86vmin; --bw: 70vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--cream); font-family: "Spectral", Georgia, serif; background: var(--suede); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .suede { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 6vmin 7vmin 5.6vmin; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center;
+    background: radial-gradient(90% 70% at 50% 55%, #5C2020 0%, #4A1818 55%, #351010 100%); }
+  .nap { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: soft-light; }
+
+  .k { position: relative; font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 700; font-size: 2.2vmin; letter-spacing: .38em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+  h1 { position: relative; margin: 1.6vmin 0 0; font-weight: 400; font-style: italic; font-size: 11vmin; line-height: .95; letter-spacing: -.02em; white-space: nowrap; }
+  .top { position: relative; }
+
+  /* strap + buckle */
+  .belt { position: relative; align-self: stretch; margin: 0 -7vmin; display: flex; justify-content: center; }
+  .strap { position: absolute; left: 0; right: 0; top: 32%; height: 36%;
+    background:
+      radial-gradient(circle, #2A0E08 0 .9vmin, #6E3F1C 1vmin 1.4vmin, transparent 1.5vmin) 88% 50% / 9vmin 100% no-repeat,
+      radial-gradient(circle, #2A0E08 0 .9vmin, #6E3F1C 1vmin 1.4vmin, transparent 1.5vmin) 97% 50% / 9vmin 100% no-repeat,
+      linear-gradient(180deg, #6C3A16 0%, #A9682F 18%, #B8773A 50%, #9A5C28 82%, #5E3012 100%);
+    box-shadow: 0 1.2vmin 2vmin rgba(0,0,0,.45); }
+  .strap::before { content: ""; position: absolute; left: 0; right: 0; top: 16%; bottom: 16%; border-top: .35vmin dashed rgba(246,226,190,.75); border-bottom: .35vmin dashed rgba(246,226,190,.75); }
+  .bk { position: relative; width: var(--bw); aspect-ratio: 3 / 2; filter: drop-shadow(0 1.4vmin 1.6vmin rgba(0,0,0,.55)); }
+  .bk svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .face { position: absolute; left: 20%; right: 20%; top: 22%; bottom: 22%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #3C2A10; }
+  .face .t { font-family: "Big Shoulders Display", sans-serif; font-weight: 800; font-size: calc(var(--bw) * .036); letter-spacing: .34em; text-transform: uppercase; white-space: nowrap; color: #4A3514; }
+  .face .n { margin-top: calc(var(--bw) * .012); font-family: "Diplomata", Georgia, serif; font-size: calc(var(--bw) * .104); line-height: 1; white-space: nowrap;
+    background: linear-gradient(180deg, #FFF1BC 0%, #EAC063 40%, #B07F24 70%, #F2D27A 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 calc(var(--bw) * .004) 0 rgba(40,25,5,.85)); }
+  .face .n small { font-size: .42em; }
+  .face .s { margin-top: calc(var(--bw) * .014); font-style: italic; font-weight: 500; font-size: calc(var(--bw) * .04); white-space: nowrap; color: #33240E; }
+
+  .foot { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.6vmin; }
+  .foot p { margin: 0; font-size: 2.8vmin; line-height: 1.3; }
+  .foot p b { font-weight: 500; font-style: normal; color: var(--gold); }
+  .cta { font-family: "Big Shoulders Display", sans-serif; font-weight: 700; font-size: 2.5vmin; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; padding: 1.2vmin 3vmin 1.1vmin; border: .3vmin solid var(--gold); color: var(--gold); }
+
+  /* 3:4 – 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; --bw: 56vmin; }
+    .suede { padding: 5vmin 7vmin 4.6vmin; }
+    h1 { font-size: 10vmin; }
+    .foot { flex-direction: row; gap: 4vmin; }
+    .foot p { font-size: 2.5vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --bw: 46vmin; }
+    .photo { width: 46%; height: 100%; object-position: 50% 25%; }
+    .suede { left: 46%; top: 0; height: auto; padding: 7vmin 5vmin 6vmin; }
+    .belt { margin: 0 -5vmin; }
+    .k { font-size: 1.8vmin; letter-spacing: .3em; }
+    h1 { font-size: 8.4vmin; }
+    .foot { flex-direction: column; gap: 1.8vmin; }
+    .foot p { font-size: 2.2vmin; }
+    .cta { font-size: 2vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --bw: 58vmin; }
+    .photo { width: 48%; }
+    .suede { left: 48%; padding: 7vmin 6vmin 6vmin; }
+    .belt { margin: 0 -6vmin; }
+    .k { font-size: 2vmin; }
+    h1 { font-size: 9.4vmin; }
+    .foot { flex-direction: row; gap: 4vmin; }
+    .foot p { font-size: 2.3vmin; }
+    .cta { font-size: 2.1vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="suede">
+    <svg class="nap" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="s"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" seed="3"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#s)" opacity=".5"/></svg>
+    <div class="top">
+      <div class="k">★ The Buckle Edit · Nº 26 ★</div>
+      <h1>Buckle up.</h1>
+    </div>
+    <div class="belt">
+      <div class="strap"></div>
+      <div class="bk">
+        <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF0B5"/><stop offset=".35" stop-color="#E2B54E"/><stop offset=".6" stop-color="#9C6D1E"/><stop offset=".85" stop-color="#F3D27E"/><stop offset="1" stop-color="#A57824"/></linearGradient>
+            <linearGradient id="sv" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="#FAFBFC"/><stop offset=".3" stop-color="#C3C8CE"/><stop offset=".55" stop-color="#EEF0F2"/><stop offset=".8" stop-color="#9097A0"/><stop offset="1" stop-color="#D7DBDF"/></linearGradient>
+            <clipPath id="fc"><ellipse cx="150" cy="100" rx="129" ry="80"/></clipPath>
+          </defs>
+          <ellipse cx="150" cy="100" rx="149" ry="99" fill="url(#gd)"/>
+          <ellipse cx="150" cy="100" rx="140" ry="90" fill="none" stroke="#6E4A12" stroke-width="12"/>
+          <ellipse cx="150" cy="100" rx="140" ry="90" fill="none" stroke="#F5D98C" stroke-width="9" stroke-dasharray="5 2.6"/>
+          <ellipse cx="150" cy="100" rx="140" ry="90" fill="none" stroke="#B88A2E" stroke-width="3" stroke-dasharray="2 5.6" stroke-dashoffset="1"/>
+          <ellipse cx="150" cy="100" rx="130" ry="81" fill="url(#sv)" stroke="#7A5418" stroke-width="2"/>
+          <g clip-path="url(#fc)" fill="none" stroke="#5E656E" stroke-opacity=".55" stroke-width="1" stroke-linecap="round">
+            <path d="M22 100 C 30 60 60 40 80 52 C 96 62 86 84 72 80 C 62 77 64 64 74 66"/>
+            <path d="M22 100 C 30 140 60 160 80 148 C 96 138 86 116 72 120 C 62 123 64 136 74 134"/>
+            <path d="M278 100 C 270 60 240 40 220 52 C 204 62 214 84 228 80 C 238 77 236 64 226 66"/>
+            <path d="M278 100 C 270 140 240 160 220 148 C 204 138 214 116 228 120 C 238 123 236 136 226 134"/>
+            <path d="M44 70 C 36 58 40 46 52 42 C 54 54 50 64 44 70 Z M44 130 C 36 142 40 154 52 158 C 54 146 50 136 44 130 Z"/>
+            <path d="M256 70 C 264 58 260 46 248 42 C 246 54 250 64 256 70 Z M256 130 C 264 142 260 154 248 158 C 246 146 250 136 256 130 Z"/>
+            <path d="M100 30 C 120 36 180 36 200 30 M100 170 C 120 164 180 164 200 170"/>
+            <path d="M92 38 l6 -4 M110 40 l4 -5 M190 40 l-4 -5 M208 38 l-6 -4 M92 162 l6 4 M110 160 l4 5 M190 160 l-4 5 M208 162 l-6 4"/>
+          </g>
+          <ellipse cx="150" cy="100" rx="116" ry="70" fill="none" stroke="#C9A04A" stroke-width="1.6"/>
+          <g fill="url(#gd)" stroke="#6E4A12" stroke-width=".8">
+            <path d="M44 100 l4.7 -9.5 l4.7 9.5 l9.5 0 l-7.6 5.6 l2.9 9.4 l-9.5 -5.9 l-9.5 5.9 l2.9 -9.4 l-7.6 -5.6 z" transform="translate(-9 -5)"/>
+            <path d="M256 100 l4.7 -9.5 l4.7 9.5 l9.5 0 l-7.6 5.6 l2.9 9.4 l-9.5 -5.9 l-9.5 5.9 l2.9 -9.4 l-7.6 -5.6 z" transform="translate(-9 -5)"/>
+          </g>
+        </svg>
+        <div class="face">
+          <span class="t">Season Champion</span>
+          <span class="n">30%<small> off</small></span>
+          <span class="s">code BUCKLE30</span>
+        </div>
+      </div>
+    </div>
+    <div class="foot">
+      <p>The new season, <b>this weekend only.</b></p>
+      <span class="cta">Shop now →</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

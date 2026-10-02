@@ -144,3 +144,41 @@ test("confirmed completely different object needs corroborating shape evidence a
   );
   assert.equal(decideRefund({ ...a, reasonAddressed: false }, 20).credits, 0);
 });
+test("clearly broken anatomy is refunded even when the model's confidence wobbles (0.75+)", () => {
+  const a = parse({
+    product_match: 68,
+    render_quality: 32,
+    confidence: 0.78,
+    failure_type: "severe_anatomy",
+    defects: ["distorted_anatomy", "artifacts"],
+    evidence: "The torso is missing: the head floats above the balcony and both arms are detached from any body.",
+  });
+  assert.equal(decideRefund(a, 10).credits, 10);
+  // not strong enough: moderate render score keeps the stricter 0.85 bar
+  assert.equal(decideRefund({ ...a, renderQuality: 55 }, 10).credits, 0);
+  // still needs real confidence and the anatomy defect label
+  assert.equal(decideRefund({ ...a, confidence: 0.7 }, 10).credits, 0);
+  assert.equal(decideRefund({ ...a, defects: ["artifacts"] }, 10).credits, 0);
+  assert.equal(decideRefund({ ...a, verdict: "manual_review" }, 10).credits, 0);
+});
+test("product whose form was clearly changed is refunded at 0.70+ when shape evidence and the claim agree", () => {
+  // Gerçek vaka (25 Eyl 2026): diz üstü dantel elbise → yere kadar üç katlı maksi abiye
+  const a = parse({
+    product_match: 38,
+    render_quality: 68,
+    confidence: 0.72,
+    reason_addressed: true,
+    failure_type: "different_product",
+    defects: ["wrong_shape", "changed_product"],
+    evidence: "The original is a knee-length mini dress; the result turns it into a floor-length tiered maxi gown.",
+  });
+  assert.equal(decideRefund(a, 10).credits, 10);
+  // one defect label alone keeps the strict 0.85 bar
+  assert.equal(decideRefund({ ...a, defects: ["changed_product"] }, 10).credits, 0);
+  // the user's claim must be verified
+  assert.equal(decideRefund({ ...a, reasonAddressed: false }, 10).credits, 0);
+  // a closer match is not a form change
+  assert.equal(decideRefund({ ...a, productMatch: 55 }, 10).credits, 0);
+  // below 0.70 is still too unsure
+  assert.equal(decideRefund({ ...a, confidence: 0.65 }, 10).credits, 0);
+});

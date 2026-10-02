@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* OOTD Callouts — outfit-of-the-day spec sheet: the photo in a centred column, numbered callouts in both margins with
+     hairline leaders that stop at the photo edge. tall → header on top; square / wide → header in the left margin */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECEAE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECEAE4; color: #141414; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+
+  .head { position: absolute; left: 5vmin; right: 5vmin; top: 4.6vmin; }
+  h1 { margin: 0; font-size: 21vmin; line-height: .8; font-weight: 900; font-variation-settings: "wdth" 125; letter-spacing: -.02em; }
+  h1 br { display: none; }
+  .sub { display: flex; justify-content: space-between; margin-top: 2.4vmin; padding-top: 1.4vmin; border-top: 1px solid #141414; font-size: 1.8vmin; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; }
+
+  .stage { position: absolute; left: 23%; right: 23%; top: 32vmin; bottom: 14vmin; }
+  .shot { position: absolute; inset: 0; overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; display: block; }
+  .crop { position: absolute; width: 3vmin; height: 3vmin; border: 0 solid #141414; }
+  .crop.a { left: -1.6vmin; top: -1.6vmin; border-left-width: 1px; border-top-width: 1px; }
+  .crop.b { right: -1.6vmin; bottom: -1.6vmin; border-right-width: 1px; border-bottom-width: 1px; }
+
+  /* callouts live in the margins; the hairline runs to the photo edge and ends in a dot */
+  .co { position: absolute; width: calc(23vw - 5vmin - 1.2vmin); padding-bottom: 1.1vmin; border-bottom: 1px solid #141414; }
+  .co.l { right: calc(100% + 1.2vmin); }
+  .co.r { left: calc(100% + 1.2vmin); text-align: right; }
+  .co::after { content: ""; position: absolute; bottom: -.75vmin; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #E0461F; }
+  .co.l::after { right: -1.9vmin; }
+  .co.r::after { left: -1.9vmin; }
+  .co small { display: block; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 1.6vmin; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; color: #6B6862; }
+  .co b { display: block; margin-top: .6vmin; font-size: 2.5vmin; line-height: 1.05; font-weight: 700; font-variation-settings: "wdth" 88; letter-spacing: -.01em; }
+  .c1 { top: 16%; } .c2 { top: 34%; } .c3 { top: 58%; } .c4 { top: 76%; }
+
+  .foot { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.6vmin; display: flex; align-items: baseline; justify-content: space-between; }
+  .price { font-size: 5.6vmin; font-weight: 800; font-variation-settings: "wdth" 110; letter-spacing: -.02em; line-height: 1; }
+  .price small { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #6B6862; margin-right: 1.4vmin; vertical-align: .6em; }
+  .cta { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 2vmin; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: #141414; color: #ECEAE4; padding: 1.5vmin 2.4vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    h1 { font-size: 17vmin; }
+    .sub { margin-top: 1.8vmin; padding-top: 1.1vmin; }
+    .stage { left: 25%; right: 25%; top: 26vmin; bottom: 12.5vmin; }
+    .co { width: calc(25vw - 5vmin - 1.2vmin); }
+    .foot { bottom: 3.8vmin; }
+    .price { font-size: 4.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .head { right: auto; width: calc(31% - 8vmin); top: 5vmin; }
+    h1 { font-size: calc((31vw - 8vmin) / 2.15); line-height: .8; }
+    h1 br { display: inline; }
+    .sub { display: block; margin-top: 2vmin; padding-top: 1.2vmin; font-size: 1.7vmin; line-height: 1.7; }
+    .sub span { display: block; }
+    .stage { left: 31%; right: 31%; top: 5vmin; bottom: 5vmin; }
+    .co { width: calc(31vw - 5vmin - 1.6vmin); }
+    .co.l { right: calc(100% + 1.6vmin); } .co.r { left: calc(100% + 1.6vmin); }
+    .co.l::after { right: -2.3vmin; } .co.r::after { left: -2.3vmin; }
+    .c1 { top: 50%; } .c3 { top: 72%; } .c2 { top: 10%; } .c4 { top: 32%; }
+    .foot { left: auto; right: 5vmin; width: calc(31% - 8vmin); bottom: 5vmin; display: block; text-align: right; }
+    .price { font-size: 5.6vmin; }
+    .price small { display: block; margin: 0 0 .8vmin; vertical-align: 0; }
+    .cta { display: inline-block; margin-top: 2vmin; font-size: 1.8vmin; padding: 1.4vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .head { width: calc(34% - 9vmin); left: 6vmin; top: 6vmin; }
+    h1 { font-size: calc((34vw - 9vmin) / 2.15); }
+    .sub { font-size: 1.8vmin; }
+    .stage { left: 34%; right: 34%; top: 5vmin; bottom: 5vmin; }
+    .co { width: calc(34vw - 6vmin - 2vmin); }
+    .co.l { right: calc(100% + 2vmin); } .co.r { left: calc(100% + 2vmin); }
+    .co.l::after { right: -2.7vmin; } .co.r::after { left: -2.7vmin; }
+    .co b { font-size: 3vmin; }
+    .c1 { top: 60%; } .c3 { top: 80%; }
+    .co small { font-size: 1.7vmin; }
+    .foot { right: 6vmin; width: calc(34% - 9vmin); bottom: 6vmin; }
+    .price { font-size: 7vmin; }
+    .cta { font-size: 2vmin; padding: 1.6vmin 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1>OO<br>TD</h1>
+    <div class="sub mono"><span>Outfit of the day</span><span>Nº 214</span><span>Thu 25.09</span></div>
+  </div>
+  <div class="stage">
+    <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <i class="crop a"></i><i class="crop b"></i>
+    <div class="co l c1"><small>01 · Fabric</small><b>Organic cotton</b></div>
+    <div class="co r c2"><small>02 · Colour</small><b>Warm ecru</b></div>
+    <div class="co l c3"><small>03 · Fit</small><b>Relaxed, easy</b></div>
+    <div class="co r c4"><small>04 · Made in</small><b>Portugal</b></div>
+  </div>
+  <div class="foot">
+    <div class="price"><small>The look</small>$129</div>
+    <div class="cta">Shop the look →</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { recoverStaleGenerations, startGenerationHeartbeat } = require("../src/services/generationRecovery");
+const { pickCanonical, recoverStaleGenerations, startGenerationHeartbeat } = require("../src/services/generationRecovery");
 const now = Date.parse("2026-09-07T12:00:00Z");
 const old = new Date(now - 3600000).toISOString();
 const row = (id, extra = {}) => ({ id, generation_id: id, user_id: "owner", status: "processing", updated_at: old, created_at: old, result_image_url: null, settings: { isRefinerMode: true }, ...extra });
@@ -99,4 +99,42 @@ test("heartbeat touches only its active owner/job and stops on cleanup", async (
   assert.equal(db.writes.length, writes);
   assert.equal(tables.reference_results[0].updated_at, new Date(now).toISOString());
   assert.equal(tables.reference_results[1].updated_at, old);
+});
+
+test("duplicate canonical rows no longer abort the sweep; each mirror gets its own image", async () => {
+  const t0 = Date.parse(old);
+  const at = ms => new Date(t0 + ms).toISOString();
+  const tables = {
+    reference_results: [
+      row("dup", { id: "c1", status: "completed", result_image_url: "first", created_at: at(0) }),
+      row("dup", { id: "c2", status: "completed", result_image_url: "second", created_at: at(11000) }),
+      row("later", { status: "completed", result_image_url: "later-image" }),
+    ],
+    refiner_generations: [
+      row("dup", { id: "m1", created_at: at(400) }),
+      row("dup", { id: "m2", created_at: at(11400) }),
+      row("later", { id: "m3" }),
+    ],
+  };
+  const result = await recoverStaleGenerations(database(tables), { now });
+  assert.equal(result.mirrors.length, 3);
+  assert.deepEqual(tables.refiner_generations.map(r => [r.status, r.result_image_url]), [["completed", "first"], ["completed", "second"], ["completed", "later-image"]]);
+});
+
+test("one failing mirror is reported but does not block the others", async () => {
+  const tables = { reference_results: [row("a", { status: "completed", result_image_url: "img-a" }), row("b", { status: "completed", result_image_url: "img-b" })], back_side_generations: [row("a"), row("b")] };
+  let first = true;
+  const db = database(tables, (table, _t, update) => { if (table === "back_side_generations" && update.result_image_url === "img-a" && first) { first = false; throw new Error("boom"); } });
+  await assert.rejects(recoverStaleGenerations(db, { now }), /mirror sync failed \(1\).*boom/);
+  assert.equal(tables.back_side_generations[1].result_image_url, "img-b");
+  await recoverStaleGenerations(db, { now });
+  assert.equal(tables.back_side_generations[0].result_image_url, "img-a");
+});
+
+test("pickCanonical: completed wins, failed only when all failed, otherwise wait", () => {
+  assert.equal(pickCanonical([], old), null);
+  assert.equal(pickCanonical([{ status: "processing" }, { status: "failed" }], old), null);
+  assert.equal(pickCanonical([{ status: "failed" }, { status: "failed" }], old).status, "failed");
+  assert.equal(pickCanonical([{ status: "failed" }, { status: "completed", result_image_url: "x" }], old).result_image_url, "x");
+  assert.equal(pickCanonical([{ status: "completed", result_image_url: null }], old), null);
 });

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  /* Leaded Light — a Glasgow-style stained-glass window: black lead cames hold rose, amber and
+     green panes; the look is the one clear pane, the offer is painted on an opal quarry.
+     tall → rose transom / clear pane between stem lights / opal panel · square & wide → opal panel left, clear pane right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1B1816; }
+  .banner { --lead: #1B1816; --g: 1.1vmin; position: fixed; inset: 0; overflow: hidden; background: var(--lead);
+    font-family: "Cormorant Garamond", "Garamond", Georgia, serif; color: #2A211C; }
+  .win { position: absolute; inset: 0; padding: 1.4vmin; gap: var(--g); display: grid;
+    grid-template-columns: 12vmin 1fr 12vmin; grid-template-rows: 22vmin 1fr 52vmin;
+    grid-template-areas: "a t b" "l p r" "x x x"; }
+  .pane { position: relative; overflow: hidden; }
+  .pane::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(128deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,.06) 30%, rgba(255,255,255,0) 46%, rgba(0,0,0,.08) 100%); }
+  /* glass colours */
+  .amber { background: radial-gradient(70% 70% at 32% 30%, #F6CF7A 0%, #DD9A36 55%, #A4631F 100%); }
+  .rose  { background: radial-gradient(70% 70% at 35% 30%, #EFA0A6 0%, #C95A6A 55%, #8C2E45 100%); }
+  .green { background: radial-gradient(80% 70% at 30% 25%, #A9C08A 0%, #6C8D55 55%, #3F5C36 100%); }
+  .blue  { background: radial-gradient(80% 70% at 30% 25%, #9CC4CC 0%, #5B93A3 55%, #2F5F72 100%); }
+  .opal  { background:
+      radial-gradient(40% 30% at 20% 20%, rgba(255,255,255,.55), rgba(255,255,255,0)),
+      radial-gradient(50% 40% at 85% 75%, rgba(214,190,150,.45), rgba(214,190,150,0)),
+      radial-gradient(35% 25% at 70% 15%, rgba(236,214,190,.6), rgba(236,214,190,0)),
+      linear-gradient(170deg, #F5EEDD 0%, #EBE0C6 60%, #E3D4B3 100%); }
+  .pale  { background: radial-gradient(60% 50% at 30% 20%, #F1F2E6 0%, #D9E0CB 60%, #BCC9AE 100%); }
+
+  /* corner squares — the Mackintosh 3×3 */
+  .sq { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: var(--g); background: var(--lead); }
+  .sq .pane::after { background: linear-gradient(135deg, rgba(255,255,255,.3), rgba(255,255,255,0) 60%); }
+  .a { grid-area: a; } .b { grid-area: b; }
+
+  /* rose transom */
+  .t { grid-area: t; }
+  .t svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* stem lights */
+  .l { grid-area: l; } .r { grid-area: r; }
+  .stem { display: flex; flex-direction: column; gap: var(--g); background: var(--lead); }
+  .stem .bud { height: 11vmin; flex: none; }
+  .stem .bud svg { width: 100%; height: 100%; display: block; }
+  .stem .long { flex: 1; background:
+      linear-gradient(90deg, rgba(0,0,0,0) calc(50% - .55vmin), var(--lead) calc(50% - .55vmin), var(--lead) calc(50% + .55vmin), rgba(0,0,0,0) calc(50% + .55vmin)),
+      linear-gradient(90deg, #7E9E66 0%, #9DB783 48%, #D9E0CB 52%, #C4CFB2 100%); }
+  .stem .leaf { height: 14vmin; flex: none; }
+  .stem .leaf svg { width: 100%; height: 100%; display: block; }
+  .stem .tri { height: 4.6vmin; flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: var(--g); background: var(--lead); }
+
+  /* the clear pane */
+  .p { grid-area: p; background: #D8D2C4; }
+  .p img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+  .p::after { background: linear-gradient(128deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 22%); }
+
+  /* opal quarry with the painted copy */
+  .x { grid-area: x; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 6vmin; }
+  .x::before { content: ""; position: absolute; inset: 2.2vmin; border: 1px solid rgba(42,33,28,.35); outline: 1px solid rgba(42,33,28,.18); outline-offset: .7vmin; }
+  .kick { font-size: 2.2vmin; font-weight: 600; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; color: #8C2E45; white-space: nowrap; }
+  h1 { margin: 1.8vmin 0 0; font-family: "Cinzel Decorative", "Trajan Pro", Georgia, serif; font-weight: 700; font-size: 9vmin; line-height: 1; color: #2A211C; white-space: nowrap; }
+  .sub { margin-top: 1.4vmin; font-style: italic; font-size: 3.3vmin; line-height: 1.2; color: #4A3C31; text-wrap: balance; }
+  .deal { margin-top: 3vmin; display: flex; align-items: center; gap: 3vmin; }
+  .deal b { font-family: "Cinzel Decorative", Georgia, serif; font-weight: 700; font-size: 7.6vmin; line-height: .9; color: #8C2E45; white-space: nowrap; }
+  .deal span { text-align: left; font-size: 2.3vmin; font-weight: 600; line-height: 1.45; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .deal span u { text-decoration: none; color: #8C2E45; }
+  .cta { position: relative; margin-top: 3vmin; padding: 1.6vmin 4.4vmin 1.4vmin; font-size: 2.2vmin; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; white-space: nowrap; color: #2A211C;
+    border: .7vmin solid var(--lead); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .win { grid-template-columns: 11vmin 1fr 11vmin; grid-template-rows: 17vmin 1fr 42vmin; }
+    .stem .leaf { height: 10vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 1.2vmin; }
+    .sub { font-size: 2.9vmin; margin-top: 1vmin; }
+    .deal { margin-top: 2vmin; }
+    .deal b { font-size: 6.4vmin; }
+    .cta { margin-top: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .win { grid-template-columns: 1fr 46% 10vmin; grid-template-rows: 18vmin 1fr;
+      grid-template-areas: "t t b" "x p r"; }
+    .a, .l { display: none; }
+    .x { padding: 0 4.4vmin; }
+    .kick { font-size: 1.9vmin; letter-spacing: .26em; margin-right: -.26em; }
+    h1 { font-size: 6.2vmin; white-space: normal; line-height: 1.05; }
+    .sub { font-size: 2.7vmin; }
+    .deal { flex-direction: column; gap: 1.2vmin; margin-top: 2.6vmin; }
+    .deal b { font-size: 7vmin; }
+    .deal span { text-align: center; font-size: 2vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.4vmin 3.2vmin 1.2vmin; margin-top: 2.6vmin; }
+    .stem .leaf { height: 11vmin; }
+    .stem .bud { height: 9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .win { grid-template-columns: 1fr 50% 11vmin; grid-template-rows: 20vmin 1fr; }
+    h1 { font-size: 7.6vmin; }
+    .sub { font-size: 3vmin; }
+    .deal { flex-direction: row; gap: 2vmin; }
+    .deal span { text-align: left; font-size: 1.9vmin; letter-spacing: .12em; }
+    .deal b { font-size: 6.4vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     2.4–3.8s the sun passes behind the window: the coloured panes brighten in a left-to-right wave (the clear pane with the look
+     is left untouched) · 3.6s "25% off" swells · 4.9s light glides over the amber CTA quarry */
+  .sq .pane, .stem .pane, .t { animation: sun 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sun {
+    0%, 36% { filter: brightness(1) saturate(1); }
+    52% { filter: brightness(1.3) saturate(1.12); }
+    72%, 100% { filter: brightness(1) saturate(1); }
+  }
+  .a .pane:nth-child(3n+1) { animation-delay: -1.3s; }
+  .a .pane:nth-child(3n+2) { animation-delay: -1.2s; }
+  .a .pane:nth-child(3n) { animation-delay: -1.1s; }
+  .l .pane { animation-delay: -1s; }
+  .t { animation-delay: -.65s; }
+  .r .pane { animation-delay: -.3s; }
+  .b .pane:nth-child(3n+1) { animation-delay: -.2s; }
+  .b .pane:nth-child(3n+2) { animation-delay: -.1s; }
+
+  .deal b { animation: swell 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes swell { 0%, 56% { transform: scale(1); } 61% { transform: scale(1.1); } 65% { transform: scale(.98); } 69%, 100% { transform: scale(1); } }
+
+  .cta { overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,250,230,0) 40%, rgba(255,250,230,.6) 50%, rgba(255,250,230,0) 60%) 100% 0 / 300% 100% no-repeat;
+    animation: glide 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glide { 0%, 80% { background-position: 100% 0; } 96%, 100% { background-position: 0 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <radialGradient id="gr" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#F2A9AE"/><stop offset=".55" stop-color="#C95A6A"/><stop offset="1" stop-color="#8C2E45"/></radialGradient>
+      <radialGradient id="gr2" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#E88A93"/><stop offset="1" stop-color="#9E3A52"/></radialGradient>
+      <radialGradient id="gg" cx=".3" cy=".25" r=".9"><stop offset="0" stop-color="#B5CB95"/><stop offset=".6" stop-color="#6C8D55"/><stop offset="1" stop-color="#3F5C36"/></radialGradient>
+      <radialGradient id="ga" cx=".3" cy=".3" r=".8"><stop offset="0" stop-color="#F8D484"/><stop offset="1" stop-color="#C2802C"/></radialGradient>
+      <linearGradient id="go" x1="0" y1="0" x2=".3" y2="1"><stop offset="0" stop-color="#F3F1E4"/><stop offset="1" stop-color="#D5DCCB"/></linearGradient>
+    </defs>
+  </svg>
+  <div class="win">
+    <div class="a sq"><i class="pane amber"></i><i class="pane blue"></i><i class="pane amber"></i><i class="pane blue"></i><i class="pane rose"></i><i class="pane blue"></i><i class="pane amber"></i><i class="pane blue"></i><i class="pane amber"></i></div>
+    <div class="t pane pale">
+      <svg viewBox="0 0 240 70" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <rect width="240" height="70" fill="url(#go)"/>
+        <g stroke="#1B1816" stroke-width="2.2" fill="none" stroke-linecap="round">
+          <path d="M-10 35 H 86 M154 35 H 250"/>
+          <path d="M0 12 C 30 12, 50 34, 86 35 M240 12 C 210 12, 190 34, 154 35"/>
+          <path d="M0 58 C 30 58, 50 36, 86 35 M240 58 C 210 58, 190 36, 154 35"/>
+        </g>
+        <g stroke="#1B1816" stroke-width="2">
+          <path d="M40 35 C 50 22, 66 22, 74 35 C 66 48, 50 48, 40 35 Z" fill="url(#gg)"/>
+          <path d="M200 35 C 190 22, 174 22, 166 35 C 174 48, 190 48, 200 35 Z" fill="url(#gg)"/>
+          <circle cx="120" cy="35" r="32" fill="url(#gr)"/>
+          <circle cx="120" cy="35" r="23" fill="url(#gr2)"/>
+          <circle cx="120" cy="35" r="14" fill="url(#gr)"/>
+          <circle cx="120" cy="35" r="5.5" fill="url(#ga)"/>
+          <path d="M120 3 V 12 M120 58 V 67 M88 35 H 97 M143 35 H 152 M97.4 12.4 L 103.7 18.7 M136.3 51.3 L 142.6 57.6 M142.6 12.4 L 136.3 18.7 M103.7 51.3 L 97.4 57.6" fill="none"/>
+        </g>
+      </svg>
+    </div>
+    <div class="b sq"><i class="pane amber"></i><i class="pane blue"></i><i class="pane amber"></i><i class="pane blue"></i><i class="pane rose"></i><i class="pane blue"></i><i class="pane amber"></i><i class="pane blue"></i><i class="pane amber"></i></div>
+    <div class="l stem">
+      <div class="bud pane pale"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="12" fill="url(#gr)" stroke="#1B1816" stroke-width="2.2"/><circle cx="20" cy="20" r="5" fill="url(#ga)" stroke="#1B1816" stroke-width="1.8"/></svg></div>
+      <div class="long pane"></div>
+      <div class="leaf pane pale"><svg viewBox="0 0 40 60" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M20 0 V 60" stroke="#1B1816" stroke-width="2.2"/><path d="M20 30 C 8 26, 4 14, 6 6 C 16 8, 22 18, 20 30 Z M20 44 C 32 40, 36 28, 34 20 C 24 22, 18 32, 20 44 Z" fill="url(#gg)" stroke="#1B1816" stroke-width="2"/></svg></div>
+      <div class="tri"><i class="pane amber"></i><i class="pane blue"></i></div>
+    </div>
+    <div class="p pane"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="r stem">
+      <div class="bud pane pale"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="12" fill="url(#gr)" stroke="#1B1816" stroke-width="2.2"/><circle cx="20" cy="20" r="5" fill="url(#ga)" stroke="#1B1816" stroke-width="1.8"/></svg></div>
+      <div class="long pane"></div>
+      <div class="leaf pane pale"><svg viewBox="0 0 40 60" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><path d="M20 0 V 60" stroke="#1B1816" stroke-width="2.2"/><path d="M20 30 C 32 26, 36 14, 34 6 C 24 8, 18 18, 20 30 Z M20 44 C 8 40, 4 28, 6 20 C 16 22, 22 32, 20 44 Z" fill="url(#gg)" stroke="#1B1816" stroke-width="2"/></svg></div>
+      <div class="tri"><i class="pane blue"></i><i class="pane amber"></i></div>
+    </div>
+    <div class="x pane opal">
+      <div class="kick">The Glass House · Nº 07</div>
+      <h1>Light Season</h1>
+      <div class="sub">New arrivals, cut to catch the sun.</div>
+      <div class="deal"><b>25% off</b><span>Code <u>LEADLIGHT</u><br>Until 31 May</span></div>
+      <div class="cta amber">Shop the window</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

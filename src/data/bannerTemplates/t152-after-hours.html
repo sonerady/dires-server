@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400;1,9..144,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* After Hours — the shop door after closing: an enamel "Open" sign swings on its cord from a brass nail,
+     flipped for members only, on a night-blue panel lit by one warm lamp.
+     tall → night panel above, photo below; square/wide → night panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0F1626; }
+  .banner { --panel: 82vmin; --sw: 60vmin; position: fixed; inset: 0; overflow: hidden; background: #0F1626; color: #EFE6D4; font-family: "DM Mono", "Courier New", monospace; }
+  .night { position: absolute; left: 0; top: 0; width: 100%; height: var(--panel); overflow: hidden;
+    background: radial-gradient(ellipse 70% 55% at 50% 30%, rgba(242,179,91,.16), rgba(242,179,91,0) 70%), #0F1626; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; align-items: center; }
+  .top { align-self: stretch; display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(239,230,212,.3); font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; }
+  .top b { font-weight: 500; color: #F2B35B; }
+
+  /* hanging sign */
+  .hang { position: relative; width: var(--sw); margin-top: 3vmin; transform: rotate(-3deg); transform-origin: 50% 0; }
+  .nail { position: absolute; left: 50%; top: -1.1vmin; width: 2.2vmin; height: 2.2vmin; margin-left: -1.1vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #F6DDA8, #B8873C 60%, #6E4E1E); box-shadow: 0 .4vmin .8vmin rgba(0,0,0,.5); z-index: 2; }
+  .cord { position: relative; height: calc(var(--sw) * .16); margin: 0 10%; }
+  .cord::before, .cord::after { content: ""; position: absolute; top: 0; bottom: 0; width: 50%; }
+  .cord::before { left: 0; background: linear-gradient(to top left, transparent calc(50% - .18vmin), #CDBB98 calc(50% - .12vmin), #CDBB98 calc(50% + .12vmin), transparent calc(50% + .18vmin)); }
+  .cord::after { right: 0; background: linear-gradient(to top right, transparent calc(50% - .18vmin), #CDBB98 calc(50% - .12vmin), #CDBB98 calc(50% + .12vmin), transparent calc(50% + .18vmin)); }
+  .sign { position: relative; background: #F3ECDD; color: #7A1E24; border-radius: 1.4vmin; padding: calc(var(--sw) * .045) calc(var(--sw) * .06) calc(var(--sw) * .05); text-align: center;
+    box-shadow: 0 2.4vmin 4vmin rgba(0,0,0,.55), inset 0 0 0 .7vmin #F3ECDD, inset 0 0 0 .95vmin #7A1E24; }
+  .sign::before, .sign::after { content: ""; position: absolute; top: 2vmin; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #0F1626; box-shadow: inset 0 .2vmin .3vmin rgba(0,0,0,.6); }
+  .sign::before { left: 10%; margin-left: -.7vmin; }
+  .sign::after { right: 10%; margin-right: -.7vmin; }
+  .s-top { font-size: calc(var(--sw) * .03); letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; color: #3A2A24; }
+  .s-word { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; font-size: calc(var(--sw) * .27); line-height: .9; letter-spacing: -.02em; margin: calc(var(--sw) * .035) 0 calc(var(--sw) * .02); }
+  .s-hours { display: inline-block; border-top: 1px solid rgba(122,30,36,.5); padding-top: calc(var(--sw) * .02); font-size: calc(var(--sw) * .034); letter-spacing: .12em; color: #3A2A24; white-space: nowrap; }
+
+  h1 { margin: auto 0 0; text-align: center; font-family: "Fraunces", Georgia, serif; font-weight: 300; font-size: 6.2vmin; line-height: 1.08; letter-spacing: -.01em; }
+  h1 em { font-weight: 400; color: #F2B35B; }
+  .info { align-self: stretch; display: flex; margin-top: 3vmin; border-top: 1px solid rgba(239,230,212,.3); }
+  .info div { flex: 1; padding-top: 1.6vmin; text-align: center; font-size: 1.7vmin; letter-spacing: .16em; text-transform: uppercase; color: rgba(239,230,212,.7); }
+  .info div + div { border-left: 1px solid rgba(239,230,212,.2); }
+  .info b { display: block; margin-top: .6vmin; font-weight: 500; font-size: 2.3vmin; letter-spacing: .06em; color: #EFE6D4; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; --sw: 50vmin; }
+    .copy { top: 4.5vmin; height: calc(var(--panel) - 8.5vmin); }
+    .hang { margin-top: 2.4vmin; }
+    h1 { font-size: 5.4vmin; }
+    .info { margin-top: 2.4vmin; }
+    .info b { font-size: 2.1vmin; }
+  }
+  /* square — night panel left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --sw: 38vmin; }
+    .night { width: 50%; height: 100%; }
+    .photo { left: 50%; width: 50%; height: 100%; object-position: 50% 22%; }
+    .copy { left: 5vmin; right: auto; width: calc(50% - 10vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    .top { font-size: 1.6vmin; letter-spacing: .14em; }
+    .hang { margin-top: auto; }
+    h1 { margin-top: 6vmin; font-size: 5vmin; }
+    .info { margin-bottom: auto; }
+    .info { flex-direction: column; margin-top: 2.6vmin; }
+    .info div { display: flex; justify-content: space-between; align-items: baseline; padding: 1.1vmin 0; font-size: 1.6vmin; border-bottom: 1px solid rgba(239,230,212,.2); }
+    .info div + div { border-left: 0; }
+    .info b { margin: 0; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --sw: 44vmin; }
+    .night { width: 48%; }
+    .photo { left: 48%; width: 52%; }
+    .copy { left: 6vmin; width: calc(48% - 12vmin); top: 6vmin; bottom: 6vmin; }
+    .top { font-size: 1.7vmin; letter-spacing: .2em; }
+    h1 { margin-top: 5vmin; font-size: 5.2vmin; }
+    .info { flex-direction: row; }
+    .info div { display: block; padding: 1.4vmin 0 0; border-bottom: 0; font-size: 1.6vmin; }
+    .info div + div { border-left: 1px solid rgba(239,230,212,.2); }
+    .info b { margin-top: .5vmin; font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="night"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="top"><span>Studio Oro</span><span><b>●</b> Doors at 21:00</span></div>
+    <div class="hang">
+      <div class="nail"></div>
+      <div class="cord"></div>
+      <div class="sign">
+        <div class="s-top">Members only</div>
+        <div class="s-word">Open</div>
+        <div class="s-hours">21:00 — 00:00</div>
+      </div>
+    </div>
+    <h1>The store after closing,<br><em>kept open for you.</em></h1>
+    <div class="info">
+      <div>Night<b>Thu 14 Nov</b></div>
+      <div>All night<b>20% off</b></div>
+      <div>Code<b>LATE20</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

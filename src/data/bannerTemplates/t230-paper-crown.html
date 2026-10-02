@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Jost:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Paper Crown — Epiphany and the galette des rois (6 January): a gold-foil paper crown sits askew on the headline,
+     the butter-cream panel is scored like puff pastry, and a tiny porcelain fève sticker hides the bonus prize.
+     tall → photo above the panel; square/wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E4C2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3E4C2; color: #2A1D12; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 76vmin); object-fit: cover; object-position: 50% 18%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100% - 76vmin); overflow: hidden; background: radial-gradient(90vmin 70vmin at 100% 100%, #EBCB8C 0%, #F3E4C2 70%); }
+  .score { position: absolute; right: 0; bottom: 0; width: 80vmin; height: 80vmin; }
+  .crown { position: absolute; left: 6vmin; top: 5vmin; width: 30vmin; height: 15vmin; transform: rotate(-7deg); filter: drop-shadow(0 .8vmin .8vmin rgba(90,60,10,.28)); }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 21vmin; bottom: 6vmin; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Gloock", Didot, Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .9; letter-spacing: -.02em; }
+  h1 i { font-style: normal; color: #A3262E; }
+  .k { margin-top: 2.6vmin; display: flex; align-items: center; gap: 1.6vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: #7A5A2C; }
+  .k::before { content: ""; width: 5vmin; height: 1px; background: #7A5A2C; }
+  .offer { margin-top: auto; display: flex; align-items: center; gap: 2.6vmin; }
+  .offer b { font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 8vmin; line-height: 1; white-space: nowrap; }
+  .feve { position: relative; display: flex; align-items: center; gap: 1.4vmin; padding: 1.2vmin 2vmin 1.2vmin 1.2vmin; background: #FFFDF8; border-radius: 99vmin; box-shadow: 0 .3vmin .8vmin rgba(90,60,10,.2); transform: rotate(-3deg); }
+  .feve svg { width: 5.4vmin; height: 5.4vmin; flex: none; }
+  .feve span { font-size: 1.7vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; line-height: 1.35; }
+  .foot { margin-top: 3vmin; display: flex; align-items: center; gap: 2.4vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+  .foot .code { white-space: nowrap; }
+  .foot .code em { font-style: normal; color: #A3262E; }
+  .foot .cta { background: #2A1D12; color: #F3E4C2; padding: 1.5vmin 3vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .panel { top: calc(100% - 64vmin); }
+    .crown { top: 3.4vmin; width: 26vmin; height: 13vmin; }
+    .copy { top: 17.4vmin; bottom: 4.4vmin; }
+    h1 { font-size: 11vmin; }
+    .k { margin-top: 2vmin; }
+    .offer b { font-size: 7vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  /* square / wide → photo left, panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 48%; top: 0; }
+    .crown { left: 4vmin; top: 8vmin; width: 26vmin; height: 13vmin; }
+    .copy { left: 5vmin; right: 4vmin; top: 22vmin; bottom: 6vmin; }
+    h1 { font-size: 9.6vmin; }
+    .k { letter-spacing: .18em; }
+    .k::before { width: 3vmin; }
+    .offer { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .offer b { font-size: 7vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.6vmin; font-size: 1.8vmin; margin-top: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { left: 46%; }
+    .crown { left: 6vmin; top: 9vmin; width: 32vmin; height: 16vmin; }
+    .copy { left: 7vmin; right: 7vmin; top: 27vmin; bottom: 8vmin; }
+    h1 { font-size: 12vmin; }
+    .k { letter-spacing: .26em; }
+    .offer { flex-direction: row; align-items: center; gap: 2.6vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 2.4vmin; font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <svg class="score" viewBox="0 0 100 100" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
+      <g fill="none" stroke="#9A6B28" stroke-opacity=".22" stroke-width=".5"><path d="M100 100 Q 34.2 76.0 -40.0 100.0"/><path d="M100 100 Q 36.2 71.2 -39.6 89.5"/><path d="M100 100 Q 38.6 66.5 -38.4 79.1"/><path d="M100 100 Q 41.2 62.0 -36.5 68.8"/><path d="M100 100 Q 44.2 57.7 -33.8 58.7"/><path d="M100 100 Q 47.6 53.6 -30.3 48.9"/><path d="M100 100 Q 51.2 49.8 -26.1 39.3"/><path d="M100 100 Q 55.1 46.3 -21.2 30.0"/><path d="M100 100 Q 59.2 43.1 -15.7 21.1"/><path d="M100 100 Q 63.6 40.2 -9.5 12.7"/><path d="M100 100 Q 68.1 37.7 -2.6 4.8"/><path d="M100 100 Q 72.9 35.5 4.8 -2.6"/><path d="M100 100 Q 77.8 33.6 12.7 -9.5"/><path d="M100 100 Q 82.8 32.1 21.1 -15.7"/><path d="M100 100 Q 87.9 31.1 30.0 -21.2"/><path d="M100 100 Q 93.1 30.3 39.3 -26.1"/><path d="M100 100 Q 98.3 30.0 48.9 -30.3"/><path d="M100 100 Q 103.6 30.1 58.7 -33.8"/><path d="M100 100 Q 108.8 30.6 68.8 -36.5"/><path d="M100 100 Q 113.9 31.4 79.1 -38.4"/><path d="M100 100 Q 119.0 32.6 89.5 -39.6"/><path d="M100 100 Q 124.0 34.2 100.0 -40.0"/></g>
+    </svg>
+    <svg class="crown" viewBox="-6 -2 212 106" aria-hidden="true">
+      <defs>
+        <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F9E08C"/><stop offset=".35" stop-color="#E0B23E"/><stop offset=".6" stop-color="#FBE7A2"/><stop offset="1" stop-color="#B9861F"/></linearGradient>
+        <linearGradient id="gold2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFF1BF"/><stop offset="1" stop-color="#C8942A"/></linearGradient>
+      </defs>
+      <polygon points="0 100 0 44 14.3 6 28.6 44 42.9 6 57.1 44 71.4 6 85.7 44 100.0 6 114.3 44 128.6 6 142.9 44 157.1 6 171.4 44 185.7 6 200.0 44 200 100" fill="url(#gold)" stroke="#8C6414" stroke-width="1.2" stroke-linejoin="round"/>
+      <path d="M0 60 H200 M0 88 H200" stroke="#8C6414" stroke-width="1" stroke-opacity=".6"/>
+      <circle cx="10" cy="74" r="3.2" fill="#B8323A"/><circle cx="30" cy="74" r="3.2" fill="#B8323A"/><circle cx="50" cy="74" r="3.2" fill="#B8323A"/><circle cx="70" cy="74" r="3.2" fill="#B8323A"/><circle cx="90" cy="74" r="3.2" fill="#B8323A"/><circle cx="110" cy="74" r="3.2" fill="#B8323A"/><circle cx="130" cy="74" r="3.2" fill="#B8323A"/><circle cx="150" cy="74" r="3.2" fill="#B8323A"/><circle cx="170" cy="74" r="3.2" fill="#B8323A"/><circle cx="190" cy="74" r="3.2" fill="#B8323A"/>
+      <circle cx="14.3" cy="7" r="5" fill="url(#gold2)" stroke="#8C6414" stroke-width="1"/><circle cx="42.9" cy="7" r="5" fill="url(#gold2)" stroke="#8C6414" stroke-width="1"/><circle cx="71.4" cy="7" r="5" fill="url(#gold2)" stroke="#8C6414" stroke-width="1"/><circle cx="100.0" cy="7" r="5" fill="url(#gold2)" stroke="#8C6414" stroke-width="1"/><circle cx="128.6" cy="7" r="5" fill="url(#gold2)" stroke="#8C6414" stroke-width="1"/><circle cx="157.1" cy="7" r="5" fill="url(#gold2)" stroke="#8C6414" stroke-width="1"/><circle cx="185.7" cy="7" r="5" fill="url(#gold2)" stroke="#8C6414" stroke-width="1"/>
+    </svg>
+    <div class="copy">
+      <h1>Crowned<br>for <i>a day.</i></h1>
+      <div class="k">Epiphany · 6 January</div>
+      <div class="offer">
+        <b>20% off</b>
+        <div class="feve"><svg viewBox="0 0 40 40" aria-hidden="true"><ellipse cx="20" cy="21" rx="15" ry="17" fill="#F7F4EE" stroke="#C9C1B3" stroke-width="1.2"/><path d="M20 11 L22.6 17.6 L29.6 17.8 L24 22.2 L26 29 L20 25 L14 29 L16 22.2 L10.4 17.8 L17.4 17.6 Z" fill="#2E5AA8"/></svg><span>A hidden fève<br>in 1 of 10 orders</span></div>
+      </div>
+      <div class="foot"><span class="code">Code <em>FEVE20</em></span><span class="cta">Find yours</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

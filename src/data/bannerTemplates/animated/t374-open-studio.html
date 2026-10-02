@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Open Studio — a two-colour wood-type notice, folded once, pinned to the limewashed wall of a pottery studio:
+     OPEN / STUDIO, the weekend hours with dot leaders, a hand-inked roundel for seconds and samples.
+     tall → photo above, notice pinned below · 3:4 and wider → photo left, notice pinned on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D9D2C6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1E1B18; font-family: "Libre Caslon Text", Georgia, serif;
+    background:
+      radial-gradient(80% 60% at 30% 100%, rgba(255,255,255,.35), rgba(255,255,255,0)),
+      #D9D2C6; }
+  .wall { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .5; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .notice { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; height: 68vmin; box-sizing: border-box; padding: 4.4vmin 5vmin 4.4vmin; display: flex; flex-direction: column;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0) 49.6%, rgba(90,70,50,.10) 50%, rgba(255,255,255,.5) 50.4%, rgba(0,0,0,0) 51.4%),
+      linear-gradient(90deg, rgba(120,100,70,.05), rgba(255,255,255,0) 30%, rgba(120,100,70,.05)),
+      #F4EFE4;
+    box-shadow: 0 .3vmin .4vmin rgba(50,40,30,.18), 0 1.6vmin 2.6vmin rgba(50,40,30,.16); transform: rotate(-1.1deg); }
+  .pin { position: absolute; top: 1.8vmin; width: 2.4vmin; height: 2.4vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F3DDA0, #B8893A 55%, #6E4D18); box-shadow: .5vmin .7vmin .6vmin rgba(40,30,20,.35); }
+  .pin.a { left: 2vmin; } .pin.b { right: 2vmin; }
+
+  .top { display: flex; justify-content: space-between; gap: 2vmin; padding: 0 1.6vmin 1.4vmin; border-bottom: .35vmin solid #1E1B18; font-size: 1.8vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .wood { position: relative; margin-top: 2.4vmin; font-family: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif; font-weight: 900; font-size: 17.5vmin; line-height: .82; letter-spacing: .01em; text-transform: uppercase; }
+  .wood span { display: table; }
+  .wood span + span { color: #B4502C; }
+  .roundel { position: absolute; right: 0; top: -.4vmin; width: 19vmin; height: 19vmin; transform: rotate(9deg); }
+  .hours { margin-top: 3vmin; font-size: 2.5vmin; }
+  .hours div { display: flex; align-items: baseline; gap: 1.4vmin; padding: .9vmin 0; white-space: nowrap; }
+  .hours div + div { border-top: 1px solid rgba(30,27,24,.3); }
+  .hours b { font-weight: 700; }
+  .hours i { flex: 1; min-width: 2vmin; border-bottom: .3vmin dotted #1E1B18; transform: translateY(-.5vmin); }
+  .menu { display: none; margin-top: 3.4vmin; border-top: .35vmin solid #1E1B18; padding-top: 1.6vmin; }
+  .menu small { display: block; font-size: 1.7vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+  .menu ol { margin: 1.4vmin 0 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.4vmin; }
+  .menu li b { display: block; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 800; font-size: 3.6vmin; line-height: 1; text-transform: uppercase; }
+  .menu li b em { font-style: normal; color: #B4502C; }
+  .menu li span { display: block; margin-top: .6vmin; font-style: italic; font-size: 1.8vmin; line-height: 1.35; color: #4A433C; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .foot p { margin: 0; font-style: italic; font-size: 2.2vmin; line-height: 1.4; color: #4A433C; }
+  .cta { flex: none; white-space: nowrap; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 800; font-size: 3.2vmin; letter-spacing: .06em; text-transform: uppercase; background: #1E1B18; color: #F4EFE4; padding: 1vmin 2vmin; }
+
+  /* ── 3:4 / 4:5 → photo left, notice on the right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .notice { left: calc(50% + 4vmin); right: 4vmin; top: 8vmin; bottom: 8vmin; height: auto; padding: 4.4vmin 3.6vmin; transform: rotate(1.2deg); }
+    .top { padding: 0 1vmin 1.2vmin; font-size: 1.6vmin; letter-spacing: .12em; }
+    .top span:last-child { display: none; }
+    .wood { font-size: 13vmin; margin-top: 3vmin; }
+    .roundel { position: relative; right: auto; top: auto; display: block; width: 17vmin; height: 17vmin; margin: 3vmin 0 0 auto; }
+    .hours { font-size: 2.2vmin; margin-top: 2vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .foot p { font-size: 2vmin; }
+    .cta { font-size: 2.8vmin; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .notice { left: calc(48% + 4vmin); top: 6vmin; bottom: 6vmin; padding: 3.8vmin 3.6vmin 3.6vmin; }
+    .wood { font-size: 13.4vmin; margin-top: 2.4vmin; }
+    .roundel { position: absolute; left: 50%; top: calc(100% + 13vmin); width: 21vmin; height: 21vmin; margin: 0 0 0 -10.5vmin; }
+    .hours { font-size: 2vmin; margin-top: 2.4vmin; }
+    .hours div { padding: .7vmin 0; }
+    .foot p { font-size: 1.8vmin; }
+    .foot { gap: 1.8vmin; }
+    .cta { font-size: 2.6vmin; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 72% 30%; }
+    .notice { left: calc(46% + 6vmin); right: 6vmin; top: 7vmin; bottom: 7vmin; padding: 4.4vmin 4.6vmin 4vmin; transform: rotate(-1deg); }
+    .top { padding: 0 1.6vmin 1.4vmin; font-size: 1.7vmin; letter-spacing: .16em; }
+    .top span:last-child { display: inline; }
+    .wood { font-size: 16.5vmin; margin-top: 2.6vmin; }
+    .roundel { position: absolute; left: auto; right: 0; top: -1vmin; width: 15.5vmin; height: 15.5vmin; margin: 0; }
+    .menu { display: block; }
+    .foot { justify-content: flex-end; }
+    .foot p { display: none; }
+    .hours { font-size: 2.3vmin; margin-top: 2.6vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .foot p { font-size: 2vmin; }
+    .cta { font-size: 3vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     0.8s OPEN / STUDIO are re-inked line by line, like a fresh pull off the press ·
+     1.9s a draught lifts the lower edge of the notice off the wall (the pins hold the top), it settles ·
+     2.8s the roundel is stamped back on — lifted off, then pressed down with a small rebound ·
+     5.2s a sheen crosses the RSVP block */
+  .notice { --rot: -1.1deg; transform-origin: 50% 0; animation: draught 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @media (min-aspect-ratio: 7/10) { .notice { --rot: 1.2deg; } }
+  @media (min-aspect-ratio: 6/5) { .notice { --rot: -1deg; } }
+  @keyframes draught {
+    0%, 30%, 58%, 100% { transform: rotate(var(--rot)) perspective(160vmin) rotateX(0deg);
+      box-shadow: 0 .3vmin .4vmin rgba(50,40,30,.18), 0 1.6vmin 2.6vmin rgba(50,40,30,.16); }
+    39% { transform: rotate(var(--rot)) perspective(160vmin) rotateX(-5deg);
+      box-shadow: 0 .6vmin .8vmin rgba(50,40,30,.16), 0 3.2vmin 4.4vmin rgba(50,40,30,.2); }
+    48% { transform: rotate(var(--rot)) perspective(160vmin) rotateX(1.2deg);
+      box-shadow: 0 .3vmin .4vmin rgba(50,40,30,.19), 0 1.4vmin 2.2vmin rgba(50,40,30,.15); }
+  }
+
+  .wood span { animation: ink 6s cubic-bezier(.65,0,.35,1) infinite; }
+  .wood span + span { animation-delay: -.25s; }
+  @keyframes ink {
+    0%, 8%, 26%, 100% { clip-path: inset(-10% -4% -10% -4%); }
+    14%, 15% { clip-path: inset(-10% 104% -10% -4%); }
+  }
+
+  .roundel { animation: stamp 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes stamp {
+    0%, 38%, 60%, 100% { opacity: 1; transform: rotate(9deg) scale(1); }
+    41%, 44% { opacity: 0; transform: rotate(14deg) scale(1.45); animation-timing-function: cubic-bezier(.7,0,1,.6); }
+    48% { opacity: 1; transform: rotate(9deg) scale(.94); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    53% { opacity: 1; transform: rotate(9deg) scale(1.02); }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, rgba(255,255,255,0) 35%, rgba(244,239,228,.35) 50%, rgba(255,255,255,0) 65%);
+    background-size: 300% 100%; background-position: 100% 0; animation: sheen 6s cubic-bezier(.4,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 86% { background-position: 100% 0; } 96%, 100% { background-position: 0 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="wall" preserveAspectRatio="none" aria-hidden="true">
+    <filter id="lime" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".012 .02" numOctaves="4" seed="11" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 .45  0 0 0 0 .40  0 0 0 0 .33  0 0 0 -1.3 .78"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#lime)"/>
+  </svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="notice">
+    <i class="pin a"></i><i class="pin b"></i>
+    <div class="top"><span>Kiln Yard Studios</span><span>Unit 4</span></div>
+    <div class="wood">
+      <span>Open</span><span>Studio</span>
+      <svg class="roundel" viewBox="0 0 100 100" aria-hidden="true">
+        <defs>
+          <filter id="ink" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="2" seed="4" result="s"/>
+            <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.6 2.1" result="holes"/>
+            <feComposite in="SourceGraphic" in2="holes" operator="in"/>
+          </filter>
+          <path id="arc" d="M50 50 m-36 0 a36 36 0 1 1 72 0 a36 36 0 1 1 -72 0"/>
+        </defs>
+        <g filter="url(#ink)" fill="#B4502C">
+          <circle cx="50" cy="50" r="47" fill="none" stroke="#B4502C" stroke-width="2.4"/>
+          <circle cx="50" cy="50" r="28" fill="none" stroke="#B4502C" stroke-width="1.2"/>
+          <text font-family="'Big Shoulders Display', Impact, sans-serif" font-weight="800" font-size="10.5" letter-spacing="2.4"><textPath href="#arc">SECONDS · SAMPLES · SECONDS ·</textPath></text>
+          <text x="50" y="47" text-anchor="middle" font-family="'Libre Caslon Text', Georgia, serif" font-size="9" font-style="italic">up to</text>
+          <text x="50" y="64" text-anchor="middle" font-family="'Big Shoulders Display', Impact, sans-serif" font-weight="900" font-size="20">−40%</text>
+        </g>
+      </svg>
+    </div>
+    <div class="hours">
+      <div><b>Sat 11 Oct</b><i></i><span>11:00 — 18:00</span></div>
+      <div><b>Sun 12 Oct</b><i></i><span>11:00 — 16:00</span></div>
+    </div>
+    <div class="menu"><small>On the tables</small><ol>
+      <li><b>New <em>in</em></b><span>A first look before it goes online</span></li>
+      <li><b>Samples</b><span>One of each, never repeated</span></li>
+      <li><b>Seconds</b><span>Small flaws, up to −40%</span></li>
+    </ol></div>
+    <div class="foot">
+      <p>The new collection on the rails,<br>coffee on the wheel. All welcome.</p>
+      <div class="cta">RSVP in the app →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

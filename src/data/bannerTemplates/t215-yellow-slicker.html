@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Barlow+Condensed:wght@500;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Yellow Slicker — the panel IS a fisherman's oilskin: glossy yellow with a sheen, a stitched storm placket
+     with black snap fasteners, rain beading on the surface and a stitched woven label carrying the code.
+     Stencil "FOUL WEATHER" headline. tall → photo above, slicker panel below · square/wide → photo left, slicker right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4C400; }
+  .banner { --panel: 84vmin; position: fixed; inset: 0; overflow: hidden; background: #F4C400; color: #151410; font-family: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; }
+  .sten { font-family: "Saira Stencil One", Impact, "Arial Black", sans-serif; font-weight: 400; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .coat { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); overflow: hidden;
+    background: radial-gradient(120% 70% at 25% 10%, rgba(255,255,255,.42), rgba(255,255,255,0) 55%),
+                linear-gradient(115deg, #F7CF1C 0%, #F4C400 40%, #E8B600 70%, #F2C100 100%); }
+  .coat::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(100deg, rgba(255,255,255,0) 0 6vmin, rgba(255,255,255,.07) 6vmin 7vmin, rgba(255,255,255,0) 7vmin 15vmin); }
+  .coat::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2.4vmin; background: linear-gradient(180deg, rgba(90,60,0,.28), rgba(90,60,0,0)); }
+
+  /* storm placket */
+  .placket { position: absolute; right: 0; top: 0; bottom: 0; width: 18vmin; border-left: .35vmin solid rgba(120,85,0,.35); box-shadow: -.8vmin 0 1.2vmin -.6vmin rgba(90,60,0,.3); display: flex; flex-direction: column; justify-content: space-evenly; align-items: center; }
+  .placket::before, .placket::after { content: ""; position: absolute; top: 0; bottom: 0; width: 0; border-left: .3vmin dashed rgba(80,55,0,.55); }
+  .placket::before { left: 1.6vmin; }
+  .placket::after { right: 1.6vmin; }
+  .snap { width: 6vmin; height: 6vmin; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #6B6B66 0 12%, #262522 34%, #0E0E0C 70%); box-shadow: 0 .5vmin .8vmin rgba(60,40,0,.4), inset 0 0 0 .6vmin #1C1B18, inset 0 0 0 .9vmin #55544E; }
+
+  .rain { position: absolute; right: 0; top: 0; bottom: 0; width: 26vmin; }
+  .drop { position: absolute; border-radius: 50% 50% 48% 52% / 55% 55% 45% 45%;
+    background: radial-gradient(circle at 34% 30%, rgba(255,255,255,.95) 0 14%, rgba(255,250,220,.35) 32%, rgba(255,240,170,.08) 60%, rgba(150,100,0,.18) 100%);
+    box-shadow: .25vmin .55vmin .5vmin rgba(110,75,0,.32); }
+
+  .copy { position: absolute; left: 6vmin; right: 24vmin; top: 5vmin; bottom: 5.4vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; gap: 2vmin; font-weight: 600; font-size: 2.2vmin; letter-spacing: .18em; text-transform: uppercase; }
+  .kick b { font-weight: 800; }
+  h1 { margin: 2.6vmin 0 0; font-size: 15vmin; line-height: .88; letter-spacing: -.01em; }
+  .offer { margin-top: 2.8vmin; display: flex; align-items: baseline; gap: 2vmin; font-weight: 600; font-size: 3vmin; letter-spacing: .04em; text-transform: uppercase; }
+  .offer b { font-family: "Saira Stencil One", Impact, sans-serif; font-weight: 400; font-size: 9vmin; line-height: 1; letter-spacing: -.02em; }
+  .label { margin-top: auto; align-self: flex-start; position: relative; padding: 1.6vmin 2.6vmin; background: #151410; color: #F4C400; font-weight: 600; font-size: 1.9vmin; letter-spacing: .16em; text-transform: uppercase; line-height: 1.45; box-shadow: 0 .4vmin .8vmin rgba(60,40,0,.3); }
+  .label::before { content: ""; position: absolute; inset: .6vmin; border: 1px dashed rgba(244,196,0,.6); pointer-events: none; }
+  .label b { font-weight: 800; color: #FFF6D0; }
+  .cta { margin-top: 2vmin; align-self: flex-start; display: flex; align-items: center; gap: 1.4vmin; padding: 1.8vmin 3.4vmin; border: .45vmin solid #151410; font-weight: 800; font-size: 2.6vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .cta::after { content: ""; width: 1.4vmin; height: 1.4vmin; border-top: .45vmin solid; border-right: .45vmin solid; transform: rotate(45deg); }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --panel: 76vmin; }
+    h1 { font-size: 13.6vmin; }
+    .offer b { font-size: 8vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 64vmin; }
+    .placket { width: 15vmin; }
+    .snap { width: 5vmin; height: 5vmin; }
+    .copy { right: 20vmin; top: 4vmin; bottom: 4vmin; }
+    h1 { font-size: 11.6vmin; margin-top: 2vmin; }
+    .offer { margin-top: 1.8vmin; font-size: 2.6vmin; }
+    .offer b { font-size: 6.6vmin; }
+    .cta { padding: 1.4vmin 2.8vmin; font-size: 2.2vmin; margin-top: 1.6vmin; }
+  }
+  /* square / wide → photo left, slicker right with the placket on the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 44%; height: 100%; object-position: 50% 22%; }
+    .coat { left: 44%; top: 0; height: auto; }
+    .coat::after { top: 0; bottom: 0; height: auto; width: 2.4vmin; background: linear-gradient(90deg, rgba(90,60,0,.3), rgba(90,60,0,0)); }
+    .placket { right: auto; left: 0; width: 10vmin; border-left: 0; border-right: .35vmin solid rgba(120,85,0,.35); box-shadow: .8vmin 0 1.2vmin -.6vmin rgba(90,60,0,.3); }
+    .snap { width: 4.6vmin; height: 4.6vmin; }
+    .snap { width: 4.2vmin; height: 4.2vmin; }
+    .rain { right: auto; left: 0; width: 11vmin; }
+    .copy { left: 14.5vmin; right: 4.5vmin; top: 5.4vmin; bottom: 5.4vmin; }
+    .kick { flex-direction: column; gap: .2vmin; font-size: 1.9vmin; }
+    h1 { font-size: 9vmin; margin-top: 3vmin; }
+    .offer { flex-direction: column; align-items: flex-start; gap: .4vmin; font-size: 2.3vmin; }
+    .offer b { font-size: 8vmin; }
+    .label { font-size: 1.7vmin; padding: 1.4vmin 2vmin; }
+    .cta { font-size: 2.1vmin; padding: 1.4vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .coat { left: 46%; }
+    .placket { width: 15vmin; }
+    .snap { width: 5.6vmin; height: 5.6vmin; }
+    .rain { width: 18vmin; }
+    .copy { left: 22vmin; right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .kick { flex-direction: row; gap: 2vmin; font-size: 2vmin; }
+    h1 { font-size: 12.4vmin; }
+    .offer { flex-direction: row; align-items: baseline; gap: 2vmin; font-size: 2.6vmin; }
+    .offer b { font-size: 8.4vmin; }
+    .label { font-size: 1.8vmin; }
+    .cta { font-size: 2.3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="coat">
+    <div class="placket" aria-hidden="true"><i class="snap"></i><i class="snap"></i><i class="snap"></i><i class="snap"></i></div>
+    <div class="rain" aria-hidden="true">
+      <i class="drop" style="left:40%;top:6%;width:2.2vmin;height:2.55vmin"></i>
+      <i class="drop" style="left:70%;top:13%;width:1.3vmin;height:1.51vmin"></i>
+      <i class="drop" style="left:18%;top:30%;width:1.6vmin;height:1.86vmin"></i>
+      <i class="drop" style="left:55%;top:47%;width:2.6vmin;height:3.02vmin"></i>
+      <i class="drop" style="left:30%;top:66%;width:1.2vmin;height:1.39vmin"></i>
+      <i class="drop" style="left:62%;top:80%;width:1.8vmin;height:2.09vmin"></i>
+      <i class="drop" style="left:85%;top:22%;width:1.5vmin;height:1.74vmin"></i>
+      <i class="drop" style="left:88%;top:60%;width:2vmin;height:2.32vmin"></i>
+      <i class="drop" style="left:12%;top:90%;width:1.7vmin;height:1.97vmin"></i>
+      <i class="drop" style="left:45%;top:95%;width:1.1vmin;height:1.28vmin"></i>
+    </div>
+    <div class="copy">
+      <div class="kick"><b>Storm issue 04</b><span>Atelier Nord</span></div>
+      <h1 class="sten">Foul<br>weather</h1>
+      <div class="offer"><b>−35%</b><span>the rain-ready edit</span></div>
+      <div class="label">Code <b>SLICKER35</b><br>Until 20 Oct · online &amp; in store</div>
+      <div class="cta">Gear up</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

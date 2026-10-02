@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Petit+Formal+Script&display=swap" rel="stylesheet">
+<style>
+  /* Place Card — a private supper: a gilt-edged tented place card ("Reserved for you") stands on pressed white linen,
+     beside a drawn table plan with your seat marked in claret and the evening's details.
+     tall → photo above the table; square/wide → photo left, table right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F1EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #33272E; font-family: "Libre Baskerville", Baskerville, Georgia, serif;
+    background:
+      linear-gradient(90deg, transparent calc(50% - .3vmin), rgba(120,105,90,.08) calc(50% - .3vmin), rgba(255,255,255,.7) calc(50% + .1vmin), transparent calc(50% + .5vmin)),
+      repeating-linear-gradient(0deg, rgba(120,105,90,.035) 0 1px, transparent 1px .45vmin),
+      repeating-linear-gradient(90deg, rgba(120,105,90,.03) 0 1px, transparent 1px .45vmin),
+      #F4F1EA; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 66vmin); object-fit: cover; object-position: 50% 20%; }
+  .table { position: absolute; left: 0; right: 0; bottom: 0; height: 66vmin; }
+
+  /* the tented card: the back leaf seen over the fold, the gilt-edged front face, a soft shadow on the linen */
+  .place { position: absolute; left: 50%; top: 7vmin; width: 72vmin; height: 25vmin; transform: translateX(-50%); box-sizing: border-box; background: #FFFEFA;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    box-shadow: 0 .3vmin 0 #E8E2D4, 0 2.6vmin 2.4vmin -1.2vmin rgba(60,45,40,.35); }
+  .place::before { content: ""; position: absolute; left: 0; right: 0; top: -2.2vmin; height: 2.2vmin; background: linear-gradient(180deg, #E9E3D6, #F6F2E9); clip-path: polygon(2% 100%, 98% 100%, 95% 0, 5% 0); }
+  .place::after { content: ""; position: absolute; inset: 1.4vmin; border: .35vmin solid #B8964F; box-shadow: inset 0 0 0 .5vmin #FFFEFA, inset 0 0 0 .65vmin rgba(184,150,79,.7); pointer-events: none; }
+  .place small { font-size: 1.7vmin; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; color: #7B6A5E; }
+  .place b { margin-top: .6vmin; font-family: "Petit Formal Script", "Snell Roundhand", cursive; font-weight: 400; font-size: 6.4vmin; line-height: 1.25; color: #33272E; white-space: nowrap; }
+  .place span { margin-top: .4vmin; font-size: 1.7vmin; letter-spacing: .26em; margin-right: -.26em; text-transform: uppercase; color: #7B2433; }
+
+  .lower { position: absolute; left: 8vmin; right: 8vmin; top: 38vmin; bottom: 6vmin; display: flex; gap: 6vmin; align-items: center; }
+  .plan { flex: none; width: 36vmin; }
+  .plan svg { display: block; width: 100%; height: auto; }
+  .plan div { margin-top: 1vmin; font-size: 1.6vmin; letter-spacing: .26em; text-transform: uppercase; color: #7B6A5E; }
+  .det { flex: 1; min-width: 0; }
+  .det h1 { margin: 0; font-weight: 400; font-style: italic; font-size: 5vmin; line-height: 1.15; }
+  .det p { margin: 1.4vmin 0 0; font-size: 2.3vmin; line-height: 1.55; color: #5A4C52; }
+  .det p b { color: #7B2433; font-weight: 700; white-space: nowrap; }
+  .cta { margin-top: 2.2vmin; display: inline-flex; align-items: center; gap: 1.6vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  .cta i { width: 6vmin; height: 1px; background: #B8964F; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 58vmin); }
+    .table { height: 58vmin; }
+    .place { top: 6vmin; height: 22vmin; }
+    .place b { font-size: 5.8vmin; }
+    .lower { top: 32vmin; bottom: 4vmin; }
+    .plan { width: 30vmin; }
+    .det h1 { font-size: 3.8vmin; }
+    .det p { font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .table { left: 48%; top: 0; height: auto; }
+    .place { top: 9vmin; width: 44vmin; height: 24vmin; }
+    .place small { font-size: 1.6vmin; letter-spacing: .22em; margin-right: -.22em; }
+    .place b { font-size: 4vmin; }
+    .place span { font-size: 1.6vmin; letter-spacing: .2em; margin-right: -.2em; }
+    .lower { left: 6vmin; right: 6vmin; top: 39vmin; bottom: 6vmin; flex-direction: column; gap: 3.4vmin; align-items: flex-start; justify-content: center; }
+    .plan { width: 30vmin; }
+    .det { flex: none; }
+    .plan div { font-size: 1.6vmin; letter-spacing: .14em; }
+    .det h1 { font-size: 4.2vmin; }
+    .det p { font-size: 2vmin; }
+    .cta { font-size: 1.7vmin; letter-spacing: .18em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 40% 25%; }
+    .table { left: 46%; }
+    .place { top: 11vmin; width: 60vmin; height: 26vmin; }
+    .place small { font-size: 1.7vmin; letter-spacing: .34em; margin-right: -.34em; }
+    .place b { font-size: 6vmin; white-space: nowrap; }
+    .place span { font-size: 1.7vmin; letter-spacing: .26em; margin-right: -.26em; }
+    .lower { left: 8vmin; right: 8vmin; top: 44vmin; bottom: 8vmin; gap: 6vmin; flex-direction: row; align-items: center; }
+    .det { flex: 1; }
+    .plan { width: 26vmin; }
+    .det h1 { font-size: 4.4vmin; white-space: nowrap; }
+    .det p { font-size: 2.2vmin; }
+    .cta { font-size: 1.8vmin; letter-spacing: .24em; }
+  }
+  /* ───────── motion (6s loop, t=0 = the static table) ─────────
+     constant: candlelight flickers warm across the linen (irregular, 1.5s); the look in a slow push-in
+     beats: 0.9s "Reserved for you" is re-written by pen, left to right · 2.8s your seat on the plan pulses with a claret ring ·
+            4.3s the gilt edge of the card catches the light · 4.8s the CTA rule extends */
+  .photo { animation: look 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes look { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.456%); } }
+
+  .table::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(60% 45% at 50% 22%, rgba(255,190,110,.16), rgba(255,190,110,0) 70%);
+    opacity: .6; animation: candle 1.5s linear infinite; }
+  @keyframes candle { 0%, 100% { opacity: .6; } 13% { opacity: .85; } 27% { opacity: .55; } 41% { opacity: .95; } 58% { opacity: .7; } 72% { opacity: .9; } 86% { opacity: .5; } }
+
+  .place b { animation: pen 6s linear infinite; }
+  @keyframes pen {
+    0%, 10% { clip-path: inset(-20% -5% -20% 0); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.75,.4); }
+    15% { clip-path: inset(-20% -5% -20% 0); opacity: 0; animation-timing-function: steps(1, end); }
+    15.5% { clip-path: inset(-20% 100% -20% 0); opacity: 1; animation-timing-function: cubic-bezier(.35,.1,.45,1); }
+    36%, 100% { clip-path: inset(-20% -5% -20% 0); opacity: 1; }
+  }
+
+  .place::after { animation: gilt 6s linear infinite; }
+  @keyframes gilt {
+    0%, 70% { border-color: #B8964F; box-shadow: inset 0 0 0 .5vmin #FFFEFA, inset 0 0 0 .65vmin rgba(184,150,79,.7), 0 0 0 rgba(230,200,120,0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    76% { border-color: #E9CB82; box-shadow: inset 0 0 0 .5vmin #FFFEFA, inset 0 0 0 .65vmin rgba(233,203,130,.95), 0 0 1.4vmin rgba(230,200,120,.55); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    90%, 100% { border-color: #B8964F; box-shadow: inset 0 0 0 .5vmin #FFFEFA, inset 0 0 0 .65vmin rgba(184,150,79,.7), 0 0 0 rgba(230,200,120,0); }
+  }
+
+  .plan .seat { transform-box: fill-box; transform-origin: 50% 50%; animation: seat 6s linear infinite; }
+  @keyframes seat {
+    0%, 44% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1.3); }
+    49% { transform: scale(1.45); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    56%, 100% { transform: scale(1); }
+  }
+  .plan .ring { transform-box: fill-box; transform-origin: 50% 50%; opacity: 0; animation: ring 6s linear infinite; }
+  @keyframes ring {
+    0%, 46% { transform: scale(1); opacity: 0; }
+    47% { transform: scale(1); opacity: .9; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    64% { transform: scale(3.2); opacity: 0; }
+    100% { transform: scale(3.2); opacity: 0; }
+  }
+
+  .cta i { transform-origin: 0 50%; animation: reach 6s linear infinite; }
+  @keyframes reach {
+    0%, 78% { transform: scaleX(1); animation-timing-function: cubic-bezier(.3,0,.1,1); }
+    85%, 89% { transform: scaleX(1.6); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    97%, 100% { transform: scaleX(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="table">
+    <div class="place"><small>The Autumn Supper</small><b>Reserved for you</b><span>Table 7 · Seat 3</span></div>
+    <div class="lower">
+      <div class="plan">
+        <svg viewBox="0 0 120 84" aria-hidden="true">
+          <g fill="none" stroke="#33272E" stroke-width=".8">
+            <circle cx="22" cy="52" r="11"/><circle cx="60" cy="24" r="11"/><circle cx="98" cy="52" r="11"/>
+          </g>
+          <g fill="#FFFEFA" stroke="#33272E" stroke-width=".7">
+            <circle cx="22" cy="36" r="2.6"/><circle cx="35.9" cy="44" r="2.6"/><circle cx="35.9" cy="60" r="2.6"/><circle cx="22" cy="68" r="2.6"/><circle cx="8.1" cy="60" r="2.6"/><circle cx="8.1" cy="44" r="2.6"/>
+            <circle cx="60" cy="8" r="2.6"/><circle cx="73.9" cy="16" r="2.6"/><circle cx="60" cy="40" r="2.6"/><circle cx="46.1" cy="32" r="2.6"/><circle cx="46.1" cy="16" r="2.6"/>
+            <circle cx="98" cy="36" r="2.6"/><circle cx="111.9" cy="44" r="2.6"/><circle cx="111.9" cy="60" r="2.6"/><circle cx="98" cy="68" r="2.6"/><circle cx="84.1" cy="60" r="2.6"/><circle cx="84.1" cy="44" r="2.6"/>
+          </g>
+          <circle class="ring" cx="73.9" cy="32" r="3.4" fill="none" stroke="#7B2433" stroke-width=".6"/>
+          <circle class="seat" cx="73.9" cy="32" r="3.4" fill="#7B2433"/>
+          <text x="79.4" y="33.6" font-family="Libre Baskerville, Georgia, serif" font-style="italic" font-size="5.4" fill="#7B2433">you</text>
+          <g font-family="Libre Baskerville, Georgia, serif" font-size="6.4" text-anchor="middle" fill="#33272E">
+            <text x="22" y="54.3">6</text><text x="60" y="26.3">7</text><text x="98" y="54.3">8</text>
+          </g>
+        </svg>
+        <div>Table plan</div>
+      </div>
+      <div class="det">
+        <h1>A place is set.</h1>
+        <p>Thursday, 19:00 — a private preview of the new collection. <b>20% off</b> all evening.</p>
+        <div class="cta">Take your seat <i></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

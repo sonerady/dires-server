@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Open Door — a doorway cut into a terracotta wall opens straight onto the photo; the door leaf has swung
+     towards us and its face is painted with a blue sky and clouds (after Magritte). A slip of warm light falls
+     across the floor. The look fills the doorway, untouched.
+     tall → headline on the wall, door + light on the floor · square / wide → door left, copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #A4462E; }
+  .banner { --floor: 82%; --dl: 8vmin; --dt: 45vmin; --dw: 58vmin; --lw: 21vmin; --lean: 4.5vmin;
+    position: fixed; inset: 0; overflow: hidden; color: #F8ECDC; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(120% 70% at 40% 45%, #B2513A 0%, #A4462E 55%, #8E3A25 100%); }
+  .wallgrain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; mix-blend-mode: multiply; }
+  .floor { position: absolute; left: 0; right: 0; top: var(--floor); bottom: 0; background: linear-gradient(180deg, #5E2416 0%, #6F2C1C 100%); }
+  .floor::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.2vmin; background: #7E3322; border-bottom: 1px solid rgba(0,0,0,.25); }
+  /* warm light spilling out of the doorway */
+  .spill { position: absolute; top: var(--floor); bottom: 0; left: var(--dl); width: calc(var(--dw) + 26vmin);
+    clip-path: polygon(0 0, calc(100% - 26vmin) 0, 100% 100%, 12vmin 100%);
+    background: linear-gradient(180deg, rgba(255,214,160,.42) 0%, rgba(255,214,160,.414) 7.7%, rgba(255,214,160,.396) 15.4%, rgba(255,214,160,.367) 23.1%, rgba(255,214,160,.329) 30.8%, rgba(255,214,160,.284) 38.5%, rgba(255,214,160,.235) 46.2%, rgba(255,214,160,.185) 53.8%, rgba(255,214,160,.136) 61.5%, rgba(255,214,160,.091) 69.2%, rgba(255,214,160,.053) 76.9%, rgba(255,214,160,.024) 84.6%, rgba(255,214,160,.006) 92.3%, rgba(255,214,160,0) 100%); }
+  /* doorway + casing */
+  .casing { position: absolute; left: calc(var(--dl) - 1.8vmin); top: calc(var(--dt) - 1.8vmin); width: calc(var(--dw) + 3.6vmin); height: calc(var(--floor) - var(--dt) + 1.8vmin);
+    background: #EFE2CC; box-shadow: 1.2vmin 1.4vmin 2.4vmin rgba(60,16,6,.35); }
+  .door { position: absolute; left: var(--dl); top: var(--dt); width: var(--dw); height: calc(var(--floor) - var(--dt)); overflow: hidden; background: #2A120B; }
+  .door img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .door::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1.6vmin; background: linear-gradient(90deg, rgba(20,6,2,.55), rgba(20,6,2,0)); }
+  .plaque { position: absolute; left: calc(var(--dl) + var(--dw) / 2 - 4vmin); top: calc(var(--dt) - 8.6vmin); width: 8vmin; height: 5vmin; border-radius: 50%;
+    background: radial-gradient(60% 60% at 40% 35%, #F3D58E, #C69B45 70%, #9C7430); color: #3B230C; display: flex; align-items: center; justify-content: center;
+    font-family: "DM Serif Display", Georgia, serif; font-size: 2.8vmin; line-height: 1; box-shadow: .4vmin .6vmin 1vmin rgba(60,16,6,.35); }
+  /* the leaf, swung towards us, painted with sky */
+  .leaf { position: absolute; left: calc(var(--dl) + var(--dw)); top: calc(var(--dt) - var(--lean)); width: var(--lw); height: calc(var(--floor) - var(--dt) + var(--lean) * 2);
+    clip-path: polygon(0 var(--lean), 100% 0, 100% 100%, 0 calc(100% - var(--lean)));
+    background: linear-gradient(180deg, #5F95CF 0%, #86B3DE 45%, #CFE0EE 100%); }
+  .leaf::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,40,70,.28), rgba(20,40,70,0) 40%, rgba(255,255,255,.12)); }
+  .leaf::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 1.3vmin; background: #E6DCCB; }
+  .leaf svg { position: absolute; left: -6vmin; width: calc(100% + 10vmin); height: 13vmin; }
+  .leaf .k1 { top: 14%; }
+  .leaf .k2 { top: 52%; left: -12vmin; height: 11vmin; }
+  .escape { position: absolute; right: 1vmin; top: calc(var(--dt) - 19vmin); width: 26vmin; height: 13vmin; overflow: visible; }
+  .knob { position: absolute; right: 3vmin; top: 50%; width: 2.6vmin; height: 2.6vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #F7DE9E, #B88A38 70%); box-shadow: .3vmin .4vmin .6vmin rgba(0,0,0,.3); }
+
+  /* type */
+  .mast { position: absolute; left: 8vmin; right: 8vmin; top: 5.4vmin; display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.8vmin; font-weight: 800; letter-spacing: .26em; text-transform: uppercase; white-space: nowrap; }
+  .mast span + span { font-weight: 500; color: rgba(248,236,220,.8); }
+  h1 { position: absolute; left: 7.4vmin; top: 10.4vmin; margin: 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 11.6vmin; line-height: .92; letter-spacing: -.012em; white-space: nowrap; }
+  h1 i { font-style: italic; color: #F6CF94; }
+  .foot { position: absolute; left: 8vmin; right: 8vmin; top: var(--floor); bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 1.2vmin; }
+  .offer { font-size: 2.2vmin; font-weight: 500; line-height: 1.4; max-width: 52vmin; }
+  .offer b { font-weight: 800; color: #F6CF94; }
+  .offer small { display: block; margin-top: .6vmin; font-size: 1.7vmin; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; }
+  .cta { flex: none; font-family: "DM Serif Display", Georgia, serif; font-style: italic; font-size: 3.8vmin; line-height: 1.1; border-bottom: .3vmin solid #F6CF94; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --floor: 83%; --dt: 40vmin; --dw: 56vmin; --lw: 19vmin; }
+    h1 { font-size: 10.4vmin; top: 10vmin; }
+    .offer { font-size: 2vmin; }
+    .cta { font-size: 3.4vmin; }
+  }
+  /* square → door left, copy right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --floor: 86%; --dl: 7vmin; --dt: 13vmin; --dw: 40vmin; --lw: 13vmin; --lean: 3.4vmin; }
+    .mast { left: 64%; right: 5vmin; top: 7vmin; flex-direction: column; gap: 1vmin; font-size: 1.6vmin; }
+    h1 { left: 64%; top: 17vmin; font-size: 7.4vmin; line-height: .98; white-space: normal; width: 31vmin; }
+    .foot { left: 64%; right: 5vmin; top: 50vmin; bottom: 16vmin; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 2.4vmin; padding: 0; }
+    .offer { font-size: 1.9vmin; max-width: none; }
+    .offer small { font-size: 1.6vmin; }
+    .cta { font-size: 3.2vmin; }
+    .escape { right: auto; left: 44%; top: 0; width: 18vmin; height: 9vmin; }
+    .spill { width: calc(var(--dw) + 20vmin); clip-path: polygon(0 0, calc(100% - 20vmin) 0, 100% 100%, 8vmin 100%); }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --floor: 85%; --dl: 10vmin; --dt: 12vmin; --dw: 50vmin; --lw: 17vmin; --lean: 4vmin; }
+    .mast { left: 60%; right: 7vmin; top: 8vmin; flex-direction: row; font-size: 1.7vmin; }
+    h1 { left: 59.4%; top: 18vmin; font-size: 10.4vmin; line-height: .92; width: auto; white-space: nowrap; }
+    .foot { left: 60%; right: 7vmin; top: 50vmin; bottom: 18vmin; }
+    .offer { font-size: 2.1vmin; }
+    .cta { font-size: 3.6vmin; }
+    .escape { left: 44%; top: 0; width: 20vmin; height: 10vmin; }
+    .spill { width: calc(var(--dw) + 30vmin); clip-path: polygon(0 0, calc(100% - 30vmin) 0, 100% 100%, 10vmin 100%); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="#FFFFFF"/><stop offset=".75" stop-color="#EEF3F7"/><stop offset="1" stop-color="#BFCFDF"/></linearGradient>
+      <filter id="soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>
+      <symbol id="cl" viewBox="0 0 200 100"><g filter="url(#soft)" fill="#A9BED3"><circle cx="58" cy="64" r="24"/><circle cx="92" cy="50" r="31"/><circle cx="130" cy="56" r="26"/><circle cx="158" cy="68" r="19"/><circle cx="34" cy="76" r="15"/><rect x="30" y="64" width="144" height="26" rx="13"/></g><g filter="url(#soft)" fill="url(#cg)"><circle cx="56" cy="60" r="22"/><circle cx="90" cy="44" r="30"/><circle cx="127" cy="50" r="24"/><circle cx="154" cy="63" r="16"/><circle cx="34" cy="71" r="12"/><circle cx="74" cy="66" r="17"/><circle cx="110" cy="64" r="18"/></g></symbol>
+    </defs>
+  </svg>
+  <svg class="wallgrain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2"/><feColorMatrix values="0 0 0 0 .35  0 0 0 0 .15  0 0 0 0 .08  0 0 0 .9 -.25"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  <div class="floor"></div>
+  <div class="spill"></div>
+  <div class="casing"></div>
+  <div class="door"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="plaque">26</div>
+  <div class="leaf">
+    <svg class="k1" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><use href="#cl"/></svg>
+    <svg class="k2" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><use href="#cl"/></svg>
+    <span class="knob"></span>
+  </div>
+  <svg class="escape" viewBox="0 0 200 100" aria-hidden="true"><use href="#cl"/></svg>
+  <div class="mast"><span>Casa Ombra</span><span>New season · SS26</span></div>
+  <h1>Open to<br><i>new season.</i></h1>
+  <div class="foot">
+    <div class="offer">The new collection is in. <b>20% off</b> your first order.<small>Code OPEN20</small></div>
+    <span class="cta">Step inside →</span>
+  </div>
+</div>
+</body>
+</html>

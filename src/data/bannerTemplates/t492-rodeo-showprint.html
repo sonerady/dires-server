@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Ultra&family=Sancreek&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Rodeo Show-Print — a letterpress rodeo bill pulled from wood type: fat slab RODEO with an off-register navy shadow,
+     a split-fountain ink band (mustard → vermilion → rose) carrying the reversed script, a three-cell date/offer rail.
+     tall → photo above, bill below · square & wide → photo left, bill right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1E6CE; }
+  .banner { --paper: #F1E6CE; --red: #C63A2A; --navy: #1E2C4C; --mus: #E2A52A; --panel: 80vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--paper); color: var(--navy); font-family: "Oswald", "Arial Narrow", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  /* star rule at the seam */
+  .seam { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel)); height: 4.4vmin; overflow: hidden; background: var(--navy); color: var(--paper);
+    font-size: 2.1vmin; line-height: 4.4vmin; letter-spacing: .9em; white-space: nowrap; text-align: center; }
+
+  .bill { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--panel) - 4.4vmin); box-sizing: border-box; padding: 4.2vmin 6vmin 4.4vmin;
+    display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; text-align: center; }
+  .press { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; z-index: 3; }
+
+  .ann { display: flex; align-items: center; justify-content: center; gap: 2.4vmin; font-size: 2.3vmin; font-weight: 600; letter-spacing: .42em; text-transform: uppercase; white-space: nowrap; }
+  .ann::before, .ann::after { content: "★ ★ ★"; letter-spacing: .3em; color: var(--red); font-size: 1.8vmin; }
+  h1 { margin: 0; font-family: "Ultra", "Rockwell Extra Bold", Georgia, serif; font-weight: 400; font-size: 20vmin; line-height: .9; letter-spacing: .01em; color: var(--red); white-space: nowrap;
+    text-shadow: .7vmin .7vmin 0 var(--navy); }
+
+  .band { position: relative; margin: 0 -6vmin; height: 12vmin; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(90deg, #E2A52A 0%, #E0782F 30%, #C63A2A 55%, #C9506A 82%, #B9466B 100%); color: var(--paper); }
+  .band span { font-family: "Sancreek", Georgia, serif; font-size: 8vmin; line-height: 1; white-space: nowrap; text-shadow: .35vmin .35vmin 0 rgba(30,44,76,.55); }
+
+  .rail { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; border-top: .5vmin solid var(--navy); border-bottom: .5vmin solid var(--navy); padding: 1.6vmin 0; }
+  .rail .c { font-size: 2.6vmin; font-weight: 500; letter-spacing: .14em; line-height: 1.25; text-transform: uppercase; white-space: nowrap; }
+  .rail .c b { display: block; font-family: "Ultra", Georgia, serif; font-weight: 400; font-size: 4.4vmin; letter-spacing: 0; text-transform: none; color: var(--red); }
+  .rail .mid { padding: 0 3.4vmin; margin: -1.6vmin 0; align-self: stretch; display: flex; flex-direction: column; justify-content: center; border-left: .5vmin solid var(--navy); border-right: .5vmin solid var(--navy); background: var(--navy); color: var(--paper); }
+  .rail .mid .u { font-size: 2vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; }
+  .rail .mid .big { font-family: "Ultra", Georgia, serif; font-size: 9vmin; line-height: 1; color: var(--mus); white-space: nowrap; }
+  .rail .mid .big small { font-size: .4em; }
+
+  .foot { display: flex; justify-content: space-between; align-items: baseline; font-size: 2.1vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .foot b { font-weight: 600; color: var(--red); }
+
+  /* 3:4 – 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 68vmin; }
+    .bill { padding: 3.4vmin 6vmin 3.6vmin; }
+    h1 { font-size: 18vmin; }
+    .band { height: 10.4vmin; }
+    .band span { font-size: 7vmin; }
+    .rail .mid .big { font-size: 8vmin; }
+  }
+  /* square: photo left, bill right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 44%; height: 100%; object-position: 50% 25%; }
+    .seam { left: 44%; top: 0; bottom: 0; right: auto; width: 4vmin; height: auto; line-height: 1; writing-mode: vertical-rl; font-size: 1.8vmin; }
+    .bill { left: calc(44% + 4vmin); top: 0; height: 100%; padding: 5.4vmin 4.4vmin 5vmin; }
+    .ann { font-size: 1.8vmin; letter-spacing: .3em; gap: 1.4vmin; }
+    .ann::before, .ann::after { content: "★ ★"; font-size: 1.6vmin; }
+    h1 { font-size: 9.6vmin; text-shadow: .5vmin .5vmin 0 var(--navy); }
+    .band { margin: 0 -4.4vmin; height: 9vmin; }
+    .band span { font-size: 5.6vmin; }
+    .rail { padding: 1.2vmin 0; }
+    .rail .c { font-size: 1.7vmin; letter-spacing: .1em; }
+    .rail .c b { font-size: 3vmin; }
+    .rail .mid { padding: 0 2vmin; margin: -1.2vmin 0; }
+    .rail .mid .u { font-size: 1.6vmin; letter-spacing: .2em; }
+    .rail .mid .big { font-size: 5.2vmin; }
+    .foot { flex-direction: column; align-items: center; gap: 1vmin; font-size: 1.8vmin; letter-spacing: .16em; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .seam { left: 46%; width: 4.4vmin; font-size: 2vmin; }
+    .bill { left: calc(46% + 4.4vmin); padding: 6vmin 6vmin 5.4vmin; }
+    .ann { font-size: 2.1vmin; letter-spacing: .38em; gap: 2vmin; }
+    .ann::before, .ann::after { content: "★ ★ ★"; font-size: 1.7vmin; }
+    h1 { font-size: 14.2vmin; text-shadow: .6vmin .6vmin 0 var(--navy); }
+    .band { margin: 0 -6vmin; height: 11vmin; }
+    .band span { font-size: 7.4vmin; }
+    .rail { padding: 1.5vmin 0; }
+    .rail .c { font-size: 2.2vmin; letter-spacing: .14em; }
+    .rail .c b { font-size: 3.8vmin; }
+    .rail .mid { padding: 0 3vmin; margin: -1.5vmin 0; }
+    .rail .mid .u { font-size: 1.8vmin; }
+    .rail .mid .big { font-size: 7.4vmin; }
+    .foot { flex-direction: row; justify-content: space-between; font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="seam">★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★</div>
+  <div class="bill">
+    <svg class="press" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="p"><feTurbulence type="fractalNoise" baseFrequency=".9 .05" numOctaves="2" seed="7"/><feColorMatrix values="0 0 0 0 .55  0 0 0 0 .45  0 0 0 0 .3  0 0 0 -1.8 1.05"/></filter><rect width="100%" height="100%" filter="url(#p)" opacity=".45"/></svg>
+    <div class="ann">Annual</div>
+    <h1>RODEO</h1>
+    <div class="band"><span>Round-Up Sale</span></div>
+    <div class="rail">
+      <div class="c">Opens<b>Sat 27</b></div>
+      <div class="mid"><span class="u">Up to</span><span class="big">40%<small> off</small></span></div>
+      <div class="c">Ends<b>Sun 28</b></div>
+    </div>
+    <div class="foot"><span>The whole corral · Code <b>RODEO40</b></span><span>Shop now →</span></div>
+  </div>
+</div>
+</body>
+</html>

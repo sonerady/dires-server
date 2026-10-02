@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Serif:ital@0;1&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Mercury Retrograde — a tongue-in-cheek sale poster: RETROGRADE set in mirror-reversed red capitals, a small
+     orbit diagram with the retrograde loop, "Mercury is retrograde. Our prices are too." in a big editorial serif.
+     tall / 3:4 → mirrored word runs vertically down the right edge beside the photo · square → word across the top,
+     photo right · wide → word across the foot, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE9DD; }
+  .banner { --red: #D2311F; --ink: #1E1B18;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Syne", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(ellipse 80% 60% at 20% 10%, #F6F1E7 0%, #EFE9DD 55%, #E7DFCF 100%); }
+  .rw { position: absolute; right: 2.4vmin; top: 6vmin; writing-mode: vertical-rl; transform: scaleX(-1); font-weight: 800; font-size: min(13vmin, calc((100vh - 10vmin) / 12.5)); line-height: 1; letter-spacing: -.01em; color: var(--red); white-space: nowrap; }
+  .photo { position: absolute; left: 6vmin; top: 6vmin; width: 72vmin; height: calc(100% - 54vmin); object-fit: cover; object-position: 50% 26%; display: block; }
+
+  .copy { position: absolute; left: 6vmin; right: 19vmin; bottom: 6vmin; }
+  .kick { display: flex; align-items: center; gap: 1.4vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .kick b { font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols", "DejaVu Sans", serif; font-size: 3vmin; font-weight: 400; letter-spacing: 0; color: var(--red); line-height: 1; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 8.4vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 i { color: var(--red); }
+  .row { margin-top: 3vmin; display: flex; align-items: center; gap: 3vmin; border-top: 1px solid rgba(30,27,24,.35); padding-top: 2.6vmin; }
+  .orbit { width: 18vmin; height: 9vmin; flex: none; display: none; }
+  .offer { flex: 1; font-size: 1.8vmin; line-height: 1.45; }
+  .offer b { display: block; font-family: "Instrument Serif", serif; font-weight: 400; font-size: 3.6vmin; line-height: 1.05; }
+  .cta { padding: 1.6vmin 3vmin; background: var(--red); color: #FBF6EE; font-size: 1.7vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .rw { font-size: min(12vmin, calc((100vh - 9vmin) / 12.5)); top: 4.5vmin; }
+    .photo { left: 6vmin; top: 6vmin; width: 70vmin; height: calc(100% - 45vmin); }
+    .copy { bottom: 5vmin; right: 18vmin; }
+    h1 { font-size: 6.6vmin; }
+    .row { margin-top: 2.2vmin; padding-top: 2vmin; }
+    .orbit { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .rw { writing-mode: horizontal-tb; right: auto; left: 5vmin; top: 4vmin; font-size: calc((100vw - 10vmin) / 12.5); }
+    .photo { left: auto; right: 6vmin; top: 20vmin; width: 44%; height: calc(100% - 26vmin); }
+    .copy { left: 6vmin; right: calc(44% + 11vmin); top: 22vmin; bottom: 6vmin; display: flex; flex-direction: column; }
+    h1 { font-size: 6.6vmin; margin-top: 2.4vmin; }
+    .row { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .orbit { display: block; width: 20vmin; height: 10vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .rw { left: 6vmin; top: auto; bottom: 3vmin; font-size: min(15vmin, calc((100vw - 12vmin) / 12.5)); }
+    .photo { top: 6vmin; right: 6vmin; width: 42%; height: calc(100% - 28vmin); }
+    .copy { left: 6vmin; right: calc(42% + 11vmin); top: 6vmin; bottom: 26vmin; }
+    h1 { font-size: 9.4vmin; }
+    .row { flex-direction: row; align-items: center; margin-top: auto; }
+    .orbit { display: block; width: 16vmin; height: 8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) and (max-aspect-ratio: 7/5) {
+    .row { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .orbit { display: none; }
+  }
+  /* ───────────── motion (6 s loop · t=0 = static design) ───────────── */
+  /* RETROGRADE turns itself the right way round for a beat, then slips back into reverse */
+  .rw { animation: flip 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes flip { 0%, 30%, 82%, 100% { transform: perspective(300vmin) rotateY(180deg); }
+    42%, 68% { transform: perspective(300vmin) rotateY(0deg); } }
+  /* Mercury's glyph spins backwards once per loop */
+  .kick b { display: inline-block; animation: spin 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes spin { 0%, 10% { transform: rotate(0deg); } 34%, 100% { transform: rotate(-360deg); } }
+  /* the orbit's loop rewinds and re-draws */
+  .orbit path { stroke-dasharray: 100; stroke-dashoffset: 0; animation: rewind 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes rewind { 0%, 36% { stroke-dashoffset: 0; } 52% { stroke-dashoffset: 100; } 54% { stroke-dashoffset: 100; } 86%, 100% { stroke-dashoffset: 0; } }
+  .orbit circle:first-of-type { transform-box: fill-box; transform-origin: center; animation: blip 3s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes blip { 0%, 30%, 100% { transform: scale(1); } 10% { transform: scale(1.6); } }
+  /* the punchline nudges backwards */
+  h1 i { display: inline-block; animation: back 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes back { 0%, 44%, 72%, 100% { transform: translateX(0); } 52% { transform: translateX(-1.2vmin); } 58% { transform: translateX(.3vmin); } 64% { transform: translateX(-.4vmin); } }
+  .cta { animation: ping 6s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes ping { 0%, 66% { box-shadow: 0 0 0 0 rgba(210,49,31,0); } 70% { box-shadow: 0 0 0 0 rgba(210,49,31,.45); } 96%, 100% { box-shadow: 0 0 0 1.6vmin rgba(210,49,31,0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="rw">RETROGRADE</div>
+  <div class="copy">
+    <div class="kick"><b>&#9791;&#xFE0E;</b>Studio Perigee · 09.10 – 31.10</div>
+    <h1>Mercury is retrograde.<br><i>Our prices are&nbsp;too.</i></h1>
+    <div class="row">
+      <svg class="orbit" viewBox="0 0 120 60" aria-hidden="true">
+        <ellipse cx="60" cy="30" rx="56" ry="24" fill="none" stroke="#1E1B18" stroke-opacity=".35" stroke-width=".8" stroke-dasharray="2 2"/>
+        <path pathLength="100" d="M6 42 C 30 14, 50 10, 62 26 C 70 38, 54 44, 54 32 C 56 16, 86 12, 114 38" fill="none" stroke="#D2311F" stroke-width="1.6"/>
+        <circle cx="58" cy="35" r="3" fill="#D2311F"/><circle cx="60" cy="30" r="1.6" fill="#1E1B18"/>
+      </svg>
+      <div class="offer"><b>Up to −40%, going backwards.</b>Returns extended to 60 days, just in case.</div>
+      <div class="cta">Shop in reverse</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

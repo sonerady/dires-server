@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Pinyon+Script&family=Tenor+Sans&display=swap" rel="stylesheet">
+<style>
+  /* Défilé Invitation — a runway-show invitation card with a perforated seat stub, on midnight ink.
+     tall → photo above, card below; square/wide → card left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #151E2C; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #151E2C; color: #1A2233; font-family: "Tenor Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; top: 0; left: 0; width: 100%; height: 54%; object-fit: cover; object-position: 50% 18%; }
+  .card { position: absolute; left: 6vmin; right: 6vmin; top: calc(54% + 6vmin); bottom: 6vmin; display: flex; background: #F6F1E7; box-shadow: 0 2vmin 4vmin rgba(0,0,0,.4); }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 3vmin 3vmin; }
+  .house { font-size: 2vmin; letter-spacing: .48em; margin-right: -.48em; text-transform: uppercase; }
+  .req { margin-top: 1.4vmin; font-family: "Pinyon Script", "Snell Roundhand", cursive; font-size: 4.4vmin; line-height: 1.15; color: #3B4458; }
+  .h { margin-top: 1.2vmin; font-family: "Libre Caslon Display", Didot, "Times New Roman", serif; font-size: 13vmin; line-height: .95; letter-spacing: -.01em; }
+  .season { margin-top: 1.2vmin; font-size: 2.1vmin; letter-spacing: .36em; margin-right: -.36em; text-transform: uppercase; }
+  .rule { width: 12vmin; height: 1px; background: #1A2233; margin: 2.6vmin 0 2.2vmin; opacity: .6; }
+  .when { font-size: 2.5vmin; letter-spacing: .06em; line-height: 1.55; }
+  .nw { white-space: nowrap; }
+  .rsvp { margin-top: 1.8vmin; font-size: 1.8vmin; letter-spacing: .3em; margin-right: -.3em; text-transform: uppercase; color: #5A6275; }
+  .stub { position: relative; flex: none; width: 15vmin; border-left: .3vmin dashed rgba(26,34,51,.4); display: flex; align-items: center; justify-content: center; }
+  .stub::before, .stub::after { content: ""; position: absolute; left: -1.8vmin; width: 3.3vmin; height: 3.3vmin; border-radius: 50%; background: #151E2C; }
+  .stub::before { top: -1.65vmin; }
+  .stub::after { bottom: -1.65vmin; }
+  .seat { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; text-align: center; }
+  .seat b { display: block; font-weight: 400; font-family: "Libre Caslon Display", Didot, serif; font-size: 5.6vmin; line-height: 1; }
+  .seat span { display: block; margin-left: 1.4vmin; font-size: 1.8vmin; letter-spacing: .4em; text-transform: uppercase; color: #5A6275; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 51%; }
+    .card { top: calc(51% + 5vmin); bottom: 5vmin; left: 7vmin; right: 7vmin; }
+    .h { font-size: 11vmin; }
+    .req { font-size: 4vmin; }
+    .rule { margin: 2vmin 0 1.6vmin; }
+    .when { font-size: 2.3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 50%; width: 50%; height: 100%; object-position: 50% 25%; }
+    .card { left: 5vmin; right: auto; width: calc(50% - 10vmin); top: 7vmin; bottom: 7vmin; }
+    .main { padding: 3vmin 2vmin; }
+    .house { font-size: 1.7vmin; letter-spacing: .36em; margin-right: -.36em; }
+    .req { font-size: 3.8vmin; }
+    .h { font-size: 9.6vmin; }
+    .rule { margin: 3vmin 0 2.6vmin; }
+    .season { font-size: 1.7vmin; letter-spacing: .14em; margin-right: -.14em; white-space: nowrap; }
+    .when { font-size: 1.9vmin; letter-spacing: 0; line-height: 1.7; }
+    .rsvp { margin-top: 2.4vmin; font-size: 1.6vmin; letter-spacing: .2em; margin-right: -.2em; }
+    .stub { width: 9.5vmin; }
+    .seat b { font-size: 4vmin; }
+    .seat span { font-size: 1.6vmin; letter-spacing: .3em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 46%; width: 54%; }
+    .card { left: 6vmin; width: calc(46% - 12vmin); top: 6vmin; bottom: 6vmin; }
+    .main { padding: 3vmin 3vmin; }
+    .house { font-size: 2vmin; letter-spacing: .44em; margin-right: -.44em; }
+    .req { font-size: 5vmin; }
+    .h { font-size: 14vmin; margin-top: 1.8vmin; }
+    .rule { margin: 3.6vmin 0 3vmin; }
+    .season { font-size: 2vmin; letter-spacing: .34em; margin-right: -.34em; }
+    .when { font-size: 2.6vmin; line-height: 1.7; }
+    .rsvp { margin-top: 2.6vmin; font-size: 1.8vmin; letter-spacing: .28em; margin-right: -.28em; }
+    .stub { width: 13vmin; }
+    .seat b { font-size: 5vmin; }
+    .seat span { font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  .photo { transform-origin: 50% 50%; animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push {
+    0%, 100% { transform: scale(1); clip-path: inset(0); }
+    50% { transform: scale(1.03); clip-path: inset(1.456%); }
+  }
+  /* Défilé: a gilt light passes through the engraved word (padding keeps the accent inside the clip) */
+  .h { color: transparent; padding: .16em .06em .06em; margin: calc(1.2vmin - .16em) -.06em -.06em;
+    background: linear-gradient(100deg, #1A2233 0 42%, #7E6A45 46.5%, #D9BE86 50%, #7E6A45 53.5%, #1A2233 58% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; animation: gilt 8s linear infinite; }
+  @media (min-aspect-ratio: 6/5) { .h { margin-top: calc(1.8vmin - .16em); } }
+  @keyframes gilt {
+    0%, 10% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    32% { background-position: 0% 0; animation-timing-function: steps(1, end); }
+    32.2%, 100% { background-position: 100% 0; }
+  }
+  /* the rule draws out from its centre */
+  .rule { animation: rule 8s linear infinite; }
+  @keyframes rule {
+    0%, 34% { transform: scaleX(1); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    40% { transform: scaleX(0); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    50%, 100% { transform: scaleX(1); }
+  }
+  /* the handwritten request is penned again */
+  .req { animation: pen 8s linear infinite; }
+  @keyframes pen {
+    0%, 52% { opacity: 1; clip-path: inset(-20% -6% -20% -6%); animation-timing-function: ease-in; }
+    57% { opacity: 0; clip-path: inset(-20% -6% -20% -6%); animation-timing-function: steps(1, end); }
+    57.2% { opacity: 1; clip-path: inset(-20% 106% -20% -6%); animation-timing-function: cubic-bezier(.45,.1,.4,1); }
+    80%, 100% { opacity: 1; clip-path: inset(-20% -6% -20% -6%); }
+  }
+  /* your seat: the number catches the gilt light */
+  .seat b { animation: seat 8s linear infinite; }
+  @keyframes seat {
+    0%, 82% { color: #1A2233; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    87% { color: #A8884F; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    95%, 100% { color: #1A2233; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="card">
+    <div class="main">
+      <div class="house">Maison Aurèle</div>
+      <div class="req">requests the pleasure<br>of your company</div>
+      <div class="h">Défilé</div>
+      <div class="season">Spring–Summer 2027</div>
+      <div class="rule"></div>
+      <div class="when"><span class="nw">Saturday 3 October</span> · <span class="nw">8 pm</span><br>Hôtel de Lusigny, Paris</div>
+      <div class="rsvp">RSVP by 25 September</div>
+    </div>
+    <div class="stub"><div class="seat"><b>A · 12</b><span>Row · Seat</span></div></div>
+  </div>
+</div>
+</body>
+</html>

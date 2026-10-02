@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Appointment Card — personal shopping, booked: an engraved appointment card filled in by hand in blue ink
+     (stylist, date, time, ticked services) and stamped CONFIRMED in red, on a deep teal ground.
+     tall → photo above, teal panel below; square/wide → teal panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #173432; }
+  .banner { --panel: 84vmin; position: fixed; inset: 0; overflow: hidden; background: #173432; color: #F4EEDF; font-family: "EB Garamond", Garamond, "Times New Roman", serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; justify-content: flex-end; gap: 5vmin; }
+  h1 { margin: 0; font-weight: 400; font-size: 8.6vmin; line-height: 1; letter-spacing: -.01em; }
+  h1 em { font-style: italic; color: #E7C98F; }
+  h1 br { display: none; }
+  .head br.sq { display: none; }
+
+  .card { position: relative; background: #F7F2E6; color: #22302E; padding: 4vmin 5vmin 3.6vmin; transform: rotate(-1.5deg); box-shadow: 0 2.6vmin 4.4vmin rgba(0,0,0,.4), 0 .4vmin .8vmin rgba(0,0,0,.2); }
+  .head { text-align: left; padding-bottom: 2vmin; border-bottom: 1px solid rgba(34,48,46,.45); }
+  .head small { display: table; font-size: 1.7vmin; font-weight: 500; letter-spacing: .4em; text-transform: uppercase; }
+  .head b { display: table; margin-top: .8vmin; font-weight: 400; font-style: italic; font-size: 5.4vmin; line-height: 1; }
+  .head span { display: table; margin-top: .8vmin; font-size: 1.7vmin; letter-spacing: .26em; text-transform: uppercase; color: #5B6A66; }
+  .f { display: flex; align-items: flex-end; gap: 2vmin; margin-top: 2vmin; }
+  .f label { flex: none; width: 9vmin; padding-bottom: .5vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #5B6A66; }
+  .f .ln { flex: 1; min-width: 0; border-bottom: 1px solid rgba(34,48,46,.5); font-family: "Caveat", "Bradley Hand", cursive; font-weight: 500; font-size: 4.4vmin; line-height: 1; padding: 0 0 .2vmin 1vmin; color: #1F3A8A; white-space: nowrap; }
+  .svc { display: flex; flex-wrap: wrap; gap: 1.4vmin 3.4vmin; margin-top: 2.8vmin; font-size: 2.2vmin; }
+  .svc span { display: inline-flex; align-items: center; gap: 1.2vmin; white-space: nowrap; }
+  .box { position: relative; width: 2.2vmin; height: 2.2vmin; box-sizing: border-box; border: .22vmin solid #22302E; }
+  .box.on::after { content: ""; position: absolute; left: .4vmin; top: -1.4vmin; width: 1.2vmin; height: 2.8vmin; border-right: .45vmin solid #1F3A8A; border-bottom: .45vmin solid #1F3A8A; transform: rotate(38deg); border-radius: 0 0 .4vmin 0; }
+  .note { margin-top: 2.6vmin; padding-top: 1.6vmin; border-top: 1px solid rgba(34,48,46,.3); display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; letter-spacing: .06em; color: #5B6A66; }
+  .note b { font-weight: 600; color: #22302E; letter-spacing: .02em; }
+  .stamp { position: absolute; right: 4vmin; top: 3.4vmin; padding: 1vmin 1.8vmin; border: .45vmin solid #C2332B; border-radius: .8vmin; box-shadow: inset 0 0 0 .3vmin #F7F2E6, inset 0 0 0 .55vmin #C2332B; color: #C2332B; font-weight: 600; font-size: 2.4vmin; letter-spacing: .2em; text-transform: uppercase; transform: rotate(12deg); opacity: .86; mix-blend-mode: multiply; text-align: center; line-height: 1.1; }
+  .stamp small { display: block; font-size: 1.6vmin; letter-spacing: .12em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 78vmin; }
+    .copy { bottom: 4.5vmin; height: calc(var(--panel) - 9vmin); }
+    h1 { font-size: 7.4vmin; }
+    .card { padding: 3.2vmin 5vmin 3vmin; }
+    .head b { font-size: 4.8vmin; }
+    .f { margin-top: 1.4vmin; }
+    .f .ln { font-size: 4vmin; }
+    .svc { margin-top: 2.2vmin; }
+    .note { margin-top: 2vmin; padding-top: 1.2vmin; }
+  }
+  /* square — teal panel left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 50%; width: 50%; height: 100%; }
+    .photo { left: 54%; width: 46%; }
+    .copy { left: 5vmin; right: auto; width: calc(54% - 9vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    h1 { font-size: 7vmin; }
+    h1 br { display: inline; }
+    .card { padding: 3vmin 3.4vmin 2.6vmin; }
+    .head small { font-size: 1.6vmin; letter-spacing: .3em; margin-right: -.3em; }
+    .copy { justify-content: space-between; gap: 0; }
+    .head { text-align: left; }
+    .head b { font-size: 3.8vmin; }
+    .head br.sq { display: inline; }
+    .head span { font-size: 1.6vmin; letter-spacing: .16em; margin-right: -.16em; }
+    .f { margin-top: 1.2vmin; gap: 1.4vmin; }
+    .f label { width: 7vmin; font-size: 1.6vmin; letter-spacing: .12em; }
+    .f .ln { font-size: 3.4vmin; }
+    .svc { gap: 1vmin 2.4vmin; margin-top: 2vmin; font-size: 1.9vmin; }
+    .note { flex-direction: column; gap: .4vmin; margin-top: 1.8vmin; padding-top: 1.2vmin; font-size: 1.6vmin; }
+    .stamp { right: 2.4vmin; top: 2.4vmin; font-size: 1.9vmin; padding: .8vmin 1.2vmin; }
+    .stamp small { font-size: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 50%; width: 50%; }
+    .head b { font-size: 4.6vmin; }
+    .head br.sq { display: none; }
+    .copy { left: 6vmin; width: calc(50% - 11vmin); top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 7.4vmin; }
+    h1 br { display: none; }
+    .card { padding: 3vmin 4.4vmin 2.6vmin; }
+    .f .ln { font-size: 3.8vmin; }
+    .note { flex-direction: row; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     the card is filled in again every loop: 0.6s the blue ink and the stamp lift off,
+     1.1s → 3.0s the stylist, date and time are handwritten line by line, 3.1s → 3.7s the three boxes are ticked,
+     4.0s CONFIRMED is stamped down (the card jolts), then a ~2s hold of the finished card spans the loop point */
+  .f .ln .w { display: inline-block; clip-path: inset(-30% -8% -40% -4%); }
+  .w1 { animation: w1 6s linear infinite; }
+  .w2 { animation: w2 6s linear infinite; }
+  .w3 { animation: w3 6s linear infinite; }
+  .box.on::after { clip-path: inset(0 0 0 0); }
+  .box.k1::after { animation: k1 6s linear infinite; }
+  .box.k2::after { animation: k2 6s linear infinite; }
+  .box.k3::after { animation: k3 6s linear infinite; }
+  .stamp { animation: stamp 6s linear infinite; }
+  @keyframes stamp {
+    0%, 10% { opacity: .86; transform: rotate(12deg) scale(1); animation-timing-function: ease-in; }
+    14%, 64% { opacity: 0; transform: rotate(12deg) scale(1.7); animation-timing-function: cubic-bezier(.6,0,.9,.6); }
+    67.5% { opacity: .9; transform: rotate(10deg) scale(.93); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    71%, 100% { opacity: .86; transform: rotate(12deg) scale(1); }
+  }
+  .card { animation: jolt 6s linear infinite; }
+  @keyframes jolt {
+    0%, 67% { transform: rotate(-1.5deg) translateY(0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    68.5% { transform: rotate(-1.2deg) translateY(.6vmin); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    73%, 100% { transform: rotate(-1.5deg) translateY(0); }
+  }
+  @keyframes w1 {
+    0%, 10% { opacity: 1; clip-path: inset(-30% -8% -40% -4%); animation-timing-function: ease-in; }
+    14% { opacity: 0; clip-path: inset(-30% -8% -40% -4%); animation-timing-function: steps(1, end); }
+    15%, 18% { opacity: 1; clip-path: inset(-30% 108% -40% -4%); animation-timing-function: cubic-bezier(.35,.15,.45,1); }
+    28%, 100% { opacity: 1; clip-path: inset(-30% -8% -40% -4%); }
+  }
+  @keyframes w2 {
+    0%, 10% { opacity: 1; clip-path: inset(-30% -8% -40% -4%); animation-timing-function: ease-in; }
+    14% { opacity: 0; clip-path: inset(-30% -8% -40% -4%); animation-timing-function: steps(1, end); }
+    15%, 29% { opacity: 1; clip-path: inset(-30% 108% -40% -4%); animation-timing-function: cubic-bezier(.35,.15,.45,1); }
+    39%, 100% { opacity: 1; clip-path: inset(-30% -8% -40% -4%); }
+  }
+  @keyframes w3 {
+    0%, 10% { opacity: 1; clip-path: inset(-30% -8% -40% -4%); animation-timing-function: ease-in; }
+    14% { opacity: 0; clip-path: inset(-30% -8% -40% -4%); animation-timing-function: steps(1, end); }
+    15%, 40% { opacity: 1; clip-path: inset(-30% 108% -40% -4%); animation-timing-function: cubic-bezier(.35,.15,.45,1); }
+    50%, 100% { opacity: 1; clip-path: inset(-30% -8% -40% -4%); }
+  }
+  @keyframes k1 {
+    0%, 10% { opacity: 1; clip-path: inset(0 0 0 0); animation-timing-function: ease-in; }
+    14% { opacity: 0; clip-path: inset(0 0 0 0); animation-timing-function: steps(1, end); }
+    15%, 52% { opacity: 1; clip-path: inset(calc(100% - .5vmin) 100% 0 0); animation-timing-function: linear; }
+    53.5% { opacity: 1; clip-path: inset(calc(100% - .5vmin) 0 0 0); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    55%, 100% { opacity: 1; clip-path: inset(0 0 0 0); }
+  }
+  @keyframes k2 {
+    0%, 10% { opacity: 1; clip-path: inset(0 0 0 0); animation-timing-function: ease-in; }
+    14% { opacity: 0; clip-path: inset(0 0 0 0); animation-timing-function: steps(1, end); }
+    15%, 55.5% { opacity: 1; clip-path: inset(calc(100% - .5vmin) 100% 0 0); animation-timing-function: linear; }
+    57.0% { opacity: 1; clip-path: inset(calc(100% - .5vmin) 0 0 0); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    58.5%, 100% { opacity: 1; clip-path: inset(0 0 0 0); }
+  }
+  @keyframes k3 {
+    0%, 10% { opacity: 1; clip-path: inset(0 0 0 0); animation-timing-function: ease-in; }
+    14% { opacity: 0; clip-path: inset(0 0 0 0); animation-timing-function: steps(1, end); }
+    15%, 59% { opacity: 1; clip-path: inset(calc(100% - .5vmin) 100% 0 0); animation-timing-function: linear; }
+    60.5% { opacity: 1; clip-path: inset(calc(100% - .5vmin) 0 0 0); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    62%, 100% { opacity: 1; clip-path: inset(0 0 0 0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <h1>Your hour, <br><em>booked.</em></h1>
+    <div class="card">
+      <div class="head"><small>Atelier Nord</small><b>Personal <br class="sq">Shopping</b><span>Appointment card</span></div>
+      <div class="f"><label>With</label><div class="ln"><span class="w w1">Clara, your stylist</span></div></div>
+      <div class="f"><label>Date</label><div class="ln"><span class="w w2">Thursday 14 Nov</span></div></div>
+      <div class="f"><label>Time</label><div class="ln"><span class="w w3">18:30 — Suite 2</span></div></div>
+      <div class="svc"><span><i class="box on k1"></i>Styling</span><span><i class="box on k2"></i>Alterations</span><span><i class="box on k3"></i>Champagne</span></div>
+      <div class="note"><span>Complimentary for members</span><b>15% off on the day</b></div>
+      <div class="stamp">Confirmed<small>Nº 1147</small></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

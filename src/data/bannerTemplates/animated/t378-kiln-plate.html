@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Red+Hat+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Kiln Plate — the side of a studio kiln: cream enamel body, a stainless band with a glowing spy-hole, and the
+     riveted, brushed-aluminium rating plate engraved like a manufacturer's spec — model, series, rating, valid dates,
+     code — rewritten as the offer. tall → photo above, kiln body below · 3:4 and wider → photo left, kiln right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E8E1D3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #25272A; font-family: "Red Hat Mono", Menlo, monospace; background: #E8E1D3; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .body { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; box-sizing: border-box; padding: 12vmin 7vmin 6vmin; display: flex; flex-direction: column;
+    background: linear-gradient(90deg, #DCD4C4 0%, #EEE8DC 22%, #F2EDE3 40%, #E5DECF 75%, #D6CDBC 100%); }
+  /* stainless band + spy-hole */
+  .band { position: absolute; left: 0; right: 0; top: 0; height: 6.4vmin; background: repeating-linear-gradient(90deg, rgba(255,255,255,.18) 0 1px, rgba(0,0,0,0) 1px .5vmin), linear-gradient(180deg, #E4E6E6, #A9ADAF 55%, #CFD2D3); box-shadow: 0 .5vmin .8vmin rgba(40,35,30,.25); }
+  .bolt { position: absolute; top: 50%; width: 2.2vmin; height: 2.2vmin; margin-top: -1.1vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #F2F3F3, #8E9395 60%, #5E6365); box-shadow: 0 .2vmin .3vmin rgba(0,0,0,.35); }
+  .bolt.a { left: 4vmin; }
+  .spy { position: absolute; right: 8vmin; top: 50%; width: 4.6vmin; height: 4.6vmin; margin-top: -2.3vmin; border-radius: 50%; background: radial-gradient(circle, #FFE2A6 0 18%, #F59A3C 38%, #B8431A 62%, #3A1C10 80%); box-shadow: 0 0 0 .6vmin #8A8E90, 0 0 0 .8vmin #D7DADB, 0 0 2.4vmin .6vmin rgba(245,140,60,.45); }
+  .spy-l { position: absolute; right: 14.6vmin; top: 50%; transform: translateY(-50%); font-size: 1.6vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #3E4245; white-space: nowrap; }
+
+  /* the rating plate */
+  .plate { position: relative; flex: none; padding: 4.6vmin 5.4vmin 4.2vmin; border-radius: 1.2vmin;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,.22) 0 1px, rgba(0,0,0,0) 1px .35vmin),
+      repeating-linear-gradient(0deg, rgba(60,64,66,.06) 0 1px, rgba(0,0,0,0) 1px .9vmin),
+      linear-gradient(160deg, #E6E8E8 0%, #C4C8CA 45%, #DADDDE 70%, #B3B8BA 100%);
+    box-shadow: inset 0 0 0 .3vmin rgba(255,255,255,.55), inset 0 0 0 .5vmin rgba(70,74,76,.35), 0 .5vmin .9vmin rgba(40,35,30,.3); }
+  .rivet { position: absolute; width: 1.8vmin; height: 1.8vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFFFFF, #A7ACAE 55%, #6B7072); box-shadow: 0 .2vmin .3vmin rgba(0,0,0,.4); }
+  .r1 { left: 1.6vmin; top: 1.6vmin; } .r2 { right: 1.6vmin; top: 1.6vmin; } .r3 { left: 1.6vmin; bottom: 1.6vmin; } .r4 { right: 1.6vmin; bottom: 1.6vmin; }
+  .etch { color: #26292C; text-shadow: 0 1px 0 rgba(255,255,255,.55); }
+  .ph { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; padding-bottom: 1.4vmin; border-bottom: .3vmin solid #26292C; white-space: nowrap; }
+  .ph b { font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 700; font-size: 2.8vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .ph span { font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; }
+  h1 { margin: 2.6vmin 0 0; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 600; font-size: 12vmin; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; }
+  .spec { margin-top: 2.8vmin; display: grid; grid-template-columns: auto 1fr; border-top: 1px solid rgba(38,41,44,.6); }
+  .spec dt, .spec dd { margin: 0; padding: 1vmin 0; border-bottom: 1px solid rgba(38,41,44,.6); font-size: 2vmin; white-space: nowrap; }
+  .spec dt { padding-right: 3vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #3E4245; display: flex; align-items: center; }
+  .spec dd { font-weight: 500; }
+  .spec dd b { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 3.2vmin; line-height: 1; letter-spacing: .02em; }
+
+  /* digital kiln controller */
+  .ctrl { display: none; margin: auto 0; align-self: flex-start; gap: 2.4vmin; align-items: center; padding: 2vmin 2.4vmin; border-radius: 1vmin; background: linear-gradient(180deg, #34373A, #1F2123); box-shadow: 0 .6vmin 1vmin rgba(30,25,20,.3), inset 0 1px 0 rgba(255,255,255,.12); color: #C9CDD0; }
+  .lcd { padding: 1vmin 1.6vmin; border-radius: .5vmin; background: #1A1206; box-shadow: inset 0 .3vmin .6vmin rgba(0,0,0,.7); color: #FFB547; text-shadow: 0 0 1vmin rgba(255,170,60,.6); white-space: nowrap; }
+  .lcd b { display: block; font-weight: 600; font-size: 5vmin; line-height: 1; letter-spacing: .04em; }
+  .lcd span { display: block; margin-top: .6vmin; font-size: 1.6vmin; letter-spacing: .12em; }
+  .keys { display: grid; grid-template-columns: repeat(2, 2.8vmin); gap: 1vmin; }
+  .keys i { width: 2.8vmin; height: 2.8vmin; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #6A6E71, #2B2E30); box-shadow: 0 .2vmin .2vmin rgba(0,0,0,.5); }
+  .keys i:first-child { background: radial-gradient(circle at 40% 35%, #F08A4B, #A5461C); }
+  .ctrl small { display: block; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; line-height: 1.6; white-space: nowrap; }
+  .under { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; white-space: nowrap; }
+  .under p { margin: 0; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; color: #5A544B; }
+  .cta { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 3vmin; letter-spacing: .08em; text-transform: uppercase; padding: 1vmin 2.4vmin; background: #25272A; color: #F2EDE3; }
+
+  /* ── 3:4 / 4:5 → photo left, kiln body right, band down the seam ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 22%; }
+    .body { left: 48%; top: 0; height: auto; padding: 7vmin 4.6vmin 6vmin 11vmin; }
+    .band { right: auto; bottom: 0; width: 6.4vmin; height: auto; background: repeating-linear-gradient(0deg, rgba(255,255,255,.18) 0 1px, rgba(0,0,0,0) 1px .5vmin), linear-gradient(90deg, #E4E6E6, #A9ADAF 55%, #CFD2D3); }
+    .bolt { left: 50%; margin: 0 0 0 -1.1vmin; }
+    .bolt.a { left: 50%; top: 4vmin; }
+    .spy { right: auto; left: 50%; top: auto; bottom: 8vmin; margin: 0 0 0 -2.3vmin; }
+    .spy-l { display: none; }
+    .plate { padding: 4.4vmin 3.8vmin 3.8vmin; }
+    .ph span { display: none; }
+    h1 { font-size: 10vmin; }
+    .spec dt { padding-right: 2vmin; font-size: 1.6vmin; letter-spacing: .1em; }
+    .spec dd { font-size: 1.8vmin; }
+    .under { flex-direction: column; align-items: flex-start; gap: 2vmin; white-space: normal; }
+    .ctrl { display: flex; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .body { left: 46%; padding: 5vmin 4.6vmin 5vmin 10.4vmin; }
+    .plate { padding: 3.6vmin 3.6vmin 3.2vmin; }
+    .ph b { font-size: 2.4vmin; }
+    h1 { font-size: 8.4vmin; margin-top: 2vmin; }
+    .spec { margin-top: 2vmin; }
+    .spec dt, .spec dd { padding-top: .7vmin; padding-bottom: .7vmin; }
+    .spec dd b { font-size: 2.8vmin; }
+    .under { flex-direction: row; align-items: center; white-space: nowrap; }
+    .under p { display: none; }
+    .ctrl { gap: 1.8vmin; padding: 1.6vmin 1.8vmin; }
+    .ctrl > div:nth-child(2) { display: none; }
+    .lcd b { font-size: 4.2vmin; }
+    .cta { font-size: 2.6vmin; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 72% 30%; }
+    .body { left: 42%; padding: 6vmin 7vmin 6vmin 13vmin; }
+    .plate { padding: 4vmin 4.6vmin 3.6vmin; }
+    .ph span { display: inline; }
+    .ph b { font-size: 2.6vmin; }
+    h1 { font-size: 9.6vmin; }
+    .spec { grid-template-columns: auto 1fr auto 1fr; }
+    .spec dt:nth-of-type(odd) { padding-right: 2.4vmin; }
+    .spec dt:nth-of-type(even) { padding: 0 2.4vmin; border-left: 1px solid rgba(38,41,44,.6); }
+    .spec dt, .spec dd { padding-top: 1vmin; padding-bottom: 1vmin; }
+    .under p { display: block; white-space: normal; max-width: 30vmin; line-height: 1.5; }
+    .ctrl > div:nth-child(2) { display: block; }
+    .lcd b { font-size: 5vmin; }
+    .ctrl { gap: 2.4vmin; padding: 2vmin 2.4vmin; }
+    .cta { font-size: 2.8vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     constant: the spy-hole fire breathes and flickers (1.5s), "Firing now" pulses like a status lamp
+     1.4s  a specular glint slides across the brushed-aluminium plate · 3.0s the rating & code glow kiln-orange, one after the other
+     4.2s  (3:4+) the orange key is pressed, the LCD refreshes twice and flares · 5.2s CTA glints */
+  .spy { animation: fire 1.5s linear infinite; }
+  @keyframes fire {
+    0%, 100% { filter: brightness(1); box-shadow: 0 0 0 .6vmin #8A8E90, 0 0 0 .8vmin #D7DADB, 0 0 2.4vmin .6vmin rgba(245,140,60,.45); }
+    18% { filter: brightness(1.18); }
+    30% { filter: brightness(.94); }
+    52% { filter: brightness(1.25); box-shadow: 0 0 0 .6vmin #8A8E90, 0 0 0 .8vmin #D7DADB, 0 0 3.6vmin 1vmin rgba(245,140,60,.7); }
+    68% { filter: brightness(1.05); }
+    80% { filter: brightness(1.2); }
+  }
+  .spy-l { animation: lamp 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes lamp { 0%, 100% { color: #3E4245; } 50% { color: #B8431A; } }
+
+  .plate::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.08) 44%, rgba(255,255,255,.62) 50%, rgba(255,255,255,.08) 56%, transparent 62%) no-repeat;
+    background-size: 300% 100%; background-position: 125% 0; mix-blend-mode: soft-light;
+    animation: glint 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes glint { 0%, 22% { background-position: 125% 0; } 48%, 100% { background-position: -25% 0; } }
+  .plate::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+    background: linear-gradient(115deg, transparent 43%, rgba(255,255,255,.55) 50%, transparent 57%) no-repeat;
+    background-size: 300% 100%; background-position: 125% 0;
+    animation: glint 6s cubic-bezier(.5,0,.3,1) infinite; }
+
+  .spec dd b { display: inline-block; animation: glow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .spec dd:last-of-type b { animation-delay: -5.6s; }
+  @keyframes glow {
+    0%, 48% { color: #26292C; text-shadow: 0 1px 0 rgba(255,255,255,.55), 0 0 0 rgba(245,120,40,0); }
+    55% { color: #C24A1C; text-shadow: 0 1px 0 rgba(255,255,255,.3), 0 0 1.6vmin rgba(245,120,40,.55); }
+    70%, 100% { color: #26292C; text-shadow: 0 1px 0 rgba(255,255,255,.55), 0 0 0 rgba(245,120,40,0); }
+  }
+  .keys i:first-child { animation: press 6s linear infinite; }
+  @keyframes press {
+    0%, 69% { transform: scale(1); filter: brightness(1); box-shadow: 0 .2vmin .2vmin rgba(0,0,0,.5); }
+    70.5% { transform: scale(.86); filter: brightness(1.35); box-shadow: 0 0 1.4vmin rgba(240,138,75,.8); }
+    74% { transform: scale(1); filter: brightness(1.15); box-shadow: 0 0 1vmin rgba(240,138,75,.5); }
+    86%, 100% { transform: scale(1); filter: brightness(1); box-shadow: 0 .2vmin .2vmin rgba(0,0,0,.5); }
+  }
+  .lcd > * { animation: refresh 6s linear infinite; }
+  @keyframes refresh {
+    0%, 71%, 72.6%, 74%, 75.6%, 100% { opacity: 1; }
+    71.2%, 72.4%, 74.2%, 75.4% { opacity: .08; }
+  }
+  .lcd { animation: lcdglow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes lcdglow { 0%, 74% { text-shadow: 0 0 1vmin rgba(255,170,60,.6); color: #FFB547; } 80% { text-shadow: 0 0 2vmin rgba(255,170,60,.95); color: #FFD08A; } 94%, 100% { text-shadow: 0 0 1vmin rgba(255,170,60,.6); color: #FFB547; } }
+  .cta { background-image: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.22) 50%, transparent 60%); background-size: 300% 100%; background-repeat: no-repeat;
+    background-position: 130% 0; animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 84% { background-position: 130% 0; } 97%, 100% { background-position: -30% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="body">
+    <div class="band"><i class="bolt a"></i><span class="spy-l">Firing now</span><i class="spy"></i></div>
+    <div class="plate">
+      <i class="rivet r1"></i><i class="rivet r2"></i><i class="rivet r3"></i><i class="rivet r4"></i>
+      <div class="ph etch"><b>Atelier Nord · Kilnworks</b><span>Serial Nº 0426</span></div>
+      <h1 class="etch">Built<br>to last.</h1>
+      <dl class="spec etch">
+        <dt>Model</dt><dd>The Studio Edit</dd>
+        <dt>Series</dt><dd>AW26 · 42 pcs</dd>
+        <dt>Rating</dt><dd><b>−35%</b> max</dd>
+        <dt>Code</dt><dd><b>KILN35</b></dd>
+      </dl>
+    </div>
+    <div class="ctrl"><div class="lcd"><b>1240°C</b><span>SEG 4 · HOLD 0:15</span></div><div><small>Prog 3</small><small>Glaze</small></div><div class="keys"><i></i><i></i><i></i><i></i></div></div>
+    <div class="under">
+      <p>Valid 10.10 — 20.10 · while stocks last</p>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

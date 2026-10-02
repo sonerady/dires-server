@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Size Guide — the size-guide sheet of a luxury product page, opened: "Size guide / How to measure" tabs,
+     a cm | in toggle, a line-drawn dress form with three lettered measuring lines (A bust, B waist, C hip)
+     keyed to a measurement table where the chosen size runs as one deep-green column, a fit note and the CTA.
+     tall → photo above the sheet; 3:4 and square → photo left, sheet right; wide → photo | form | table */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEEBE6; }
+  .banner { --panel: 84vmin; --g: #2E4A3B; position: fixed; inset: 0; overflow: hidden; background: #EEEBE6; color: #1D1D1B; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 0 5vmin 5vmin; display: grid; column-gap: 4vmin;
+    grid-template-columns: 24vmin minmax(0, 1fr); grid-template-rows: auto auto 1fr auto auto;
+    grid-template-areas: "tabs tabs" "head head" "fig table" "foot foot" "cta cta"; }
+
+  .tabs { grid-area: tabs; display: flex; align-items: center; gap: 4vmin; height: 9vmin; border-bottom: 1px solid rgba(29,29,27,.18); font-size: 1.8vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .tabs span { position: relative; height: 100%; display: flex; align-items: center; color: #8A857C; }
+  .tabs span.on { color: #1D1D1B; }
+  .tabs span.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: .4vmin; background: #1D1D1B; }
+  .unit { margin-left: auto; display: flex; border: 1px solid rgba(29,29,27,.3); border-radius: 99vmin; padding: .4vmin; font-size: 1.6vmin; letter-spacing: .08em; }
+  .unit b, .unit i { font-style: normal; padding: .8vmin 1.8vmin; border-radius: 99vmin; }
+  .unit b { background: #1D1D1B; color: #EEEBE6; font-weight: 600; }
+  .unit i { color: #6D685F; font-weight: 500; }
+
+  .head { grid-area: head; padding-top: 4.4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  h1 { margin: 0; font-family: "Instrument Serif", "Times New Roman", serif; font-weight: 400; font-size: 9vmin; line-height: .9; letter-spacing: -.01em; white-space: nowrap; }
+  h1 i { color: var(--g); }
+  .model { font-size: 1.7vmin; line-height: 1.5; color: #5C574F; text-align: right; padding-bottom: .8vmin; }
+  .model b { color: #1D1D1B; font-weight: 600; }
+
+  .fig { grid-area: fig; align-self: center; padding-top: 3vmin; }
+  .fig svg { display: block; width: 100%; height: auto; }
+
+  .table { grid-area: table; align-self: center; padding-top: 3vmin; display: grid; grid-template-columns: 11vmin repeat(5, minmax(0, 1fr)); font-size: 1.9vmin; }
+  .table > span { display: flex; align-items: center; justify-content: center; height: 5.8vmin; border-bottom: 1px solid rgba(29,29,27,.14); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .table > span.l { justify-content: flex-start; gap: 1vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: #5C574F; }
+  .table > span.l em { font-style: normal; display: inline-flex; align-items: center; justify-content: center; width: 2.6vmin; height: 2.6vmin; border-radius: 50%; background: var(--g); color: #fff; font-size: 1.5vmin; letter-spacing: 0; }
+  .table > span.h { font-weight: 700; font-size: 2vmin; border-bottom-color: #1D1D1B; }
+  .table > span.s { background: var(--g); color: #F2EFE9; font-weight: 700; border-bottom-color: rgba(255,255,255,.18); }
+  .table > span.tag { height: 4vmin; border: 0; font-size: 1.5vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .table > span.tag.s { border-radius: 1vmin 1vmin 0 0; }
+
+  .foot { grid-area: foot; margin-top: 3.4vmin; display: flex; align-items: center; gap: 2vmin; font-size: 1.8vmin; line-height: 1.45; color: #5C574F; }
+  .foot .scale { flex: none; display: flex; align-items: center; gap: .6vmin; }
+  .foot .scale i { width: 3.2vmin; height: .6vmin; background: rgba(29,29,27,.18); }
+  .foot .scale i.on { background: var(--g); }
+  .foot b { color: #1D1D1B; font-weight: 600; }
+  .cta { grid-area: cta; margin-top: 3vmin; display: flex; align-items: center; justify-content: space-between; height: 7vmin; padding: 0 3vmin; background: #1D1D1B; color: #EEEBE6; font-size: 1.9vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .cta b { font-weight: 600; letter-spacing: .04em; }
+
+  /* ── 3:4 / 4:5 and square: photo left, sheet right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 40%; height: 100%; }
+    .sheet { left: 40%; top: 0; height: auto; padding: 0 4.5vmin 4.5vmin; column-gap: 3vmin;
+      grid-template-columns: 14vmin minmax(0, 1fr); grid-template-rows: auto auto auto 1fr auto;
+      grid-template-areas: "tabs tabs" "fig head" "table table" "foot foot" "cta cta"; }
+    .tabs { gap: 3vmin; height: 8vmin; font-size: 1.6vmin; }
+    .tabs span:nth-child(2) { display: none; }
+    .head { flex-direction: column; align-items: flex-start; justify-content: center; gap: 1.6vmin; padding-top: 3vmin; }
+    h1 { font-size: 7.4vmin; }
+    .model { text-align: left; padding: 0; }
+    .fig { padding-top: 3vmin; }
+    .table { grid-template-columns: 10.5vmin repeat(5, minmax(0, 1fr)); font-size: 1.8vmin; padding-top: 3.4vmin; align-self: start; }
+    .table > span { height: 5vmin; }
+    .table > span.l { font-size: 1.6vmin; gap: .8vmin; }
+    .foot { align-self: center; margin-top: 2vmin; }
+    .cta { height: 6.4vmin; padding: 0 2.4vmin; font-size: 1.7vmin; letter-spacing: .1em; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 42%; }
+    .sheet { left: 42%; padding: 0 5vmin 4.5vmin; grid-template-columns: 13vmin minmax(0, 1fr); }
+    h1 { font-size: 7.4vmin; }
+    .fig { padding-top: 2.4vmin; }
+    .table { padding-top: 2.4vmin; }
+    .table > span { height: 4.9vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  /* ── wide: photo | form | head + table ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 36%; }
+    .sheet { left: 36%; padding: 0 6vmin 5.5vmin; column-gap: 5vmin;
+      grid-template-columns: 24vmin minmax(0, 1fr); grid-template-rows: auto auto 1fr auto auto;
+      grid-template-areas: "tabs tabs" "fig head" "fig table" "fig foot" "fig cta"; }
+    .tabs { gap: 4vmin; height: 9vmin; font-size: 1.7vmin; }
+    .tabs span:nth-child(2) { display: flex; }
+    .head { flex-direction: row; align-items: flex-end; justify-content: space-between; padding-top: 4.4vmin; }
+    .model { text-align: right; padding-bottom: .8vmin; }
+    h1 { font-size: 8.4vmin; }
+    .fig { align-self: center; padding-top: 3vmin; }
+    .table { grid-template-columns: 12vmin repeat(5, minmax(0, 1fr)); padding-top: 3vmin; align-self: center; font-size: 1.9vmin; }
+    .table > span { height: 5.2vmin; }
+    .foot { margin-top: 2vmin; }
+    .cta { height: 6.8vmin; padding: 0 3vmin; font-size: 1.9vmin; letter-spacing: .14em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sheet">
+    <div class="tabs"><span class="on">Size guide</span><span>How to measure</span><div class="unit"><b>cm</b><i>in</i></div></div>
+    <div class="head">
+      <h1>Find your <i>fit.</i></h1>
+      <div class="model">Model is <b>177 cm</b><br>and wears <b>S</b></div>
+    </div>
+    <div class="fig">
+      <svg viewBox="0 0 100 172" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <g stroke="#1D1D1B" stroke-width="1.1">
+          <rect x="43" y="3" width="14" height="9" rx="2"/>
+          <path d="M43 12 C43 16 30 17 20 22 C14 25 15 34 17 42 C19 52 27 62 29 74 C30 84 20 96 19 108 C19 114 22 118 24 119 L76 119 C78 118 81 114 81 108 C80 96 70 84 71 74 C73 62 81 52 83 42 C85 34 86 25 80 22 C70 17 57 16 57 12 Z"/>
+          <path d="M50 119 V158 M50 158 L30 167 M50 158 L70 167 M50 158 V168"/>
+        </g>
+        <path d="M50 13 V118" stroke="#1D1D1B" stroke-width=".5" stroke-dasharray="1.5 2" opacity=".45"/>
+        <g stroke="#2E4A3B" stroke-width="1.1" stroke-dasharray="2.2 1.6">
+          <path d="M8 42 H86"/><path d="M20 74 H86"/><path d="M8 106 H86"/>
+        </g>
+        <g fill="#2E4A3B"><circle cx="92" cy="42" r="5"/><circle cx="92" cy="74" r="5"/><circle cx="92" cy="106" r="5"/></g>
+        <g fill="#FFFFFF" font-family="Manrope, Arial, sans-serif" font-size="6" font-weight="700" text-anchor="middle"><text x="92" y="44.2">A</text><text x="92" y="76.2">B</text><text x="92" y="108.2">C</text></g>
+      </svg>
+    </div>
+    <div class="table">
+      <span class="tag"></span><span class="tag"></span><span class="tag s">Yours</span><span class="tag"></span><span class="tag"></span><span class="tag"></span>
+      <span class="l h">Size</span><span class="h">XS</span><span class="h s">S</span><span class="h">M</span><span class="h">L</span><span class="h">XL</span>
+      <span class="l"><em>A</em>Bust</span><span>80</span><span class="s">84</span><span>88</span><span>94</span><span>100</span>
+      <span class="l"><em>B</em>Waist</span><span>62</span><span class="s">66</span><span>70</span><span>76</span><span>82</span>
+      <span class="l"><em>C</em>Hip</span><span>88</span><span class="s">92</span><span>96</span><span>102</span><span>108</span>
+    </div>
+    <div class="foot"><span class="scale"><i></i><i class="on"></i><i></i></span><span><b>True to size.</b> Between two sizes? Take the smaller.</span></div>
+    <div class="cta"><span>Add to bag — size S</span><b>$480</b></div>
+  </div>
+</div>
+</body>
+</html>

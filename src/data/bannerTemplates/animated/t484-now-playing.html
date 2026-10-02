@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@600;800;900&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Now Playing — the collection as a track on a 2003 MP3 player: the look is the album art, the readout is a backlit
+     amber dot-matrix LCD (track 03/12, bitrate, repeat), a scrubber, a segmented EQ and an "up next" queue that carries
+     the offer. tall → art above, LCD below · square & wide → art left, LCD right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0B0A08; }
+  .banner { --amb: #FFB43D; --dim: rgba(255,180,61,.34); --bg: #0B0A08; --panel: 80vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: var(--amb); font-family: "Doto", "Courier New", monospace; font-weight: 800; }
+
+  .art { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--panel)); overflow: hidden; }
+  .art img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .art .fade { position: absolute; left: 0; right: 0; bottom: 0; height: 14vmin;
+    background: linear-gradient(0deg, rgba(11,10,8,1) 0%, rgba(11,10,8,.985) 7.7%, rgba(11,10,8,.943) 15.4%, rgba(11,10,8,.874) 23.1%, rgba(11,10,8,.784) 30.8%, rgba(11,10,8,.677) 38.5%, rgba(11,10,8,.56) 46.2%, rgba(11,10,8,.44) 53.8%, rgba(11,10,8,.323) 61.5%, rgba(11,10,8,.216) 69.2%, rgba(11,10,8,.126) 76.9%, rgba(11,10,8,.057) 84.6%, rgba(11,10,8,.015) 92.3%, rgba(11,10,8,0) 100%); }
+
+  .lcd { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 8vmin); display: flex; flex-direction: column; gap: 2.6vmin; text-shadow: 0 0 1.2vmin rgba(255,180,61,.45); }
+  .lcd::before { content: ""; position: absolute; inset: -2vmin -2vmin; pointer-events: none;
+    background: linear-gradient(90deg, rgba(0,0,0,.35) 1px, transparent 1px) 0 0 / .7vmin .7vmin, linear-gradient(0deg, rgba(0,0,0,.35) 1px, transparent 1px) 0 0 / .7vmin .7vmin; }
+  .hd { display: flex; justify-content: space-between; align-items: center; gap: 2vmin; font-size: 2.2vmin; letter-spacing: .06em; white-space: nowrap; }
+  .hd .ind { display: flex; gap: 1.2vmin; }
+  .hd .ind span { padding: .2vmin .8vmin; box-shadow: inset 0 0 0 1px var(--amb); }
+  .hd .ind span.off { color: var(--dim); box-shadow: inset 0 0 0 1px var(--dim); }
+  h1 { margin: 0; font-weight: 900; font-size: 10.6vmin; line-height: .9; letter-spacing: -.02em; text-transform: uppercase; }
+  .by { margin-top: -1vmin; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; font-weight: 500; font-size: 2.2vmin; letter-spacing: .02em; color: #F4E6CC; text-shadow: none; white-space: nowrap; }
+  .by b { font-weight: 600; color: var(--amb); }
+  .scrub { display: flex; align-items: center; gap: 1.8vmin; font-size: 2.2vmin; white-space: nowrap; }
+  .scrub .bar { position: relative; flex: 1; height: 1.2vmin; background: repeating-linear-gradient(90deg, var(--dim) 0 .7vmin, transparent .7vmin 1vmin); }
+  .scrub .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 38%; background: repeating-linear-gradient(90deg, var(--amb) 0 .7vmin, transparent .7vmin 1vmin); }
+  .scrub .bar i::after { content: ""; position: absolute; right: -1.2vmin; top: 50%; width: 1.6vmin; height: 1.6vmin; margin-top: -.8vmin; background: var(--amb); transform: rotate(45deg); }
+  .ctl { display: flex; gap: 1.6vmin; align-items: center; }
+  .ctl svg { width: 3.2vmin; height: 3.2vmin; fill: var(--amb); }
+  .eq { flex: 1; min-height: 6vmin; max-height: 13vmin; display: flex; align-items: flex-end; gap: .7vmin; }
+  .eq i { flex: 1; height: var(--h); background: repeating-linear-gradient(0deg, var(--amb) 0 .7vmin, transparent .7vmin 1.1vmin); }
+  .eq i:nth-child(n+17) { background: repeating-linear-gradient(0deg, var(--dim) 0 .7vmin, transparent .7vmin 1.1vmin); }
+  .q { border-top: 1px solid var(--dim); }
+  .q div { display: flex; align-items: baseline; gap: 2vmin; padding: 1.2vmin 0; border-bottom: 1px solid var(--dim); font-size: 2.6vmin; white-space: nowrap; }
+  .q div span:first-child { color: var(--dim); }
+  .q div em { font-style: normal; margin-left: auto; color: var(--dim); }
+  .q div.hot { color: var(--bg); background: var(--amb); text-shadow: none; padding-left: 1.2vmin; padding-right: 1.2vmin; }
+  .q div.hot span:first-child, .q div.hot em { color: rgba(11,10,8,.55); }
+  .q small { display: block; padding-top: 1.2vmin; font-family: "Inter Tight", sans-serif; font-weight: 500; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #F4E6CC; text-shadow: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 74vmin; }
+    .lcd { left: 10vmin; right: 10vmin; gap: 2.2vmin; }
+    h1 { font-size: 9.4vmin; }
+    .q div { padding: 1vmin 0; font-size: 2.4vmin; }
+  }
+
+  /* square & wide: art left, LCD right */
+  @media (min-aspect-ratio: 9/10) {
+    .art { right: auto; bottom: 0; height: 100%; width: 50%; }
+    .art .fade { left: auto; top: 0; bottom: 0; right: 0; width: 12vmin; height: auto;
+      background: linear-gradient(270deg, rgba(11,10,8,1) 0%, rgba(11,10,8,.985) 7.7%, rgba(11,10,8,.943) 15.4%, rgba(11,10,8,.874) 23.1%, rgba(11,10,8,.784) 30.8%, rgba(11,10,8,.677) 38.5%, rgba(11,10,8,.56) 46.2%, rgba(11,10,8,.44) 53.8%, rgba(11,10,8,.323) 61.5%, rgba(11,10,8,.216) 69.2%, rgba(11,10,8,.126) 76.9%, rgba(11,10,8,.057) 84.6%, rgba(11,10,8,.015) 92.3%, rgba(11,10,8,0) 100%); }
+    .lcd { left: calc(50% + 3vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; gap: 2vmin; justify-content: space-between; }
+    .hd { font-size: 1.8vmin; }
+    .hd .ind span.x, .hd .ind span.off { display: none; }
+    .eq { flex: none; height: 24vmin; max-height: none; }
+    h1 { font-size: 8.2vmin; }
+    .by { font-size: 1.9vmin; margin-top: -.6vmin; }
+    .scrub { font-size: 1.9vmin; gap: 1.4vmin; }
+    .ctl svg { width: 2.6vmin; height: 2.6vmin; }
+    .q div { font-size: 2vmin; padding: .9vmin 0; }
+    .q div.hot { padding-left: .9vmin; padding-right: .9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .art { width: 44%; }
+    .lcd { left: calc(44% + 4vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; gap: 2.4vmin; }
+    .hd { font-size: 2vmin; }
+    .hd .ind span.x, .hd .ind span.off { display: inline; }
+    .eq { height: 22vmin; }
+    h1 { font-size: 8.6vmin; }
+    .q div { font-size: 2.3vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     constant: the segmented EQ dances (bars drop from their printed peaks and spring back — clip-path, so the
+     dot segments stay crisp), the ▶ play glyph pulses, the scrub knob blinks, a faint backlight scanline rolls
+     down the LCD; the album art breathes (≤1.03)
+     beat: 3 s the "up next" offer row flashes inverse twice like a track change; 3.6 s headline gets a backlight surge */
+  .art img { transform-origin: 50% 35%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  /* five bar families with different periods (all divide 6 s) and no delays, so t=0 is exactly the printed EQ */
+  .eq i:nth-child(5n+1) { animation: eqA .75s steps(3, end) infinite; }
+  .eq i:nth-child(5n+2) { animation: eqB 1s steps(4, end) infinite; }
+  .eq i:nth-child(5n+3) { animation: eqC 1.5s steps(5, end) infinite; }
+  .eq i:nth-child(5n+4) { animation: eqD .6s steps(3, end) infinite; }
+  .eq i:nth-child(5n)   { animation: eqE 1.2s steps(4, end) infinite; }
+  @keyframes eqA { 0%, 100% { clip-path: inset(0 0 0 0); } 40% { clip-path: inset(38% 0 0 0); } 70% { clip-path: inset(14% 0 0 0); } }
+  @keyframes eqB { 0%, 100% { clip-path: inset(0 0 0 0); } 30% { clip-path: inset(22% 0 0 0); } 60% { clip-path: inset(52% 0 0 0); } 80% { clip-path: inset(10% 0 0 0); } }
+  @keyframes eqD { 0%, 100% { clip-path: inset(0 0 0 0); } 50% { clip-path: inset(30% 0 0 0); } }
+  @keyframes eqE { 0%, 100% { clip-path: inset(0 0 0 0); } 35% { clip-path: inset(48% 0 0 0); } 65% { clip-path: inset(20% 0 0 0); } }
+  @keyframes eqC { 0%, 100% { clip-path: inset(0 0 0 0); } 25% { clip-path: inset(30% 0 0 0); } 50% { clip-path: inset(8% 0 0 0); } 75% { clip-path: inset(44% 0 0 0); } }
+
+  .hd .pl { font-weight: inherit; animation: play 1.5s steps(1, end) infinite; }
+  @keyframes play { 0%, 66% { opacity: 1; } 67%, 100% { opacity: .35; } }
+  .scrub .bar i::after { animation: knob 1s steps(1, end) infinite; }
+  @keyframes knob { 0%, 60% { opacity: 1; } 61%, 100% { opacity: .45; } }
+
+  .lcd::after { content: ""; position: absolute; left: -2vmin; right: -2vmin; top: -2vmin; height: 20%; pointer-events: none; opacity: 0;
+    background: linear-gradient(180deg, rgba(255,180,61,0), rgba(255,180,61,.07) 50%, rgba(255,180,61,0));
+    animation: scan 3s linear infinite; }
+  @keyframes scan { 0% { transform: translateY(0); opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateY(500%); opacity: 0; } }
+
+  .q div.hot { animation: hot 6s steps(1, end) infinite; }
+  @keyframes hot {
+    0%, 50%, 54%, 58%, 100% { background: var(--amb); color: var(--bg); }
+    51%, 55% { background: transparent; color: var(--amb); }
+  }
+  h1 { animation: surge 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes surge { 0%, 58%, 76%, 100% { text-shadow: 0 0 1.2vmin rgba(255,180,61,.45); } 62% { text-shadow: 0 0 2.6vmin rgba(255,180,61,.85); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="art"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="fade"></div></div>
+  <div class="lcd">
+    <div class="hd"><span><b class="pl">▶</b> NOW PLAYING · 03/12</span><span class="ind"><span class="x">MP3</span><span>128K</span><span class="off">SHUF</span><span>⟲ ALL</span></span></div>
+    <h1>The new<br>season</h1>
+    <div class="by"><b>Studio Oro</b> — SS26 Collection · side A</div>
+    <div class="scrub"><span>01:12</span><div class="bar"><i></i></div><span>-02:33</span>
+      <span class="ctl"><svg viewBox="0 0 20 20"><path d="M3 3h3v14H3zM18 3v14L7 10z"/></svg><svg viewBox="0 0 20 20"><path d="M3 2v16l9-8zM13 3h2.5v14H13zM16.5 3H19v14h-2.5z"/></svg><svg viewBox="0 0 20 20"><path d="M2 3v14l11-7zM14 3h3v14h-3z"/></svg></span></div>
+    <div class="eq"><i style="--h:40%"></i><i style="--h:62%"></i><i style="--h:88%"></i><i style="--h:100%"></i><i style="--h:76%"></i><i style="--h:58%"></i><i style="--h:70%"></i><i style="--h:92%"></i><i style="--h:66%"></i><i style="--h:48%"></i><i style="--h:56%"></i><i style="--h:80%"></i><i style="--h:60%"></i><i style="--h:42%"></i><i style="--h:34%"></i><i style="--h:46%"></i><i style="--h:30%"></i><i style="--h:22%"></i><i style="--h:28%"></i><i style="--h:18%"></i><i style="--h:14%"></i><i style="--h:20%"></i><i style="--h:12%"></i><i style="--h:10%"></i></div>
+    <div class="q">
+      <div class="hot"><span>04</span>30% off, all tracks<em>til sun</em></div>
+      <div><span>05</span>Code PLAY30<em>1:00</em></div>
+      <div><span>06</span>Free shipping<em>2:48</em></div>
+      <small>Up next · press play to shop</small>
+    </div>
+  </div>
+</div>
+</body>
+</html>

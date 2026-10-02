@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;1,6..96,400;1,6..96,500&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Die-Cut Cover — the lookbook's heavy oxblood board cover with a rectangular window die-cut through it:
+     the look shows through from the first page, the cut edge casts a shadow into the window, the title is
+     gold-foil stamped, and a cream first-edition label carries the offer.
+     tall → window above the foil title · square & wide → window right, cover type left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #561C1C; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F1E4C8; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(120vmin 90vmin at 30% 20%, #6A2524, #561C1C 60%, #461616); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .5; mix-blend-mode: multiply; }
+
+  .photo { position: absolute; left: 8vmin; top: 8vmin; width: calc(100% - 16vmin); height: calc(100% - 8vmin - 64vmin); object-fit: cover; object-position: 50% 22%; }
+  .win { position: absolute; left: 8vmin; top: 8vmin; width: calc(100% - 16vmin); height: calc(100% - 8vmin - 64vmin);
+    box-shadow: inset 1.1vmin 1.3vmin 1.6vmin rgba(20,4,4,.55), inset .25vmin .3vmin 0 rgba(30,6,6,.8), inset -1px -1px 0 rgba(255,220,200,.28); }
+
+  .type { position: absolute; left: 8vmin; right: 8vmin; bottom: 7vmin; height: calc(64vmin - 14vmin); display: flex; flex-direction: column; }
+  .season { display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.75vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; color: #E4CFA4; }
+  .foil { margin: auto 0 0; font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-style: italic; font-weight: 400; font-size: 19vmin; line-height: .9; letter-spacing: -.02em;
+    background: linear-gradient(100deg, #B98D48 0%, #F4E3B4 22%, #C79B55 40%, #FFF1C9 55%, #AE8240 74%, #E9D29C 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(.15vmin .2vmin 0 rgba(25,5,5,.55)); padding-right: 1vmin; }
+  .brand { margin-top: 1.4vmin; font-family: "Bodoni Moda", Didot, serif; font-size: 3.4vmin; letter-spacing: .34em; text-transform: uppercase; color: #F1E4C8; }
+  .row { margin-top: 4vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 4vmin; }
+  .vol { font-size: 1.8vmin; line-height: 1.6; letter-spacing: .08em; color: #E4CFA4; }
+  .vol b { color: #F6EBD3; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .label { flex: none; position: relative; padding: 1.6vmin 2.4vmin 1.8vmin; background: #F4EBDA; color: #3B1414; text-align: center; transform: rotate(-2deg);
+    box-shadow: .3vmin .5vmin 1vmin rgba(20,4,4,.45); }
+  .label::before { content: ""; position: absolute; inset: .7vmin; border: 1px solid rgba(59,20,20,.45); pointer-events: none; }
+  .label small { display: block; font-size: 1.6vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; }
+  .label b { display: block; margin: .5vmin 0 .3vmin; font-family: "Bodoni Moda", Didot, serif; font-weight: 400; font-size: 6.2vmin; line-height: 1; }
+  .label span { display: block; font-size: 1.6vmin; letter-spacing: .1em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo, .win { left: 7vmin; top: 7vmin; width: calc(100% - 14vmin); height: calc(100% - 7vmin - 56vmin); }
+    .type { left: 7vmin; right: 7vmin; bottom: 6vmin; height: calc(56vmin - 12vmin); }
+    .foil { font-size: 16vmin; }
+    .brand { font-size: 3vmin; }
+    .row { margin-top: 3vmin; }
+    .label b { font-size: 5.4vmin; }
+  }
+  /* square & wide: the window moves right, the cover type holds the left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo, .win { left: 47%; top: 6vmin; width: calc(53% - 6vmin); height: calc(100% - 12vmin); object-position: 50% 24%; }
+    .type { left: 6vmin; right: calc(53% + 4vmin); top: 6vmin; bottom: 6vmin; height: auto; }
+    .season { flex-direction: column; gap: .8vmin; font-size: 1.6vmin; letter-spacing: .24em; }
+    .foil { font-size: 9.2vmin; line-height: .95; }
+    .brand { font-size: 2.3vmin; letter-spacing: .26em; }
+    .row { flex-direction: column; align-items: flex-start; gap: 3vmin; margin-top: 3.4vmin; }
+    .vol { font-size: 1.6vmin; }
+    .label { padding: 1.3vmin 2vmin 1.5vmin; }
+    .label small, .label span { font-size: 1.5vmin; }
+    .label b { font-size: 4.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo, .win { left: 50%; top: 7vmin; width: calc(50% - 7vmin); height: calc(100% - 14vmin); }
+    .type { left: 8vmin; right: calc(50% + 6vmin); top: 7vmin; bottom: 7vmin; }
+    .season { flex-direction: row; font-size: 1.7vmin; }
+    .foil { font-size: 16vmin; line-height: .9; }
+    .brand { font-size: 3vmin; letter-spacing: .32em; }
+    .row { flex-direction: row; align-items: flex-end; margin-top: 4vmin; }
+    .vol { font-size: 1.75vmin; }
+    .label { padding: 1.6vmin 2.4vmin 1.8vmin; }
+    .label small, .label span { font-size: 1.6vmin; }
+    .label b { font-size: 5.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" aria-hidden="true"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .2  0 0 0 0 .05  0 0 0 0 .05  0 0 0 .55 0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="win"></div>
+  <div class="type">
+    <div class="season"><span>Autumn / Winter 2026</span><span>Vol. 07</span></div>
+    <div class="foil">Lookbook</div>
+    <div class="brand">Atelier Nord</div>
+    <div class="row">
+      <div class="vol"><b>32 looks</b><br>In store &amp; online now</div>
+      <div class="label"><small>First edition</small><b>−20%</b><span>Code FIRST20</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

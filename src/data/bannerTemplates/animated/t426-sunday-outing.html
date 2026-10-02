@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Shadows+Into+Light+Two&display=swap" rel="stylesheet">
+<style>
+  /* Sunday Outing — the weekend family day out: a sage gingham picnic cloth with a paper napkin-card laid on it,
+     a hand-drawn dashed route (park → picnic → ice cream → home) and a tomato "Sat + Sun" sticker.
+     tall → photo above the cloth; square/wide → photo left, cloth + card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EEDF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EEDF; color: #22301F; font-family: "Young Serif", Georgia, serif; }
+  .cloth { position: absolute; left: 0; right: 0; bottom: 0; height: 78vmin; background-color: #F3EEDF;
+    background-image: linear-gradient(90deg, rgba(122,146,102,.5) 50%, transparent 50%), linear-gradient(rgba(122,146,102,.5) 50%, transparent 50%);
+    background-size: 7vmin 7vmin; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 78vmin); object-fit: cover; object-position: 50% 22%; }
+
+  .card { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; height: 64vmin; box-sizing: border-box; padding: 5vmin 5.4vmin 4.6vmin; background: #FBF8F0; transform: rotate(-1.3deg);
+    box-shadow: 0 .8vmin 2.4vmin rgba(34,48,31,.22); display: flex; flex-direction: column; }
+  .card::before { content: ""; position: absolute; inset: 1.6vmin; border: 1px dashed rgba(34,48,31,.25); pointer-events: none; }
+  .k { width: fit-content; font-family: "Shadows Into Light Two", "Bradley Hand", cursive; font-size: 3.4vmin; line-height: 1; color: #C24E33; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 400; font-size: 11vmin; line-height: .95; letter-spacing: -.02em; }
+  .p { display: none; margin-top: 2.6vmin; font-size: 2.4vmin; line-height: 1.4; color: #3E4B39; }
+
+  .route { position: relative; margin-top: auto; height: 13vmin; }
+  .route svg { position: absolute; left: 1vmin; right: 1vmin; top: 1vmin; width: calc(100% - 2vmin); height: 4vmin; overflow: visible; }
+  .route path { fill: none; stroke: #22301F; stroke-width: 2.2; stroke-dasharray: 5 6; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .stops { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; }
+  .stop { display: flex; flex-direction: column; align-items: center; width: 14vmin; text-align: center; }
+  .stop i { width: 2.4vmin; height: 2.4vmin; margin-top: 1.8vmin; border-radius: 50%; background: #FBF8F0; box-shadow: inset 0 0 0 .4vmin #22301F; }
+  .stop:last-child i { background: #C24E33; box-shadow: none; }
+  .stop b { margin-top: 1.4vmin; font-family: "Shadows Into Light Two", cursive; font-weight: 400; font-size: 3vmin; line-height: 1; white-space: nowrap; }
+  .stop span { font-size: 1.7vmin; letter-spacing: .06em; color: #5A6752; }
+
+  .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; margin-top: 3vmin; padding-top: 2.6vmin; border-top: 1px solid rgba(34,48,31,.3); }
+  .offer { font-size: 2.4vmin; line-height: 1.3; }
+  .offer b { font-weight: 400; color: #C24E33; }
+  .cta { flex: none; background: #22301F; color: #FBF8F0; padding: 1.9vmin 3.2vmin; font-size: 2.4vmin; white-space: nowrap; }
+
+  .sticker { position: absolute; right: 9vmin; bottom: calc(6vmin + 64vmin - 9vmin); width: 17vmin; height: 17vmin; border-radius: 50%; background: #C24E33; color: #FBF8F0; transform: rotate(12deg); z-index: 2;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 .6vmin 1.4vmin rgba(34,48,31,.25); }
+  .sticker b { font-weight: 400; font-size: 4vmin; line-height: .95; }
+  .sticker span { font-family: "Shadows Into Light Two", cursive; font-size: 2.6vmin; line-height: 1; margin-top: .6vmin; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .cloth { height: 70vmin; }
+    .photo { height: calc(100% - 70vmin); }
+    .card { height: 58vmin; bottom: 5vmin; padding-top: 4.4vmin; }
+    h1 { font-size: 9.6vmin; }
+    .sticker { bottom: calc(5vmin + 58vmin - 8vmin); width: 15vmin; height: 15vmin; }
+    .sticker b { font-size: 3.6vmin; }
+  }
+  /* 3:4 / 4:5 → photo left, cloth right */
+  @media (min-aspect-ratio: 7/10) {
+    .cloth { left: 50%; top: 0; height: auto; }
+    .photo { width: 50%; height: 100%; object-position: 50% 26%; }
+    .card { left: calc(50% + 4vmin); right: 4vmin; top: 12vmin; bottom: 6vmin; height: auto; padding: 4.4vmin 4vmin 4vmin; }
+    .k { font-size: 3vmin; }
+    h1 { font-size: 7.6vmin; }
+    .p { display: block; font-size: 2.1vmin; }
+    .route { height: 12vmin; }
+    .stop { width: 9vmin; }
+    .stop b { font-size: 2.4vmin; }
+    .stop span { font-size: 1.6vmin; letter-spacing: 0; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.2vmin; }
+    .offer { font-size: 2.1vmin; }
+    .cta { font-size: 2.2vmin; }
+    .sticker { right: 2vmin; top: 2.4vmin; bottom: auto; width: 14vmin; height: 14vmin; }
+    .sticker b { font-size: 3.2vmin; }
+    .sticker span { font-size: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .cloth { left: 48%; }
+    .photo { width: 48%; }
+    .card { left: calc(48% + 5vmin); right: 5vmin; top: 10vmin; bottom: 6vmin; }
+    h1 { font-size: 7.4vmin; }
+    .stop { width: 10vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .cloth { left: 44%; }
+    .photo { width: 44%; }
+    .card { left: calc(44% + 7vmin); right: 7vmin; top: 9vmin; bottom: 8vmin; padding: 5vmin 5.4vmin 4.6vmin; }
+    .k { font-size: 3.4vmin; }
+    h1 { font-size: 9.2vmin; padding-right: 14vmin; }
+    .p { font-size: 2.5vmin; max-width: 56vmin; }
+    .stop { width: 14vmin; }
+    .stop b { font-size: 2.8vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .offer { font-size: 2.3vmin; }
+    .sticker { right: 4vmin; top: 4vmin; width: 17vmin; height: 17vmin; }
+    .sticker b { font-size: 4vmin; }
+    .sticker span { font-size: 2.6vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) — a lazy, sunny Sunday ─────────
+     the dashed route keeps walking (marching ants, two dash periods per loop) and each stop pops as the walk
+     reaches it (1 s → 2.8 s, "home" gets a bigger bounce) · 3.6 s the Sat & Sun sticker lifts at the corner and
+     slaps back down · 4.3 s the handwritten kicker is re-written left→right · 5.1 s a sun glint crosses the CTA */
+  .route path { animation: walk 6s linear infinite; }
+  @keyframes walk { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -22; } }
+
+  .stop i { animation: pop 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .stop:nth-child(1) i { animation-delay: -5s; }
+  .stop:nth-child(2) i { animation-delay: -4.4s; }
+  .stop:nth-child(3) i { animation-delay: -3.8s; }
+  .stop:nth-child(4) i { animation-name: popHome; animation-delay: -3.2s; }
+  @keyframes pop { 0%, 100% { transform: scale(1); } 3% { transform: scale(1.45); } 7% { transform: scale(.92); } 10% { transform: scale(1); } }
+  @keyframes popHome { 0%, 100% { transform: scale(1) translateY(0); } 3% { transform: scale(1.6) translateY(-.6vmin); } 7% { transform: scale(.9) translateY(0); } 10% { transform: scale(1.1); } 13% { transform: scale(1); } }
+
+  .sticker { transform-origin: 20% 80%; animation: peel 6s cubic-bezier(.4,0,.3,1) infinite; }
+  @keyframes peel {
+    0%, 58%, 100% { transform: rotate(12deg) scale(1); box-shadow: 0 .6vmin 1.4vmin rgba(34,48,31,.25); }
+    63% { transform: rotate(4deg) scale(1.08) translateY(-1vmin); box-shadow: 0 2vmin 3vmin rgba(34,48,31,.3); }
+    67% { transform: rotate(15deg) scale(.97); box-shadow: 0 .4vmin 1vmin rgba(34,48,31,.25); }
+    71% { transform: rotate(11deg) scale(1.01); box-shadow: 0 .6vmin 1.4vmin rgba(34,48,31,.25); }
+    74% { transform: rotate(12deg) scale(1); box-shadow: 0 .6vmin 1.4vmin rgba(34,48,31,.25); }
+  }
+
+  .k { animation: write 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes write {
+    0%, 70%, 100% { clip-path: inset(-20% -4% -30% 0); opacity: 1; }
+    73% { clip-path: inset(-20% -4% -30% 0); opacity: 0; }
+    74% { clip-path: inset(-20% 104% -30% 0); opacity: 1; }
+    84% { clip-path: inset(-20% -4% -30% 0); opacity: 1; }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 50%; pointer-events: none;
+    background: linear-gradient(100deg, transparent 20%, rgba(255,236,190,.45) 50%, transparent 80%);
+    transform: translateX(-120%); animation: glint 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes glint { 0%, 85% { transform: translateX(-120%); } 97%, 100% { transform: translateX(320%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cloth"></div>
+  <div class="card">
+    <div class="k">the whole gang, matching —</div>
+    <h1>Out all Sunday.</h1>
+    <div class="p">Matching looks for the park, the picnic and the long way home.</div>
+    <div class="route">
+      <svg viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true"><path d="M8 12 C 40 -2, 70 22, 100 10 S 160 -2, 200 12 S 260 20, 292 8"/></svg>
+      <div class="stops">
+        <div class="stop"><i></i><b>the park</b><span>10:00</span></div>
+        <div class="stop"><i></i><b>picnic</b><span>12:30</span></div>
+        <div class="stop"><i></i><b>ice cream</b><span>15:00</span></div>
+        <div class="stop"><i></i><b>home</b><span>tired</span></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="offer">Weekend family sets <b>−25%</b><br>Friday to Sunday only</div>
+      <div class="cta">Pack the look →</div>
+    </div>
+  </div>
+  <div class="sticker"><b>Sat &amp;<br>Sun</b><span>only!</span></div>
+</div>
+</body>
+</html>

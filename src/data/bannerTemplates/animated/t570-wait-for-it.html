@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,500;0,700;1,500&family=Martian+Mono:wght@400;600&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Wait For It — a suspense cover: "Wait for it" with fading dots, the photo, a scrubber with the playhead at 0:07 and
+     a pinned "reveal" mark at 0:12, and a filmstrip of frames that sharpen from blur to focus toward the reveal.
+     tall / 3:4 → headline, photo, scrubber, filmstrip, offer · square / wide → photo left, headline + filmstrip + scrubber right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1E0B2B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #EFE3F7; font-family: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(110vmin 80vmin at 100% 0%, #3A1650, #1E0B2B 60%), #1E0B2B;
+    display: flex; flex-direction: column; padding: 5vmin 6vmin 5.4vmin; box-sizing: border-box; }
+
+  .head { position: relative; flex: none; }
+  .kick { font-family: "Martian Mono", monospace; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; color: #B79BCB; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 700; font-size: 13vmin; line-height: .88; letter-spacing: -.045em; }
+  h1 span { color: #FF7A1A; }
+  h1 span:nth-child(2) { opacity: .6; } h1 span:nth-child(3) { opacity: .3; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 4vmin; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .scrub { position: relative; flex: none; margin-top: 3.6vmin; }
+  .track { position: relative; height: .8vmin; border-radius: 1vmin; background: rgba(239,227,247,.2); }
+  .track .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 47%; border-radius: 1vmin; background: #FF7A1A; }
+  .track .head-dot { position: absolute; left: 47%; top: 50%; width: 2.6vmin; height: 2.6vmin; border-radius: 50%; background: #FFF; transform: translate(-50%, -50%); box-shadow: 0 0 0 .8vmin rgba(255,122,26,.3); }
+  .track .pin { position: absolute; left: 80%; top: 50%; width: 1.4vmin; height: 1.4vmin; background: #FF7A1A; transform: translate(-50%, -50%) rotate(45deg); }
+  .times { position: relative; display: flex; margin-top: 1.8vmin; font-family: "Martian Mono", monospace; font-size: 1.7vmin; color: #B79BCB; }
+  .times b { color: #EFE3F7; font-weight: 600; }
+  .times .rv { position: absolute; left: 80%; transform: translateX(-50%); color: #FF7A1A; white-space: nowrap; }
+  .times .end { margin-left: auto; }
+
+  .strip { position: relative; flex: none; margin-top: 3vmin; height: 11vmin; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1vmin; }
+  .fr { position: relative; overflow: hidden; background: #2C1240; }
+  .fr img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+  .fr:nth-child(1) img { filter: blur(1.4vmin) brightness(.55); transform: scale(1.2); }
+  .fr:nth-child(2) img { filter: blur(1vmin) brightness(.65); transform: scale(1.15); }
+  .fr:nth-child(3) img { filter: blur(.6vmin) brightness(.8); transform: scale(1.1); }
+  .fr:nth-child(4) img { filter: blur(.25vmin) brightness(.9); }
+  .fr:nth-child(5) { outline: .4vmin solid #FF7A1A; outline-offset: -.4vmin; }
+
+  .foot { position: relative; flex: none; margin-top: 3.4vmin; display: flex; align-items: center; gap: 3vmin; }
+  .price { font-weight: 700; font-size: 6vmin; letter-spacing: -.04em; line-height: 1; }
+  .small { font-family: "Martian Mono", monospace; font-size: 1.6vmin; line-height: 1.5; color: #B79BCB; }
+  .cta { margin-left: auto; padding: 2vmin 3.2vmin; border-radius: 99vmin; background: #FF7A1A; color: #1E0B2B; font-size: 2.2vmin; font-weight: 700; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.6vmin; }
+    h1 { font-size: 10.6vmin; margin-top: 1.2vmin; }
+    .photo { margin-top: 3.2vmin; }
+    .scrub { margin-top: 3vmin; }
+    .times { margin-top: 1.4vmin; }
+    .strip { margin-top: 2.4vmin; height: 8vmin; }
+    .foot { margin-top: 2.8vmin; }
+    .price { font-size: 5vmin; }
+  }
+  /* ── square: photo left, the rest stacked right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .photo { position: absolute; left: 5.6vmin; top: 5.6vmin; bottom: 5.6vmin; width: 48%; height: auto; margin: 0; }
+    .head, .strip, .scrub, .foot { position: absolute; left: calc(48% + 10vmin); right: 5.6vmin; margin: 0; }
+    .head { top: 5.6vmin; }
+    h1 { font-size: 9.4vmin; margin-top: 2vmin; }
+    .strip { top: 42vmin; height: 12vmin; grid-template-columns: repeat(3, 1fr); }
+    .fr:nth-child(1), .fr:nth-child(2) { display: none; }
+    .scrub { top: 60vmin; }
+    .times .end { display: none; }
+    .foot { bottom: 5.6vmin; flex-wrap: wrap; row-gap: 1.6vmin; }
+    .small { display: none; }
+    .cta { margin-left: 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; left: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .head, .strip, .scrub, .foot { left: calc(44% + 13vmin); right: 7vmin; }
+    .head { top: 6.4vmin; }
+    h1 { font-size: 11.4vmin; }
+    .strip { top: 43vmin; height: 12vmin; grid-template-columns: repeat(5, 1fr); }
+    .fr:nth-child(1), .fr:nth-child(2) { display: block; }
+    .scrub { top: 61vmin; }
+    .times .end { display: block; }
+    .foot { bottom: 6.4vmin; flex-wrap: nowrap; }
+    .small { display: block; }
+    .cta { margin-left: auto; }
+  }
+
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     constant: the three dots rise and brighten in a typing wave (1.5 s)
+     beat: 0.2–3.5 s the playhead creeps from 0:07 to the reveal pin (fill grows with it) · 3.6 s REVEAL — pin bursts,
+           the photo flashes and pushes in, the filmstrip snaps into focus frame by frame, "the reveal" and the CTA glow ·
+           4.6–5.4 s the playhead rewinds and the frames blur back — wait for it, again */
+  .photo { overflow: hidden; }
+  .photo img { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 55%, 100% { transform: scale(1); filter: brightness(1); } 61% { transform: scale(1.035); filter: brightness(1.18); } 75% { transform: scale(1.03); filter: brightness(1); } }
+  .photo::after { content: ""; position: absolute; inset: 0; background: #FFF; opacity: 0; pointer-events: none; animation: flash 6s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes flash { 0%, 59%, 100% { opacity: 0; } 60% { opacity: .45; } 70% { opacity: 0; } }
+
+  h1 span { display: inline-block; }
+  h1 span:nth-child(1) { animation: d1 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  h1 span:nth-child(2) { animation: d2 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  h1 span:nth-child(3) { animation: d3 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes d1 { 0%, 40%, 100% { opacity: 1; transform: translateY(0); } 13% { opacity: 1; transform: translateY(-1.4vmin); } }
+  @keyframes d2 { 0%, 13%, 60%, 100% { opacity: .6; transform: translateY(0); } 33% { opacity: 1; transform: translateY(-1.4vmin); } }
+  @keyframes d3 { 0%, 33%, 80%, 100% { opacity: .3; transform: translateY(0); } 53% { opacity: 1; transform: translateY(-1.4vmin); } }
+
+  /* playhead travel = 33 % of the track (47 % → 80 %) */
+  .track .ph { position: absolute; inset: 0; animation: travel 6s linear infinite; }
+  @keyframes travel {
+    0%, 3% { transform: translateX(0); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    58%, 76% { transform: translateX(33%); animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    90%, 100% { transform: translateX(0); }
+  }
+  .track .fill { transform-origin: 0 50%; animation: grow 6s linear infinite; }
+  @keyframes grow {
+    0%, 3% { transform: scaleX(1); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    58%, 76% { transform: scaleX(1.7021); animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    90%, 100% { transform: scaleX(1); }
+  }
+  .track .pin { animation: burst 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes burst { 0%, 57%, 72%, 100% { transform: translate(-50%, -50%) rotate(45deg) scale(1); box-shadow: 0 0 0 0 rgba(255,122,26,0); }
+                     61% { transform: translate(-50%, -50%) rotate(45deg) scale(1.9); box-shadow: 0 0 0 .8vmin rgba(255,122,26,.35); } }
+  .times .rv { animation: rv 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes rv { 0%, 57%, 80%, 100% { color: #FF7A1A; text-shadow: 0 0 0 rgba(255,122,26,0); } 62%, 72% { color: #FFD2A8; text-shadow: 0 0 1.4vmin rgba(255,122,26,.8); } }
+
+  .fr:nth-child(1) img { animation: f1 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .fr:nth-child(2) img { animation: f2 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .fr:nth-child(3) img { animation: f3 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .fr:nth-child(4) img { animation: f4 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes f1 { 0%, 60%, 90%, 100% { filter: blur(1.4vmin) brightness(.55); transform: scale(1.2); } 64%, 76% { filter: blur(0) brightness(1); transform: scale(1); } }
+  @keyframes f2 { 0%, 59%, 88%, 100% { filter: blur(1vmin) brightness(.65); transform: scale(1.15); } 63%, 76% { filter: blur(0) brightness(1); transform: scale(1); } }
+  @keyframes f3 { 0%, 58%, 86%, 100% { filter: blur(.6vmin) brightness(.8); transform: scale(1.1); } 62%, 76% { filter: blur(0) brightness(1); transform: scale(1); } }
+  @keyframes f4 { 0%, 57%, 84%, 100% { filter: blur(.25vmin) brightness(.9); transform: scale(1); } 61%, 76% { filter: blur(0) brightness(1); transform: scale(1); } }
+  .fr:nth-child(5) { animation: fr5 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes fr5 { 0%, 57%, 74%, 100% { outline-color: #FF7A1A; box-shadow: 0 0 0 0 rgba(255,122,26,0); } 61% { outline-color: #FFD2A8; box-shadow: 0 0 2.4vmin rgba(255,122,26,.7); } }
+
+  .cta { animation: glow 6s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes glow { 0%, 60% { box-shadow: 0 0 0 0 rgba(255,122,26,0); } 62% { box-shadow: 0 0 0 0 rgba(255,122,26,.6); } 80%, 100% { box-shadow: 0 0 0 2.4vmin rgba(255,122,26,0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div class="kick">Keep watching · reveal at 0:12</div>
+    <h1>Wait for it<span>.</span><span>.</span><span>.</span></h1>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="scrub">
+    <div class="track"><i class="fill"></i><i class="pin"></i><i class="ph"><i class="head-dot"></i></i></div>
+    <div class="times"><b>0:07</b><span class="rv">the reveal</span><span class="end">0:15</span></div>
+  </div>
+  <div class="strip">
+    <div class="fr"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="fr"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="fr"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="fr"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="fr"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  </div>
+  <div class="foot">
+    <div class="price">$110</div>
+    <div class="small">Velour Hall<br>Drops Friday, 10 am</div>
+    <div class="cta">Shop the reveal →</div>
+  </div>
+</div>
+</body>
+</html>

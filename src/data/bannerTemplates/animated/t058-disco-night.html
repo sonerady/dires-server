@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Righteous&display=swap" rel="stylesheet">
+<style>
+  /* 1970s disco — a mirror ball throwing light spots across a violet night, "DISCO" in multi-line sunset type
+     (running up the side in tall, across in square/wide), three-stripe rule, glossy pill CTA.
+     tall: night-sale copy + ball on top, photo below beside the vertical title · square & wide: copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C0B33; }
+  .banner { --cream: #FFF1DE; --gold: #FFC857; --pink: #FF3E8A; --orange: #FF8A3D; --violet: #9B5CFF;
+    position: fixed; inset: 0; overflow: hidden; color: var(--cream); font-family: "Righteous", "Futura", "Trebuchet MS", sans-serif;
+    background: linear-gradient(180deg, #1C0B33 0%, #34104D 55%, #5E1352 100%); }
+  .spots { position: absolute; inset: 0; background: radial-gradient(circle at 77% 71%, rgba(255,200,87,0.86) 0 0.42vmin, rgba(255,200,87,0) 0.92vmin), radial-gradient(circle at 82% 76%, rgba(155,92,255,0.46) 0 0.39vmin, rgba(155,92,255,0) 0.89vmin), radial-gradient(circle at 35% 72%, rgba(155,92,255,0.9) 0 0.48vmin, rgba(155,92,255,0) 0.98vmin), radial-gradient(circle at 71% 72%, rgba(155,92,255,0.74) 0 0.61vmin, rgba(155,92,255,0) 1.11vmin), radial-gradient(circle at 31% 83%, rgba(255,200,87,0.87) 0 0.43vmin, rgba(255,200,87,0) 0.93vmin), radial-gradient(circle at 96% 3%, rgba(155,92,255,0.48) 0 0.72vmin, rgba(155,92,255,0) 1.22vmin), radial-gradient(circle at 7% 40%, rgba(120,220,255,0.82) 0 0.78vmin, rgba(120,220,255,0) 1.28vmin), radial-gradient(circle at 62% 78%, rgba(255,62,138,0.85) 0 0.75vmin, rgba(255,62,138,0) 1.25vmin), radial-gradient(circle at 56% 52%, rgba(255,138,61,0.71) 0 0.75vmin, rgba(255,138,61,0) 1.25vmin), radial-gradient(circle at 48% 14%, rgba(255,200,87,0.67) 0 0.37vmin, rgba(255,200,87,0) 0.87vmin), radial-gradient(circle at 88% 57%, rgba(255,62,138,0.83) 0 0.78vmin, rgba(255,62,138,0) 1.28vmin), radial-gradient(circle at 66% 51%, rgba(155,92,255,0.69) 0 0.67vmin, rgba(155,92,255,0) 1.17vmin), radial-gradient(circle at 76% 31%, rgba(155,92,255,0.76) 0 0.85vmin, rgba(155,92,255,0) 1.35vmin), radial-gradient(circle at 37% 79%, rgba(255,255,255,0.52) 0 0.72vmin, rgba(255,255,255,0) 1.22vmin), radial-gradient(circle at 71% 75%, rgba(255,62,138,0.77) 0 0.66vmin, rgba(255,62,138,0) 1.16vmin), radial-gradient(circle at 83% 75%, rgba(255,200,87,0.51) 0 0.5vmin, rgba(255,200,87,0) 1.00vmin), radial-gradient(circle at 83% 63%, rgba(155,92,255,0.81) 0 0.4vmin, rgba(155,92,255,0) 0.90vmin), radial-gradient(circle at 21% 4%, rgba(155,92,255,0.8) 0 0.51vmin, rgba(155,92,255,0) 1.01vmin), radial-gradient(circle at 7% 79%, rgba(255,255,255,0.47) 0 0.69vmin, rgba(255,255,255,0) 1.19vmin), radial-gradient(circle at 77% 44%, rgba(255,138,61,0.86) 0 0.65vmin, rgba(255,138,61,0) 1.15vmin), radial-gradient(circle at 66% 32%, rgba(255,62,138,0.59) 0 0.9vmin, rgba(255,62,138,0) 1.40vmin), radial-gradient(circle at 15% 78%, rgba(255,255,255,0.88) 0 0.64vmin, rgba(255,255,255,0) 1.14vmin), radial-gradient(circle at 39% 80%, rgba(155,92,255,0.76) 0 0.49vmin, rgba(155,92,255,0) 0.99vmin), radial-gradient(circle at 42% 48%, rgba(255,62,138,0.85) 0 0.88vmin, rgba(255,62,138,0) 1.38vmin), radial-gradient(circle at 50% 60%, rgba(155,92,255,0.62) 0 0.83vmin, rgba(155,92,255,0) 1.33vmin), radial-gradient(circle at 89% 73%, rgba(120,220,255,0.89) 0 0.41vmin, rgba(120,220,255,0) 0.91vmin); }
+  /* mirror ball + its light beams */
+  .rays { position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg at var(--bx) var(--by), rgba(255,241,222,.07) 0deg 3deg, rgba(255,241,222,0) 3deg 17deg);
+    -webkit-mask-image: radial-gradient(circle at var(--bx) var(--by), #000 0, rgba(0,0,0,.5) 40vmin, transparent 90vmin); mask-image: radial-gradient(circle at var(--bx) var(--by), #000 0, rgba(0,0,0,.5) 40vmin, transparent 90vmin); }
+  .banner { --bx: calc(100% - 17vmin); --by: 14vmin; --bs: 24vmin; }
+  .str { position: absolute; left: var(--bx); top: 0; width: 1px; height: calc(var(--by) - var(--bs) / 2); background: rgba(255,241,222,.6); }
+  .ball { position: absolute; left: var(--bx); top: var(--by); width: var(--bs); height: var(--bs); transform: translate(-50%, -50%); border-radius: 50%;
+    background:
+      radial-gradient(circle at 34% 28%, rgba(255,255,255,.95) 0 3%, rgba(255,255,255,0) 14%),
+      repeating-linear-gradient(90deg, rgba(28,11,51,.55) 0 .22vmin, transparent .22vmin 2.3vmin),
+      repeating-linear-gradient(0deg, rgba(28,11,51,.55) 0 .22vmin, transparent .22vmin 2.3vmin),
+      conic-gradient(from 20deg, #B9B2CC, #F4EEFF, #8A83A2, #E3DCF2, #6E6788, #F7F2FF, #A49DBA, #D9D2EA, #B9B2CC);
+    box-shadow: inset -2.6vmin -2.6vmin 4vmin rgba(28,11,51,.75), inset 1vmin 1vmin 2vmin rgba(255,255,255,.35), 0 0 6vmin rgba(255,200,240,.35); }
+  .glint { position: absolute; width: 5vmin; height: 5vmin; left: calc(var(--bx) - var(--bs) * .22); top: calc(var(--by) - var(--bs) * .27); transform: translate(-50%, -50%); }
+  .ph { position: absolute; left: 25vmin; right: 5vmin; top: 37vmin; bottom: 5vmin; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .disco { position: absolute; left: 3vmin; bottom: 4vmin; writing-mode: vertical-rl; transform: rotate(180deg); font-family: "Monoton", "Righteous", sans-serif; font-weight: 400; font-size: 19vmin; line-height: 1; letter-spacing: .02em; white-space: nowrap;
+    background: linear-gradient(90deg, #FFD86B 0%, #FF8A3D 35%, #FF3E8A 65%, #B06BFF 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .copy { position: absolute; left: 7vmin; right: 36vmin; top: 6vmin; }
+  .k { font-size: 2vmin; letter-spacing: .3em; text-transform: uppercase; color: var(--pink); }
+  h1 { margin: 1.2vmin 0 0; font-family: "Righteous", "Futura", sans-serif; font-weight: 400; font-size: 8.6vmin; line-height: .95; }
+  .rule { margin-top: 1.8vmin; width: 26vmin; height: 2.4vmin; background: linear-gradient(180deg, var(--orange) 0 25%, transparent 25% 37.5%, var(--pink) 37.5% 62.5%, transparent 62.5% 75%, var(--violet) 75% 100%); }
+  .off { margin-top: 1.8vmin; font-size: 3.6vmin; color: var(--gold); }
+  .meta { margin-top: 1vmin; font-size: 2vmin; letter-spacing: .06em; opacity: .9; }
+  .meta b { font-weight: 400; color: var(--gold); letter-spacing: .12em; }
+  .cta { position: absolute; right: 5vmin; top: 29vmin; transform: translateY(-50%); padding: 1.6vmin 3.4vmin; border-radius: 99vmin; background: linear-gradient(90deg, var(--orange), var(--pink)); color: #fff; font-size: 2.3vmin; letter-spacing: .08em; white-space: nowrap; box-shadow: 0 .8vmin 2.4vmin rgba(255,62,138,.4); }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --by: 12vmin; --bs: 21vmin; }
+    .ph { left: 23vmin; top: 36vmin; right: 8vmin; bottom: 4vmin; }
+    .disco { font-size: 17vmin; }
+    h1 { font-size: 8vmin; }
+    .cta { top: 28vmin; right: 8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --bx: 17vmin; --by: 11vmin; --bs: 18vmin; }
+    .ph { left: 46vmin; right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    .disco { writing-mode: horizontal-tb; transform: none; left: 5vmin; bottom: auto; top: 27vmin; font-size: 8.4vmin; }
+    .copy { left: 5vmin; right: auto; width: 37vmin; top: 41vmin; }
+    .k { position: absolute; top: -30vmin; left: 26vmin; width: 14vmin; font-size: 1.7vmin; letter-spacing: .2em; line-height: 1.4; }
+    h1 { font-size: 6.4vmin; margin-top: 0; }
+    .rule { width: 22vmin; height: 2vmin; }
+    .off { font-size: 3.2vmin; }
+    .meta { font-size: 1.8vmin; line-height: 1.5; }
+    .cta { right: auto; left: 5vmin; top: auto; bottom: 7vmin; transform: none; font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --bx: 26vmin; --by: 12vmin; --bs: 20vmin; }
+    .ph { left: auto; width: 58vmin; right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .disco { left: 8vmin; top: 29vmin; font-size: 13vmin; }
+    .copy { left: 8vmin; width: calc(100% - 78vmin); top: 51vmin; }
+    .k { top: -44vmin; left: 38vmin; width: 26vmin; }
+    h1 { font-size: 7vmin; }
+    .cta { left: 8vmin; bottom: 8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     (each @keyframes carries an invisible outline-color so no effect is compositor-only: the frame-stepped
+      video renderer parallel tabs otherwise freeze transform/opacity-only animations) */
+  /* 120 bpm: one beat = .5s, one bar = 2s, the loop = 3 bars */
+  @property --ra { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+  @property --fa { syntax: "<angle>"; inherits: false; initial-value: 20deg; }
+  /* mirror ball: facets rotate (vertical seams travel one facet per bar), the reflections turn with them */
+  .ball { background:
+      radial-gradient(circle at 34% 28%, rgba(255,255,255,.95) 0 3%, rgba(255,255,255,0) 14%),
+      repeating-linear-gradient(90deg, rgba(28,11,51,.55) 0 .22vmin, transparent .22vmin 2.3vmin),
+      repeating-linear-gradient(0deg, rgba(28,11,51,.55) 0 .22vmin, transparent .22vmin 2.3vmin),
+      conic-gradient(from var(--fa), #B9B2CC, #F4EEFF, #8A83A2, #E3DCF2, #6E6788, #F7F2FF, #A49DBA, #D9D2EA, #B9B2CC);
+    animation: facets 2s linear infinite, spin 6s linear infinite; }
+  @keyframes facets { from { outline-color: transparent; background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: 0 0, 2.3vmin 0, 0 0, 0 0; } }
+  @keyframes spin { from { outline-color: transparent; --fa: 20deg; } to { --fa: 380deg; } }
+  /* light beams sweep round the room: two beam periods (34°) per loop */
+  .rays { background: repeating-conic-gradient(from var(--ra) at var(--bx) var(--by), rgba(255,241,222,.07) 0deg 3deg, rgba(255,241,222,0) 3deg 17deg); animation: sweep 6s linear infinite; }
+  @keyframes sweep { from { outline-color: transparent; --ra: 0deg; } to { --ra: 34deg; } }
+  /* the light spots strobe softly on the off-beats */
+  .spots { animation: strobe 1s linear infinite; }
+  @keyframes strobe { 0%, 100% { outline-color: transparent; opacity: 1; } 12% { opacity: 1; } 50% { opacity: .45; } 62% { opacity: .9; } 88% { opacity: 1; } }
+  /* the ball's glint: a starburst every bar */
+  .glint { animation: glint 2s linear infinite; }
+  @keyframes glint {
+    0% { outline-color: transparent; transform: translate(-50%, -50%) scale(1) rotate(0); opacity: 1; animation-timing-function: cubic-bezier(.4,0,.8,.5); }
+    40% { transform: translate(-50%, -50%) scale(.3) rotate(45deg); opacity: .3; animation-timing-function: cubic-bezier(.15,.8,.3,1.2); }
+    58% { transform: translate(-50%, -50%) scale(1.5) rotate(80deg); opacity: 1; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    75%, 100% { transform: translate(-50%, -50%) scale(1) rotate(90deg); opacity: 1; }
+  }
+  /* DISCO: the sunset lettering glows up on every downbeat, a bigger flare on bar 2 */
+  .disco { animation: neon 6s linear infinite; }
+  @keyframes neon {
+    0%, 100% { outline-color: transparent; filter: drop-shadow(0 0 0 rgba(255,62,138,0)) brightness(1); }
+    2% { filter: drop-shadow(0 0 1.4vmin rgba(255,62,138,.7)) brightness(1.15); } 12% { filter: drop-shadow(0 0 0 rgba(255,62,138,0)) brightness(1); }
+    33.3% { filter: drop-shadow(0 0 0 rgba(255,62,138,0)) brightness(1); }
+    35.3% { filter: drop-shadow(0 0 2.6vmin rgba(255,138,61,.9)) brightness(1.3); } 37% { filter: drop-shadow(0 0 .6vmin rgba(255,138,61,.5)) brightness(1.05); }
+    39% { filter: drop-shadow(0 0 2.4vmin rgba(255,62,138,.85)) brightness(1.25); } 52% { filter: drop-shadow(0 0 0 rgba(255,62,138,0)) brightness(1); }
+    66.6% { filter: drop-shadow(0 0 0 rgba(255,62,138,0)) brightness(1); }
+    68.6% { filter: drop-shadow(0 0 1.4vmin rgba(176,107,255,.75)) brightness(1.15); } 78% { filter: drop-shadow(0 0 0 rgba(255,62,138,0)) brightness(1); }
+  }
+  /* three-stripe rule: stripes slide out and back in, staggered like a light chase */
+  .rule { animation: chase 6s linear infinite; }
+  @keyframes chase {
+    0%, 42% { outline-color: transparent; clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    48% { clip-path: inset(0 0 0 100%); animation-timing-function: steps(1, end); }
+    49% { clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+    58%, 100% { clip-path: inset(0 0 0 0); }
+  }
+  /* CTA: pumps on beat one of every bar */
+  .cta { animation: pump 2s linear infinite; }
+  @keyframes pump {
+    0% { outline-color: transparent; scale: 1; animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    6% { scale: 1.07; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    20%, 100% { scale: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="spots"></div>
+  <div class="rays"></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="str"></div>
+  <div class="ball"></div>
+  <svg class="glint" viewBox="0 0 20 20"><path d="M10 0C10.6 7.8 12.2 9.4 20 10 12.2 10.6 10.6 12.2 10 20 9.4 12.2 7.8 10.6 0 10 7.8 9.4 9.4 7.8 10 0z" fill="#fff"/></svg>
+  <div class="disco">Disco</div>
+  <div class="copy">
+    <div class="k">Studio Oro presents</div>
+    <h1>Night Sale</h1>
+    <div class="rule"></div>
+    <div class="off">40% off till dawn</div>
+    <div class="meta">Fri 9 pm → Sun midnight · code <b>BOOGIE40</b></div>
+  </div>
+  <div class="cta">Hit the floor →</div>
+</div>
+</body>
+</html>

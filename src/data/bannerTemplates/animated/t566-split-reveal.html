@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Karla:ital,wght@0,400;0,600;0,700;1,400&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Split Reveal — a before / after cover: the same photo twice side by side, the "before" washed out in greyscale,
+     the "after" in full colour, a slider handle riding the gutter between them.
+     tall / 3:4 / square → headline band, the pair, offer row · wide → headline column left, the pair right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FAF8F4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FAF8F4; color: #141414;
+    font-family: "Karla", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column;
+    padding: 5.4vmin 6vmin 5.4vmin; box-sizing: border-box; }
+
+  .head { position: relative; flex: none; }
+  .kick { font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #FF3E8A; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 8.4vmin; line-height: .98; letter-spacing: -.04em; text-transform: uppercase; }
+  .dek { margin-top: 1.8vmin; font-size: 2.4vmin; line-height: 1.35; color: #55524D; }
+
+  .pair { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 4vmin; display: grid; grid-template-columns: 1fr 7vmin 1fr; grid-template-rows: auto 1fr; }
+  .lab { font-family: "Unbounded", sans-serif; font-weight: 500; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; padding-bottom: 1.4vmin; display: flex; align-items: center; gap: 1.2vmin; }
+  .lab::before { content: ""; width: 1.2vmin; height: 1.2vmin; border-radius: 50%; border: 1px solid #141414; box-sizing: border-box; }
+  .lab.a { grid-column: 3; justify-content: flex-end; }
+  .lab.a::before { background: #FF3E8A; border-color: #FF3E8A; order: 2; }
+  .lab.b { grid-column: 1; grid-row: 1; }
+  .pb, .pa { position: relative; grid-row: 2; overflow: hidden; }
+  .pb { grid-column: 1; } .pa { grid-column: 3; }
+  .pair img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .pb img { filter: grayscale(1) contrast(.82) brightness(1.08); }
+  .pa img { filter: saturate(1.1) contrast(1.04); }
+  .gut { grid-column: 2; grid-row: 2; position: relative; }
+  .gut::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px solid #FF3E8A; }
+  .knob { position: absolute; left: 50%; top: 50%; width: 5.8vmin; height: 5.8vmin; border-radius: 50%; transform: translate(-50%, -50%);
+    background: #FF3E8A; color: #FFF; display: flex; align-items: center; justify-content: center; gap: .6vmin; box-shadow: 0 .8vmin 2vmin rgba(255,62,138,.35); }
+  .knob i { width: 0; height: 0; border-top: .9vmin solid transparent; border-bottom: .9vmin solid transparent; }
+  .knob i:first-child { border-right: 1.1vmin solid #FFF; }
+  .knob i:last-child { border-left: 1.1vmin solid #FFF; }
+
+  .foot { position: relative; flex: none; margin-top: 3.6vmin; display: flex; align-items: center; gap: 2.6vmin; }
+  .price { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 5vmin; letter-spacing: -.03em; line-height: 1; }
+  .small { font-size: 1.8vmin; line-height: 1.35; color: #55524D; }
+  .cta { margin-left: auto; padding: 2vmin 3.2vmin; border-radius: 99vmin; background: #141414; color: #FAF8F4; font-size: 2.1vmin; font-weight: 700; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.6vmin 6vmin 4.6vmin; }
+    h1 { font-size: 7vmin; }
+    .dek { font-size: 2.1vmin; margin-top: 1.4vmin; }
+    .pair { margin-top: 3.2vmin; }
+    .foot { margin-top: 3vmin; }
+    .price { font-size: 4.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { padding: 4.4vmin 5.6vmin 4.4vmin; }
+    .head { display: grid; grid-template-columns: 1fr auto; align-items: end; column-gap: 4vmin; }
+    .kick { grid-column: 1 / -1; }
+    h1 { font-size: 6vmin; }
+    .dek { margin: 0; max-width: 34vmin; text-align: right; font-size: 1.9vmin; }
+    .pair { margin-top: 2.8vmin; grid-template-columns: 1fr 6vmin 1fr; }
+    .foot { margin-top: 2.6vmin; }
+    .price { font-size: 4vmin; }
+  }
+  /* ── wide: headline column left, the pair right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { display: block; padding: 0; }
+    .pair { position: absolute; right: 6vmin; top: 6vmin; bottom: 6vmin; width: 62%; margin: 0; }
+    .head, .foot { position: absolute; left: 6vmin; right: calc(62% + 11vmin); }
+    .head { top: 7vmin; display: block; }
+    h1 { font-size: 6.4vmin; margin-top: 2vmin; }
+    .dek { margin-top: 2.4vmin; max-width: none; text-align: left; font-size: 2.2vmin; }
+    .foot { bottom: 6.4vmin; margin: 0; flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .cta { margin-left: 0; }
+  }
+
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     beats: 1.4 s the slider knob nudges →→ with a pink ping · 2.1 s the "after" drains to grey, then 2.4–3.9 s colour
+            wipes back in left→right behind a pink scan edge (the glow-up, replayed) · 4.3 s the After dot pops ·
+            5.0 s CTA arrow nudges · the after photo drifts in (≤1.03) */
+  .pa img { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  .pa img.g { filter: grayscale(1) contrast(.82) brightness(1.08); animation: push 6s cubic-bezier(.45,0,.55,1) infinite, drain 6s linear infinite; }
+  @keyframes drain {
+    0%, 34% { opacity: 0; clip-path: inset(0 0 0 0); }
+    39% { opacity: 1; clip-path: inset(0 0 0 0); }
+    41% { opacity: 1; clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.6,0,.35,1); }
+    65% { opacity: 1; clip-path: inset(0 0 0 100%); }
+    65.1%, 100% { opacity: 0; clip-path: inset(0 0 0 100%); }
+  }
+  .pa::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 100%; pointer-events: none;
+    border-left: .4vmin solid #FF3E8A; box-shadow: -1vmin 0 2vmin -1vmin rgba(255,62,138,.6);
+    opacity: 0; transform: translateX(0); animation: edge 6s linear infinite; }
+  @keyframes edge {
+    0%, 40% { opacity: 0; transform: translateX(0); }
+    41% { opacity: 1; transform: translateX(0); animation-timing-function: cubic-bezier(.6,0,.35,1); }
+    65% { opacity: 1; transform: translateX(100%); }
+    66%, 100% { opacity: 0; transform: translateX(100%); }
+  }
+
+  .knob { animation: knob 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes knob {
+    0%, 22%, 36%, 100% { transform: translate(-50%, -50%); box-shadow: 0 .8vmin 2vmin rgba(255,62,138,.35), 0 0 0 0 rgba(255,62,138,.5); }
+    25% { transform: translate(-50%, -50%) translateX(1vmin); }
+    28% { transform: translate(-50%, -50%); }
+    31% { transform: translate(-50%, -50%) translateX(1vmin); box-shadow: 0 .8vmin 2vmin rgba(255,62,138,.35), 0 0 0 .6vmin rgba(255,62,138,.35); }
+    35.9% { box-shadow: 0 .8vmin 2vmin rgba(255,62,138,.35), 0 0 0 2vmin rgba(255,62,138,0); }
+  }
+  .knob i:last-child { animation: arr 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes arr { 0%, 22%, 34%, 100% { transform: translateX(0); } 25%, 31% { transform: translateX(.5vmin); } }
+
+  .lab.a::before { animation: dotpop 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes dotpop { 0%, 70%, 82%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,62,138,.4); } 74% { transform: scale(1.7); box-shadow: 0 0 0 .6vmin rgba(255,62,138,.25); } }
+
+  .cta .ar { display: inline-block; animation: nudge 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 80%, 94%, 100% { transform: translateX(0); } 84%, 90% { transform: translateX(.8vmin); } 87% { transform: translateX(.2vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div class="kick">The glow-up · swipe →</div>
+    <h1>Same piece.<br>New energy.</h1>
+    <div class="dek">One swap turns a flat look into the one everyone asks about.</div>
+  </div>
+  <div class="pair">
+    <div class="lab b">Before</div><div class="lab a">After</div>
+    <div class="pb"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="gut"><div class="knob"><i></i><i></i></div></div>
+    <div class="pa"><img src="{{PRODUCT_IMAGE}}" alt=""><img class="g" src="{{PRODUCT_IMAGE}}" alt=""></div>
+  </div>
+  <div class="foot">
+    <div class="price">$64</div>
+    <div class="small">Oriel &amp; Co.<br>Free exchanges</div>
+    <div class="cta">Get the after <span class="ar">→</span></div>
+  </div>
+</div>
+</body>
+</html>

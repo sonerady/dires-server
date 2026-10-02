@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,600,100;1,9..144,500,100;1,9..144,700,100&family=Instrument+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Macramé Hang — a cotton wall hanging on a terracotta wall: turned-wood dowel, lark's-head loops, a lattice of
+     square knots, a tightly woven centre that carries the copy, and a fringe trimmed to a V.
+     tall / 3:4 → photo on top, the dowel hangs across the seam · square / wide → photo left, hanging on the right wall */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #B5552F; }
+  .banner { --ph: 56%; --kn: 14vmin; --fr: 15vmin; position: fixed; inset: 0; overflow: hidden; color: #4A2616; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(120% 70% at 50% 100%, rgba(0,0,0,.18), rgba(0,0,0,0) 70%), #B5552F; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: var(--ph); object-fit: cover; object-position: 50% 20%; display: block; }
+  .hang { position: absolute; left: 7vmin; right: 7vmin; top: calc(var(--ph) - 1.8vmin); bottom: 0; display: flex; flex-direction: column; }
+  .dowel { flex: none; position: relative; height: 3.6vmin; margin: 0 -4vmin; border-radius: 99vmin; z-index: 2;
+    background: linear-gradient(180deg, #C58A58 0%, #E7B887 22%, #A96E40 55%, #6E4222 100%); box-shadow: 0 .8vmin 1.2vmin rgba(40,14,6,.35); }
+  .dowel::before, .dowel::after { content: ""; position: absolute; top: -.9vmin; width: 5.4vmin; height: 5.4vmin; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #EBC08F 0%, #B77B4A 45%, #6E4222 100%); }
+  .dowel::before { left: -2vmin; } .dowel::after { right: -2vmin; }
+  .loops { flex: none; height: 3vmin; margin-top: -1.2vmin;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,0) 0 .5vmin, #EFE2CA .5vmin 1.5vmin, rgba(0,0,0,0) 1.5vmin 3.5vmin); }
+  .knots { flex: none; height: var(--kn); position: relative;
+    background:
+      radial-gradient(ellipse 1.5vmin 1.9vmin at 50% 50%, #FBF3E4 0 60%, #CDB696 90%, rgba(0,0,0,0) 100%),
+      radial-gradient(ellipse 1.5vmin 1.9vmin at 0 0, #FBF3E4 0 60%, #CDB696 90%, rgba(0,0,0,0) 100%),
+      linear-gradient(45deg, rgba(0,0,0,0) 44%, #EFE2CA 44% 56%, rgba(0,0,0,0) 56%),
+      linear-gradient(-45deg, rgba(0,0,0,0) 44%, #E5D4B6 44% 56%, rgba(0,0,0,0) 56%);
+    background-size: 7vmin 7vmin; background-position: 1.75vmin 0; }
+  .woven { flex: 1; min-height: 0; position: relative; box-sizing: border-box; padding: 4vmin 5vmin 3vmin; display: flex; flex-direction: column; justify-content: center;
+    background: repeating-linear-gradient(0deg, rgba(120,80,40,.07) 0 .35vmin, rgba(0,0,0,0) .35vmin .7vmin), repeating-linear-gradient(90deg, rgba(120,80,40,.06) 0 .35vmin, rgba(0,0,0,0) .35vmin .7vmin), #F4E8D2;
+    box-shadow: 0 .6vmin 1.4vmin rgba(40,14,6,.25); }
+  .fringe { flex: none; height: var(--fr); margin: 0 1vmin; clip-path: polygon(0 0, 100% 0, 100% 34%, 75% 100%, 50% 34%, 25% 100%, 0 34%);
+    background: repeating-linear-gradient(90deg, #EFE2CA 0 .55vmin, #D9C4A1 .55vmin .75vmin, rgba(0,0,0,0) .75vmin 1.2vmin); }
+  .k { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: #B5552F; white-space: nowrap; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 700; font-variation-settings: "SOFT" 100, "opsz" 144; font-size: 12.4vmin; line-height: .95; letter-spacing: -.02em; }
+  h1 span { font-weight: 500; color: #B5552F; }
+  .d { margin-top: 1.8vmin; font-size: 2.7vmin; line-height: 1.35; }
+  .d b { font-weight: 700; }
+  .act { margin-top: 2.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .cta { background: #4A2616; color: #F4E8D2; padding: 1.7vmin 3vmin; font-size: 2.1vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .code { font-size: 1.8vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .code b { font-weight: 700; color: #B5552F; }
+  /* stitched maker's tag */
+  .tag { position: absolute; right: 3.4vmin; top: -6.2vmin; transform: rotate(6deg); background: #6F7A4A; color: #F4E8D2; padding: 1vmin 1.6vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; outline: .25vmin dashed rgba(244,232,210,.7); outline-offset: -.8vmin; }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --ph: 52%; --kn: 7vmin; --fr: 9vmin; }
+    .woven { padding: 3vmin 4.4vmin 2.4vmin; }
+    h1 { font-size: 9vmin; margin-top: 1.2vmin; }
+    .d { font-size: 2.2vmin; margin-top: 1.2vmin; }
+    .act { margin-top: 2vmin; }
+    .tag { top: -5.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --kn: 14vmin; --fr: 13vmin; }
+    .photo { width: 50%; height: 100%; object-position: 50% 24%; }
+    .hang { left: calc(50% + 7vmin); right: 6vmin; top: 4vmin; }
+    .woven { padding: 3.6vmin 3.6vmin 3vmin; }
+    .k { flex-direction: column; gap: .6vmin; font-size: 1.6vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 1.8vmin; }
+    .d { font-size: 2vmin; }
+    .act { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.5vmin 2.6vmin; }
+    .code { font-size: 1.7vmin; }
+    .tag { font-size: 1.6vmin; top: -5.6vmin; right: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --kn: 14vmin; --fr: 14vmin; }
+    .photo { width: 48%; }
+    .hang { left: calc(48% + 9vmin); right: 9vmin; top: 5vmin; }
+    .woven { padding: 4vmin 5vmin 3.4vmin; }
+    .k { flex-direction: row; font-size: 1.7vmin; }
+    h1 { font-size: 9.6vmin; }
+    .d { font-size: 2.3vmin; }
+    .act { flex-direction: row; align-items: center; }
+    .cta { font-size: 2vmin; }
+  }
+
+  /* ───────── motion (6s loop) — slow, handmade ─────────
+     constant: the whole hanging sways on its nail like a soft pendulum (±.9°, one full swing per loop) and the fringe
+     trails behind it (lagging skew), the maker's tag flutters on its stitch
+     beat 2.4–3.6s: a warm light rakes across the woven panel · 4.4s the "&" gives a little knot-tug */
+  .hang { transform-origin: 50% 0; animation: sway 6s infinite; }
+  @keyframes sway {
+    0% { transform: rotate(0); animation-timing-function: cubic-bezier(.33,.67,.67,1); }
+    25% { transform: rotate(.9deg); animation-timing-function: cubic-bezier(.33,0,.67,.33); }
+    50% { transform: rotate(0); animation-timing-function: cubic-bezier(.33,.67,.67,1); }
+    75% { transform: rotate(-.9deg); animation-timing-function: cubic-bezier(.33,0,.67,.33); }
+    100% { transform: rotate(0); }
+  }
+  .fringe { transform-origin: 50% 0; animation: trail 6s infinite; }
+  @keyframes trail {
+    0% { transform: skewX(0); animation-timing-function: cubic-bezier(.33,0,.67,.33); }
+    8% { transform: skewX(0); animation-timing-function: cubic-bezier(.33,.67,.67,1); }
+    33% { transform: skewX(-2.2deg); animation-timing-function: cubic-bezier(.33,0,.67,.33); }
+    58% { transform: skewX(0); animation-timing-function: cubic-bezier(.33,.67,.67,1); }
+    83% { transform: skewX(2.2deg); animation-timing-function: cubic-bezier(.33,0,.67,1); }
+    100% { transform: skewX(0); }
+  }
+  .tag { transform-origin: 90% 100%; animation: flutter 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes flutter { 0%, 100% { transform: rotate(6deg); } 40% { transform: rotate(9deg); } 70% { transform: rotate(4.5deg); } }
+
+  .woven { overflow: visible; }
+  .woven::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, rgba(255,246,228,0) 30%, rgba(255,250,238,.55) 50%, rgba(255,246,228,0) 70%) no-repeat;
+    background-size: 250% 100%; background-position: 130% 0; opacity: 0; animation: rake 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes rake { 0%, 38% { background-position: 130% 0; opacity: 0; } 42% { opacity: 1; } 56% { opacity: 1; } 62%, 100% { background-position: -30% 0; opacity: 0; } }
+
+  h1 span { display: inline-block; transform-origin: 50% 60%; animation: tug 6s cubic-bezier(.3,1.5,.5,1) infinite; }
+  @keyframes tug { 0%, 72%, 84%, 100% { transform: none; } 76% { transform: rotate(-10deg) scale(1.12); } 80% { transform: rotate(4deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="hang">
+    <div class="dowel"></div>
+    <div class="loops"></div>
+    <div class="knots"></div>
+    <div class="woven">
+      <div class="tag">Hand-tied · Nº 475</div>
+      <div class="k"><span>Juniper Loom</span><span>The handmade edit</span></div>
+      <h1>Slow <span>&amp;</span> made</h1>
+      <div class="d"><b>25% off</b> every hand-finished piece, until 30&nbsp;June.</div>
+      <div class="act"><span class="cta">Shop handmade</span><span class="code">Code <b>KNOT25</b></span></div>
+    </div>
+    <div class="fringe"></div>
+  </div>
+</div>
+</body>
+</html>

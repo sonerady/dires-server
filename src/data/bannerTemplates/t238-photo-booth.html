@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Photo Booth — the reception photo booth: beside the look hangs a fresh print strip (three frames of the same
+     photo — the full look, then two closer crops) against a red velvet booth curtain, date-stamped at the foot.
+     tall → photo left, curtain column right; square/wide → photo left, strip + copy side by side on the curtain */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #6A0F1B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F7EFE3; font-family: "Space Mono", "Courier New", monospace; background: #6A0F1B; }
+  .photo { position: absolute; left: 0; top: 0; width: 58%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .booth { position: absolute; left: 58%; right: 0; top: 0; bottom: 0; box-sizing: border-box; padding: 6vmin 5vmin 5vmin; display: flex; flex-direction: column; gap: 3.4vmin;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.35), transparent 12%),
+      repeating-linear-gradient(90deg, #5A0B16 0, #7E1422 1.6vmin, #97202F 2.4vmin, #7E1422 3.2vmin, #5A0B16 4.8vmin); }
+  /* an eased shadow where the curtain meets the photo */
+  .booth::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3vmin;
+    background: linear-gradient(90deg, rgba(0,0,0,.4), rgba(0,0,0,.394) 7%, rgba(0,0,0,.377) 14%, rgba(0,0,0,.35) 21%, rgba(0,0,0,.314) 28%, rgba(0,0,0,.271) 35%, rgba(0,0,0,.224) 43%, rgba(0,0,0,.176) 50%, rgba(0,0,0,.129) 57%, rgba(0,0,0,.086) 64%, rgba(0,0,0,.05) 71%, rgba(0,0,0,.023) 79%, rgba(0,0,0,.006) 86%, transparent); }
+  .txt { display: contents; }
+  .top { order: 1; }
+  .strip { order: 2; }
+  .offer { order: 3; }
+  .top small { display: block; font-size: 1.7vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: #F2C3A5; }
+  .top h1 { margin: 1.2vmin 0 0; font-family: "DM Serif Display", Didot, Georgia, serif; font-style: italic; font-weight: 400; font-size: 11vmin; line-height: .9; letter-spacing: -.01em; }
+
+  .strip { position: relative; flex: 1; min-height: 0; align-self: center; width: 27vmin; box-sizing: border-box; padding: 1.6vmin 1.6vmin 0; background: #F6F3EC; transform: rotate(2.2deg);
+    display: flex; flex-direction: column; gap: 1.2vmin; box-shadow: 0 .3vmin .5vmin rgba(0,0,0,.3), 0 2.4vmin 3vmin -1vmin rgba(0,0,0,.55); }
+  .strip::before { content: ""; position: absolute; left: 50%; top: -1.2vmin; width: 2.4vmin; height: 2.4vmin; margin-left: -1.2vmin; border-radius: 50%; z-index: 2;
+    background: radial-gradient(circle at 35% 30%, #F5E1A6, #C69A45 60%, #7E5C22); box-shadow: 0 .3vmin .4vmin rgba(0,0,0,.45); }
+  .fr { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #222; }
+  .fr img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .fr.z1 img { left: -40%; top: -18%; width: 180%; height: 180%; object-position: 50% 30%; }
+  .fr.z2 img { left: -60%; top: -80%; width: 220%; height: 220%; object-position: 50% 50%; }
+  .stamp { flex: none; height: 5.4vmin; display: flex; align-items: center; justify-content: space-between; font-size: 1.6vmin; font-weight: 700; letter-spacing: .08em; color: #3A2A2C; white-space: nowrap; }
+
+  .offer { display: flex; flex-direction: column; gap: 1vmin; }
+  .offer b { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 5.4vmin; line-height: 1; }
+  .offer span { font-size: 1.8vmin; line-height: 1.5; color: #F2C3A5; }
+  .offer i { font-style: normal; display: inline-block; margin-top: .8vmin; padding: .8vmin 1.4vmin; border: 1px solid #F7EFE3; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; align-self: flex-start; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 56%; }
+    .booth { left: 56%; padding: 5vmin 4.4vmin 4.4vmin; gap: 2.6vmin; }
+    .top h1 { font-size: 10vmin; }
+    .strip { width: 24vmin; }
+    .offer b { font-size: 4.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .booth { left: 48%; flex-direction: row; align-items: stretch; padding: 7vmin 5vmin 7vmin 5vmin; gap: 4.4vmin; }
+    .strip { order: -1; align-self: stretch; flex: none; width: 19vmin; padding: 1.2vmin 1.2vmin 0; gap: .9vmin; }
+    .stamp { height: 4.4vmin; font-size: 1.6vmin; letter-spacing: 0; }
+    .stamp span:first-child { display: none; }
+    .txt { display: flex; flex-direction: column; flex: 1; min-width: 0; justify-content: space-between; }
+    .top h1 { font-size: 8.6vmin; }
+    .offer b { font-size: 4.4vmin; }
+    .offer span { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .booth { left: 46%; padding: 7vmin 8vmin 7vmin 7vmin; gap: 7vmin; }
+    .strip { width: 23vmin; padding: 1.5vmin 1.5vmin 0; gap: 1.1vmin; }
+    .stamp span:first-child { display: inline; }
+    .top h1 { font-size: 12vmin; }
+    .offer b { font-size: 5.6vmin; }
+    .offer span { font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="booth">
+    <div class="txt">
+      <div class="top"><small>Photo booth · 3 frames</small><h1>Say<br>yes.</h1></div>
+      <div class="offer"><b>20% off the guest edit</b><span>Every wedding this season.<br>Code SAYYES at checkout.</span><i>Step inside →</i></div>
+    </div>
+    <div class="strip">
+      <div class="fr"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="fr z1"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="fr z2"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="stamp"><span>13·06·26</span><span>GUEST EDIT</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

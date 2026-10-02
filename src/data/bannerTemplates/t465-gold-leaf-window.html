@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Kaushan+Script&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Gold-Leaf Window — a 1930s department-store window: the house name water-gilded in an arch on the black-green
+     glass fascia (gold-leaf letters with a dark shade), the photo as the dressed window, and a black marble stallriser
+     below where the window-dresser's hand-lettered showcard leans — brush-script headline and the price of the week.
+     tall / 3:4 → fascia / window / stallriser stacked; square / wide → fascia across the top, marble left, window right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0C1A17; }
+  .banner { --glass: #0C1A17; --gold: #D9A840; --pale: #F6E3A6; --card: #F3EBDA; --red: #A3262A; --fas: 30vmin; --sr: 46vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--glass); color: var(--pale);
+    font-family: "Jost", "Futura", "Helvetica Neue", Arial, sans-serif; }
+
+  .fascia { position: absolute; left: 0; right: 0; top: 0; height: var(--fas); overflow: hidden;
+    background: linear-gradient(115deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.07) 38%, rgba(255,255,255,0) 46%, rgba(255,255,255,0) 60%, rgba(255,255,255,.04) 64%, rgba(255,255,255,0) 68%), linear-gradient(180deg, #13302A, #0A1714); }
+  .fascia::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1.4vmin; background: linear-gradient(180deg, #B98B34, #6E4E17); }
+  .arch { position: absolute; left: 50%; top: 1.4vmin; width: 96vmin; height: 20vmin; transform: translateX(-50%); overflow: visible; }
+  .arch text { font-family: "Playfair Display", Georgia, serif; font-weight: 900; }
+  .sub { position: absolute; left: 7vmin; right: 7vmin; bottom: 3.6vmin; display: flex; align-items: center; gap: 2vmin; font-size: 1.9vmin; font-weight: 500; letter-spacing: .36em; text-transform: uppercase; color: var(--gold); white-space: nowrap; justify-content: center; }
+  .sub i { flex: 1; max-width: 12vmin; height: 1px; background: var(--gold); opacity: .7; }
+
+  .win { position: absolute; left: 0; right: 0; top: var(--fas); bottom: var(--sr); overflow: hidden; }
+  .win img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .win::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(118deg, rgba(255,255,255,0) 0 8%, rgba(255,255,255,.14) 11%, rgba(255,255,255,0) 17%, rgba(255,255,255,0) 100%); }
+  .win::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4vmin; z-index: 1;
+    background: linear-gradient(to bottom, rgba(10,23,20,0.55) 0%, rgba(10,23,20,0.542) 7.7%, rgba(10,23,20,0.519) 15.4%, rgba(10,23,20,0.481) 23.1%, rgba(10,23,20,0.431) 30.8%, rgba(10,23,20,0.372) 38.5%, rgba(10,23,20,0.308) 46.2%, rgba(10,23,20,0.242) 53.8%, rgba(10,23,20,0.178) 61.5%, rgba(10,23,20,0.119) 69.2%, rgba(10,23,20,0.069) 76.9%, rgba(10,23,20,0.031) 84.6%, rgba(10,23,20,0.008) 92.3%, rgba(10,23,20,0) 100%); }
+
+  .riser { position: absolute; left: 0; right: 0; bottom: 0; height: var(--sr); box-sizing: border-box; padding: 5vmin 6vmin; display: flex; align-items: center; gap: 5vmin;
+    background:
+      linear-gradient(32deg, transparent 0 40%, rgba(214,206,190,.16) 40.3%, transparent 40.8%),
+      linear-gradient(-18deg, transparent 0 62%, rgba(214,206,190,.12) 62.2%, transparent 62.9%),
+      linear-gradient(64deg, transparent 0 78%, rgba(214,206,190,.1) 78.2%, transparent 78.6%),
+      radial-gradient(ellipse at 20% 30%, rgba(60,80,74,.5), transparent 55%),
+      radial-gradient(ellipse at 85% 80%, rgba(40,58,52,.55), transparent 60%),
+      #101714;
+    border-top: 1px solid rgba(217,168,64,.8); }
+
+  .card { flex: none; position: relative; width: 44vmin; box-sizing: border-box; padding: 3vmin 3vmin 2.6vmin; background: var(--card); color: #161412; text-align: center;
+    border-radius: 1vmin; transform: rotate(-3deg); box-shadow: 1vmin 1.4vmin 2.4vmin rgba(0,0,0,.55); }
+  .card::before { content: ""; position: absolute; inset: 1.2vmin; border: .3vmin solid var(--red); border-radius: .6vmin; box-shadow: inset 0 0 0 .5vmin var(--card), inset 0 0 0 .7vmin var(--red); pointer-events: none; }
+  .card .sc { display: table; margin: 0 auto; font-family: "Kaushan Script", "Brush Script MT", cursive; font-size: 7.4vmin; line-height: .95; color: var(--red); white-space: nowrap; }
+  .card .sc2 { display: table; margin-left: auto; margin-right: auto; font-family: "Kaushan Script", cursive; font-size: 4vmin; line-height: 1; margin-top: 1vmin; white-space: nowrap; }
+  .card .pr { display: table; margin: 1.4vmin auto 0; font-family: "Playfair Display", Georgia, serif; font-weight: 900; font-size: 9vmin; line-height: 1; letter-spacing: -.02em; }
+  .card .wk { display: table; margin: 1.4vmin auto 0; font-size: 1.7vmin; font-weight: 600; letter-spacing: .24em; padding-left: .24em; text-transform: uppercase; }
+
+  .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2.2vmin; }
+  .info div { padding-bottom: 1.8vmin; border-bottom: 1px solid rgba(217,168,64,.45); }
+  .info div:last-child { border-bottom: 0; padding-bottom: 0; }
+  .info small { display: block; font-size: 1.7vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+  .info b { display: block; margin-top: .6vmin; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 700; font-size: 3.4vmin; line-height: 1.1; color: var(--pale); white-space: nowrap; }
+  .info .cta { font-family: "Jost", sans-serif; font-style: normal; font-weight: 600; font-size: 2.1vmin; letter-spacing: .2em; text-transform: uppercase; }
+
+  /* 3:4 · 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --fas: 25vmin; --sr: 40vmin; }
+    .arch { top: 1vmin; width: 84vmin; height: 17.5vmin; }
+    .sub { bottom: 2.8vmin; }
+    .riser { padding: 4vmin 6vmin; }
+    .card { width: 40vmin; padding: 2.4vmin 2.6vmin 2.2vmin; }
+    .card .sc { font-size: 6.6vmin; }
+    .card .pr { font-size: 8vmin; margin-top: 1vmin; }
+    .info { gap: 1.6vmin; }
+    .info div { padding-bottom: 1.4vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --fas: 21vmin; }
+    .arch { width: 72vmin; height: 15vmin; top: .6vmin; }
+    .sub { bottom: 2.6vmin; font-size: 1.7vmin; letter-spacing: .3em; }
+    .win { left: 44%; top: var(--fas); bottom: 0; }
+    .riser { top: var(--fas); right: auto; width: 44%; height: auto; flex-direction: column; justify-content: center; align-items: stretch; gap: 6vmin; padding: 5vmin 4.6vmin 4.4vmin; border-top: 0; border-right: 1px solid rgba(217,168,64,.8); }
+    .card { width: auto; padding: 2.2vmin 2.2vmin 2vmin; transform: rotate(-2.5deg); margin: 0 .6vmin; }
+    .card .sc { font-size: 5.8vmin; }
+    .card .sc2 { font-size: 3.2vmin; }
+    .card .pr { font-size: 7vmin; margin-top: .8vmin; }
+    .card .wk { font-size: 1.6vmin; letter-spacing: .14em; }
+    .info { flex: none; gap: 1.2vmin; }
+    .info div { padding-bottom: 1.1vmin; }
+    .info small { font-size: 1.6vmin; letter-spacing: .14em; }
+    .info b { font-size: 2.6vmin; margin-top: .3vmin; }
+    .info .cta { font-size: 1.8vmin; letter-spacing: .14em; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --fas: 20vmin; }
+    .arch { width: 76vmin; height: 15.4vmin; top: .4vmin; }
+    .sub { font-size: 1.8vmin; }
+    .sub i { max-width: 20vmin; }
+    .win { left: 46%; }
+    .riser { width: 46%; flex-direction: row; align-items: center; justify-content: flex-start; gap: 4vmin; padding: 5vmin 5vmin; }
+    .card { width: 36vmin; padding: 2.4vmin 2.4vmin 2.2vmin; }
+    .card .sc { font-size: 6vmin; }
+    .card .pr { font-size: 7.6vmin; }
+    .info { flex: 1; gap: 2vmin; }
+    .info div { padding-bottom: 1.6vmin; }
+    .info small { font-size: 1.6vmin; letter-spacing: .18em; }
+    .info b { font-size: 2.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="fascia">
+    <svg class="arch" viewBox="0 0 1000 210" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <defs>
+        <linearGradient id="gl" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#FBEBB0"/><stop offset=".42" stop-color="#E2B452"/><stop offset=".52" stop-color="#9C6B1E"/><stop offset=".7" stop-color="#E8C46A"/><stop offset="1" stop-color="#B6852F"/>
+        </linearGradient>
+        <path id="arc" d="M 70 180 Q 500 0 930 180"/>
+        <filter id="sh" x="-5%" y="-10%" width="115%" height="130%"><feOffset dx="5" dy="6" in="SourceAlpha" result="o"/><feFlood flood-color="#3A2408"/><feComposite in2="o" operator="in" result="s"/><feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <text font-size="92" letter-spacing="6" text-anchor="middle" fill="url(#gl)" stroke="#6E4E17" stroke-width="1.5" filter="url(#sh)"><textPath href="#arc" startOffset="50%">MERCER &amp; LOWE</textPath></text>
+    </svg>
+    <div class="sub"><i></i><span>Drapers · Outfitters</span><i></i></div>
+  </div>
+  <div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="riser">
+    <div class="card"><span class="sc">Spring</span><span class="sc2">now showing</span><span class="pr">−20%</span><span class="wk">This week only</span></div>
+    <div class="info">
+      <div><small>Window Nº 3</small><b>The new season</b></div>
+      <div><small>Code</small><b>WINDOW20</b></div>
+      <div><b class="cta">Step inside →</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Drop Countdown — launch teaser: the photo melts into black, "Drops Friday 10:00" in tall condensed caps and four split-flap tiles.
+     tall → photo above the black panel; square / wide → photo left melting right into the panel */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E0E0E; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0E0E0E; color: #F3F1EC; font-family: "Space Mono", ui-monospace, Menlo, monospace; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: 60%; overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+  .melt { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(to top, rgba(14,14,14,1.0) 0.0%, rgba(14,14,14,0.985) 7.69%, rgba(14,14,14,0.943) 15.38%, rgba(14,14,14,0.874) 23.08%, rgba(14,14,14,0.784) 30.77%, rgba(14,14,14,0.677) 38.46%, rgba(14,14,14,0.56) 46.15%, rgba(14,14,14,0.44) 53.85%, rgba(14,14,14,0.323) 61.54%, rgba(14,14,14,0.216) 69.23%, rgba(14,14,14,0.126) 76.92%, rgba(14,14,14,0.057) 84.62%, rgba(14,14,14,0.015) 92.31%, rgba(14,14,14,0.0) 100.0%); }
+  .topfade { position: absolute; left: 0; right: 0; top: 0; height: 16vmin; background: linear-gradient(to bottom, rgba(14,14,14,0.55) 0.0%, rgba(14,14,14,0.542) 7.69%, rgba(14,14,14,0.519) 15.38%, rgba(14,14,14,0.481) 23.08%, rgba(14,14,14,0.431) 30.77%, rgba(14,14,14,0.372) 38.46%, rgba(14,14,14,0.308) 46.15%, rgba(14,14,14,0.242) 53.85%, rgba(14,14,14,0.178) 61.54%, rgba(14,14,14,0.119) 69.23%, rgba(14,14,14,0.069) 76.92%, rgba(14,14,14,0.031) 84.62%, rgba(14,14,14,0.008) 92.31%, rgba(14,14,14,0.0) 100.0%); }
+  .bar { position: absolute; left: 5vmin; right: 5vmin; top: 4.4vmin; display: flex; justify-content: space-between; align-items: center; font-size: 1.8vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+  .live { display: flex; align-items: center; gap: 1.2vmin; }
+  .live i { width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: #D7FF3A; box-shadow: 0 0 0 .6vmin rgba(215,255,58,.25); }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; top: calc(60% - 2vmin); bottom: 5.4vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; color: #A9A69F; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(243,241,236,.28); }
+  h1 { margin: 2.4vmin 0 0; font-family: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif; font-weight: 900; font-size: 13vmin; line-height: .84; letter-spacing: -.005em; text-transform: uppercase; }
+  h1 em { font-style: normal; color: #D7FF3A; }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.8vmin; margin-top: 3.6vmin; }
+  .tile { text-align: center; }
+  .flap { position: relative; background: linear-gradient(#232323 0 50%, #1A1A1A 50%); border-radius: 1vmin; padding: 1.4vmin 0 1.2vmin; font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 800; font-size: 10vmin; line-height: 1; letter-spacing: .02em; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+  .flap::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #0E0E0E; }
+  .flap::before { content: ""; position: absolute; top: calc(50% - .5vmin); left: -.4vmin; right: -.4vmin; height: 1vmin; background: linear-gradient(90deg, #0E0E0E 0 .7vmin, transparent .7vmin calc(100% - .7vmin), #0E0E0E calc(100% - .7vmin)); }
+  .tile small { display: block; margin-top: 1.2vmin; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: #A9A69F; }
+
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .cta { background: #D7FF3A; color: #0E0E0E; padding: 2vmin 3.4vmin; font-size: 2.1vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; border-radius: 99vmin; white-space: nowrap; }
+  .note { font-size: 1.7vmin; line-height: 1.45; color: #A9A69F; text-align: right; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .shot { height: 54%; }
+    .panel { top: calc(54% - 2vmin); bottom: 4.4vmin; }
+    h1 { font-size: 10.6vmin; margin-top: 2vmin; }
+    .tiles { margin-top: 2.6vmin; }
+    .flap { font-size: 8.4vmin; padding: 1.1vmin 0 1vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .shot { top: 0; bottom: 0; right: auto; width: 54%; height: 100%; }
+    .melt { left: auto; top: 0; right: 0; bottom: 0; width: 34%; height: 100%; background: linear-gradient(to left, rgba(14,14,14,1.0) 0.0%, rgba(14,14,14,0.985) 7.69%, rgba(14,14,14,0.943) 15.38%, rgba(14,14,14,0.874) 23.08%, rgba(14,14,14,0.784) 30.77%, rgba(14,14,14,0.677) 38.46%, rgba(14,14,14,0.56) 46.15%, rgba(14,14,14,0.44) 53.85%, rgba(14,14,14,0.323) 61.54%, rgba(14,14,14,0.216) 69.23%, rgba(14,14,14,0.126) 76.92%, rgba(14,14,14,0.057) 84.62%, rgba(14,14,14,0.015) 92.31%, rgba(14,14,14,0.0) 100.0%); }
+    .topfade, .bar .live { display: none; }
+    .bar { left: calc(54% + 1vmin); right: 5vmin; top: 5.4vmin; }
+    .panel { left: calc(54% + 1vmin); right: 5vmin; top: 11vmin; bottom: 5vmin; }
+    h1 { font-size: 10.4vmin; margin-top: 3vmin; }
+    .tiles { gap: 1.2vmin; margin-top: 3.4vmin; }
+    .flap { font-size: 6.6vmin; }
+    .tile small { font-size: 1.6vmin; letter-spacing: .12em; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .note { text-align: left; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 52%; }
+    .bar { left: calc(52% + 3vmin); right: 7vmin; top: 7vmin; }
+    .bar .live { display: flex; }
+    .panel { left: calc(52% + 3vmin); right: 7vmin; top: 13vmin; bottom: 7vmin; }
+    h1 { font-size: 13vmin; }
+    .tiles { gap: 1.6vmin; }
+    .flap { font-size: 8.4vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .note { text-align: right; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* launch tension: the seconds tile flips down each second (09 → 04, then re-arms), the colon blinks,
+     the live dot pings, the photo pushes in slowly, the reminder button catches a sheen */
+  .shot img { transform-origin: 50% 20%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  /* live dot: a ping every second */
+  .live i { position: relative; animation: live 1s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes live { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.35); } 40% { transform: scale(1); } }
+  .live i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #D7FF3A; opacity: 0; animation: livering 1s linear infinite; }
+  @keyframes livering { 0% { transform: scale(1); opacity: 0; } 5% { opacity: .6; animation-timing-function: cubic-bezier(.15,.6,.35,1); } 75%, 100% { transform: scale(3); opacity: 0; } }
+  /* 10:00 — the colon ticks */
+  h1 em s { text-decoration: none; animation: colon 1s steps(1, end) infinite; }
+  @keyframes colon { 0%, 50% { opacity: 1; } 51%, 100% { opacity: .2; } }
+  /* seconds: the digits are drawn by a counter; each second the top half flaps down */
+  .flap.sec { color: transparent; }
+  .flap.sec u { position: absolute; left: 0; right: 0; top: 1.4vmin; text-decoration: none; color: #F3F1EC; }
+  .flap.sec u::before { content: "09"; animation: secs 6s steps(1, end) infinite; animation-delay: -.07s; }
+  @keyframes secs { 0% { content: "09"; } 16.667% { content: "08"; } 33.333% { content: "07"; } 50% { content: "06"; } 66.667% { content: "05"; } 83.333% { content: "04"; } 100% { content: "09"; } }
+  .flap.sec u { animation: flip 1s linear infinite; transform-origin: 50% 50%; }
+  @keyframes flip {
+    0%, 86% { transform: scaleY(1); filter: brightness(1); animation-timing-function: cubic-bezier(.6,0,1,.6); }
+    93% { transform: scaleY(.06); filter: brightness(.5); animation-timing-function: cubic-bezier(0,.4,.4,1); }
+    100% { transform: scaleY(1); filter: brightness(1); }
+  }
+  @media (min-aspect-ratio: 7/10) { .flap.sec u { top: 1.1vmin; } }
+  /* minutes: a small shiver when the seconds re-arm */
+  .tile:nth-child(3) .flap { animation: minute 6s linear infinite; }
+  @keyframes minute {
+    0%, 97% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    98.5% { transform: translateY(-.5vmin); }
+    100% { transform: translateY(0); }
+  }
+  /* CTA: sheen across the reminder pill */
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.12) 30%, rgba(255,255,255,.55) 50%, rgba(255,255,255,.12) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen { 0%, 40% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 56%, 100% { transform: translateX(380%) skewX(-18deg); } }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="melt"></div><div class="topfade"></div></div>
+  <div class="bar"><span>Atelier Nord</span><span class="live"><i></i>Coming soon</span></div>
+  <div class="panel">
+    <div class="kick"><span>Drop 07</span><span>200 pieces only</span></div>
+    <h1>Drops Friday<br><em>10<s>:</s>00</em> CET</h1>
+    <div class="tiles">
+      <div class="tile"><div class="flap">02</div><small>Days</small></div>
+      <div class="tile"><div class="flap">14</div><small>Hrs</small></div>
+      <div class="tile"><div class="flap">36</div><small>Min</small></div>
+      <div class="tile"><div class="flap sec">09<u></u></div><small>Sec</small></div>
+    </div>
+    <div class="foot"><div class="cta">Set a reminder</div><div class="note">Members shop<br>1 hour early</div></div>
+  </div>
+</div>
+</body>
+</html>

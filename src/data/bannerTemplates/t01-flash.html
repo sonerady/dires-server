@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  /* Flash Sale — responsive: the frame takes the product photo's ratio; text column left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F4F1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6F4F1; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; color: #111; }
+  .ticker { position: absolute; left: 0; right: 0; top: 0; height: 7vmin; background: #E4002B; color: #fff; display: flex; align-items: center; white-space: nowrap; overflow: hidden;
+    font-family: "Anton", Impact, sans-serif; font-size: 3.4vmin; letter-spacing: .12em; z-index: 2; }
+  .ticker span { padding-left: 3vmin; }
+  .photo { position: absolute; top: 7vmin; right: 0; height: calc(100% - 7vmin); width: 56%; object-fit: cover; object-position: 50% 25%; }
+  .fade { position: absolute; top: 7vmin; bottom: 0; left: 44%; width: 16%; background: linear-gradient(90deg, rgba(246,244,241,1) 0%, rgba(246,244,241,0.985) 7.7%, rgba(246,244,241,0.943) 15.4%, rgba(246,244,241,0.874) 23.1%, rgba(246,244,241,0.784) 30.8%, rgba(246,244,241,0.677) 38.5%, rgba(246,244,241,0.56) 46.2%, rgba(246,244,241,0.44) 53.8%, rgba(246,244,241,0.323) 61.5%, rgba(246,244,241,0.216) 69.2%, rgba(246,244,241,0.126) 76.9%, rgba(246,244,241,0.057) 84.6%, rgba(246,244,241,0.015) 92.3%, rgba(246,244,241,0) 100%); }
+  .copy { position: absolute; left: 6vmin; top: 13vmin; bottom: 6vmin; width: calc(44% - 7vmin); display: flex; flex-direction: column; }
+  .kicker { font-weight: 900; font-size: 2.7vmin; letter-spacing: .26em; text-transform: uppercase; }
+  .kicker b { color: #E4002B; }
+  .big { font-family: "Anton", Impact, sans-serif; line-height: .84; margin-top: 2.4vmin; }
+  .big .num { display: block; font-size: 28vmin; color: #E4002B; letter-spacing: -.01em; white-space: nowrap; }
+  .big .num sup { font-size: .42em; vertical-align: .95em; margin-left: .04em; }
+  .big .off { display: block; margin-top: 2.6vmin; font-size: 21vmin; color: transparent; -webkit-text-stroke: .45vmin #111; letter-spacing: .02em; }
+  .sub { margin-top: 4vmin; font-weight: 700; font-size: 3.4vmin; line-height: 1.24; }
+  .code { align-self: flex-start; display: inline-flex; align-items: center; gap: 1.6vmin; margin-top: 4vmin; border: .4vmin dashed #111; padding: 1.5vmin 2.4vmin; font-weight: 900; font-size: 2.8vmin; letter-spacing: .14em; background: rgba(246,244,241,.92); }
+  .code small { font-weight: 500; font-size: 2vmin; letter-spacing: .2em; color: #555; }
+  .cta { margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 2vmin; background: #111; color: #fff; padding: 2.8vmin 4.6vmin; font-weight: 900; font-size: 3vmin; letter-spacing: .2em; white-space: nowrap; }
+  .badge { position: absolute; left: calc(44% - 8vmin); bottom: 16vmin; width: 15vmin; height: 15vmin; border-radius: 50%; background: #111; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-12deg); box-shadow: 0 1vmin 3vmin rgba(0,0,0,.2); }
+  .badge .h { font-family: "Anton", Impact, sans-serif; font-size: 5.8vmin; line-height: .9; }
+  .badge .t { font-weight: 700; font-size: 1.5vmin; letter-spacing: .24em; margin-top: .6vmin; }
+  /* wide photo: more room for the product, a slightly smaller offer */
+  /* square / wide photo: the frame is short — a tighter offer stack, the badge moves to the photo's foot */
+  @media (min-aspect-ratio: 17/20) {
+    .copy { top: 11vmin; }
+    .kicker { font-size: 2.2vmin; }
+    .big .num { font-size: 21vmin; }
+    .big .off { font-size: 15vmin; margin-top: 1.8vmin; }
+    .sub { margin-top: 3vmin; font-size: 2.8vmin; }
+    .code { margin-top: 3vmin; font-size: 2.4vmin; }
+    .cta { padding: 2.2vmin 3.8vmin; font-size: 2.5vmin; }
+    .badge { left: calc(44% - 2vmin); bottom: 4vmin; width: 13vmin; height: 13vmin; }
+    .badge .h { font-size: 5vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 60%; }
+    .fade { left: 40%; }
+    .copy { width: calc(40% - 8vmin); }
+    .badge { left: calc(40% - 2vmin); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="fade"></div>
+  <div class="ticker"><span>FLASH SALE ✦ 48 HOURS ONLY ✦ FLASH SALE ✦ 48 HOURS ONLY ✦ FLASH SALE ✦ 48 HOURS ONLY ✦ FLASH SALE ✦ 48 HOURS ONLY</span></div>
+  <div class="copy">
+    <div class="kicker">Summer sale <b>●</b> up to</div>
+    <div class="big"><span class="num">50<sup>%</sup></span><span class="off">OFF</span></div>
+    <div class="sub">Dresses, kaftans &amp; resort pieces — while stock lasts.</div>
+    <div class="code"><small>CODE</small>FLASH50</div>
+    <div class="cta">SHOP NOW <span>→</span></div>
+  </div>
+  <div class="badge"><span class="h">48H</span><span class="t">ONLY</span></div>
+</div>
+</body>
+</html>

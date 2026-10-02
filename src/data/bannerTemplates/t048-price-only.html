@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Price Only — Swiss restraint, the price is the headline. Black on white, one red square.
+     tall → photo on top, a huge price below; square/wide → photo left, price column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F7F7F5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F7F7F5; color: #111; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 60%; object-fit: cover; object-position: 50% 16%; }
+  .panel { position: absolute; left: 5vmin; right: 5vmin; top: calc(60% + 4vmin); bottom: 5vmin; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 2.5vmin; font-weight: 500; padding-bottom: 1.4vmin; border-bottom: 1px solid #111; }
+  .top b { display: inline-block; width: 1.5vmin; height: 1.5vmin; background: #E3241B; margin-right: 1.2vmin; }
+  .price { margin-top: auto; display: flex; align-items: flex-start; font-weight: 600; font-size: 44vmin; line-height: .74; letter-spacing: -.075em; margin-left: -1.6vmin; white-space: nowrap; }
+  .price .cur { font-size: .42em; font-weight: 500; letter-spacing: -.02em; margin: .02em .08em 0 0; }
+  .foot { margin-top: 3.4vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; font-size: 2.4vmin; line-height: 1.45; }
+  .foot .specs { color: #555; }
+  .foot .cta { font-weight: 600; white-space: nowrap; padding-bottom: .5vmin; border-bottom: .3vmin solid #111; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 58%; }
+    .panel { top: calc(58% + 3.4vmin); bottom: 4.4vmin; }
+    .price { font-size: 30vmin; }
+    .foot { margin-top: 2.6vmin; font-size: 2.1vmin; }
+    .top { font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 52%; height: 100%; object-position: 50% 22%; }
+    .panel { left: calc(52% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    .price { font-size: 25vmin; margin-left: -1vmin; }
+    .top { font-size: 2vmin; }
+    .foot { font-size: 2vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; object-position: 60% 22%; }
+    .panel { left: calc(54% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .price { font-size: 34vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="top"><span><b></b>The essential</span><span>From</span></div>
+    <div class="price"><span class="cur">€</span>89</div>
+    <div class="foot">
+      <div class="specs">Free delivery<br>30-day returns</div>
+      <div class="cta">Shop now →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

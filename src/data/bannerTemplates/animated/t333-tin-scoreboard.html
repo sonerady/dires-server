@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Barlow+Condensed:wght@600&display=swap" rel="stylesheet">
+<style>
+  /* Tin Scoreboard — the hand-operated scoreboard at an old ground: oxblood-painted timber planks, sign-written
+     serif captions, and black tin number plates hung on hooks (each a touch off-level). The score is the story:
+     New Season 3 – 0 Old Prices; the half-time plates spell the offer.
+     tall/4:5 → photo above, board below · square/wide → board left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #5A1F1B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #5A1F1B; color: #EFE3C8; font-family: "Playfair Display", Georgia, serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 88vmin); object-fit: cover; object-position: 50% 20%; }
+  .board { position: absolute; left: 0; right: 0; bottom: 0; height: 88vmin; box-sizing: border-box; padding: 5vmin 6vmin 5vmin; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
+    background: repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 10.8vmin, rgba(0,0,0,.28) 10.8vmin 11vmin, rgba(255,255,255,.05) 11vmin 11.2vmin),
+      linear-gradient(180deg, #62231E, #521B17); box-shadow: inset 0 1.2vmin 1.6vmin -1vmin rgba(0,0,0,.45); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: soft-light; opacity: .55; pointer-events: none; }
+  .board > *:not(.grain) { position: relative; }
+  .hdr { display: flex; align-items: center; gap: 2.4vmin; font-weight: 800; font-size: 2.3vmin; letter-spacing: .34em; text-transform: uppercase; white-space: nowrap; }
+  .hdr::before, .hdr::after { content: ""; flex: 1; height: .35vmin; background: #D9A83A; }
+
+  .score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; column-gap: 3vmin; }
+  .side small { display: block; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 600; font-size: 1.9vmin; letter-spacing: .3em; color: #D9A83A; }
+  .side b { display: block; margin-top: .6vmin; font-weight: 700; font-style: italic; font-size: 4.4vmin; line-height: 1.02; }
+  .side.r { text-align: right; }
+  .plates { display: flex; align-items: center; gap: 1.6vmin; }
+  .dash { width: 3vmin; height: .8vmin; background: #EFE3C8; }
+
+  .p { position: relative; width: 14vmin; height: 18vmin; margin-top: 2.4vmin; background: linear-gradient(160deg, #262523, #141413); color: #F4EEDD; display: flex; align-items: center; justify-content: center;
+    font-family: "Anton", Impact, sans-serif; font-size: 14vmin; line-height: 1; box-shadow: inset 0 0 0 .5vmin #0C0C0B, inset 0 0 0 .7vmin rgba(255,255,255,.08), 0 1vmin 1.2vmin rgba(0,0,0,.45); }
+  .p::before { content: ""; position: absolute; left: 50%; top: -3vmin; width: 1.6vmin; height: 1.6vmin; margin-left: -.8vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #EFE3C8, #8C7B5C 60%, #3A3024); box-shadow: 0 .3vmin .4vmin rgba(0,0,0,.5); }
+  .p::after { content: ""; position: absolute; left: 50%; top: -1.6vmin; width: .4vmin; height: 2.4vmin; margin-left: -.2vmin; background: #8C7B5C; }
+  .p.a { transform: rotate(-2deg); } .p.b { transform: rotate(1.6deg); } .p.c { transform: rotate(-.8deg); }
+  .p.sm { font-size: 11vmin; }
+
+  .rule { height: 0; border-top: .35vmin solid rgba(239,227,200,.55); }
+  .ht { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .ht .lab small { display: block; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 600; font-size: 1.9vmin; letter-spacing: .3em; color: #D9A83A; }
+  .ht .lab b { display: block; margin-top: .6vmin; font-weight: 800; font-size: 8.8vmin; line-height: .95; }
+  .ht .lab i { display: block; margin-top: 1vmin; font-size: 2.2vmin; font-weight: 700; }
+  .ht .plates { gap: 1vmin; }
+  .ht .p { width: 12vmin; height: 16vmin; font-size: 12.4vmin; }
+  .ht .p.sm { font-size: 9.4vmin; }
+
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 2.2vmin; line-height: 1.4; font-style: italic; }
+  .foot p b { font-style: normal; color: #D9A83A; letter-spacing: .06em; }
+  .cta { flex: none; padding: 1.8vmin 3vmin; background: #EFE3C8; color: #3E1411; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 600; font-size: 2.6vmin; letter-spacing: .2em; text-transform: uppercase; box-shadow: 0 .6vmin 1vmin rgba(0,0,0,.35); }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 80vmin); }
+    .board { height: 80vmin; padding: 4.4vmin 6vmin 4.4vmin; }
+    .p { width: 12.6vmin; height: 16vmin; font-size: 12.6vmin; }
+    .ht .p { width: 11vmin; height: 14.4vmin; font-size: 11vmin; }
+    .ht .p.sm { font-size: 8.4vmin; }
+    .ht .lab b { font-size: 8vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .board { height: 64vmin; padding: 3.8vmin 8vmin 3.8vmin; }
+    .hdr { font-size: 2vmin; }
+    .side b { font-size: 3.2vmin; }
+    .p { width: 10vmin; height: 12.6vmin; margin-top: 2vmin; font-size: 10vmin; }
+    .p::before { top: -2.6vmin; width: 1.4vmin; height: 1.4vmin; margin-left: -.7vmin; }
+    .ht .p { width: 9vmin; height: 11.6vmin; font-size: 9vmin; }
+    .ht .p.sm { font-size: 7vmin; }
+    .ht .lab b { font-size: 5vmin; }
+    .ht .lab i { font-size: 2vmin; }
+    .foot p { font-size: 2vmin; }
+    .cta { padding: 1.4vmin 2.6vmin; font-size: 2.3vmin; }
+  }
+  /* square / wide → board left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 48%; height: 100%; object-position: 50% 25%; }
+    .board { right: 48%; top: 0; height: auto; padding: 5vmin 5vmin 5vmin; box-shadow: inset -1.2vmin 0 1.6vmin -1vmin rgba(0,0,0,.45); }
+    .hdr { font-size: 1.8vmin; letter-spacing: .26em; gap: 1.8vmin; }
+    .score { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; row-gap: 1.4vmin; }
+    .score .plates { grid-column: 1 / -1; grid-row: 2; justify-content: center; }
+    .side b { font-size: 3vmin; }
+    .p { width: 9.4vmin; height: 12vmin; font-size: 9.4vmin; }
+    .ht { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .ht .plates { align-self: center; }
+    .ht .lab { display: flex; align-items: baseline; gap: 2vmin; flex-wrap: wrap; }
+    .ht .lab small { width: 100%; }
+    .ht .lab b { font-size: 4.8vmin; margin-top: 0; }
+    .ht .lab i { font-size: 2vmin; margin-top: 0; }
+    .ht .p { width: 8.4vmin; height: 10.8vmin; font-size: 8.4vmin; }
+    .ht .p.sm { font-size: 6.6vmin; }
+    .foot { flex-direction: column; align-items: stretch; gap: 1.6vmin; }
+    .foot p { font-size: 1.9vmin; }
+    .cta { text-align: center; padding: 1.3vmin 2vmin; font-size: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; }
+    .board { right: 45%; padding: 6vmin 7vmin 6vmin; }
+    .hdr { font-size: 2.1vmin; letter-spacing: .32em; }
+    .score { grid-template-columns: 1fr auto 1fr; grid-template-rows: auto; }
+    .score .plates { grid-column: 2; grid-row: 1; }
+    .side b { font-size: 3.6vmin; }
+    .p { width: 12vmin; height: 15.6vmin; font-size: 12vmin; }
+    .ht { flex-direction: row; align-items: center; }
+    .ht .plates { align-self: auto; }
+    .ht .lab { display: block; }
+    .ht .lab b { font-size: 6vmin; margin-top: .6vmin; }
+    .ht .lab i { font-size: 2.2vmin; margin-top: 1vmin; }
+    .ht .p { width: 10.4vmin; height: 13.6vmin; font-size: 10.4vmin; }
+    .ht .p.sm { font-size: 8vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .foot p { font-size: 2.1vmin; }
+    .cta { padding: 1.6vmin 3vmin; font-size: 2.5vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* constant: photo breathes in
+     beats: 0.7s the home "3" is lifted off its hook and re-hung (drops, swings, settles) · 0.9s the away "0"
+     rattles in sympathy · 2.4s a gust runs along the half-time plates, 3 → 0 → % · 3.9s the gold rules in the
+     header redraw from the centre · 4.8s a sheen crosses the CTA */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  .p { transform-origin: 50% -2.2vmin; }
+  .score .p.a { animation: rehang 6s linear infinite; }
+  .score .p.b { animation: gustB 6s linear infinite; animation-delay: -1.6s; }
+  .ht .p.c { animation: gustC 6s linear infinite; animation-delay: 0s; }
+  .ht .p.a { animation: gustA 6s linear infinite; animation-delay: -5.85s; }
+  .ht .p.b { animation: gustB 6s linear infinite; animation-delay: -5.7s; }
+  @keyframes rehang {
+    0%, 12% { transform: translateY(0) rotate(-2deg); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    16% { transform: translateY(-2.4vmin) rotate(1deg); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    19% { transform: translateY(0) rotate(-6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    25% { transform: translateY(0) rotate(0.6000000000000001deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    31% { transform: translateY(0) rotate(-3.4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    37% { transform: translateY(0) rotate(-1.4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    42%, 100% { transform: translateY(0) rotate(-2deg); }
+  }
+  @keyframes gustA {
+    0%, 40% { transform: rotate(-2deg); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    44% { transform: rotate(3deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: rotate(-5.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    56% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    62% { transform: rotate(-2.9deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    67%, 100% { transform: rotate(-2deg); }
+  }
+  @keyframes gustB {
+    0%, 40% { transform: rotate(1.6deg); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    44% { transform: rotate(6.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: rotate(-2.0deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    56% { transform: rotate(3.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    62% { transform: rotate(0.7000000000000001deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    67%, 100% { transform: rotate(1.6deg); }
+  }
+  @keyframes gustC {
+    0%, 40% { transform: rotate(-0.8deg); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    44% { transform: rotate(4.2deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: rotate(-4.4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    56% { transform: rotate(1.2deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    62% { transform: rotate(-1.7000000000000002deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    67%, 100% { transform: rotate(-0.8deg); }
+  }
+  .hdr::before, .hdr::after { animation: rule 6s linear infinite; }
+  @keyframes ruleL {
+    0%, 62% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    67% { clip-path: inset(0 0 0 100%); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    76%, 100% { clip-path: inset(0 0 0 0); }
+  }
+  @keyframes ruleR {
+    0%, 62% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    67% { clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    76%, 100% { clip-path: inset(0 0 0 0); }
+  }
+  .hdr::before { animation-name: ruleR; } .hdr::after { animation-name: ruleL; }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 26%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-140%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-140%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    92%, 100% { transform: translateX(460%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="board">
+    <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".9 .06" numOctaves="3" seed="4"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+    <div class="hdr">Nord Park · Est. 1926</div>
+    <div class="score">
+      <div class="side"><small>HOME</small><b>New<br>season</b></div>
+      <div class="plates"><span class="p a">3</span><span class="dash"></span><span class="p b">0</span></div>
+      <div class="side r"><small>AWAY</small><b>Old<br>prices</b></div>
+    </div>
+    <div class="rule"></div>
+    <div class="ht">
+      <div class="lab"><small>HALF-TIME</small><b>Sale</b><i>off everything</i></div>
+      <div class="plates"><span class="p c">3</span><span class="p a">0</span><span class="p b sm">%</span></div>
+    </div>
+    <div class="foot"><p>Final whistle Sun 18:00<br>Code <b>HT30</b></p><span class="cta">Shop the match →</span></div>
+  </div>
+</div>
+</body>
+</html>

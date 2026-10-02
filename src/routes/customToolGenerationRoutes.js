@@ -10,6 +10,7 @@ const {refundIdentity}=require('../middleware/refundIdentity');
 const teamService=require('../services/teamService');
 const {normalizeSchema,validateSelections,generationPrompt}=require('../utils/customToolSchema');
 const {GPT25_EDIT_MODEL,buildEditInput}=require('../utils/gpt25Edit');
+const {setGenerationProgress,getGenerationProgress,clearGenerationProgress}=require('../services/generationProgress');
 const router=express.Router(),TABLE='custom_studio_generations',BUCKET='user_image_results';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const check=r=>{if(r.error)throw r.error;return r.data;};
@@ -18,7 +19,7 @@ router.use((req,res,next)=>db?next():res.status(503).json({success:false,reason:
 router.use(rateLimit({windowMs:60000,limit:40,standardHeaders:true,legacyHeaders:false}));
 router.use((req,res,next)=>refundIdentity(db)(req,res,next));
 const upload=multer({storage:multer.memoryStorage(),limits:{files:8,fileSize:10*1024*1024,fields:8,fieldSize:12000}});
-const publicGeneration=r=>({id:r.id,toolId:r.tool_id,status:r.status==='failed'?'error':r.status==='queued'?'processing':r.status,isProcessing:['queued','processing'].includes(r.status),resultImage:r.result_url,uploadedImage:r.input.images[0],createdAt:r.created_at,error:r.error_code,creditCost:10,settings:{customToolGeneration:true,customToolId:r.tool_id,qualityVersion:'v1'}});
+const publicGeneration=r=>({id:r.id,toolId:r.tool_id,status:r.status==='failed'?'error':r.status==='queued'?'processing':r.status,isProcessing:['queued','processing'].includes(r.status),resultImage:r.result_url,uploadedImage:r.input.images[0],createdAt:r.created_at,error:r.error_code,stage:r.status==='queued'?'preparing':r.status==='processing'?getGenerationProgress(r.id)||'generating':null,creditCost:10,settings:{customToolGeneration:true,customToolId:r.tool_id,qualityVersion:'v1'}});
 async function storeImage(buffer,user,id,kind,{source=false}={}){
  const image=sharp(buffer,{limitInputPixels:50000000}).rotate();
  const data=source?await image.resize({width:2048,height:2048,fit:'inside',withoutEnlargement:true}).jpeg({quality:95}).toBuffer():await image.png().toBuffer();
@@ -29,13 +30,16 @@ async function storeImage(buffer,user,id,kind,{source=false}={}){
 async function finish(id,url,error){return check(await db.rpc('finish_custom_studio_generation',{p_id:id,p_url:url||null,p_error:error||null}));}
 async function processGeneration(job){
  try{
+  setGenerationProgress(job.id,'generating'); // canlı aşama (yalnız bellek; DB'ye yazılmaz)
   const input=buildEditInput(GPT25_EDIT_MODEL,{prompt:job.input.prompt,image_urls:job.input.images,aspect_ratio:job.input.ratio,quality:'high',num_images:1});
   const response=await axios.post(`https://fal.run/${GPT25_EDIT_MODEL}`,input,{headers:{Authorization:`Key ${process.env.FAL_API_KEY||process.env.FAL_KEY}`},timeout:300000});
   const url=response.data?.images?.[0]?.url;if(!url)throw new Error('generation_failed');
   const binary=await axios.get(url,{responseType:'arraybuffer',timeout:60000,maxContentLength:40*1024*1024});
+  setGenerationProgress(job.id,'finishing');
   const stored=await storeImage(Buffer.from(binary.data),job.user_id,job.id,'result');
   await finish(job.id,stored);
  }catch(error){console.warn('[custom-tool] generation',job.id,error.message);await finish(job.id,null,'generation_failed');}
+ finally{clearGenerationProgress(job.id);}
 }
 let active=false;
 async function tick(){
@@ -47,7 +51,7 @@ async function tick(){
   await Promise.all(queued.map(async job=>{const claim=check(await db.from(TABLE).update({status:'processing',updated_at:new Date().toISOString()}).eq('id',job.id).eq('status','queued').select('*').maybeSingle());if(claim)await processGeneration(claim);}));
  }catch(e){console.warn('[custom-tool] worker',e.message);}finally{active=false;}
 }
-if(db&&process.env.NODE_ENV!=='test'){const timer=setInterval(tick,8000);timer.unref();}
+if(db&&process.env.NODE_ENV!=='test'&&process.env.DISABLE_BACKGROUND_WORKERS!=='1'){const timer=setInterval(tick,8000);timer.unref();}
 router.get('/:toolId',wrap(async(req,res)=>{
  if(!UUID.test(req.params.toolId))return res.status(400).json({success:false,reason:'invalid_input'});
  const [result,credits]=await Promise.all([db.from(TABLE).select('*').eq('tool_id',req.params.toolId).eq('user_id',req.refundUserId).order('created_at',{ascending:false}).limit(50),teamService.getEffectiveCredits(req.refundUserId)]);

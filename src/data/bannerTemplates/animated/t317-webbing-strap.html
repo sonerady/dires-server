@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@600;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Webbing Strap — techwear hardware at poster scale: a safety-orange nylon strap with the offer jacquard-woven
+     into it runs across black ripstop and snaps shut in a matte side-release buckle; tick-labelled spec cells and
+     a compression headline around it. tall → photo above, strap panel below · square/wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #111213; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #111213; color: #ECEAE4; font-family: "Saira Extra Condensed", "Arial Narrow", sans-serif; --or: #FF5E1A; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; box-sizing: border-box; padding: 4.6vmin 6vmin 5vmin; display: flex; flex-direction: column;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 2.4vmin), repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 2.4vmin), #111213; }
+  .mono { font-family: "IBM Plex Mono", Menlo, monospace; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #9A978F; white-space: nowrap; }
+  .kick b { color: var(--or); font-weight: 600; }
+  h1 { margin: 1.4vmin 0 0; font-weight: 800; font-size: 19vmin; line-height: .8; letter-spacing: .005em; text-transform: uppercase; }
+  h1 span { color: var(--or); display: inline-block; }
+
+  .strap { --bw: 34vmin; position: relative; margin: auto -6vmin; height: 20vmin; display: flex; align-items: center; }
+  .web { position: absolute; left: 0; right: 0; top: calc(50% - 6vmin); height: 12vmin; overflow: hidden; display: flex; align-items: center;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 .25vmin, transparent .25vmin .7vmin), repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 .2vmin, transparent .2vmin 1vmin), var(--or);
+    box-shadow: inset 0 .9vmin 0 rgba(0,0,0,.18), inset 0 -.9vmin 0 rgba(0,0,0,.22), 0 1.4vmin 1.8vmin rgba(0,0,0,.5); }
+  .web.l { right: 50%; justify-content: flex-end; }
+  .web.r { left: 50%; justify-content: flex-start; }
+  .web.l .weave { padding-right: calc(var(--bw) / 2 + 2vmin); }
+  .web.r .weave { padding-left: calc(var(--bw) / 2 + 2vmin); }
+  .weave { flex: none; display: flex; gap: 3vmin; white-space: nowrap; font-weight: 800; font-size: 5.4vmin; line-height: 1; letter-spacing: .06em; text-transform: uppercase; color: #141414; opacity: .88; }
+  .weave i { font-style: normal; opacity: .55; }
+  .buckle { position: absolute; left: calc(50% - var(--bw) / 2); top: 0; width: var(--bw); height: 20vmin; z-index: 1; }
+  .buckle svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1.2vmin 1.4vmin rgba(0,0,0,.6)); }
+
+  .cells { display: flex; border-top: 1px solid #45443F; }
+  .cell { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .4vmin; padding: 2vmin 0 0 2vmin; border-left: 1px solid #45443F; }
+  .cell:first-child { padding-left: 0; border-left: 0; }
+  .cell small { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #9A978F; white-space: nowrap; }
+  .cell b { font-weight: 800; font-size: 5.4vmin; line-height: 1; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
+  .cell:first-child b { color: var(--or); }
+  .go { margin-top: 3vmin; display: flex; justify-content: space-between; align-items: center; padding: 1.6vmin 2.4vmin; border: 1px solid #ECEAE4; font-family: "IBM Plex Mono", Menlo, monospace; font-weight: 600; font-size: 2vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 80vmin); }
+    .panel { height: 80vmin; padding-top: 4vmin; padding-bottom: 4.4vmin; }
+    h1 { font-size: 16.4vmin; }
+    .strap { height: 18vmin; }
+    .web { top: calc(50% - 5.4vmin); height: 10.8vmin; }
+    .strap { --bw: 30.6vmin; } .buckle { height: 18vmin; }
+    .cell b { font-size: 4.8vmin; }
+    .go { margin-top: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .panel { height: 64vmin; padding: 3.4vmin 6vmin 3.6vmin; }
+    h1 { font-size: 12vmin; }
+    h1 br { display: none; }
+    .strap { height: 15vmin; }
+    .web { top: calc(50% - 4.6vmin); height: 9.2vmin; }
+    .weave { font-size: 4.2vmin; }
+    .strap { --bw: 25.5vmin; } .buckle { height: 15vmin; }
+    .cell { padding-top: 1.6vmin; }
+    .cell b { font-size: 4.2vmin; }
+    .go { margin-top: 2vmin; padding: 1.3vmin 2.2vmin; font-size: 1.8vmin; }
+  }
+  /* square / wide → photo left, panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 50%; top: 0; height: auto; padding: 4.6vmin 4.4vmin 4.4vmin; }
+    .kick { flex-direction: column; gap: .5vmin; font-size: 1.6vmin; }
+    h1 { font-size: 13vmin; margin-top: 2vmin; }
+    h1 br { display: inline; }
+    .strap { margin: auto -4.4vmin; height: 14vmin; }
+    .web { top: calc(50% - 4.2vmin); height: 8.4vmin; }
+    .weave { font-size: 3.8vmin; gap: 2vmin; }
+    .strap { --bw: 23.8vmin; } .buckle { height: 14vmin; }
+    .cells { flex-wrap: wrap; }
+    .cell { flex: 1 1 40%; padding: 1.4vmin 0 0 1.6vmin; }
+    .cell:nth-child(3) { flex-basis: 100%; padding-left: 0; border-left: 0; margin-top: 1.4vmin; border-top: 1px solid #45443F; }
+    .cell small { font-size: 1.6vmin; letter-spacing: .06em; }
+    .cell b { font-size: 4vmin; }
+    .go { margin-top: 2.4vmin; padding: 1.2vmin 1.6vmin; font-size: 1.7vmin; letter-spacing: .08em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .panel { left: 48%; padding: 5.4vmin 6vmin 5.4vmin; }
+    .kick { flex-direction: row; font-size: 1.7vmin; }
+    h1 { font-size: 17vmin; margin-top: 3vmin; line-height: .92; }
+    h1 br { display: none; }
+    .strap { margin: auto -6vmin; height: 18vmin; }
+    .web { top: calc(50% - 5.4vmin); height: 10.8vmin; }
+    .weave { font-size: 5vmin; gap: 3vmin; }
+    .strap { --bw: 30.6vmin; } .buckle { height: 18vmin; }
+    .cells { flex-wrap: nowrap; }
+    .cell, .cell:nth-child(3) { flex: 1; padding: 2vmin 0 0 2vmin; border-left: 1px solid #45443F; border-top: 0; margin-top: 0; }
+    .cell:first-child { padding-left: 0; border-left: 0; }
+    .cell b { font-size: 5vmin; }
+    .go { margin-top: 3vmin; padding: 1.5vmin 2.2vmin; font-size: 1.9vmin; letter-spacing: .12em; }
+  }
+
+  /* ───────── motion (6s loop), t=0 = static design ─────────
+     1.2s release tabs squeeze → the male half slides out, dragging the right strap (and its woven offer) with it ·
+     2.9s it snaps home with an overshoot "click", the left strap takes the tension, "up." punches ·
+     4.4s CTA arrow nudges twice under a light sheen */
+  .buckle .male { animation: unclip 6s linear infinite; }
+  .web.r .weave { animation: webr 6s linear infinite; }
+  @keyframes unclip {
+    0%, 22% { transform: translateX(0); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    31%, 45% { transform: translateX(18px); animation-timing-function: cubic-bezier(.7,0,.9,.5); }
+    48.5% { transform: translateX(-2px); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    52%, 100% { transform: translateX(0); }
+  }
+  @keyframes webr {
+    0%, 22% { transform: translateX(0); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    31%, 45% { transform: translateX(calc(var(--bw) * 18 / 170)); animation-timing-function: cubic-bezier(.7,0,.9,.5); }
+    48.5% { transform: translateX(calc(var(--bw) * -2 / 170)); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    52%, 100% { transform: translateX(0); }
+  }
+  .buckle .tab1, .buckle .tab2 { animation: squeeze1 6s linear infinite; }
+  .buckle .tab2 { animation-name: squeeze2; }
+  @keyframes squeeze1 { 0%, 18% { transform: translateY(0); animation-timing-function: cubic-bezier(.4,0,.2,1); } 21%, 28% { transform: translateY(2.5px); animation-timing-function: cubic-bezier(.4,0,.2,1); } 32%, 100% { transform: translateY(0); } }
+  @keyframes squeeze2 { 0%, 18% { transform: translateY(0); animation-timing-function: cubic-bezier(.4,0,.2,1); } 21%, 28% { transform: translateY(-2.5px); animation-timing-function: cubic-bezier(.4,0,.2,1); } 32%, 100% { transform: translateY(0); } }
+  .web.l .weave { animation: webl 6s linear infinite; }
+  @keyframes webl {
+    0%, 46% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    49% { transform: translateX(-1.2vmin); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    56%, 100% { transform: translateX(0); }
+  }
+  .buckle svg { animation: clickflash 6s linear infinite; }
+  @keyframes clickflash {
+    0%, 47% { filter: drop-shadow(0 1.2vmin 1.4vmin rgba(0,0,0,.6)) brightness(1); animation-timing-function: steps(1, end); }
+    48.5% { filter: drop-shadow(0 1.2vmin 1.4vmin rgba(0,0,0,.6)) brightness(1.7); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    56%, 100% { filter: drop-shadow(0 1.2vmin 1.4vmin rgba(0,0,0,.6)) brightness(1); }
+  }
+  h1 span { transform-origin: 0% 80%; animation: upp 6s linear infinite; }
+  @keyframes upp {
+    0%, 48% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    51% { transform: scale(1.12) rotate(-2deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    58%, 100% { transform: scale(1) rotate(0); }
+  }
+  .go { position: relative; overflow: hidden; }
+  .go::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 30%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,94,26,0), rgba(255,94,26,.28), rgba(255,94,26,0)); transform: translateX(-120%) skewX(-18deg);
+    animation: gosheen 6s linear infinite; }
+  @keyframes gosheen { 0%, 70% { transform: translateX(-120%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 86%, 100% { transform: translateX(420%) skewX(-18deg); } }
+  .go span:last-child { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 73% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    76% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    79% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    82% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    85%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick mono"><span>Mod. 04 · <b>Modular drop</b></span><span>Load-rated · 25 mm webbing</span></div>
+    <h1>Buckle <br><span>up.</span></h1>
+    <div class="strap">
+      <div class="web l" aria-hidden="true"><div class="weave"><span>Sale</span><i>✕</i><span>−30%</span><i>✕</i><span>Sale</span><i>✕</i><span>−30%</span><i>✕</i><span>Sale</span><i>✕</i><span>−30%</span><i>✕</i><span>Sale</span></div></div>
+      <div class="web r" aria-hidden="true"><div class="weave"><span>−30%</span><i>✕</i><span>Sale</span><i>✕</i><span>−30%</span><i>✕</i><span>Sale</span><i>✕</i><span>−30%</span><i>✕</i><span>Sale</span><i>✕</i><span>−30%</span><i>✕</i></div></div>
+      <div class="buckle">
+        <svg viewBox="0 0 170 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <defs>
+            <linearGradient id="pl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3C40"/><stop offset=".45" stop-color="#1E1F22"/><stop offset="1" stop-color="#121315"/></linearGradient>
+          </defs>
+          <!-- male: ladder end + prongs -->
+          <g class="male"><rect x="96" y="14" width="66" height="72" rx="8" fill="url(#pl)" stroke="#4A4D52" stroke-width="1.2"/>
+          <rect x="138" y="24" width="8" height="52" rx="2" fill="#0A0A0B"/>
+          <rect x="112" y="24" width="6" height="52" rx="2" fill="#0A0A0B"/></g>
+          <!-- female housing -->
+          <path d="M10 22 Q10 8 24 8 H96 Q110 8 110 22 V78 Q110 92 96 92 H24 Q10 92 10 78 Z" fill="url(#pl)" stroke="#4A4D52" stroke-width="1.2"/>
+          <rect x="22" y="24" width="8" height="52" rx="2" fill="#0A0A0B"/>
+          <!-- release tabs -->
+          <path class="tab1" d="M64 8 H98 Q110 8 110 20 V30 H72 Q64 30 64 22 Z" fill="#2A2C30" stroke="#4A4D52" stroke-width="1"/>
+          <path class="tab2" d="M64 92 H98 Q110 92 110 80 V70 H72 Q64 70 64 78 Z" fill="#2A2C30" stroke="#4A4D52" stroke-width="1"/>
+          <path d="M76 14 V26 M82 14 V26 M88 14 V26 M94 14 V26 M100 14 V26 M76 74 V86 M82 74 V86 M88 74 V86 M94 74 V86 M100 74 V86" stroke="#55585E" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M40 40 H58 M40 50 H58 M40 60 H58" stroke="#3A3C40" stroke-width="2" stroke-linecap="round"/>
+          <text x="84" y="54" fill="#6A6D73" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="8" text-anchor="middle" letter-spacing="1">04</text>
+        </svg>
+      </div>
+    </div>
+    <div class="cells">
+      <div class="cell"><small>Load</small><b>−30%</b></div>
+      <div class="cell"><small>Code</small><b>STRAP30</b></div>
+      <div class="cell"><small>Release</small><b>Ends 30.09</b></div>
+    </div>
+    <div class="go mono"><span>Clip into the drop</span><span>→</span></div>
+  </div>
+</div>
+</body>
+</html>

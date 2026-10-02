@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;1,6..96,400;1,6..96,600&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Umbrella Canopy — a striped umbrella seen from above, eight scalloped gores in tomato and cream, opened
+     into the corner of the page like a stamp; the offer is printed on one gore. Bodoni headline "Under cover."
+     tall → photo above an ivory panel, canopy cropped bottom-right · square/wide → panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2ECE1; }
+  .banner { --panel: 80vmin; position: fixed; inset: 0; overflow: hidden; background: #F2ECE1; color: #1E1B18; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .serif { font-family: "Bodoni Moda", "Didot", Georgia, serif; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); overflow: hidden; }
+  .canopy { position: absolute; width: 74vmin; height: 74vmin; right: -22vmin; bottom: -20vmin; transform: rotate(-8deg); filter: drop-shadow(-1vmin 1.4vmin 1.6vmin rgba(60,30,20,.22)); }
+
+  .copy { position: absolute; left: 6vmin; top: 5vmin; bottom: 5.4vmin; width: 54vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.7vmin; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+  .kick::after { content: ""; flex: 1; height: 1px; background: #1E1B18; }
+  h1 { margin: 3vmin 0 0; font-weight: 400; font-size: 15vmin; line-height: .86; letter-spacing: -.035em; font-variation-settings: "opsz" 96; }
+  h1 i { font-style: italic; color: #C8372D; }
+  .lede { margin: 3.6vmin 0 0; max-width: 44vmin; font-size: 2.3vmin; line-height: 1.45; color: #4A443D; }
+  .lede b { color: #1E1B18; font-weight: 800; }
+  .rows { margin-top: auto; width: 44vmin; }
+  .rows div { display: flex; justify-content: space-between; align-items: baseline; padding: 1.2vmin 0; border-top: 1px solid rgba(30,27,24,.35); font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #6A6259; }
+  .rows div b { font-weight: 800; color: #1E1B18; letter-spacing: .12em; }
+  .cta { display: inline-flex; align-items: center; gap: 1.6vmin; align-self: flex-start; margin-top: 2.2vmin; padding: 1.9vmin 3vmin; background: #1E1B18; color: #F2ECE1; font-size: 1.9vmin; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .cta::after { content: ""; width: 3vmin; height: 1px; background: currentColor; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --panel: 72vmin; }
+    .copy { top: 4.4vmin; bottom: 4.6vmin; }
+    h1 { font-size: 13.5vmin; margin-top: 2.4vmin; }
+    .lede { margin-top: 2.4vmin; }
+    .canopy { width: 66vmin; height: 66vmin; right: -18vmin; bottom: -18vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 60vmin; }
+    .copy { top: 4vmin; bottom: 4vmin; }
+    h1 { font-size: 11.5vmin; margin-top: 2vmin; }
+    .lede { font-size: 2.1vmin; margin-top: 2vmin; }
+    .rows div:nth-child(2) { display: none; }
+    .canopy { width: 56vmin; height: 56vmin; right: -14vmin; bottom: -16vmin; }
+    .cta { padding: 1.6vmin 2.6vmin; margin-top: 1.8vmin; }
+  }
+  /* square / wide → ivory panel left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 52%; height: 100%; object-position: 50% 24%; }
+    .panel { top: 0; right: 52%; height: auto; }
+    .copy { left: 5.4vmin; top: 5.4vmin; bottom: 5.4vmin; width: 40vmin; }
+    h1 { font-size: 13.5vmin; margin-top: 4vmin; }
+    .lede { max-width: 38vmin; font-size: 2.1vmin; margin-top: 3.4vmin; }
+    .rows { width: 26vmin; }
+    .rows div { font-size: 1.6vmin; letter-spacing: .1em; flex-direction: column; gap: .4vmin; }
+    .rows div:nth-child(2) { display: flex; }
+    .canopy { width: 50vmin; height: 50vmin; right: -17vmin; bottom: -13vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.6vmin 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; }
+    .panel { right: 50%; }
+    .copy { left: 6vmin; top: 6vmin; bottom: 6vmin; width: 46vmin; }
+    h1 { font-size: 15vmin; }
+    .lede { max-width: 40vmin; font-size: 2.3vmin; }
+    .rows { width: 27vmin; }
+    .rows div { flex-direction: row; font-size: 1.7vmin; }
+    .canopy { width: 60vmin; height: 60vmin; right: -22vmin; bottom: -20vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <svg class="canopy" viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <radialGradient id="ucDome" cx="44%" cy="40%" r="62%">
+          <stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#3A1A12" stop-opacity=".16"/>
+        </radialGradient>
+      </defs>
+      <g stroke="#1E1B18" stroke-width=".6" stroke-linejoin="round">
+        <path fill="#FBF6EC" d="M100 100L137.1 10.4Q159.4 40.6 189.6 62.9Z"/>
+        <path fill="#C8372D" d="M100 100L189.6 62.9Q184.0 100.0 189.6 137.1Z"/>
+        <path fill="#FBF6EC" d="M100 100L189.6 137.1Q159.4 159.4 137.1 189.6Z"/>
+        <path fill="#C8372D" d="M100 100L137.1 189.6Q100.0 184.0 62.9 189.6Z"/>
+        <path fill="#FBF6EC" d="M100 100L62.9 189.6Q40.6 159.4 10.4 137.1Z"/>
+        <path fill="#C8372D" d="M100 100L10.4 137.1Q16.0 100.0 10.4 62.9Z"/>
+        <path fill="#FBF6EC" d="M100 100L10.4 62.9Q40.6 40.6 62.9 10.4Z"/>
+        <path fill="#C8372D" d="M100 100L62.9 10.4Q100.0 16.0 137.1 10.4Z"/>
+      </g>
+      <path d="M100 100L137.1 10.4Q159.4 40.6 189.6 62.9Q184 100 189.6 137.1Q159.4 159.4 137.1 189.6Q100 184 62.9 189.6Q40.6 159.4 10.4 137.1Q16 100 10.4 62.9Q40.6 40.6 62.9 10.4Q100 16 137.1 10.4Z" fill="url(#ucDome)"/>
+      <g fill="#1E1B18"><circle cx="137.1" cy="10.4" r="1.6"/><circle cx="189.6" cy="62.9" r="1.6"/><circle cx="189.6" cy="137.1" r="1.6"/><circle cx="137.1" cy="189.6" r="1.6"/><circle cx="62.9" cy="189.6" r="1.6"/><circle cx="10.4" cy="137.1" r="1.6"/><circle cx="10.4" cy="62.9" r="1.6"/><circle cx="62.9" cy="10.4" r="1.6"/></g>
+      <circle cx="100" cy="100" r="4.2" fill="#1E1B18"/><circle cx="100" cy="100" r="1.6" fill="#E9C77B"/>
+      <text x="100" y="52" text-anchor="middle" font-family="Bodoni Moda, Didot, Georgia, serif" font-style="italic" font-size="16" fill="#FBF6EC">−30%</text>
+      <text x="100" y="31" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-weight="800" font-size="5" letter-spacing="1.2" fill="#FBF6EC">RAIN EDIT</text>
+    </svg>
+    <div class="copy">
+      <div class="kick">Atelier Nord · Rain edit</div>
+      <h1 class="serif">Under<br><i>cover.</i></h1>
+      <p class="lede"><b>30% off</b> everything made for grey days — while the forecast holds.</p>
+      <div class="rows"><div><span>Code</span><b>UNDERCOVER</b></div><div><span>Until</span><b>12 Oct</b></div></div>
+      <div class="cta">Shop the edit</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

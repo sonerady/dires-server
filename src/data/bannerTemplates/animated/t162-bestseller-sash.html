@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,500&family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Best-Seller Sash — a satin No.1 ribbon pinned to the seam, hanging like a prize; the week's numbers
+     set as a ledger underneath. tall → photo above an ivory panel; square / wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EFE4; }
+  .banner { --panel: 68vmin; position: fixed; inset: 0; overflow: hidden; background: #F4EFE4; color: #173B2E; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .sash { position: absolute; right: 7vmin; top: calc(100% - var(--panel) - 2.2vmin); width: 15vmin; height: 50vmin; filter: drop-shadow(0 .8vmin 1vmin rgba(23,59,46,.22)); }
+  .sash svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+  .panel { position: absolute; left: 6vmin; right: 28vmin; top: calc(100% - var(--panel) + 5.6vmin); }
+  .kick { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #B3202A; white-space: nowrap; }
+  .kick::after { content: ""; flex: 1; height: 1px; background: rgba(23,59,46,.35); }
+  h1 { margin: 2.2vmin 0 0; font-family: "Playfair Display", Georgia, serif; font-weight: 400; font-size: 8.6vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 i { font-weight: 500; color: #B3202A; }
+
+  .sub { display: none; margin: 3vmin 0 0; font-size: 2.1vmin; font-weight: 500; line-height: 1.5; color: #3E5A4E; max-width: 46vmin; }
+  .sub b { color: #B3202A; font-weight: 700; }
+  .ledger { position: absolute; left: 6vmin; right: 28vmin; bottom: 17vmin; display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; column-gap: 3vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(23,59,46,.35); }
+  .ledger div { font-size: 1.7vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: #4F6A5E; white-space: nowrap; }
+  .ledger b { display: block; margin-bottom: .6vmin; font-family: "Playfair Display", Georgia, serif; font-weight: 600; font-size: 5vmin; letter-spacing: -.01em; text-transform: none; color: #173B2E; line-height: 1; }
+  .ledger b em { font-style: normal; color: #B3202A; font-size: .7em; }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5.4vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .price { font-family: "Playfair Display", Georgia, serif; font-size: 5.6vmin; line-height: 1; white-space: nowrap; }
+  .price small { display: block; margin-bottom: .6vmin; font-family: "Archivo", sans-serif; font-size: 1.7vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #4F6A5E; }
+  .cta { flex: none; display: flex; align-items: center; gap: 2vmin; background: #173B2E; color: #F4EFE4; padding: 2.2vmin 3.4vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .cta i { font-style: normal; font-family: "Playfair Display", Georgia, serif; font-size: 2.8vmin; letter-spacing: 0; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 62vmin; }
+    .sash { width: 13vmin; height: 43.3vmin; right: 6vmin; }
+    .panel { right: 24vmin; top: calc(100% - var(--panel) + 4.6vmin); }
+    h1 { font-size: 7.6vmin; margin-top: 1.8vmin; }
+    .ledger { right: 24vmin; bottom: 15.4vmin; padding-top: 2vmin; }
+    .ledger b { font-size: 4.4vmin; }
+    .foot { bottom: 4.4vmin; }
+    .price { font-size: 5vmin; }
+  }
+  /* square / wide — photo left; the sash hangs from the top edge on the far right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 46%; }
+    .photo { width: var(--pw); height: 100%; }
+    .sash { right: 5vmin; top: -1vmin; width: 12vmin; height: 40vmin; }
+    .panel { left: calc(var(--pw) + 5.5vmin); right: 20vmin; top: 7vmin; }
+    h1 { font-size: 6vmin; }
+    .sub { display: block; font-size: 1.9vmin; margin-top: 2.6vmin; }
+    .panel { right: 21vmin; }
+    .kick { font-size: 1.6vmin; letter-spacing: .14em; }
+    .ledger { left: calc(var(--pw) + 5.5vmin); right: 5.5vmin; bottom: 16vmin; grid-template-columns: repeat(3, auto); column-gap: 2vmin; }
+    .ledger div { font-size: 1.6vmin; letter-spacing: .08em; }
+    .ledger b { font-size: 4.2vmin; }
+    .foot { left: calc(var(--pw) + 5.5vmin); right: 5.5vmin; bottom: 5vmin; }
+    .price { font-size: 4.6vmin; }
+    .cta { padding: 2vmin 2.6vmin; font-size: 1.8vmin; letter-spacing: .12em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 48%; }
+    .sash { right: 7vmin; width: 15vmin; height: 50vmin; }
+    .panel { left: calc(var(--pw) + 7vmin); right: 26vmin; top: 8vmin; }
+    h1 { font-size: 8vmin; }
+    .sub { font-size: 2.1vmin; margin-top: 3vmin; }
+    .kick { font-size: 1.8vmin; letter-spacing: .22em; }
+    .ledger { left: calc(var(--pw) + 7vmin); right: 7vmin; bottom: 18vmin; column-gap: 4vmin; }
+    .ledger div { font-size: 1.7vmin; letter-spacing: .12em; }
+    .ledger b { font-size: 5vmin; }
+    .foot { left: calc(var(--pw) + 7vmin); right: 7vmin; bottom: 6vmin; }
+    .price { font-size: 5.4vmin; }
+    .cta { padding: 2.2vmin 3.4vmin; font-size: 1.9vmin; letter-spacing: .16em; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+     constant: the satin sash sways from its pin (3s pendulum), the photo breathes in a slow push-in
+     beats: .8s a satin highlight slides down the ribbon · 2.2s "buying." wipes out and back in ·
+            3.6s the ledger figures lift one by one (the star turns) · 4.8s sheen over the CTA, arrow nudges */
+  .photo { transform-origin: 50% 20%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .sash { transform-origin: 50% 0; animation: sway 3s linear infinite; }
+  @keyframes sway {
+    0% { transform: rotate(0); animation-timing-function: cubic-bezier(.33,.66,.66,1); }
+    25% { transform: rotate(1.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    75% { transform: rotate(-1.5deg); animation-timing-function: cubic-bezier(.33,0,.66,.34); }
+    100% { transform: rotate(0); }
+  }
+  .sash::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 89%, 0 100%);
+    background: linear-gradient(180deg, rgba(255,235,225,0) 0%, rgba(255,235,225,.1) 30%, rgba(255,240,232,.38) 50%, rgba(255,235,225,.1) 70%, rgba(255,235,225,0) 100%) no-repeat 0 -67% / 100% 40%;
+    animation: satin 6s linear infinite; }
+  @keyframes satin {
+    0%, 12% { background-position: 0 -67%; animation-timing-function: cubic-bezier(.45,0,.35,1); }
+    32%, 100% { background-position: 0 167%; }
+  }
+
+  h1 i { display: inline-block; clip-path: inset(-20% -12% -25% -6%); animation: wipe 6s linear infinite; }
+  @keyframes wipe {
+    0%, 36% { clip-path: inset(-20% -12% -25% -6%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    43% { clip-path: inset(-20% -12% -25% 106%); animation-timing-function: steps(1, end); }
+    44% { clip-path: inset(-20% 106% -25% -6%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    53%, 100% { clip-path: inset(-20% -12% -25% -6%); }
+  }
+
+  .ledger b { animation: lift 6s linear infinite; }
+  .ledger div:nth-child(2) b { animation-delay: -5.85s; }
+  .ledger div:nth-child(3) b { animation-delay: -5.7s; }
+  @keyframes lift {
+    0%, 60% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    64% { transform: translateY(-1vmin); animation-timing-function: cubic-bezier(.4,0,.2,1.4); }
+    70%, 100% { transform: translateY(0); }
+  }
+  .ledger b em { display: inline-block; animation: star 6s linear infinite; }
+  @keyframes star {
+    0%, 61% { transform: rotate(0) scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    68%, 100% { transform: rotate(144deg) scale(1); }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 30%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,.3) 50%, rgba(255,255,255,.08) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    92%, 100% { transform: translateX(380%) skewX(-18deg); }
+  }
+  .cta i { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 80% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    83% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    86% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    89% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    92%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="panel">
+    <div class="kick">Best sellers · Week 39</div>
+    <h1>The one everyone's <i>buying.</i></h1>
+    <p class="sub">Back for a <b>third restock</b> this season and still selling out in days. Your size won't wait.</p>
+  </div>
+
+  <div class="ledger">
+    <div><b>1,208</b>Sold this week</div>
+    <div><b>4.9<em>★</em></b>2.1k ratings</div>
+    <div><b>3rd</b>Restock</div>
+  </div>
+
+  <div class="foot">
+    <div class="price"><small>From</small>€129</div>
+    <div class="cta">Shop best sellers <i>→</i></div>
+  </div>
+
+  <div class="sash">
+    <svg viewBox="0 0 60 200">
+      <defs>
+        <linearGradient id="satin" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#8E1720"/><stop offset=".22" stop-color="#C02A34"/><stop offset=".5" stop-color="#B3202A"/><stop offset=".78" stop-color="#C92F39"/><stop offset="1" stop-color="#8E1720"/>
+        </linearGradient>
+        <linearGradient id="fold" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="M0 0 H60 V200 L30 178 L0 200 Z" fill="url(#satin)"/>
+      <rect x="0" y="0" width="60" height="10" fill="url(#fold)"/>
+      <path d="M5 4 V188 M55 4 V188" stroke="#F4EFE4" stroke-width=".9" stroke-dasharray="2.6 2.2" opacity=".75"/>
+      <text x="30" y="30" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-style="italic" font-size="11" fill="#F4EFE4">No.</text>
+      <text x="30" y="72" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="600" font-size="44" fill="#F4EFE4">1</text>
+      <path d="M16 82 H44" stroke="#F4EFE4" stroke-width=".8" opacity=".8"/>
+      <text transform="translate(32.9 90) rotate(90)" font-family="Archivo, Arial, sans-serif" font-weight="800" font-size="8" letter-spacing="1.8" fill="#F4EFE4">BEST SELLER</text>
+    </svg>
+  </div>
+</div>
+</body>
+</html>

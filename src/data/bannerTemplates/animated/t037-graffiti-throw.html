@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Sedgwick+Ave+Display&family=Rubik:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  /* Graffiti Throw — a bubble-letter throw-up on a whitewashed wall: black outline, 3D extrusion, white halo, paint drips, marker tag.
+     tall → photo on top, wall below; square / wide → wall left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE9E2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE9E2; color: #111; font-family: "Rubik", "Helvetica Neue", Arial, sans-serif; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 64vmin); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .wall { position: absolute; left: 0; right: 0; bottom: 0; height: 64vmin; overflow: hidden;
+    background: radial-gradient(50% 38% at 22% 42%, rgba(255,79,163,.30), rgba(255,79,163,0) 70%), radial-gradient(40% 30% at 82% 70%, rgba(40,200,255,.22), rgba(40,200,255,0) 70%), linear-gradient(180deg, #F1EEE8, #E4E0D8); }
+  .wall svg { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: multiply; }
+  .piece { position: absolute; left: 4vmin; right: 4vmin; top: 5vmin; text-align: center; transform: rotate(-4deg); }
+  .throw { position: relative; display: inline-block; font-family: "Titan One", "Arial Rounded MT Bold", sans-serif; font-size: 22vmin; line-height: 1; letter-spacing: .03em; }
+  .throw .halo, .throw .ink { display: block; }
+  .throw .halo { position: absolute; left: 0; top: 0; color: #fff; -webkit-text-stroke: 4.4vmin #fff; text-shadow: 3vmin 3vmin 0 #fff, 1.6vmin 1.6vmin 0 #fff; }
+  .throw { --o: 1.1vmin; }
+  .throw .ink { position: relative; color: #FF4FA3; text-shadow: calc(1 * var(--o)) calc(0 * var(--o)) 0 #111, calc(-1 * var(--o)) calc(0 * var(--o)) 0 #111, calc(0 * var(--o)) calc(1 * var(--o)) 0 #111, calc(0 * var(--o)) calc(-1 * var(--o)) 0 #111, calc(0.7 * var(--o)) calc(0.7 * var(--o)) 0 #111, calc(-0.7 * var(--o)) calc(0.7 * var(--o)) 0 #111, calc(0.7 * var(--o)) calc(-0.7 * var(--o)) 0 #111, calc(-0.7 * var(--o)) calc(-0.7 * var(--o)) 0 #111, calc(var(--o) + 0.3 * var(--o)) calc(var(--o) + 0.3 * var(--o)) 0 #111, calc(var(--o) + 0.6 * var(--o)) calc(var(--o) + 0.6 * var(--o)) 0 #111, calc(var(--o) + 0.9 * var(--o)) calc(var(--o) + 0.9 * var(--o)) 0 #111, calc(var(--o) + 1.2 * var(--o)) calc(var(--o) + 1.2 * var(--o)) 0 #111, calc(var(--o) + 1.5 * var(--o)) calc(var(--o) + 1.5 * var(--o)) 0 #111, calc(var(--o) + 1.8 * var(--o)) calc(var(--o) + 1.8 * var(--o)) 0 #111; }
+  .throw .hi { position: absolute; left: 0; top: 0; color: #FF9CD0; clip-path: inset(0 0 57% 0); }
+  .shine { position: absolute; border-radius: 99vmin; background: #fff; }
+  .sh1 { left: 9%; top: 30%; width: 2.6vmin; height: 1vmin; transform: rotate(-30deg); }
+  .sh2 { left: 63%; top: 29%; width: 2vmin; height: .9vmin; transform: rotate(-30deg); }
+  .drip { position: absolute; width: 1.6vmin; border-radius: 0 0 99vmin 99vmin; background: #FF4FA3; box-shadow: 0 0 0 .5vmin #111; }
+  .d1 { left: 16%; top: 74%; height: 9vmin; }
+  .d2 { left: 51%; top: 74%; height: 6vmin; }
+  .d3 { left: 86%; top: 74%; height: 11vmin; }
+  .tag { position: absolute; right: 7vmin; top: 33vmin; font-family: "Sedgwick Ave Display", "Marker Felt", cursive; font-size: 9vmin; line-height: 1; color: #111; transform: rotate(-9deg); }
+  .tag::after { content: ""; position: absolute; left: 4%; right: -4%; bottom: -.6vmin; height: .6vmin; border-radius: 99vmin; background: #111; transform: rotate(2deg); }
+  .deal { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 4vmin; }
+  .stencil { background: #111; color: #ECE9E2; padding: 2vmin 2.6vmin; transform: rotate(-1.5deg); }
+  .stencil b { display: block; font-family: "Titan One", sans-serif; font-weight: 400; font-size: 7vmin; line-height: .95; color: #3FD7FF; }
+  .stencil span { display: block; white-space: nowrap; margin-top: .8vmin; font-weight: 800; font-size: 2vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .cta { flex: none; font-weight: 800; font-size: 2.4vmin; letter-spacing: .14em; text-transform: uppercase; padding-bottom: 1vmin; border-bottom: .6vmin solid #FF4FA3; }
+  .cta small { display: block; font-weight: 500; font-size: 1.7vmin; letter-spacing: .16em; color: #55524C; margin-bottom: 1.2vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .shot { height: calc(100% - 58vmin); }
+    .wall { height: 58vmin; }
+    .piece { top: 4vmin; }
+    .throw { font-size: 21vmin; }
+    .tag { top: 30vmin; font-size: 7.6vmin; }
+    .deal { bottom: 5vmin; }
+    .stencil b { font-size: 6vmin; }
+  }
+  /* square / wide → wall left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .shot { left: auto; bottom: 0; height: auto; width: 50%; }
+    .wall { right: auto; top: 0; height: auto; width: 50%; }
+    .piece { left: 2vmin; right: 2vmin; top: 12vmin; }
+    .throw { font-size: 13.6vmin; }
+    .throw { --o: .75vmin; }
+    .throw .halo { -webkit-text-stroke-width: 3vmin; text-shadow: 2vmin 2vmin 0 #fff, 1vmin 1vmin 0 #fff; }
+    .drip { width: 1.1vmin; box-shadow: 0 0 0 .35vmin #111; }
+    .tag { right: 5vmin; top: 33vmin; font-size: 7vmin; }
+    .deal { left: 5vmin; right: 5vmin; bottom: 5vmin; flex-direction: column; align-items: flex-start; gap: 4vmin; }
+    .stencil b { font-size: 5.6vmin; }
+    .stencil span { font-size: 1.8vmin; }
+    .cta { font-size: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 52%; }
+    .wall { width: 48%; }
+    .piece { top: 13vmin; }
+    .throw { font-size: 16vmin; }
+    .tag { top: 38vmin; right: 7vmin; font-size: 8vmin; }
+    .deal { left: 6vmin; right: 6vmin; bottom: 6vmin; flex-direction: row; align-items: flex-end; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* 1 · the tag is re-written with a marker, then underlined */
+  .tag { animation: tagwrite 6s linear infinite; }
+  @keyframes tagwrite {
+    0%, 8% { clip-path: inset(-30% -10% -30% -10%); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    12% { clip-path: inset(-30% 110% -30% -10%); animation-timing-function: steps(1, end); }
+    15% { clip-path: inset(-30% 110% -30% -10%); animation-timing-function: cubic-bezier(.3,.1,.6,1); }
+    32%, 100% { clip-path: inset(-30% -10% -30% -10%); }
+  }
+  .tag::after { transform-origin: 0 50%; animation: tagline 6s linear infinite; }
+  @keyframes tagline {
+    0%, 8% { transform: rotate(2deg) scaleX(1); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    11% { transform: rotate(2deg) scaleX(0); animation-timing-function: steps(1, end); }
+    32% { transform: rotate(2deg) scaleX(0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    38%, 100% { transform: rotate(2deg) scaleX(1); }
+  }
+  /* 2 · the throw pops off the wall, the drips are re-sprayed and run down again */
+  .throw { transform-origin: 50% 85%; animation: pop 6s linear infinite; }
+  @keyframes pop {
+    0%, 40% { transform: scale(1) rotate(0); animation-timing-function: cubic-bezier(.5,0,.75,0); }
+    43% { transform: scale(.965) rotate(.6deg); animation-timing-function: cubic-bezier(.2,.9,.3,1.4); }
+    48% { transform: scale(1.05) rotate(-.8deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    53% { transform: scale(.99) rotate(.2deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    57%, 100% { transform: scale(1) rotate(0); }
+  }
+  .drip { transform-origin: 50% 0; animation: run 6s linear infinite; }
+  .d2 { animation-name: run2; }
+  .d3 { animation-name: run3; }
+  @keyframes run {
+    0%, 42% { transform: scaleY(1); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    45% { transform: scaleY(.12); animation-timing-function: cubic-bezier(.55,0,.85,.35); }
+    68% { transform: scaleY(1.04); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    74%, 100% { transform: scaleY(1); }
+  }
+  @keyframes run2 {
+    0%, 42% { transform: scaleY(1); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    45% { transform: scaleY(.15); animation-timing-function: cubic-bezier(.55,0,.85,.35); }
+    62% { transform: scaleY(1.05); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    67%, 100% { transform: scaleY(1); }
+  }
+  @keyframes run3 {
+    0%, 42% { transform: scaleY(1); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    45% { transform: scaleY(.1); animation-timing-function: cubic-bezier(.55,0,.85,.35); }
+    76% { transform: scaleY(1.03); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    82%, 100% { transform: scaleY(1); }
+  }
+  /* the fresh-paint highlights glint */
+  .shine { animation: glint 6s linear infinite; }
+  .sh1 { --r: -30deg; } .sh2 { --r: -30deg; animation-delay: -5.76s; }
+  @keyframes glint {
+    0%, 52% { transform: rotate(var(--r)) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    55% { transform: rotate(var(--r)) scale(2.1, 1.6); opacity: 1; box-shadow: 0 0 1.6vmin .6vmin rgba(255,255,255,.9); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    61%, 100% { transform: rotate(var(--r)) scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+  }
+  /* 3 · the offer is stencilled on again: a hard slap */
+  .stencil { animation: slap 6s linear infinite; }
+  @keyframes slap {
+    0%, 70% { transform: rotate(-1.5deg) scale(1); animation-timing-function: cubic-bezier(.5,0,.75,0); }
+    73% { transform: rotate(-4deg) scale(1.1); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    75.5% { transform: rotate(-.8deg) scale(.96); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    80%, 100% { transform: rotate(-1.5deg) scale(1); }
+  }
+  .stencil b { animation: spray 6s linear infinite; }
+  @keyframes spray {
+    0%, 74.9% { color: #3FD7FF; text-shadow: none; }
+    75%, 77% { color: #FF4FA3; text-shadow: 0 0 1.2vmin rgba(255,79,163,.55); }
+    77.1%, 100% { color: #3FD7FF; text-shadow: none; }
+  }
+  /* CTA arrow nudges twice */
+  .cta .ar { font-style: normal; display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 82% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    85% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    91% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    94%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="wall">
+    <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="w"><feTurbulence type="fractalNoise" baseFrequency=".035 .5" numOctaves="3" seed="3"/><feColorMatrix values="0 0 0 0 .55  0 0 0 0 .53  0 0 0 0 .5  0 0 0 .35 0"/></filter><rect width="100%" height="100%" filter="url(#w)"/></svg>
+    <div class="piece">
+      <div class="throw"><span class="halo">FRESH</span><i class="drip d1"></i><i class="drip d2"></i><i class="drip d3"></i><span class="ink">FRESH</span><span class="hi">FRESH</span><i class="shine sh1"></i><i class="shine sh2"></i></div>
+    </div>
+    <div class="tag">summer drop</div>
+    <div class="deal">
+      <div class="stencil"><b>−30%</b><span>Code TAG30 · this week</span></div>
+      <div class="cta"><small>Online &amp; in store</small>Shop the drop <i class="ar">→</i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

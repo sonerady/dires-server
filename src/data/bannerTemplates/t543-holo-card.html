@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Azeret+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Holo Card — the product as a rare collectible: a trading card with a holographic-foil frame (pastel conic
+     rainbow, diagonal light sweep, fine guilloché hatch), a name bar with rarity stars, the photo in a foil-rimmed
+     window, "ability" lines for the details and a set strip with the print run. A second card lies face-down behind
+     it like a fresh pack pull; a foil price seal and four-point sparkles float in a deep ink night.
+     tall → headline, card, seal + CTA stacked · 3:4 and wider → card left, pitch right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #110D24; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F2EEFF; font-family: "Sora", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(60vmin 50vmin at 85% 12%, rgba(120,90,255,.35), rgba(120,90,255,0) 70%),
+      radial-gradient(70vmin 55vmin at 10% 90%, rgba(40,200,220,.22), rgba(40,200,220,0) 70%),
+      radial-gradient(50vmin 40vmin at 90% 88%, rgba(255,110,190,.2), rgba(255,110,190,0) 70%),
+      #110D24; }
+  .foil { background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.16) 0 1px, transparent 1px .9vmin),
+      linear-gradient(115deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.55) 42%, rgba(255,255,255,0) 54%, rgba(255,255,255,0) 70%, rgba(255,255,255,.35) 78%, rgba(255,255,255,0) 86%),
+      conic-gradient(from 200deg at 35% 45%, #FFB6E8, #B9F2FF, #CFFFC2, #FFF1A6, #FFC6A6, #D7BCFF, #FFB6E8); }
+
+  .card { position: absolute; left: 7vmin; right: 7vmin; top: 34vmin; bottom: 24vmin; box-sizing: border-box; padding: 1.6vmin; border-radius: 3vmin;
+    box-shadow: 0 3vmin 6vmin rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.5) inset; display: flex; }
+  .back { position: absolute; left: 7vmin; right: 7vmin; top: 34vmin; bottom: 24vmin; border-radius: 3vmin; transform: translate(4vmin, -1.2vmin) rotate(6deg);
+    background: repeating-radial-gradient(circle at 50% 50%, #2C2266 0 .6vmin, #221A52 .6vmin 1.2vmin); box-shadow: 0 0 0 1.2vmin #3A2F7A inset, 0 2vmin 5vmin rgba(0,0,0,.5); }
+  .inner { flex: 1; min-width: 0; display: flex; flex-direction: column; border-radius: 2vmin; background: #F7F4FF; color: #1D1840; padding: 1.8vmin; gap: 1.4vmin; box-sizing: border-box; }
+  .namebar { display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .namebar b { font-weight: 800; font-size: 3.2vmin; letter-spacing: -.02em; white-space: nowrap; }
+  .namebar span { font-family: "Azeret Mono", monospace; font-size: 1.7vmin; font-weight: 600; letter-spacing: .12em; color: #6B52E0; white-space: nowrap; }
+  .win { position: relative; flex: 1; min-height: 0; padding: .6vmin; }
+  .win img { position: absolute; left: .6vmin; top: .6vmin; width: calc(100% - 1.2vmin); height: calc(100% - 1.2vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .abil { display: grid; grid-template-columns: auto 1fr auto; column-gap: 1.4vmin; row-gap: .9vmin; align-items: center; font-size: 1.8vmin; }
+  .abil i { width: 2.2vmin; height: 2.2vmin; border-radius: 50%; }
+  .abil .e1 { background: radial-gradient(circle at 35% 30%, #fff, #7FE3F0 40%, #2AA7C0); }
+  .abil .e2 { background: radial-gradient(circle at 35% 30%, #fff, #FF9ED6 40%, #D9469C); }
+  .abil .e3 { background: radial-gradient(circle at 35% 30%, #fff, #C8B2FF 40%, #6B52E0); }
+  .abil b { font-weight: 600; white-space: nowrap; }
+  .abil em { font-style: normal; font-family: "Azeret Mono", monospace; font-size: 1.7vmin; color: #5A5380; white-space: nowrap; }
+  .set { display: flex; justify-content: space-between; font-family: "Azeret Mono", monospace; font-size: 1.6vmin; color: #6D6690; border-top: 1px solid #DCD5F2; padding-top: 1vmin; white-space: nowrap; }
+
+  .top { position: absolute; z-index: 2; left: 7vmin; right: 7vmin; top: 6vmin; }
+  .kick { font-family: "Azeret Mono", monospace; font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #B9AFFF; white-space: nowrap; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 800; font-size: 11vmin; line-height: .92; letter-spacing: -.05em; }
+  h1 span { background: linear-gradient(100deg, #FFB6E8, #B9F2FF 35%, #CFFFC2 55%, #FFF1A6 75%, #D7BCFF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { margin-top: 1.8vmin; font-size: 2.2vmin; line-height: 1.45; color: #C9C2EA; }
+
+  .foot { position: absolute; z-index: 2; left: 7vmin; right: 7vmin; bottom: 5vmin; height: 14vmin; display: flex; align-items: center; gap: 3vmin; }
+  .seal { flex: none; width: 14vmin; height: 14vmin; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #1D1840;
+    box-shadow: 0 0 0 .5vmin rgba(255,255,255,.35), 0 1.4vmin 3vmin rgba(0,0,0,.45); }
+  .seal small { line-height: 1; margin-bottom: .6vmin; font-family: "Azeret Mono", monospace; font-size: 1.6vmin; font-weight: 600; letter-spacing: .14em; }
+  .seal b { font-weight: 800; font-size: 4.2vmin; letter-spacing: -.04em; line-height: 1; }
+  .cta { padding: 2vmin 3.8vmin; border-radius: 99vmin; background: #F2EEFF; color: #1D1840; font-size: 2.1vmin; font-weight: 600; white-space: nowrap; }
+  .fine { font-family: "Azeret Mono", monospace; font-size: 1.6vmin; line-height: 1.5; color: #9C94C8; }
+
+  .spark { position: absolute; background: #FFFFFF; clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
+  .s1 { width: 5vmin; height: 5vmin; right: 9vmin; top: 7vmin; }
+  .s2 { width: 2.6vmin; height: 2.6vmin; right: 18vmin; top: 17vmin; opacity: .7; }
+  .s3 { width: 3.4vmin; height: 3.4vmin; left: 3vmin; bottom: 27vmin; opacity: .8; }
+
+  /* ── 3:4 — card left, pitch in a column on the right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .card, .back { left: 6vmin; right: auto; width: 54vmin; top: 6vmin; bottom: 6vmin; }
+    .back { transform: translate(2.4vmin, -.6vmin) rotate(3.5deg); }
+    .top { left: 69vmin; right: 5vmin; top: 7vmin; }
+    .kick { white-space: normal; line-height: 1.6; }
+    h1 { font-size: 7.4vmin; }
+    .sub { font-size: 2vmin; }
+    .foot { left: 69vmin; right: 5vmin; bottom: 7vmin; height: auto; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .seal { width: 13vmin; height: 13vmin; }
+    .cta { padding: 1.8vmin 2.8vmin; font-size: 1.9vmin; }
+    .s1 { right: 6vmin; top: auto; bottom: 38vmin; }
+    .s2 { right: 16vmin; top: auto; bottom: 46vmin; }
+    .s3 { display: none; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .card, .back { width: 60vmin; top: 5.5vmin; bottom: 5.5vmin; left: 6vmin; }
+    .back { transform: translate(4vmin, -1.2vmin) rotate(6deg); }
+    .namebar b { font-size: 2.8vmin; }
+    .top { left: 74vmin; top: 7vmin; }
+    h1 { font-size: 7vmin; }
+    .foot { left: 74vmin; }
+    .s1 { right: 5vmin; }
+  }
+  /* ── wide — card left, a roomy pitch with the seal beside the CTA ── */
+  @media (min-aspect-ratio: 6/5) {
+    .card, .back { width: 66vmin; left: 8vmin; }
+    .top { left: 88vmin; right: 7vmin; top: 9vmin; }
+    .kick { white-space: normal; }
+    h1 { font-size: 9.4vmin; }
+    .sub { font-size: 2.2vmin; max-width: 50vmin; }
+    .foot { left: 88vmin; right: 7vmin; bottom: 9vmin; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 2.6vmin 3vmin; }
+    .fine { flex-basis: 100%; }
+    .seal { width: 15vmin; height: 15vmin; }
+    .s1 { right: 7vmin; top: auto; bottom: 40vmin; }
+    .s2 { right: 17vmin; bottom: 47vmin; }
+    .s3 { display: block; left: calc(8vmin + 66vmin + 6vmin); bottom: 8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <i class="spark s1"></i><i class="spark s2"></i><i class="spark s3"></i>
+  <div class="top">
+    <div class="kick">Prisma Club · Series 01</div>
+    <h1>Pull a <span>rare.</span></h1>
+    <div class="sub">250 pieces, numbered and foil-sealed. Once it's pulled, it's pulled.</div>
+  </div>
+  <div class="back"></div>
+  <div class="card foil">
+    <div class="inner">
+      <div class="namebar"><b>The Rare One</b><span>★★★ HOLO</span></div>
+      <div class="win foil"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="abil">
+        <i class="e1"></i><b>Finish</b><em>Iridescent</em>
+        <i class="e2"></i><b>Edition</b><em>Numbered</em>
+        <i class="e3"></i><b>Drop</b><em>Fri 10:00</em>
+      </div>
+      <div class="set"><span>PC-01 ◆ Prisma Club</span><span>017/250</span></div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="seal foil"><small>ONLY</small><b>€210</b></div>
+    <div class="cta">Claim yours →</div>
+    <div class="fine">Limited to one per order</div>
+  </div>
+</div>
+</body>
+</html>

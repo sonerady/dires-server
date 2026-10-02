@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<style>
+  /* Paper Box — the lid of a vintage box of silver photographic paper: hatched band, extended wordmark, the sheet
+     count turned into the offer, a multilingual spec panel and the red "open only in the dark" warning strip.
+     tall → print above, lid below · square & wide → print left, lid right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #111; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #111; color: #F3F1EC; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; font-stretch: 100%; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 20%; }
+
+  .lid { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; box-sizing: border-box; padding: 4.6vmin 6vmin 5.4vmin; background: #141414; border-top: 1.2vmin solid #2B2B2A; display: flex; flex-direction: column; }
+  .hatch { flex: none; height: 2.6vmin; background: repeating-linear-gradient(-45deg, #F3F1EC 0 .55vmin, transparent .55vmin 1.5vmin); }
+  .word { margin-top: 3.4vmin; font-stretch: 125%; font-weight: 900; font-size: 13.4vmin; line-height: .8; letter-spacing: -.02em; text-transform: uppercase; }
+  .line { margin-top: 2vmin; display: flex; justify-content: space-between; gap: 2vmin; font-stretch: 75%; font-weight: 600; font-size: 2.2vmin; letter-spacing: .2em; text-transform: uppercase; padding-bottom: 2vmin; border-bottom: 1px solid #5A5955; }
+  .line span:last-child { color: #A9A69F; }
+
+  .mid { flex: 1 1 auto; min-height: 0; display: flex; gap: 4vmin; align-items: center; }
+  .count { flex: none; min-width: 27vmin; height: 27vmin; background: #F3F1EC; color: #141414; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; padding: 1.8vmin 2vmin; }
+  .count b { white-space: nowrap; font-stretch: 125%; font-weight: 900; font-size: 16vmin; line-height: .78; letter-spacing: -.05em; }
+  .count b sup { font-size: 5vmin; vertical-align: top; position: relative; top: .4vmin; letter-spacing: 0; margin-left: .6vmin; line-height: 1; }
+  .count span { font-stretch: 75%; font-weight: 700; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; line-height: 1.25; }
+  .spec { flex: 1; min-width: 0; display: grid; grid-template-columns: auto 1fr; column-gap: 2vmin; row-gap: 1.3vmin; font-size: 2vmin; line-height: 1.2; }
+  .spec dt { font-stretch: 75%; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #A9A69F; }
+  .spec dd { margin: 0; font-weight: 500; }
+
+  .warn { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; background: #C62D1E; color: #FFF; padding: 1.5vmin 2.2vmin; font-stretch: 75%; font-weight: 700; font-size: 2vmin; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .warn b { font-stretch: 100%; font-weight: 900; letter-spacing: .08em; background: #FFF; color: #C62D1E; padding: .5vmin 1.2vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 54%; height: 100%; }
+    .lid { left: 54%; top: 0; height: auto; border-top: 0; border-left: 1.2vmin solid #2B2B2A; padding: 5vmin 4.6vmin; }
+    .word { font-stretch: 100%; font-size: 6.8vmin; }
+    .line { flex-direction: column; gap: .6vmin; font-size: 1.8vmin; }
+    .mid { flex-direction: column; align-items: flex-start; justify-content: center; gap: 3vmin; }
+    .count { min-width: 22vmin; height: 22vmin; }
+    .count b { font-size: 12.6vmin; }
+    .count b sup { font-size: 3.8vmin; }
+    .count span { font-size: 1.6vmin; }
+    .spec { flex: none; align-content: start; font-size: 1.8vmin; row-gap: 1vmin; }
+    .warn { flex-direction: column; align-items: flex-start; gap: 1vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .lid { left: 50%; padding: 4.4vmin 4.4vmin 4.8vmin; }
+    .hatch { height: 2vmin; }
+    .word { margin-top: 2.6vmin; font-stretch: 100%; font-size: 7.4vmin; }
+    .line { margin-top: 1.6vmin; padding-bottom: 1.6vmin; }
+    .mid { gap: 2.6vmin; }
+    .count { min-width: 19vmin; height: 19vmin; padding: 1.4vmin 1.6vmin; }
+    .count b { font-size: 10.6vmin; }
+    .count b sup { font-size: 3.4vmin; }
+    .spec { row-gap: .8vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; }
+    .lid { left: 45%; padding: 5vmin 5.4vmin 5.4vmin; }
+    .hatch { height: 2.6vmin; }
+    .word { margin-top: 3.2vmin; font-stretch: 125%; font-size: 10.2vmin; }
+    .line { flex-direction: row; font-size: 2vmin; }
+    .mid { flex-direction: row; align-items: center; gap: 5vmin; }
+    .count { min-width: 26vmin; height: 26vmin; padding: 1.8vmin 2vmin; }
+    .count b { font-size: 15vmin; }
+    .count b sup { font-size: 4.8vmin; }
+    .count span { font-size: 1.8vmin; }
+    .spec { flex: 1; font-size: 2vmin; row-gap: 1.2vmin; }
+    .warn { flex-direction: row; align-items: center; font-size: 1.9vmin; }
+  }
+
+  /* ── motion (6s loop) · a box of silver paper cracked open in the darkroom:
+     hatch band marches · the print breathes · ARGENTA wipes off and is re-printed · the 25% sheet is pulled
+     and punches back · a gloss sweep crosses the red warning strip, its code chip blinks like a safelight */
+  .hatch { animation: march 1.5s linear infinite; }
+  @keyframes march { from { background-position: 0 0; } to { background-position: 2.1213vmin 0; } }
+
+  .photo { transform-origin: 50% 20%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .word { animation: reprint 6s cubic-bezier(.7,0,.3,1) infinite; }
+  @keyframes reprint {
+    0%, 30% { clip-path: inset(-10% 0 -10% 0); }
+    38% { clip-path: inset(-10% 0 -10% 100%); }
+    38.01% { clip-path: inset(-10% 100% -10% 0); }
+    50%, 100% { clip-path: inset(-10% 0 -10% 0); }
+  }
+  .line span { animation: lineIn 6s cubic-bezier(.2,.7,.2,1) infinite; }
+  .line span:last-child { animation-delay: -.12s; }
+  @keyframes lineIn { 0%, 36% { opacity: 1; transform: none; } 38.5% { opacity: 0; transform: translateY(.8vmin); } 44% { opacity: 0; transform: translateY(.8vmin); } 52%, 100% { opacity: 1; transform: none; } }
+
+  .count { transform-origin: 0 50%; animation: pull 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes pull {
+    0%, 58% { transform: none; box-shadow: 0 0 0 rgba(0,0,0,0); }
+    62% { transform: translateY(-1vmin) rotate(-2deg); box-shadow: 0 1.6vmin 2.4vmin rgba(0,0,0,.5); }
+    66% { transform: scale(1.07); box-shadow: 0 1vmin 2vmin rgba(0,0,0,.45); }
+    70% { transform: scale(.98); }
+    74%, 100% { transform: none; box-shadow: 0 0 0 rgba(0,0,0,0); }
+  }
+
+  .warn { background-image: linear-gradient(100deg, transparent 0 40%, rgba(255,255,255,.28) 50%, transparent 60% 100%); background-size: 300% 100%; background-repeat: no-repeat;
+    animation: gloss 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes gloss { 0%, 76% { background-position: 100% 0; } 92%, 100% { background-position: 0 0; } }
+  .warn b { animation: safelight 3s steps(1, end) infinite; }
+  @keyframes safelight { 0%, 80%, 86%, 100% { background: #FFF; color: #C62D1E; } 83% { background: #7A140B; color: #FFF; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="lid">
+    <div class="hatch"></div>
+    <div class="word">Argenta</div>
+    <div class="line"><span>Fine print collection</span><span>Glossy · Neutral tone</span></div>
+    <div class="mid">
+      <div class="count"><b>25<sup>%</sup></b><span>Off · Rabais<br>Rabatt · Sconto</span></div>
+      <dl class="spec">
+        <dt>Contents</dt><dd>The full new edit</dd>
+        <dt>Grade</dt><dd>New season</dd>
+        <dt>Delivery</dt><dd>Free, 2–3 days</dd>
+        <dt>Valid</dt><dd>Until 12 October</dd>
+      </dl>
+    </div>
+    <div class="warn"><span>Open only in low light</span><b>Code SILVER25</b></div>
+  </div>
+</div>
+</body>
+</html>

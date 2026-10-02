@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Dress Code, Decoded — the invitation says "Cocktail", so the page reads like a dictionary entry: running head, folio,
+     a headword swiped with pink highlighter, pronunciation, numbered senses, and a formality scale from Casual to
+     White Tie with the marker set on Cocktail. tall → photo above the page; square/wide → page left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F8F6F0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1C1B19; font-family: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif; background: #F8F6F0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 22%; }
+  .page { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; box-sizing: border-box; padding: 5vmin 7vmin 5.5vmin; display: flex; flex-direction: column; }
+
+  .run { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: #6B665E;
+    border-bottom: 1px solid #1C1B19; padding-bottom: 1.2vmin; white-space: nowrap; }
+  .run b { font-weight: 600; color: #1C1B19; }
+  .entry { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .hw { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 2.4vmin; }
+  .hw h1 { position: relative; margin: 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 20vmin; line-height: .9; letter-spacing: -.02em; z-index: 0; }
+  /* highlighter swipe: slightly skewed, ragged ends */
+  .hw h1::before { content: ""; position: absolute; left: -1.6vmin; right: -2vmin; top: 42%; bottom: 4%; z-index: -1; background: #FF9CC4; opacity: .85;
+    transform: skewX(-8deg) rotate(-1.2deg); clip-path: polygon(1% 12%, 99% 0, 100% 88%, 0 100%); }
+  .hw .ph { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 3.6vmin; color: #4A4640; white-space: nowrap; }
+  .hw .ph i { font-style: normal; font-family: "IBM Plex Sans Condensed", Arial, sans-serif; font-size: 1.9vmin; letter-spacing: .16em; text-transform: uppercase; margin-left: 1.2vmin; color: #6B665E; }
+  ol { margin: 2.6vmin 0 0; padding: 0; list-style: none; counter-reset: s; }
+  li { counter-increment: s; position: relative; padding-left: 5.2vmin; font-family: "Instrument Serif", Georgia, serif; font-size: 3.9vmin; line-height: 1.2; }
+  li + li { margin-top: 1.2vmin; }
+  li::before { content: counter(s); position: absolute; left: 0; top: .6vmin; font-family: "IBM Plex Sans Condensed", Arial, sans-serif; font-weight: 600; font-size: 2.1vmin;
+    width: 3.2vmin; height: 3.2vmin; line-height: 3.2vmin; text-align: center; border-radius: 50%; background: #1C1B19; color: #F8F6F0; }
+  li b { font-weight: 400; font-style: italic; white-space: nowrap; background: linear-gradient(transparent 62%, #FFC6DC 62%); }
+
+  /* formality scale */
+  .scale { position: relative; margin-top: 3vmin; height: 10vmin; }
+  .scale .bar { position: absolute; left: 0; right: 0; top: 4.2vmin; height: 1px; background: #1C1B19; }
+  .scale .ticks { position: absolute; left: 0; right: 0; top: 3.2vmin; height: 2vmin;
+    background: repeating-linear-gradient(90deg, #1C1B19 0 1px, transparent 1px 2.5%) 0 100% / 100% 45% no-repeat, repeating-linear-gradient(90deg, #1C1B19 0 1px, transparent 1px calc(25% - .01vmin)) 0 0 / calc(100% + 1px) 100% no-repeat; }
+  .scale .mk { position: absolute; left: 25%; top: 0; width: 0; height: 0; transform: translateX(-50%); border-left: 1.4vmin solid transparent; border-right: 1.4vmin solid transparent; border-top: 2.4vmin solid #E8307A; }
+  .scale .lab { position: absolute; left: 0; right: 0; top: 6.4vmin; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; color: #6B665E; white-space: nowrap; }
+  .scale .lab span { position: absolute; transform: translateX(-50%); }
+  .scale .lab span:nth-child(1) { left: 0; transform: none; }
+  .scale .lab span:nth-child(2) { left: 25%; }
+  .scale .lab span:nth-child(3) { left: 50%; }
+  .scale .lab span:nth-child(4) { left: 75%; }
+  .scale .lab span:nth-child(5) { left: 100%; }
+  .scale .lab span:nth-child(5) { transform: translateX(-100%); }
+  .scale .lab .on { color: #1C1B19; font-weight: 600; }
+  .cta { margin-top: 2.6vmin; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; font-size: 2vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .cta b { font-weight: 600; }
+  .cta span { font-family: "Instrument Serif", Georgia, serif; font-style: italic; text-transform: none; letter-spacing: 0; font-size: 2.8vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 70vmin); }
+    .page { height: 70vmin; padding: 4vmin 7vmin 4.4vmin; }
+    .hw h1 { font-size: 15vmin; }
+    li { font-size: 3vmin; padding-left: 4.4vmin; }
+    li::before { width: 2.7vmin; height: 2.7vmin; line-height: 2.7vmin; font-size: 1.8vmin; top: .3vmin; }
+    li + li { margin-top: .6vmin; }
+    ol { margin-top: 1.8vmin; }
+    .scale { margin-top: 2vmin; }
+    .cta { margin-top: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .page { top: 0; right: 46%; height: auto; padding: 5.5vmin 5.5vmin 5vmin; }
+    .run { font-size: 1.6vmin; letter-spacing: .14em; }
+    .run span:nth-child(2) { display: none; }
+    .hw h1 { font-size: 12.4vmin; }
+    .hw .ph { font-size: 2.8vmin; }
+    .hw .ph i { font-size: 1.6vmin; }
+    ol { margin-top: 1.8vmin; }
+    li { font-size: 2.6vmin; padding-left: 3.8vmin; }
+    li + li { margin-top: .6vmin; }
+    li::before { width: 2.5vmin; height: 2.5vmin; line-height: 2.5vmin; font-size: 1.7vmin; top: .3vmin; }
+    .scale { margin-top: 2.2vmin; height: 9vmin; }
+    .scale .lab { font-size: 1.6vmin; letter-spacing: 0; }
+    .scale .lab .mid { display: none; }
+    .cta { font-size: 1.7vmin; letter-spacing: .08em; margin-top: 1.4vmin; }
+    .cta span { font-size: 2.3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .page { right: 44%; padding: 7vmin 8vmin 6.5vmin; }
+    .run span:nth-child(2) { display: inline; }
+    .run { font-size: 1.7vmin; letter-spacing: .2em; }
+    .hw h1 { font-size: 18vmin; }
+    .hw .ph { font-size: 3.4vmin; }
+    .hw .ph i { font-size: 1.8vmin; }
+    li { font-size: 3.2vmin; padding-left: 4.6vmin; }
+    li + li { margin-top: .9vmin; }
+    li::before { width: 2.9vmin; height: 2.9vmin; line-height: 2.9vmin; font-size: 1.9vmin; top: .4vmin; }
+    .scale .lab { font-size: 1.7vmin; letter-spacing: .08em; }
+    .scale .lab .mid { display: inline; }
+    .cta { font-size: 1.9vmin; letter-spacing: .14em; }
+    .cta span { font-size: 2.7vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     the reader goes over the entry with a highlighter: 1.8s the pink swipe on the headword is wiped off
+     left→right and re-swiped · 3.1s sense 2's "now 25% off" gets its marker stroke · 3.9s the formality needle
+     swings across the scale and settles back on Cocktail · 5.1s the "see also" arrow nudges twice. */
+  .hw h1::before { animation: swipe 6s linear infinite; }
+  @keyframes swipe {
+    0%, 30% { clip-path: polygon(1% 12%, 99% 0, 100% 88%, 0 100%); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    36% { clip-path: polygon(99% 0, 99% 0, 100% 88%, 100% 88%); animation-timing-function: steps(1, end); }
+    38% { clip-path: polygon(1% 12%, 1% 12%, 0 100%, 0 100%); animation-timing-function: cubic-bezier(.55,.05,.35,1); }
+    48%, 100% { clip-path: polygon(1% 12%, 99% 0, 100% 88%, 0 100%); }
+  }
+  li b { background: linear-gradient(transparent 62%, #FFC6DC 62%) 0 0 / 100% 100% no-repeat; animation: mark 6s linear infinite; }
+  @keyframes mark {
+    0%, 44% { background-size: 100% 100%; opacity: 1; }
+    47% { background-size: 100% 100%; opacity: 1; }
+    47.1% { background-size: 0% 100%; }
+    52% { background-size: 0% 100%; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    60%, 100% { background-size: 100% 100%; }
+  }
+  .scale .mk { animation: needle 6s linear infinite; }
+  @keyframes needle {
+    0%, 64% { left: 25%; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    71% { left: 74%; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    77% { left: 6%; animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    81.5% { left: 28%; animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    84.5% { left: 24%; animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    87%, 100% { left: 25%; }
+  }
+  .scale .lab .on { animation: onlab 6s linear infinite; }
+  @keyframes onlab { 0%, 66% { color: #1C1B19; } 70%, 83% { color: #6B665E; } 87%, 100% { color: #1C1B19; } }
+  .cta .ar { display: inline-block; font-style: normal; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 85% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    88% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    91% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    94% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    97%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="page">
+    <div class="run"><b>Dress Code</b><span>The Occasion Dictionary</span><span>p. 26</span></div>
+    <div class="entry">
+      <div class="hw"><h1>cocktail</h1><span class="ph">/kok·tayl/<i>adj.</i></span></div>
+      <ol>
+        <li>Sharper than day, softer than black tie.</li>
+        <li>Anything from the Guest Edit — <b>now 25% off.</b></li>
+        <li>Of a sale: over by Sunday night.</li>
+      </ol>
+      <div class="scale">
+        <div class="bar"></div><div class="ticks"></div><div class="mk"></div>
+        <div class="lab"><span>Casual</span><span class="on">Cocktail</span><span class="mid">Formal</span><span class="mid">Black tie</span><span>White tie</span></div>
+      </div>
+    </div>
+    <div class="cta"><b>See also: The Guest Edit <i class="ar">→</i></b><span>Code COCKTAIL25</span></div>
+  </div>
+</div>
+</body>
+</html>

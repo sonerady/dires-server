@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Pegboard — a workroom shadow board: perforated hardboard, a painted forest-green sign hung on two pegs,
+     sage-painted silhouettes of a hanger and shears (a place for everything), a card tag on a peg hook with the
+     offer, and a birch ledge carrying the brand and CTA.
+     tall → photo above the board; 3:4 and wider → board beside the photo */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6E0D4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E6E0D4; color: #1F2A24; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .board { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; display: flex; flex-direction: column;
+           background: radial-gradient(circle, #8E877A 0 .46vmin, rgba(142,135,122,.3) .6vmin, rgba(142,135,122,0) .7vmin) 2.2vmin 2.2vmin / 4.4vmin 4.4vmin, #E6E0D4;
+           box-shadow: inset 0 1.2vmin 1.6vmin -1vmin rgba(40,35,25,.35); }
+  .inner { flex: 1; min-height: 0; padding: 6.6vmin 6.6vmin 0; display: flex; flex-direction: column; }
+
+  /* the painted sign on two pegs */
+  .sign { position: relative; background: #2F4036; color: #EFEBE1; padding: 3.4vmin 4vmin 3.6vmin; box-shadow: 0 .8vmin 1.4vmin rgba(30,30,20,.3); }
+  .sign::before, .sign::after { content: ""; position: absolute; top: -2.2vmin; width: 1.6vmin; height: 3.4vmin; background: linear-gradient(90deg, #8C8F8A, #D8DAD6 50%, #8C8F8A); border-radius: .8vmin .8vmin 0 0; }
+  .sign::before { left: 12%; } .sign::after { right: 12%; }
+  .sign small { display: block; font-family: "Spline Sans Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; opacity: .75; }
+  h1 { margin: 1.4vmin 0 0; font-weight: 800; font-size: 8.4vmin; line-height: .92; letter-spacing: -.035em; }
+  h1 span { font-weight: 400; color: #B9C6AE; }
+
+  .wall { flex: 1; min-height: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 4vmin; padding-top: 5vmin; }
+  .tools { display: flex; gap: 3vmin; align-items: flex-start; }
+  .tool { text-align: center; }
+  .tool svg { display: block; height: 20vmin; width: auto; }
+  .tool span { display: block; margin-top: 1vmin; font-family: "Spline Sans Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #3E4A42; background: #E6E0D4; padding: .2vmin .6vmin; }
+
+  /* card tag on a peg hook */
+  .hang { position: relative; flex: none; display: flex; flex-direction: column; align-items: center; }
+  .peg { width: 1.8vmin; height: 1.8vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #EEF0EC, #7F837E 70%); box-shadow: 0 .3vmin .4vmin rgba(0,0,0,.35); }
+  .string { width: 0; height: 3.4vmin; border-left: 1px solid #5B5448; }
+  .tag { position: relative; transform: rotate(3deg); transform-origin: 50% 0; background: #F7F4EC; color: #1F2A24; padding: 3.6vmin 3.4vmin 2.6vmin; min-width: 22vmin; box-shadow: .5vmin .8vmin 1.2vmin rgba(40,35,25,.28); text-align: center; }
+  .tag::before { content: ""; position: absolute; left: 50%; top: 1.2vmin; width: 1.4vmin; height: 1.4vmin; margin-left: -.7vmin; border-radius: 50%; background: #E6E0D4; box-shadow: inset 0 .2vmin .3vmin rgba(0,0,0,.3); }
+  .tag small { display: block; font-family: "Spline Sans Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #5C5A52; }
+  .tag strong { display: block; margin: .8vmin 0 1vmin; font-weight: 800; font-size: 9vmin; line-height: .9; letter-spacing: -.05em; color: #B2512F; }
+  .tag b { display: block; padding-top: 1.2vmin; border-top: 1px dashed #8F887B; font-family: "Spline Sans Mono", Menlo, monospace; font-weight: 500; font-size: 1.8vmin; letter-spacing: .12em; }
+
+  /* birch ledge */
+  .ledge { flex: none; height: 10vmin; background: linear-gradient(180deg, #D8C39C, #C7AE83); box-shadow: 0 -.8vmin 1.4vmin rgba(40,35,25,.25), inset 0 .4vmin 0 rgba(255,255,255,.35); display: flex; justify-content: space-between; align-items: center; padding: 0 6.6vmin; white-space: nowrap; }
+  .ledge b { font-weight: 800; font-size: 3vmin; letter-spacing: -.02em; }
+  .ledge span { font-family: "Spline Sans Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .ledge .cta { font-weight: 500; border-bottom: .3vmin solid #1F2A24; padding-bottom: .2vmin; }
+
+  /* 3:4 / 4:5 → board column right */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .board { left: 50%; top: 0; height: auto; box-shadow: inset 1.2vmin 0 1.6vmin -1vmin rgba(40,35,25,.35); }
+    .inner { padding: 6.6vmin 4.4vmin 0; }
+    .sign { padding: 3vmin 3vmin 3.2vmin; }
+    h1 { font-size: 6.8vmin; }
+    .wall { flex-direction: column; align-items: stretch; gap: 3vmin; }
+    .tools { justify-content: space-around; }
+    .tool svg { height: 15vmin; }
+    .hang { align-self: center; }
+    .ledge { height: 14vmin; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1.2vmin; padding: 0 4.4vmin; }
+    .ledge .mid { display: none; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .board { left: 48%; }
+    .inner { padding: 5.4vmin 4.4vmin 0; }
+    h1 { font-size: 6vmin; }
+    .sign small { font-size: 1.6vmin; }
+    .wall { flex-direction: row; align-items: flex-start; padding-top: 4vmin; gap: 2vmin; }
+    .tools { gap: 1.6vmin; }
+    .tool svg { height: 10vmin; }
+    .tag { min-width: 15vmin; padding: 3vmin 2.4vmin 2vmin; }
+    .tag strong { font-size: 6.6vmin; }
+    .tag b { font-size: 1.6vmin; }
+    .ledge { height: 9vmin; flex-direction: row; align-items: center; justify-content: space-between; }
+    .ledge b { font-size: 2.6vmin; }
+    .ledge span { font-size: 1.6vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; object-position: 50% 28%; }
+    .board { left: 50%; }
+    .inner { padding: 5.8vmin 5.6vmin 0; }
+    h1 { font-size: 7.2vmin; }
+    .tools { gap: 3vmin; }
+    .tool svg { height: 15vmin; }
+    .tag { min-width: 20vmin; padding: 3.4vmin 3vmin 2.4vmin; }
+    .tag strong { font-size: 7.8vmin; }
+    .ledge { padding: 0 5.6vmin; }
+    .ledge .mid { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="board">
+    <div class="inner">
+      <div class="sign"><small>Workroom · AW26</small><h1>A place for<br><span>everything new.</span></h1></div>
+      <div class="wall">
+        <div class="tools">
+          <div class="tool">
+            <svg viewBox="3 6 54 38" aria-hidden="true"><path d="M26.4 13a3.6 3.6 0 1 1 3.6 3.6V20L6 36.6c-1.5 1-.8 3.4 1 3.4h46c1.8 0 2.5-2.4 1-3.4L30 20" fill="none" stroke="#8FA08A" stroke-width="5.4" stroke-linejoin="round" stroke-linecap="round"/></svg>
+            <span>01 Hang</span>
+          </div>
+          <div class="tool">
+            <svg viewBox="4 1 32 54" aria-hidden="true"><g fill="#8FA08A"><path d="M17.6 32 L13.4 3 L18.4 3 L22.4 32 Z"/><path d="M22.4 32 L26.6 3 L21.6 3 L17.6 32 Z"/><circle cx="20" cy="31" r="1.8"/></g><g fill="none" stroke="#8FA08A" stroke-width="4.6"><circle cx="13" cy="44" r="7"/><circle cx="27" cy="44" r="7"/><path d="M18 33l-3 5M22 33l3 5"/></g></svg>
+            <span>02 Mend</span>
+          </div>
+        </div>
+        <div class="hang">
+          <div class="peg"></div><div class="string"></div>
+          <div class="tag"><small>This week</small><strong>−25%</strong><b>PEG25</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="ledge"><b>Verkstad</b><span class="mid">Made to last</span><span class="cta">Shop the edit →</span></div>
+  </div>
+</div>
+</body>
+</html>

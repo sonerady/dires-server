@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=EB+Garamond:ital,wght@0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  /* One Day Only — a 24-hour sale measured on a tailor's tape: the yellow tape is the day, 0 to 24,
+     the elapsed hours shaded, a red pin marking "now". The tape is the seam between photo and navy suiting panel.
+     tall → tape runs across under the photo; square / wide → tape runs down between photo and panel */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1B2233; }
+  .banner { --panel: 66vmin; --t: 8.4vmin; position: fixed; inset: 0; overflow: hidden; background: #1B2233; color: #EDE8DE; font-family: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel) - var(--t)); object-fit: cover; object-position: 50% 22%; }
+
+  .tape { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel) - var(--t)); height: var(--t); display: flex; background: #EDC33F; color: #1B1A16; box-shadow: 0 .6vmin 1.4vmin rgba(0,0,0,.35); overflow: hidden;
+    background-image: repeating-linear-gradient(90deg, rgba(27,26,22,.75) 0 1px, transparent 1px calc(100% / 96)); background-size: 100% 22%; background-repeat: no-repeat; }
+  .tape span { position: relative; flex: 1; display: flex; align-items: flex-end; justify-content: flex-start; padding: 0 0 1vmin .5vmin; border-left: 1px solid #1B1A16; font-weight: 700; font-size: 2.1vmin; line-height: 1; }
+  .tape span::before { content: ""; position: absolute; left: 50%; top: 0; width: 1px; height: 34%; background: #1B1A16; }
+  .tape span:first-child { border-left: 0; }
+  .tape .past { position: absolute; left: 0; top: 0; bottom: 0; width: calc(100% * 14 / 24); background: rgba(27,26,22,.14); }
+  .pin { position: absolute; left: calc(100% * 14 / 24); top: calc(100% - var(--panel) - var(--t) - 1.4vmin); width: 0; height: calc(var(--t) + 2.6vmin); border-left: .35vmin solid #C0C4CC; z-index: 2; }
+  .pin::before { content: ""; position: absolute; left: -2.1vmin; top: -1.9vmin; width: 3.8vmin; height: 3.8vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #F0746B, #C8322B 55%, #8E1D18); box-shadow: 0 .4vmin .8vmin rgba(0,0,0,.4); }
+  .pin b { position: absolute; left: -.2vmin; top: calc(100% + .2vmin); white-space: nowrap; background: #C8322B; color: #FFF4EC; font-weight: 700; font-size: 1.9vmin; letter-spacing: .14em; text-transform: uppercase; padding: .7vmin 1.2vmin; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 11vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-weight: 600; font-size: 2.1vmin; letter-spacing: .22em; text-transform: uppercase; color: #9BA3B6; }
+  h1 { margin: 2.4vmin 0 0; font-family: "EB Garamond", Garamond, Georgia, serif; font-style: italic; font-weight: 400; font-size: 11vmin; line-height: .9; letter-spacing: -.02em; }
+  h1 b { font-style: normal; font-weight: 500; color: #EDC33F; }
+  .read { display: none; margin-top: 4.4vmin; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(237,232,222,.3); }
+  .read div { padding-top: 1.4vmin; }
+  .read div + div { padding-left: 2vmin; border-left: 1px solid rgba(237,232,222,.3); }
+  .read small { display: block; font-weight: 600; font-size: 1.8vmin; letter-spacing: .2em; text-transform: uppercase; color: #9BA3B6; }
+  .read b { display: block; margin-top: .6vmin; font-weight: 600; font-size: 5vmin; line-height: 1; }
+  .read .now b { color: #EDC33F; }
+  .off { margin-top: auto; display: flex; align-items: baseline; gap: 2.4vmin; padding-top: 2vmin; border-top: 1px dashed rgba(237,232,222,.4); }
+  .off strong { font-weight: 700; font-size: 10vmin; line-height: .9; letter-spacing: -.01em; }
+  .off span { font-weight: 500; font-size: 2.6vmin; line-height: 1.2; letter-spacing: .08em; text-transform: uppercase; color: #C9CCD4; }
+  .foot { margin-top: 2.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-family: "EB Garamond", Georgia, serif; font-style: italic; font-size: 2.8vmin; color: #C9CCD4; }
+  .cta { flex: none; border: 1px solid #EDE8DE; padding: 1.6vmin 3vmin; font-weight: 700; font-size: 2.3vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 58vmin; --t: 7.6vmin; }
+    .panel { bottom: 4.4vmin; height: calc(var(--panel) - 10vmin); }
+    h1 { font-size: 9.4vmin; margin-top: 2vmin; }
+    .off strong { font-size: 8.6vmin; }
+    .foot { margin-top: 2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --t: 8.4vmin; }
+    .photo { width: calc(50% - var(--t)); height: 100%; }
+    .tape { left: calc(50% - var(--t)); right: auto; top: 0; bottom: 0; width: var(--t); height: auto; flex-direction: column; box-shadow: .6vmin 0 1.4vmin rgba(0,0,0,.35);
+      background-image: repeating-linear-gradient(180deg, rgba(27,26,22,.75) 0 1px, transparent 1px calc(100% / 96)); background-size: 22% 100%; }
+    .tape span { border-left: 0; border-top: 1px solid #1B1A16; align-items: flex-start; justify-content: flex-end; padding: .4vmin 1vmin 0 0; font-size: 1.8vmin; }
+    .tape span::before { left: 0; top: 50%; width: 34%; height: 1px; }
+    .tape span:first-child { border-top: 0; }
+    .tape .past { right: 0; bottom: auto; width: auto; height: calc(100% * 14 / 24); }
+    .pin { left: calc(50% - var(--t) - 1.2vmin); top: calc(100% * 14 / 24); width: calc(var(--t) + 2.4vmin); height: 0; border-left: 0; border-top: .35vmin solid #C0C4CC; }
+    .pin::before { left: auto; right: -2vmin; top: -2.05vmin; }
+    .pin b { display: none; }
+    .panel { left: calc(50% + 6vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .kick { flex-direction: column; gap: .6vmin; font-size: 1.9vmin; }
+    h1 { font-size: 10.6vmin; margin-top: 3vmin; }
+    .read { display: grid; }
+    .off { flex-direction: column; gap: 1vmin; }
+    .off strong { font-size: 10vmin; }
+    .off span { font-size: 2.3vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: calc(48% - var(--t)); object-position: 65% 25%; }
+    .tape { left: calc(48% - var(--t)); }
+    .pin { left: calc(48% - var(--t) - 1.2vmin); }
+    .panel { left: calc(48% + 7vmin); right: 7vmin; top: 6vmin; bottom: 6vmin; }
+    .kick { flex-direction: row; font-size: 2.1vmin; }
+    h1 { font-size: 13vmin; }
+    .read b { font-size: 6vmin; }
+    .off { flex-direction: row; gap: 2.4vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tape"><i class="past"></i><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span></div>
+  <div class="pin"><b>Now 14:00</b></div>
+  <div class="panel">
+    <div class="kick"><span>Atelier Nord</span><span>One day only</span></div>
+    <h1><b>24</b> hours,<br>measured.</h1>
+    <div class="read"><div><small>Opened</small><b>00:00</b></div><div class="now"><small>Now</small><b>14:00</b></div><div><small>Closes</small><b>24:00</b></div></div>
+    <div class="off"><strong>−30%</strong><span>on the whole edit<br>until midnight</span></div>
+    <div class="foot"><p>Ten hours left on the tape.</p><span class="cta">Shop today</span></div>
+  </div>
+</div>
+</body>
+</html>

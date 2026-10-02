@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;900&family=Shippori+Mincho+B1:wght@800&display=swap" rel="stylesheet">
+<style>
+  /* Snap Profile — a page from a Harajuku street-snap magazine: the snap, a vertical kana title with the snap number,
+     two "POINT" detail crops tagged in highlighter yellow, and the subject's data table (spot, time, fave shop,
+     style point) that ends in the offer.
+     tall → snap + point column, profile below · square & wide → snap left, profile column(s) right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F5F0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6F5F0; color: #121212; font-family: "Zen Kaku Gothic New", "Hiragino Sans", "Helvetica Neue", sans-serif; }
+
+  .mast { position: absolute; left: 5vmin; right: 5vmin; top: 4vmin; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; padding-bottom: 1.4vmin; border-bottom: .5vmin solid #121212; white-space: nowrap; }
+  .mast b { font-weight: 900; font-size: 3.4vmin; letter-spacing: -.01em; }
+  .mast b i { font-style: normal; background: #121212; color: #F6F5F0; padding: 0 1vmin; margin-right: 1vmin; }
+  .mast span { font-weight: 500; font-size: 1.8vmin; letter-spacing: .08em; }
+
+  .snap { position: absolute; left: 5vmin; top: 13vmin; width: 64%; height: calc(100% - 60vmin); overflow: hidden; }
+  .snap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .snap .no { position: absolute; left: 0; bottom: 0; background: #121212; color: #F6F5F0; font-weight: 900; font-size: 2vmin; letter-spacing: .06em; padding: 1vmin 1.6vmin; }
+
+  .side { position: absolute; left: calc(64% + 9vmin); right: 5vmin; top: 13vmin; height: calc(100% - 60vmin); display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; }
+  .num { font-family: "Shippori Mincho B1", Georgia, serif; font-weight: 800; font-size: 3vmin; line-height: 1; }
+  .num b { display: block; font-size: 8.4vmin; letter-spacing: -.04em; margin-top: .4vmin; }
+  .tate { writing-mode: vertical-rl; font-weight: 900; font-size: 5.4vmin; line-height: 1; letter-spacing: .08em; align-self: flex-end; margin-right: -.6vmin; }
+  .tate small { font-weight: 500; font-size: 1.8vmin; letter-spacing: .2em; margin-top: 1.4vmin; }
+  .pt { position: relative; }
+  .pt .crop { position: relative; width: 100%; aspect-ratio: 1 / 1; overflow: hidden; }
+  .pt img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(2.3); }
+  .p1 img { transform-origin: 50% 42%; }
+  .p2 img { transform-origin: 44% 74%; }
+  .pt .tag { position: absolute; left: -1.4vmin; top: -1.4vmin; background: #EFFF2E; font-weight: 900; font-size: 1.8vmin; letter-spacing: .06em; padding: .5vmin 1vmin; transform: rotate(-4deg); }
+  .pt p { margin: .9vmin 0 0; font-weight: 500; font-size: 1.7vmin; line-height: 1.3; }
+
+  .profile { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 40vmin; display: grid; grid-template-columns: minmax(0, 1fr) 32vmin; column-gap: 5vmin; align-items: end; }
+  h1 { margin: 0 0 2.2vmin; font-family: "Shippori Mincho B1", Georgia, serif; font-weight: 800; font-size: 8.4vmin; line-height: .95; letter-spacing: -.02em; }
+  h1 em { font-style: normal; background: linear-gradient(transparent 55%, #EFFF2E 55%, #EFFF2E 92%, transparent 92%); }
+  .data { display: grid; grid-template-columns: auto minmax(0, 1fr); border-top: 1px solid #121212; font-size: 1.9vmin; line-height: 1.3; }
+  .data dt, .data dd { margin: 0; padding-top: .9vmin; padding-bottom: .9vmin; border-bottom: 1px solid rgba(18,18,18,.3); }
+  .data dt { font-weight: 900; padding-right: 2.4vmin; letter-spacing: .04em; text-transform: uppercase; font-size: 1.7vmin; }
+  .data dd { font-weight: 500; }
+
+  .offer { background: #121212; color: #F6F5F0; padding: 2.6vmin 2.6vmin 2.2vmin; }
+  .offer .k { font-weight: 900; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #EFFF2E; }
+  .offer .pct { font-family: "Shippori Mincho B1", Georgia, serif; font-weight: 800; font-size: 10vmin; line-height: 1; letter-spacing: -.04em; margin-top: 1vmin; }
+  .offer .code { display: inline-block; margin-top: 1.4vmin; background: #EFFF2E; color: #121212; font-weight: 900; font-size: 1.9vmin; letter-spacing: .1em; padding: .6vmin 1.2vmin; }
+  .offer .cta { margin-top: 1.6vmin; font-weight: 500; font-size: 1.8vmin; letter-spacing: .04em; }
+
+  /* 2:3 — the side column gets shorter */
+  @media (min-aspect-ratio: 3/5) {
+    .pt p { display: none; }
+    .tate { font-size: 4.2vmin; }
+    .tate small { display: none; }
+    .num b { font-size: 7vmin; }
+  }
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .snap, .side { top: 12vmin; height: calc(100% - 53vmin); }
+    .snap { width: 60%; }
+    .side { left: calc(60% + 9vmin); }
+    .pt p { display: none; }
+    .tate { display: none; }
+    .num b { font-size: 7vmin; }
+    .profile { height: 36vmin; bottom: 4.4vmin; }
+    h1 { font-size: 7.4vmin; margin-bottom: 1.6vmin; }
+    .data dt, .data dd { padding-top: .7vmin; padding-bottom: .7vmin; }
+    .offer .pct { font-size: 8.6vmin; }
+  }
+  /* SQUARE — snap left, profile column right */
+  @media (min-aspect-ratio: 9/10) {
+    .mast { left: calc(48% + 5vmin); right: 4.6vmin; top: 4.6vmin; flex-direction: column; gap: .6vmin; }
+    .mast b { font-size: 3vmin; }
+    .mast span { font-size: 1.6vmin; }
+    .snap { left: 0; top: 0; width: 48%; height: 100%; }
+    .snap .no { font-size: 1.8vmin; }
+    .side { left: calc(48% + 5vmin); right: 4.6vmin; top: 17vmin; height: 20vmin; flex-direction: row; align-items: flex-start; gap: 2.6vmin; }
+    .num { display: none; }
+    .tate { writing-mode: horizontal-tb; display: none; }
+    .pt { flex: 1; }
+    .pt .crop { aspect-ratio: auto; height: 16vmin; }
+    .pt p { display: block; font-size: 1.6vmin; margin-top: .7vmin; }
+    .profile { left: calc(48% + 5vmin); right: 4.6vmin; top: 42vmin; bottom: 4.6vmin; height: auto; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; align-items: start; }
+    h1 { font-size: 6.4vmin; margin-bottom: 1.4vmin; }
+    .data { font-size: 1.7vmin; }
+    .data dt { font-size: 1.6vmin; }
+    .data dt, .data dd { padding-top: .6vmin; padding-bottom: .6vmin; }
+    .data .x { display: none; }
+    .offer { align-self: end; display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 2.4vmin; align-items: center; padding: 1.8vmin 2.2vmin; }
+    .offer .k { grid-column: 1 / -1; }
+    .offer .pct { font-size: 7vmin; margin-top: .4vmin; grid-row: 2 / 4; }
+    .offer .code { margin-top: .6vmin; justify-self: start; font-size: 1.7vmin; }
+    .offer .cta { margin-top: .6vmin; font-size: 1.6vmin; }
+  }
+  /* WIDE — snap left; points column + profile column */
+  @media (min-aspect-ratio: 6/5) {
+    .snap { width: 44%; }
+    .mast { left: calc(44% + 6vmin); right: 6vmin; top: 5vmin; flex-direction: row; }
+    .mast b { font-size: 3.2vmin; }
+    .side { left: calc(44% + 6vmin); width: 24vmin; right: auto; top: 15vmin; bottom: 6vmin; height: auto; flex-direction: column; gap: 3vmin; justify-content: flex-start; }
+    .pt { flex: none; }
+    .pt .crop { height: 26vmin; }
+    .profile { left: calc(44% + 36vmin); right: 6vmin; top: 17vmin; bottom: 6vmin; }
+    h1 { font-size: 7.4vmin; }
+    .data .x { display: block; }
+    .data dt, .data dd { padding-top: .8vmin; padding-bottom: .8vmin; }
+    .profile { top: 16vmin; }
+    .data { font-size: 1.9vmin; }
+    .offer .pct { font-size: 8.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="mast"><b><i>SNAP</i>Tokyo Street</b><span>Vol. 26 — Harajuku — p. 048</span></div>
+  <div class="snap"><img src="{{PRODUCT_IMAGE}}" alt=""><span class="no">No. 0482 · 16:40 SAT</span></div>
+  <div class="side">
+    <div class="num">No.<b>0482</b></div>
+    <div class="pt p1"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><span class="tag">POINT 1</span><p>The fabric, up close.</p></div>
+    <div class="pt p2"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><span class="tag">POINT 2</span><p>How it moves.</p></div>
+    <div class="tate">原宿スナップ<small>SNAP</small></div>
+  </div>
+  <div class="profile">
+    <div>
+      <h1>Caught on<br><em>Cat Street.</em></h1>
+      <dl class="data">
+        <dt>Spot</dt><dd>Cat Street, Harajuku</dd>
+        <dt class="x">Shot</dt><dd class="x">Saturday, 16:40</dd>
+        <dt>Wearing</dt><dd>The new drop, head to toe</dd>
+        <dt>Style point</dt><dd>One loud piece, the rest quiet.</dd>
+      </dl>
+    </div>
+    <div class="offer"><div class="k">Get the look</div><div class="pct">−20%</div><div class="code">CODE SNAP20</div><div class="cta">Shop the snap →</div></div>
+  </div>
+</div>
+</body>
+</html>

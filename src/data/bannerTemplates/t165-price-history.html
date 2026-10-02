@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Price History — a wishlist price alert: a stepped 60-day price chart falling to its lowest point,
+     the new price set huge and the old one struck. tall → mint chart panel above the photo; square / wide → panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCEBE2; }
+  .banner { --panel: 76vmin; position: fixed; inset: 0; overflow: hidden; background: #DCEBE2; color: #0E2A21; font-family: "Syne", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; top: 5.6vmin; height: calc(var(--panel) - 10.6vmin); display: flex; flex-direction: column; }
+  .alert { display: flex; align-items: center; justify-content: space-between; gap: 2vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .06em; white-space: nowrap; }
+  .pill { display: inline-flex; align-items: center; gap: 1vmin; background: #0E2A21; color: #DCEBE2; border-radius: 99vmin; padding: 1vmin 1.8vmin 1vmin 1.4vmin; font-weight: 600; text-transform: uppercase; letter-spacing: .12em; }
+  .pill svg { width: 2.2vmin; height: 2.2vmin; }
+  .alert .w { color: #3D5A4F; }
+
+  .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; margin-top: 3.4vmin; }
+  h1 { margin: 0; font-weight: 800; font-size: 11vmin; line-height: .86; letter-spacing: -.045em; text-transform: lowercase; }
+  h1 span { color: #FF5B3A; }
+  .price { flex: none; text-align: right; }
+  .price b { display: block; font-weight: 800; font-size: 9vmin; line-height: .9; letter-spacing: -.04em; }
+  .price s { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 2.2vmin; color: #3D5A4F; }
+  .price em { font-style: normal; margin-left: 1vmin; background: #FF5B3A; color: #0E2A21; padding: .3vmin .9vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-weight: 600; font-size: 2vmin; }
+
+  .chart { position: relative; flex: 1; min-height: 12vmin; margin-top: 4vmin; }
+  .plot { position: absolute; left: 0; right: 7.4vmin; top: 0; bottom: 4vmin; border-bottom: 1px solid #0E2A21; }
+  .plot svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .grid-l { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed rgba(14,42,33,.25); }
+  .yl { position: absolute; right: 0; transform: translateY(-50%); font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.6vmin; color: #3D5A4F; }
+  .xl { position: absolute; left: 0; right: 7.4vmin; bottom: 0; display: flex; justify-content: space-between; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .06em; text-transform: uppercase; color: #3D5A4F; }
+  .xl b { color: #0E2A21; font-weight: 600; }
+  .dot { position: absolute; right: 0; bottom: 20%; width: 2.8vmin; height: 2.8vmin; margin: 0 -1.4vmin -1.4vmin 0; border-radius: 50%; background: #FF5B3A; box-shadow: 0 0 0 1.2vmin rgba(255,91,58,.25); }
+  .call { position: absolute; right: 0; bottom: calc(20% + 3.6vmin); background: #0E2A21; color: #DCEBE2; padding: 1vmin 1.5vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .04em; white-space: nowrap; }
+  .call::after { content: ""; position: absolute; right: 1.2vmin; bottom: -1vmin; border: .5vmin solid transparent; border-top: .6vmin solid #0E2A21; border-bottom: 0; border-left-width: .6vmin; border-right-width: .6vmin; }
+
+  .tab { position: absolute; right: 6vmin; top: calc(var(--panel) - 3.2vmin); z-index: 2; display: flex; align-items: center; gap: 1.4vmin; background: #FF5B3A; color: #0E2A21; padding: 1.9vmin 2.8vmin; font-weight: 700; font-size: 2.2vmin; letter-spacing: -.01em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 70vmin; }
+    .panel { top: 5vmin; height: calc(var(--panel) - 9.6vmin); }
+    .row { margin-top: 2.8vmin; }
+    h1 { font-size: 10vmin; }
+    .price b { font-size: 8.4vmin; }
+    .chart { margin-top: 3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 46%; }
+    .photo { left: auto; right: 0; top: 0; width: var(--pw); height: 100%; }
+    .panel { left: 5vmin; right: calc(var(--pw) + 5vmin); top: 5vmin; bottom: 12vmin; height: auto; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2.6vmin; margin-top: 3.4vmin; }
+    h1 { font-size: 9vmin; }
+    .price { text-align: left; display: flex; align-items: baseline; gap: 1.6vmin; flex-wrap: wrap; }
+    .price b { display: inline; font-size: 7.6vmin; }
+    .alert .w { display: none; }
+    .tab { top: auto; bottom: 4.4vmin; right: auto; left: 5vmin; padding: 1.7vmin 2.4vmin; font-size: 2vmin; }
+    .chart { margin-top: 3.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 40%; }
+    .panel { left: 6vmin; right: calc(var(--pw) + 6vmin); top: 6vmin; bottom: 14vmin; }
+    .alert .w { display: inline; }
+    .row { flex-direction: row; align-items: flex-end; margin-top: 3.4vmin; }
+    h1 { font-size: 10vmin; }
+    .price { display: block; text-align: right; }
+    .price b { display: block; font-size: 8.6vmin; }
+    .tab { left: 6vmin; bottom: 5vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="panel">
+    <div class="alert">
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>Price alert</span>
+      <span class="w">2,140 watching</span>
+    </div>
+
+    <div class="row">
+      <h1>price<br>drop<span>.</span></h1>
+      <div class="price"><b>€119</b><s>€189</s><em>−37%</em></div>
+    </div>
+
+    <div class="chart">
+      <div class="plot">
+        <div class="grid-l" style="top:0"></div>
+        <div class="grid-l" style="top:40%"></div>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="area" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#0E2A21" stop-opacity=".16"/><stop offset="1" stop-color="#0E2A21" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0 0 H34 V40 H66 V62 H86 V80 H100 V100 H0 Z" fill="url(#area)"/>
+          <path d="M0 0 H34 V40 H66 V62 H86 V80 H100" fill="none" stroke="#0E2A21" stroke-width="2.4" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+        </svg>
+        <div class="call">Lowest in 60 days</div>
+        <div class="dot"></div>
+      </div>
+      <div class="yl" style="top:0">€189</div>
+      <div class="yl" style="top:calc((100% - 4vmin) * .4)">€159</div>
+      <div class="xl"><span>Aug</span><span>Sep</span><b>Now</b></div>
+    </div>
+  </div>
+
+  <div class="tab">Shop before it's gone →</div>
+</div>
+</body>
+</html>

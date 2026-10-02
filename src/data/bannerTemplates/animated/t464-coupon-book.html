@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Coupon Book — a 1940s household coupon book on buff card: serial number, a typed holder line, and a perforated sheet
+     of numbered coupons worth 10% each — two already spent and crossed through, one clipped out along the perforation —
+     with a violet "valid" rubber stamp struck beside the title. Use up to three: −30%.
+     tall / 3:4 → photo above the book; square / wide → photo left, book right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D8C7A0; }
+  .banner { --buff: #D8C7A0; --pale: #E6D9BA; --ink: #1F2A3A; --vio: #5E3A8A; --red: #A8322B; --pan: 92vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--buff); color: var(--ink);
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .ph { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--pan)); overflow: hidden; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .book { position: absolute; left: 0; right: 0; bottom: 0; height: var(--pan); box-sizing: border-box; padding: 5vmin 6vmin 4.6vmin;
+    display: flex; flex-direction: column; justify-content: space-between; background: var(--buff); border-top: .6vmin solid var(--ink); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; mix-blend-mode: multiply; pointer-events: none; }
+  .mono { font-family: "Courier Prime", "Courier New", monospace; }
+
+  .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .top b { font-weight: 700; }
+  .top .mono { letter-spacing: .06em; font-size: 2vmin; }
+  .top .mono b { color: var(--red); }
+  .ttl { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; margin-top: 1.6vmin; padding-bottom: 1.6vmin; border-bottom: 1px solid var(--ink); }
+  h1 { margin: 0; font-weight: 800; font-stretch: 62%; font-size: 15vmin; line-height: .8; letter-spacing: -.01em; text-transform: uppercase; white-space: nowrap; }
+  .holder { display: flex; align-items: baseline; gap: 1.6vmin; margin-top: 1.4vmin; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .holder span.mono { flex: 1; font-size: 2.6vmin; letter-spacing: .02em; text-transform: none; border-bottom: 1px dotted var(--ink); padding: 0 0 .3vmin 1vmin; }
+
+  .sheet { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px dashed rgba(31,42,58,.6); border-left: 1px dashed rgba(31,42,58,.6); }
+  .c { position: relative; height: 17vmin; box-sizing: border-box; padding: 1.4vmin 1.4vmin 1.2vmin; border-right: 1px dashed rgba(31,42,58,.6); border-bottom: 1px dashed rgba(31,42,58,.6);
+    background: var(--pale); display: flex; flex-direction: column; justify-content: space-between; }
+  .c .n { display: flex; justify-content: space-between; font-family: "Courier Prime", monospace; font-size: 1.7vmin; }
+  .c .n b { color: var(--red); }
+  .c strong { font-weight: 800; font-stretch: 70%; font-size: 6.4vmin; line-height: .9; letter-spacing: -.01em; }
+  .c small { font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .c.used > * { opacity: .38; }
+  .c.used::after { content: ""; position: absolute; inset: 1.2vmin; background: linear-gradient(to top right, transparent calc(50% - .2vmin), rgba(31,42,58,.7) calc(50% - .2vmin) calc(50% + .2vmin), transparent calc(50% + .2vmin)); }
+  .c.cut { background: var(--buff); border-color: transparent; }
+  .c.cut > * { display: none; }
+  .c.cut::before { content: "✂"; position: absolute; left: -1.2vmin; top: -1.6vmin; font-size: 2.6vmin; color: var(--ink); transform: rotate(90deg); }
+  .c.cut::after { content: "cut here"; position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; font-family: "Courier Prime", monospace; font-size: 1.7vmin; color: rgba(31,42,58,.6); }
+  .stamp { flex: none; width: 27vmin; margin: 0 1vmin 1vmin 0; box-sizing: border-box; padding: 1.2vmin 1.6vmin; border: .6vmin solid var(--vio); border-radius: 1.2vmin;
+    color: var(--vio); text-align: center; transform: rotate(-6deg); mix-blend-mode: multiply; opacity: .86; pointer-events: none; z-index: 1;
+    background: rgba(230,217,186,.35); }
+  .stamp b { display: table; margin: 0 auto; font-weight: 800; font-stretch: 80%; font-size: 4.4vmin; line-height: 1; letter-spacing: .06em; text-transform: uppercase; }
+  .stamp span { display: table; margin: 1.4vmin auto 0; padding-top: 1vmin; border-top: .3vmin solid var(--vio); font-family: "Courier Prime", monospace; font-weight: 700; font-size: 2vmin; letter-spacing: .06em; white-space: nowrap; }
+
+  .foot { display: flex; justify-content: space-between; align-items: center; font-size: 1.9vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .foot .mono { font-size: 2.3vmin; letter-spacing: .04em; text-transform: none; }
+  .foot .mono b { background: var(--ink); color: var(--pale); padding: .3vmin 1vmin; }
+  .foot > b { font-weight: 800; font-stretch: 80%; font-size: 3vmin; letter-spacing: .02em; }
+
+  /* 3:4 · 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pan: 80vmin; }
+    .book { padding: 4.2vmin 6vmin 4vmin; }
+    h1 { font-size: 12.6vmin; }
+    .c { height: 14vmin; padding: 1.1vmin 1.2vmin 1vmin; }
+    .c strong { font-size: 5.4vmin; }
+    .stamp { width: 24vmin; }
+    .stamp b { font-size: 3.8vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .ph { right: auto; width: 48%; height: 100%; }
+    .book { top: 0; left: auto; width: 52%; height: 100%; padding: 4.6vmin 4.4vmin 4.2vmin; border-top: 0; border-left: .6vmin solid var(--ink); }
+    .top { font-size: 1.6vmin; letter-spacing: .06em; }
+    .top .mono { font-size: 1.7vmin; letter-spacing: 0; }
+    .top { flex-direction: column; gap: .8vmin; }
+    .ttl { gap: 1vmin; margin-top: 1.4vmin; }
+    h1 { font-size: 9vmin; }
+    .holder { font-size: 1.6vmin; letter-spacing: .08em; margin-top: 1.2vmin; }
+    .holder span.mono { font-size: 2.1vmin; }
+    .sheet { grid-template-columns: repeat(3, 1fr); }
+    .c { height: 19vmin; padding: 1.2vmin 1vmin 1vmin; }
+    .c:nth-child(n+7) { display: none; }
+    .c strong { font-size: 5vmin; }
+    .c small { font-size: 1.6vmin; letter-spacing: .04em; }
+    .c .n { font-size: 1.6vmin; }
+    .stamp { width: 15vmin; padding: .7vmin .6vmin; margin: 0 1.4vmin .6vmin 0; border-width: .45vmin; }
+    .stamp b { font-size: 2.8vmin; }
+    .stamp span { font-size: 1.6vmin; letter-spacing: 0; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.2vmin; font-size: 1.6vmin; letter-spacing: .06em; }
+    .foot .mono { font-size: 1.9vmin; }
+    .foot > b { font-size: 2.6vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .ph { width: 50%; }
+    .book { width: 50%; padding: 5vmin 6vmin 4.6vmin; }
+    .top { font-size: 1.7vmin; letter-spacing: .12em; }
+    .top .mono { font-size: 1.9vmin; }
+    .top { flex-direction: row; }
+    h1 { font-size: 12vmin; }
+    .holder { font-size: 1.7vmin; letter-spacing: .12em; }
+    .holder span.mono { font-size: 2.3vmin; }
+    .sheet { grid-template-columns: repeat(4, 1fr); }
+    .c:nth-child(n+7) { display: flex; }
+    .c { height: 16vmin; padding: 1.1vmin 1.2vmin 1vmin; }
+    .c strong { font-size: 5.4vmin; }
+    .stamp { width: 24vmin; padding: 1.2vmin 1.6vmin; margin: 0 1vmin 1vmin 0; border-width: .6vmin; }
+    .stamp b { font-size: 3.6vmin; }
+    .stamp span { font-size: 1.8vmin; }
+    .foot { flex-direction: row; align-items: center; font-size: 1.8vmin; }
+    .foot .mono { font-size: 2.1vmin; }
+  }
+  /* ───────── motion (6s loop) ─────────
+     photo breathes (slow 1.03 push) · 0.9s the violet VALID stamp lifts off the card and strikes back down with a
+     little bounce · 2.4s the scissors run down the perforation of the clipped coupon and back ·
+     3.9s the next three coupons lift one after another ("use 3") · 5.0s the code chip flashes */
+  .ph img { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .stamp { animation: strike 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes strike {
+    0%, 14% { transform: rotate(-6deg) scale(1); opacity: .86; }
+    19% { transform: rotate(-11deg) scale(1.35) translateY(-2vmin); opacity: 0; }
+    24% { transform: rotate(-11deg) scale(1.35) translateY(-2vmin); opacity: 0; }
+    28% { transform: rotate(-6deg) scale(.95); opacity: .95; }
+    31% { transform: rotate(-6deg) scale(1.02); opacity: .88; }
+    34%, 100% { transform: rotate(-6deg) scale(1); opacity: .86; }
+  }
+
+  .c.cut::before { animation: snip 6s cubic-bezier(.6,0,.4,1) infinite; }
+  @keyframes snip {
+    0%, 38% { transform: rotate(90deg) translateX(0); }
+    52% { transform: rotate(90deg) translateX(10vmin); }
+    54% { transform: rotate(90deg) translateX(9.4vmin); }
+    56% { transform: rotate(90deg) translateX(10vmin); }
+    70%, 100% { transform: rotate(90deg) translateX(0); }
+  }
+
+  .c:nth-child(3), .c:nth-child(4), .c:nth-child(5) { animation: lift 6s cubic-bezier(.3,0,.3,1) infinite; z-index: 0; }
+  .c:nth-child(3) { animation-delay: -.4s; }
+  .c:nth-child(4) { animation-delay: -.2s; }
+  @keyframes lift {
+    0%, 64%, 82%, 100% { transform: translateY(0); box-shadow: 0 0 0 rgba(31,42,58,0); background: var(--pale); }
+    69%, 75% { transform: translateY(-1vmin); box-shadow: 0 1.2vmin 1.6vmin rgba(31,42,58,.28); background: #F1E7CF; }
+  }
+
+  .foot .mono b { animation: chip 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes chip { 0%, 82%, 94%, 100% { background: var(--ink); color: var(--pale); } 86%, 89% { background: var(--red); color: #fff; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="book">
+    <svg class="grain" aria-hidden="true"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" seed="3"/><feColorMatrix values="0 0 0 0 .25  0 0 0 0 .2  0 0 0 0 .1  0 0 0 1 -.35"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
+    <div>
+      <div class="top"><span><b>Wardrobe Book</b> · Season 26</span><span class="mono">Serial <b>RB 461 207</b></span></div>
+      <div class="ttl"><h1>Coupons</h1><div class="stamp"><b>Valid</b><span>12 — 25 MAY</span></div></div>
+      <div class="holder"><span>Holder</span><span class="mono">The Spring Collection</span></div>
+      <div class="holder"><span>Value</span><span class="mono">10% per coupon · max. 3</span></div>
+    </div>
+    <div class="sheet">
+      <div class="c used"><div class="n"><span>Nº 1</span><b>C·26</b></div><strong>10%</strong><small>Any item</small></div>
+      <div class="c cut"><div class="n"><span>Nº 2</span><b>C·26</b></div><strong>10%</strong><small>Any item</small></div>
+      <div class="c"><div class="n"><span>Nº 3</span><b>C·26</b></div><strong>10%</strong><small>Any item</small></div>
+      <div class="c"><div class="n"><span>Nº 4</span><b>C·26</b></div><strong>10%</strong><small>Any item</small></div>
+      <div class="c"><div class="n"><span>Nº 5</span><b>C·26</b></div><strong>10%</strong><small>Any item</small></div>
+      <div class="c used"><div class="n"><span>Nº 6</span><b>C·26</b></div><strong>10%</strong><small>Any item</small></div>
+      <div class="c"><div class="n"><span>Nº 7</span><b>C·26</b></div><strong>10%</strong><small>Any item</small></div>
+      <div class="c"><div class="n"><span>Nº 8</span><b>C·26</b></div><strong>10%</strong><small>Any item</small></div>
+    </div>
+    <div class="foot"><span class="mono">Code <b>COUPON30</b></span><b>Use 3, save 30%</b></div>
+  </div>
+</div>
+</body>
+</html>

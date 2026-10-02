@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Chivo+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Stage Clash — the festival-app timetable: day tabs, a time ruler, three stage lanes with coloured set blocks,
+     the headline set = the offer, and a red "now" line cutting through the grid.
+     tall → photo above, timetable below · square & wide → timetable left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #111418; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #111418; color: #F3F1EA; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .mono { font-family: "Chivo Mono", "Courier New", monospace; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 52%; object-fit: cover; object-position: 50% 20%; }
+  .fade { position: absolute; left: 0; right: 0; top: calc(52% - 12vmin); height: 12vmin;
+    background: linear-gradient(to top, rgba(17,20,24,1) 0%, rgba(17,20,24,.985) 7.7%, rgba(17,20,24,.943) 15.4%, rgba(17,20,24,.874) 23.1%, rgba(17,20,24,.784) 30.8%, rgba(17,20,24,.677) 38.5%, rgba(17,20,24,.56) 46.2%, rgba(17,20,24,.44) 53.8%, rgba(17,20,24,.323) 61.5%, rgba(17,20,24,.216) 69.2%, rgba(17,20,24,.126) 76.9%, rgba(17,20,24,.057) 84.6%, rgba(17,20,24,.015) 92.3%, rgba(17,20,24,0) 100%); }
+
+  .panel { position: absolute; left: 0; right: 0; top: 52%; bottom: 0; box-sizing: border-box; padding: 3vmin 5vmin 5vmin; display: flex; flex-direction: column; justify-content: space-between; gap: 2.6vmin; }
+  .row1 { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  h1 { margin: 0; font-weight: 900; font-stretch: 112%; font-size: 7.4vmin; line-height: .9; letter-spacing: -.02em; text-transform: uppercase; }
+  .tabs { display: flex; gap: .8vmin; flex: none; }
+  .tabs span { padding: 1vmin 1.5vmin; border: 1px solid rgba(243,241,234,.4); font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; }
+  .tabs span.on { background: #F3F1EA; color: #111418; border-color: #F3F1EA; font-weight: 600; }
+
+  .grid { position: relative; flex: 0 1 auto; min-height: 0; display: grid; grid-template-columns: 11vmin repeat(10, 1fr); grid-template-rows: 3vmin repeat(3, 11vmin); column-gap: 0; row-gap: 1vmin; }
+  .tm { grid-row: 1; font-size: 1.6vmin; color: #8D939B; align-self: start; border-left: 1px solid rgba(243,241,234,.25); padding-left: .6vmin; }
+  .st { grid-column: 1; display: flex; align-items: center; font-size: 1.7vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #C9CCD1; border-top: 1px solid rgba(243,241,234,.18); }
+  .b { box-sizing: border-box; margin-left: .5vmin; padding: 1.1vmin 1.4vmin; display: flex; flex-direction: column; justify-content: space-between; color: #111418; overflow: hidden; }
+  .b b { position: relative; z-index: 2; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; font-weight: 800; font-stretch: 85%; font-size: 2.7vmin; line-height: 1; text-transform: uppercase; letter-spacing: -.005em; }
+  .b small { position: relative; z-index: 2; font-family: "Chivo Mono", monospace; font-size: 1.6vmin; }
+  .lil { background: #C7B8FF; } .lim { background: #D6F25B; } .org { background: #FF7A3D; } .pnk { background: #FF9BD0; }
+  .head { background: #F3F1EA; outline: .4vmin solid #D6F25B; outline-offset: -.4vmin; }
+  .head b { font-size: 3.6vmin; font-stretch: 100%; font-weight: 900; }
+  .now { position: absolute; top: 0; bottom: 0; left: calc(11vmin + (100% - 11vmin) * .73); width: 0; border-left: .35vmin solid #FF3B30; z-index: 1; }
+  .now::before { content: ""; position: absolute; top: 2.2vmin; left: -1.1vmin; width: 1.8vmin; height: 1.8vmin; border-radius: 50%; background: #FF3B30; }
+
+  .foot { display: flex; justify-content: space-between; align-items: center; font-size: 1.9vmin; letter-spacing: .06em; color: #C9CCD1; }
+  .foot b { color: #D6F25B; font-weight: 600; }
+  .cta { background: #D6F25B; color: #111418; padding: 1.5vmin 2.6vmin; font-family: "Archivo", sans-serif; font-weight: 800; font-size: 2vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .tag { position: absolute; right: 4vmin; top: 4vmin; padding: 1vmin 1.6vmin; background: #111418; color: #F3F1EA; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 46%; }
+    .fade { top: calc(46% - 10vmin); height: 10vmin; }
+    .panel { top: 46%; padding: 2.4vmin 5vmin 4vmin; gap: 2vmin; }
+    h1 { font-size: 6.2vmin; }
+    .b small { display: none; }
+    .b { justify-content: center; }
+    .grid { grid-template-rows: 3vmin repeat(3, 8.4vmin); }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 42%; height: 100%; object-position: 50% 25%; }
+    .fade { display: none; }
+    .panel { top: 0; right: 42%; padding: 5vmin 4vmin 4.5vmin; gap: 2.6vmin; }
+    .row1 { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    h1 { font-size: 6.4vmin; }
+    .grid { grid-template-columns: 8.4vmin repeat(10, 1fr); }
+    .now { left: calc(8.4vmin + (100% - 8.4vmin) * .73); }
+    .tm.o { visibility: hidden; }
+    .st { font-size: 1.6vmin; letter-spacing: .04em; }
+    .b { padding: 1vmin 1vmin; }
+    .b b { font-size: 2.2vmin; }
+    .head b { font-size: 2.9vmin; }
+    .b small { display: block; }
+    .b { justify-content: space-between; }
+    .grid { grid-template-rows: 3vmin repeat(3, 12vmin); }
+    .tag { right: 3vmin; top: 3vmin; }
+    .foot { font-size: 1.7vmin; }
+    .foot .x { display: none; }
+    .cta { font-size: 1.8vmin; padding: 1.3vmin 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 38%; object-position: 50% 30%; }
+    .panel { right: 38%; padding: 5vmin 5vmin 5vmin; }
+    .row1 { flex-direction: row; align-items: flex-end; }
+    h1 { font-size: 7vmin; }
+    .grid { grid-template-columns: 10vmin repeat(10, 1fr); }
+    .now { left: calc(10vmin + (100% - 10vmin) * .73); }
+    .tm.o { visibility: visible; }
+    .b b { font-size: 2.6vmin; }
+    .head b { font-size: 3.4vmin; }
+    .b { padding: 1.1vmin 1.3vmin; }
+    .grid { grid-template-rows: 3vmin repeat(3, 13vmin); }
+    .foot { font-size: 1.9vmin; }
+    .foot .x { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="fade"></div>
+  <div class="tag mono">Studio Oro · Weekender</div>
+  <div class="panel">
+    <div class="row1">
+      <h1>Plan your<br>weekend.</h1>
+      <div class="tabs mono"><span>Fri</span><span class="on">Sat 04</span><span>Sun</span></div>
+    </div>
+    <div class="grid mono">
+      <span class="tm" style="grid-column:2">12</span><span class="tm o" style="grid-column:3">13</span><span class="tm" style="grid-column:4">14</span><span class="tm o" style="grid-column:5">15</span><span class="tm" style="grid-column:6">16</span><span class="tm o" style="grid-column:7">17</span><span class="tm" style="grid-column:8">18</span><span class="tm o" style="grid-column:9">19</span><span class="tm" style="grid-column:10">20</span><span class="tm o" style="grid-column:11">21</span>
+      <span class="st" style="grid-row:2">Main</span><span class="st" style="grid-row:3">Tent</span><span class="st" style="grid-row:4">Field</span>
+      <div class="b lil" style="grid-row:2; grid-column:2 / 5"><b>New in</b><small>12:00</small></div>
+      <div class="b head" style="grid-row:2; grid-column:5 / 12"><b>Headliner: 40% off</b><small>15:00 — late</small></div>
+      <div class="b lim" style="grid-row:3; grid-column:2 / 5"><b>Summer basics</b><small>12:00</small></div>
+      <div class="b org" style="grid-row:3; grid-column:5 / 8"><b>Colour pop</b><small>15:00</small></div>
+      <div class="b pnk" style="grid-row:3; grid-column:8 / 12"><b>Accessories</b><small>18:00</small></div>
+      <div class="b org" style="grid-row:4; grid-column:3 / 7"><b>Free returns</b><small>13:00</small></div>
+      <div class="b lil" style="grid-row:4; grid-column:7 / 12"><b>Members +10%</b><small>17:00</small></div>
+      <i class="now"></i>
+    </div>
+    <div class="foot mono"><span>Code <b>SET40</b><span class="x"> · 03–05 July</span></span><span class="cta">Add to my plan</span></div>
+  </div>
+</div>
+</body>
+</html>

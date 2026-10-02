@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  /* New Season — Swiss grid, responsive: photo column right, grid column left filling the height */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE7E1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE7E1; color: #2A2320; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; top: 0; right: 0; width: 55%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+  .col { position: absolute; left: 5.5vmin; top: 5.5vmin; bottom: 5.5vmin; width: calc(45% - 10vmin); display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; gap: 2vmin; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .04em; text-transform: uppercase; color: #9A5B2E; padding-bottom: 1.6vmin; border-bottom: .22vmin solid #2A2320; }
+  h1 { margin: 5vmin 0 0; font-weight: 700; font-size: 11.4vmin; line-height: .86; letter-spacing: -.055em; }
+  h1 em { font-style: normal; color: #9A5B2E; }
+  .lede { margin-top: 3.4vmin; font-size: 2.45vmin; line-height: 1.4; color: #3A322D; }
+  .index { margin-top: auto; }
+  .index div { display: flex; gap: 2.2vmin; align-items: baseline; padding: 1.5vmin 0; border-top: .14vmin solid rgba(42,35,32,.28); font-size: 2.4vmin; font-weight: 500; }
+  .index span { font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.6vmin; color: #9A5B2E; width: 3.4vmin; }
+  .foot { margin-top: 4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 2vmin; }
+  .season { font-weight: 700; font-size: 12vmin; line-height: .78; letter-spacing: -.06em; }
+  .season sup { font-size: .32em; letter-spacing: 0; vertical-align: 1.45em; margin-left: .2vmin; color: #9A5B2E; }
+  .cta { font-size: 2.1vmin; font-weight: 700; padding-bottom: .5vmin; border-bottom: .3vmin solid #2A2320; white-space: nowrap; }
+  .tag { position: absolute; right: 3.4vmin; bottom: 4vmin; background: #2A2320; color: #ECE7E1; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; padding: 1.2vmin 1.8vmin; letter-spacing: .06em; text-transform: uppercase; }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; }
+    .col { width: calc(50% - 11vmin); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="col">
+    <div class="meta"><span>Collection 04</span><span>Resort</span></div>
+    <h1>New Season</h1>
+    <div class="lede">Cream cotton, hand embroidery and an easy tied waist. Made for long days.</div>
+    <div class="index">
+      <div><span>01</span>Maxi dresses</div>
+      <div><span>02</span>Kaftans</div>
+      <div><span>03</span>Linen sets</div>
+    </div>
+    <div class="foot">
+      <div class="season">26<sup>SS</sup></div>
+      <div class="cta">Shop now ↗</div>
+    </div>
+  </div>
+  <div class="tag">Now in store &amp; online</div>
+</div>
+</body>
+</html>

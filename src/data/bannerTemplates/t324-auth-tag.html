@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:ital,wght@0,500;0,700;1,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Auth Tag — the green plastic authentication tag that comes zip-tied to a verified pair:
+     tick roundel, holographic seal, serial number and a data-matrix code, next to the
+     inspector's checklist. tall → photo above, tag + checklist below; 3:4 and wider → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECEAE3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECEAE3; color: #121412; font-family: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; }
+  /* the tag */
+  .tagwrap { position: absolute; left: 6vmin; top: 7vmin; width: 36vmin; height: 64vmin; transform: rotate(-4deg); transform-origin: 50% 0; }
+  .tie { position: absolute; left: calc(50% - .7vmin); top: -7.4vmin; width: 1.4vmin; height: 12.4vmin; background: linear-gradient(90deg, #0B0B0B, #3A3A3A 45%, #0B0B0B); border-radius: .3vmin; z-index: 2; }
+  .tie::after { content: ""; position: absolute; left: -1vmin; top: 3.2vmin; width: 3.4vmin; height: 2.6vmin; background: #151515; border-radius: .4vmin; }
+  .tag { position: absolute; inset: 0; background: linear-gradient(160deg, #1C8A57 0%, #13724A 55%, #0E5E3C 100%); color: #EFF6EE; clip-path: polygon(22% 0, 78% 0, 100% 10%, 100% 100%, 0 100%, 0 10%); box-sizing: border-box; padding: 11vmin 3.2vmin 3vmin; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .tag::before { content: ""; position: absolute; left: 50%; top: 3.6vmin; width: 3.4vmin; height: 3.4vmin; margin-left: -1.7vmin; border-radius: 50%; background: #ECEAE3; box-shadow: 0 0 0 .7vmin rgba(255,255,255,.18); }
+  .tag::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255,255,255,.2) 0 18%, transparent 30% 100%); pointer-events: none; }
+  .tag small { font-family: "DM Mono", Menlo, monospace; font-weight: 500; font-size: 1.7vmin; letter-spacing: .24em; text-transform: uppercase; }
+  .tick { margin: 1.6vmin 0 1.4vmin; width: 11vmin; height: 11vmin; border-radius: 50%; border: .5vmin solid #EFF6EE; box-sizing: border-box; display: grid; place-items: center; }
+  .tick svg { width: 6vmin; height: 6vmin; }
+  .tag strong { font-weight: 700; font-size: 4.6vmin; line-height: .95; letter-spacing: -.01em; text-transform: uppercase; }
+  .holo { margin-top: 2.4vmin; width: 10vmin; height: 10vmin; border-radius: 50%; position: relative;
+    background: conic-gradient(from 20deg, #F5C6E8, #C9E7FF, #D7FFE6, #FFF3B8, #FFD3C2, #E4C8FF, #C3F1FF, #F5C6E8); box-shadow: inset 0 0 0 .4vmin rgba(255,255,255,.6); }
+  .holo::before { content: ""; position: absolute; inset: 1.6vmin; border-radius: 50%; background: repeating-radial-gradient(circle, rgba(255,255,255,.55) 0 .25vmin, transparent .25vmin .6vmin); }
+  .holo::after { content: "OK"; position: absolute; inset: 0; display: grid; place-items: center; font-family: "DM Mono", Menlo, monospace; font-weight: 500; font-size: 2.4vmin; letter-spacing: .1em; color: #0E5E3C; }
+  .serial { margin-top: auto; width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 1.6vmin; text-align: left; }
+  .serial span { font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .06em; line-height: 1.5; }
+  .serial span b { display: block; font-weight: 500; font-size: 2vmin; letter-spacing: .04em; }
+  .dm { flex: none; width: 7vmin; height: 7vmin; background: #EFF6EE; padding: .5vmin; box-sizing: border-box; }
+  .dm svg { width: 100%; height: 100%; display: block; }
+  /* checklist column */
+  .copy { position: absolute; left: 49vmin; right: 5vmin; top: 5vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+  .kick { font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #13724A; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 700; font-size: 9.6vmin; line-height: .9; letter-spacing: -.035em; }
+  h1 em { font-weight: 500; font-style: italic; color: #13724A; }
+  .check { margin: 3vmin 0 0; padding: 0; list-style: none; }
+  .check li { display: flex; align-items: center; justify-content: space-between; gap: 1.4vmin; padding: 1.3vmin 0; border-top: 1px solid rgba(18,20,18,.25); font-size: 2.3vmin; font-weight: 500; white-space: nowrap; }
+  .check li:last-child { border-bottom: 1px solid rgba(18,20,18,.25); }
+  .check li i { font-style: normal; font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .1em; color: #5E625D; }
+  .check li b { flex: none; width: 2.6vmin; height: 2.6vmin; background: #13724A; display: grid; place-items: center; }
+  .check li b::after { content: ""; width: 1.2vmin; height: .6vmin; border-left: .35vmin solid #fff; border-bottom: .35vmin solid #fff; transform: translateY(-.15vmin) rotate(-45deg); }
+  .check li span { flex: 1; }
+  .foot { margin-top: auto; }
+  .note { font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .06em; line-height: 1.5; color: #3E423D; }
+  .cta { margin-top: 1.8vmin; display: flex; justify-content: space-between; align-items: center; background: #121412; color: #ECEAE3; padding: 2vmin 2.4vmin; font-weight: 700; font-size: 2.6vmin; white-space: nowrap; }
+  .cta i { font-style: normal; color: #5FD49A; }
+
+  /* 3:4 / 4:5 → photo left, panel right: tag on top, checklist below */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 50%; top: 0; height: auto; }
+    .tagwrap { left: 9vmin; top: 8vmin; width: 30vmin; height: 52vmin; transform: rotate(-5deg); }
+    .tie { top: -8.4vmin; height: 13.4vmin; }
+    .tag { padding-top: 10vmin; }
+    .tick { width: 9vmin; height: 9vmin; margin: 1.2vmin 0 1vmin; }
+    .tick svg { width: 5vmin; height: 5vmin; }
+    .tag strong { font-size: 4vmin; }
+    .holo { width: 8vmin; height: 8vmin; margin-top: 1.8vmin; }
+    .holo::before { inset: 1.2vmin; }
+    .copy { left: 4vmin; right: 4vmin; top: 66vmin; bottom: 4vmin; }
+    h1 { font-size: 8.4vmin; margin-top: 1.4vmin; }
+    .check { margin-top: 2.2vmin; }
+    .check li { font-size: 2.1vmin; padding: 1.1vmin 0; }
+  }
+  /* square → tag and checklist side by side in the panel */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 42%; }
+    .panel { left: 42%; }
+    .tagwrap { left: 4.4vmin; top: 12vmin; width: 21vmin; height: 44vmin; transform: rotate(-5deg); }
+    .tie { top: -12.4vmin; height: 16.4vmin; width: 1.2vmin; left: calc(50% - .6vmin); }
+    .tag { padding: 8.4vmin 2vmin 2vmin; }
+    .tag::before { top: 2.6vmin; width: 2.8vmin; height: 2.8vmin; margin-left: -1.4vmin; }
+    .tag small { font-size: 1.6vmin; letter-spacing: .14em; }
+    .tick { width: 7vmin; height: 7vmin; border-width: .4vmin; }
+    .tick svg { width: 4vmin; height: 4vmin; }
+    .tag strong { font-size: 2.8vmin; }
+    .holo { width: 6.4vmin; height: 6.4vmin; }
+    .holo::before { inset: 1vmin; }
+    .holo::after { font-size: 1.8vmin; }
+    .serial { flex-direction: column; align-items: center; text-align: center; gap: 1vmin; }
+    .serial span { font-size: 1.6vmin; }
+    .serial span b { font-size: 1.7vmin; }
+    .dm { width: 5.4vmin; height: 5.4vmin; }
+    .copy { left: 29vmin; right: 3.6vmin; top: 5vmin; bottom: 4vmin; }
+    h1 { font-size: 6vmin; }
+    .kick { font-size: 1.6vmin; letter-spacing: .08em; }
+    .check li { font-size: 2vmin; }
+    .check li i { display: none; }
+    .cta { font-size: 2.2vmin; padding: 1.8vmin 2vmin; }
+  }
+  /* wide → photo 48% left; tag and checklist side by side */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 50% 30%; }
+    .panel { left: 48%; }
+    .tagwrap { left: 6vmin; top: 13vmin; width: 28vmin; height: 56vmin; transform: rotate(-4deg); }
+    .tie { top: -13.4vmin; height: 18.4vmin; width: 1.4vmin; left: calc(50% - .7vmin); }
+    .tag { padding: 10vmin 2.6vmin 2.6vmin; }
+    .tag::before { top: 3.2vmin; width: 3.2vmin; height: 3.2vmin; margin-left: -1.6vmin; }
+    .tick { width: 9vmin; height: 9vmin; }
+    .tick svg { width: 5vmin; height: 5vmin; }
+    .tag strong { font-size: 3.6vmin; }
+    .holo { width: 8vmin; height: 8vmin; }
+    .holo::before { inset: 1.2vmin; }
+    .holo::after { font-size: 2.2vmin; }
+    .serial { flex-direction: row; align-items: flex-end; text-align: left; }
+    .dm { width: 6.4vmin; height: 6.4vmin; }
+    .copy { left: 40vmin; right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    h1 { font-size: 8.6vmin; }
+    .check li { font-size: 2.2vmin; }
+    .check li i { display: inline; }
+    .cta { font-size: 2.5vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="tagwrap">
+      <div class="tie"></div>
+      <div class="tag">
+        <small>Verified</small>
+        <div class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 L9.5 18 L20 6.5" fill="none" stroke="#EFF6EE" stroke-width="3" stroke-linecap="square"/></svg></div>
+        <strong>Authentic</strong>
+        <div class="holo"></div>
+        <div class="serial">
+          <span>Serial<b>A26·118730</b>24.09.26</span>
+          <div class="dm"><svg viewBox="0 0 10 10" shape-rendering="crispEdges" aria-hidden="true"><path fill="#0E5E3C" d="M0 0h1v10H0zM0 9h10v1H0zM2 0h1v1H2zM4 0h1v1H4zM6 0h1v1H6zM8 0h1v1H8zM9 1h1v1H9zM9 3h1v1H9zM9 5h1v1H9zM9 7h1v1H9zM2 2h2v1H2zM5 2h1v2H5zM7 2h1v1H7zM2 4h1v2H2zM4 4h2v1H4zM7 4h1v2H7zM3 6h2v1H3zM6 6h1v2H6zM2 7h1v1H2zM4 8h2v1H4zM8 8h1v1H8zM8 3h1v1H8z"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <div class="copy">
+      <div class="kick">Inspection report · Nº 07</div>
+      <h1>Checked.<br><em>Twice.</em></h1>
+      <ul class="check">
+        <li><b></b><span>Materials</span><i>Pass</i></li>
+        <li><b></b><span>Stitching</span><i>Pass</i></li>
+        <li><b></b><span>Labels &amp; tags</span><i>Pass</i></li>
+        <li><b></b><span>Packaging</span><i>Pass</i></li>
+      </ul>
+      <div class="foot">
+        <div class="note">Every piece inspected by hand.<br>Free shipping · 14-day returns</div>
+        <div class="cta"><span>Shop verified</span><i>→</i></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

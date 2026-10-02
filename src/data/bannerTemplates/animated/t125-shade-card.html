@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Shade Card — the beauty-counter shade finder turned into the season's colour card:
+     twelve pressed-pan swatches with numbers and names, one circled as the bestseller.
+     tall → photo above the card (6 × 2); square → photo left (4 × 3); wide → photo left (6 × 2) */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FAF8F5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FAF8F5; color: #1F1C1A; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    --cols: 6; --d: 11vmin; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 53%; object-fit: cover; object-position: 50% 22%; }
+
+  .card { position: absolute; left: 6vmin; right: 6vmin; top: calc(53% + 4.6vmin); bottom: 4.6vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.7vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; white-space: nowrap; }
+  .top span + span { font-weight: 400; color: #6B635C; letter-spacing: .18em; }
+  h1 { margin: 1.6vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 7.2vmin; line-height: 1; letter-spacing: -.01em; }
+  h1 i { color: #A4573A; }
+
+  .grid { display: grid; grid-template-columns: repeat(var(--cols), 1fr); row-gap: 2.4vmin; column-gap: 1vmin; }
+  .sw { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
+  .sw i { display: block; width: var(--d); height: var(--d); border-radius: 50%; background: var(--c);
+    box-shadow: inset 0 -.6vmin 1.2vmin rgba(0,0,0,.14), inset 0 .5vmin .8vmin rgba(255,255,255,.35), 0 0 0 1px rgba(0,0,0,.08); }
+  .sw b { margin-top: 1.1vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .12em; }
+  .sw span { font-size: 1.7vmin; color: #4E4741; white-space: nowrap; }
+  .sw.pick i { outline: .3vmin solid #1F1C1A; outline-offset: .8vmin; }
+  .sw.pick::after { content: "Bestseller"; margin-top: .7vmin; padding: .4vmin .9vmin; background: #1F1C1A; color: #FAF8F5; font-size: 1.6vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  .foot { display: flex; justify-content: space-between; align-items: center; gap: 2vmin; padding-top: 2vmin; border-top: 1px solid #D8D0C7; white-space: nowrap; }
+  .off { font-family: "DM Serif Display", Georgia, serif; font-size: 4.2vmin; line-height: 1; }
+  .off em { color: #A4573A; }
+  .code { font-size: 1.8vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; padding: 1vmin 1.6vmin; border: 1px solid #1F1C1A; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 50%; }
+    .card { top: calc(50% + 4vmin); bottom: 4vmin; }
+    .banner { --d: 9.4vmin; }
+    h1 { font-size: 6.4vmin; }
+    .grid { row-gap: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 45%; height: 100%; object-position: 50% 25%; }
+    .card { left: calc(45% + 5vmin); right: 5vmin; top: 5.5vmin; bottom: 5vmin; }
+    .banner { --cols: 4; --d: 7.6vmin; }
+    .top span + span { display: none; }
+    h1 { font-size: 5.8vmin; }
+    .grid { row-gap: 2.2vmin; column-gap: .6vmin; }
+    .sw b { margin-top: .8vmin; }
+    .sw span { font-size: 1.6vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .off { font-size: 3.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; }
+    .card { left: calc(40% + 6vmin); right: 6vmin; top: 6.5vmin; bottom: 6vmin; }
+    .banner { --cols: 6; --d: 9.6vmin; }
+    .top span + span { display: inline; }
+    h1 { font-size: 7vmin; }
+    .grid { row-gap: 2.6vmin; column-gap: 1vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .off { font-size: 4.2vmin; }
+    h1 i { display: block; }
+  }
+  /* ── animated loop (6s) ── a light wave runs across the twelve pans (01→12), then 05 Clay is "picked":
+     its pan punches, the ring breathes out, the Bestseller tag pops; the italic line gets a clay-to-rose glint */
+  .sw i { animation: scWave 6s linear infinite; }
+  @keyframes scWave {
+    0%, 28% { scale: 1; filter: brightness(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    33% { scale: 1.1; filter: brightness(1.1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    40%, 100% { scale: 1; filter: brightness(1); }
+  }
+  .sw:nth-child(1) i { animation-delay: -1.1s; } .sw:nth-child(2) i { animation-delay: -1s; } .sw:nth-child(3) i { animation-delay: -.9s; }
+  .sw:nth-child(4) i { animation-delay: -.8s; } .sw:nth-child(6) i { animation-delay: -.6s; }
+  .sw:nth-child(7) i { animation-delay: -.5s; } .sw:nth-child(8) i { animation-delay: -.4s; } .sw:nth-child(9) i { animation-delay: -.3s; }
+  .sw:nth-child(10) i { animation-delay: -.2s; } .sw:nth-child(11) i { animation-delay: -.1s; } .sw:nth-child(12) i { animation-delay: 0s; }
+  .sw.pick i { animation: scPick 6s linear infinite; }
+  @keyframes scPick {
+    0%, 40% { scale: 1; outline-offset: .8vmin; animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    43% { scale: .9; outline-offset: .3vmin; animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    48% { scale: 1.16; outline-offset: 1.5vmin; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    54% { scale: .98; outline-offset: .7vmin; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    60%, 100% { scale: 1; outline-offset: .8vmin; }
+  }
+  .sw.pick::after { animation: scTag 6s linear infinite; }
+  @keyframes scTag {
+    0%, 44% { transform: none; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    47% { transform: scale(.7); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    53% { transform: scale(1.12) rotate(-3deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    60%, 100% { transform: none; }
+  }
+  h1 i { background: linear-gradient(90deg, #A4573A 0 42%, #E09A86 50%, #A4573A 58% 100%) 0 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: scGlint 6s linear infinite; }
+  @keyframes scGlint { 0%, 64% { background-position: 0% 0; animation-timing-function: cubic-bezier(.45,0,.3,1); } 82%, 100% { background-position: 100% 0; } }
+  .off em { display: inline-block; animation: scOff 6s linear infinite; }
+  @keyframes scOff {
+    0%, 84% { transform: none; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    88% { transform: translateY(-.5vmin) scale(1.06); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    94%, 100% { transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="card">
+    <div>
+      <div class="top"><span>The Shade Edit</span><span>Studio Oro · SS26</span></div>
+      <h1>Twelve shades. <i>One is yours.</i></h1>
+    </div>
+    <div class="grid">
+      <div class="sw" style="--c:#EFE8DA"><i></i><b>01</b><span>Chalk</span></div>
+      <div class="sw" style="--c:#E0D0B6"><i></i><b>02</b><span>Oat</span></div>
+      <div class="sw" style="--c:#CDB08A"><i></i><b>03</b><span>Sand</span></div>
+      <div class="sw" style="--c:#B68A5A"><i></i><b>04</b><span>Camel</span></div>
+      <div class="sw pick" style="--c:#B0664A"><i></i><b>05</b><span>Clay</span></div>
+      <div class="sw" style="--c:#8E4029"><i></i><b>06</b><span>Rust</span></div>
+      <div class="sw" style="--c:#D9A4A0"><i></i><b>07</b><span>Rose</span></div>
+      <div class="sw" style="--c:#8A3150"><i></i><b>08</b><span>Berry</span></div>
+      <div class="sw" style="--c:#A6B298"><i></i><b>09</b><span>Sage</span></div>
+      <div class="sw" style="--c:#6B6A40"><i></i><b>10</b><span>Olive</span></div>
+      <div class="sw" style="--c:#A8BED1"><i></i><b>11</b><span>Sky</span></div>
+      <div class="sw" style="--c:#252B3B"><i></i><b>12</b><span>Ink</span></div>
+    </div>
+    <div class="foot"><span class="off">Every shade <em>20% off</em></span><span class="code">Code SHADE20</span></div>
+  </div>
+</div>
+</body>
+</html>

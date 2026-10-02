@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Ask the Stylist — a DM-style Q&A: stylist header, the look, customer questions and stylist answers as chat bubbles beside / below it.
+     tall → header / photo / chat stacked; square / wide → photo left, the conversation right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEEAE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EEEAE4; color: #221A24; font-family: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif; }
+
+  .hd { position: absolute; left: 5vmin; right: 5vmin; top: 4.6vmin; display: flex; align-items: center; gap: 2vmin; }
+  .av { position: relative; flex: none; width: 8vmin; height: 8vmin; border-radius: 50%; background: #4A2A4F; color: #F3E9DD; display: flex; align-items: center; justify-content: center; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: 3.6vmin; }
+  .av::after { content: ""; position: absolute; right: 0; bottom: .2vmin; width: 1.8vmin; height: 1.8vmin; border-radius: 50%; background: #3FB36B; box-shadow: 0 0 0 .5vmin #EEEAE4; }
+  h1 { margin: 0; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 7vmin; line-height: 1; letter-spacing: -.01em; }
+  .st { margin-top: .8vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #7C6F7E; }
+
+  .shot { position: absolute; left: 5vmin; right: 5vmin; top: 17vmin; bottom: 44vmin; overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .chat { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 36vmin; display: flex; flex-direction: column; gap: 1.3vmin; }
+  .b { max-width: 78%; padding: 1.7vmin 2.6vmin; font-size: 2.5vmin; line-height: 1.32; font-weight: 500; border-radius: 3.4vmin; }
+  .q { align-self: flex-end; background: #FFFFFF; border-bottom-right-radius: .8vmin; box-shadow: 0 .3vmin 1vmin rgba(34,26,36,.07); }
+  .a { align-self: flex-start; background: #4A2A4F; color: #F7EFE6; border-bottom-left-radius: .8vmin; }
+  .a b { font-weight: 800; color: #F2C9A8; }
+  .who { font-size: 1.6vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #7C6F7E; }
+  .who.r { align-self: flex-end; margin-top: .4vmin; }
+  .typing { align-self: flex-start; display: flex; gap: .8vmin; background: #E0D8E0; padding: 2vmin 2.6vmin; border-radius: 3.4vmin; border-bottom-left-radius: .8vmin; }
+  .typing i { width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #7C6F7E; opacity: .5; }
+  .typing i:nth-child(2) { opacity: .75; } .typing i:nth-child(3) { opacity: 1; }
+  .x2 { display: none; }
+  .cta { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; padding-top: 1.8vmin; border-top: 1px solid rgba(34,26,36,.18); font-size: 2vmin; font-weight: 600; }
+  .cta b { background: #221A24; color: #EEEAE4; padding: 1.5vmin 2.8vmin; border-radius: 99vmin; font-weight: 700; letter-spacing: .04em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .hd { top: 4vmin; }
+    .av { width: 7vmin; height: 7vmin; font-size: 3.2vmin; }
+    h1 { font-size: 6vmin; }
+    .shot { top: 14.6vmin; bottom: 36vmin; }
+    .chat { bottom: 4vmin; height: 30vmin; gap: 1vmin; }
+    .b { font-size: 2.2vmin; padding: 1.4vmin 2.3vmin; }
+    .typing { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .shot { left: 0; top: 0; bottom: 0; right: auto; width: 46%; }
+    .hd { left: calc(46% + 5vmin); right: 5vmin; top: 5vmin; }
+    h1 { font-size: 5.6vmin; }
+    .chat { left: calc(46% + 5vmin); right: 5vmin; top: 18vmin; bottom: 5vmin; height: auto; gap: 1.2vmin; }
+    .b { max-width: 88%; font-size: 2.1vmin; }
+    .x2 { display: block; }
+    .typing { display: flex; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 48%; }
+    .hd { left: calc(48% + 7vmin); right: 7vmin; top: 7vmin; }
+    .av { width: 8vmin; height: 8vmin; font-size: 3.6vmin; }
+    h1 { font-size: 6.4vmin; }
+    .chat { left: calc(48% + 7vmin); right: 7vmin; top: 21vmin; bottom: 7vmin; gap: 1.4vmin; }
+    .b { max-width: 82%; font-size: 2.4vmin; padding: 1.7vmin 2.6vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  /* the DM replays: after a beat the thread clears and the messages arrive again one by one,
+     the typing dots bounce, the online dot pings */
+  .shot img { animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  /* online dot */
+  .av::after { animation: online 2s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes online { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.3); } 30% { transform: scale(1); } }
+  /* thread replay: everything fades at 50%, then q → a → q → a pop back in */
+  .q { transform-origin: 100% 100%; } .a { transform-origin: 0% 100%; }
+  .chat > .b:nth-child(1) { animation: m1 8s linear infinite; }
+  .chat > .b:nth-child(2) { animation: m2 8s linear infinite; }
+  .chat > .b:nth-child(3) { animation: m3 8s linear infinite; }
+  .chat > .b:nth-child(4) { animation: m4 8s linear infinite; }
+  @keyframes m1 { 0%, 48% { opacity: 1; transform: scale(1); animation-timing-function: cubic-bezier(.5,0,.7,.4); } 52% { opacity: 0; transform: scale(.96); animation-timing-function: steps(1, end); } 56% { opacity: 0; transform: scale(.6); animation-timing-function: cubic-bezier(.2,.9,.3,1.25); } 62%, 100% { opacity: 1; transform: scale(1); } }
+  @keyframes m2 { 0%, 48% { opacity: 1; transform: scale(1); animation-timing-function: cubic-bezier(.5,0,.7,.4); } 52% { opacity: 0; transform: scale(.96); animation-timing-function: steps(1, end); } 64% { opacity: 0; transform: scale(.6); animation-timing-function: cubic-bezier(.2,.9,.3,1.25); } 70%, 100% { opacity: 1; transform: scale(1); } }
+  @keyframes m3 { 0%, 48% { opacity: 1; transform: scale(1); animation-timing-function: cubic-bezier(.5,0,.7,.4); } 52% { opacity: 0; transform: scale(.96); animation-timing-function: steps(1, end); } 73% { opacity: 0; transform: scale(.6); animation-timing-function: cubic-bezier(.2,.9,.3,1.25); } 79%, 100% { opacity: 1; transform: scale(1); } }
+  @keyframes m4 { 0%, 48% { opacity: 1; transform: scale(1); animation-timing-function: cubic-bezier(.5,0,.7,.4); } 52% { opacity: 0; transform: scale(.96); animation-timing-function: steps(1, end); } 82% { opacity: 0; transform: scale(.6); animation-timing-function: cubic-bezier(.2,.9,.3,1.25); } 88%, 100% { opacity: 1; transform: scale(1); } }
+  /* typing dots: a wave, each dot rests at t=0 */
+  .typing i { animation: dot 1s linear infinite; }
+  .typing i:nth-child(2) { animation-delay: -.9s; } .typing i:nth-child(3) { animation-delay: -.8s; }
+  @keyframes dot {
+    0%, 20% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    35% { transform: translateY(-.9vmin); animation-timing-function: cubic-bezier(.5,0,.7,1); }
+    50%, 100% { transform: translateY(0); }
+  }
+  /* CTA pill: a nudge once the thread is back */
+  .cta b { display: inline-block; animation: pill 8s linear infinite; }
+  @keyframes pill {
+    0%, 89% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    92% { transform: scale(1.07); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    96%, 100% { transform: scale(1); }
+  }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="hd">
+    <div class="av">N</div>
+    <div><h1>Ask the stylist</h1><div class="st">Nora · Studio Oro</div></div>
+  </div>
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="chat">
+    <div class="b q">Does it run true to size?</div>
+    <div class="b a">Yes — take your usual. Between sizes? <b>Go one down.</b></div>
+    <div class="b q x2">How would you wear it?</div>
+    <div class="b a x2">With one easy layer and clean shoes. Let it lead.</div>
+    <div class="typing"><i></i><i></i><i></i></div>
+    <div class="cta"><span>ASK10 · 10% off</span><b>Ask us anything</b></div>
+  </div>
+</div>
+</body>
+</html>

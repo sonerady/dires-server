@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+<style>
+  /* Sticker Stack — the outlet's own archaeology: the original price label, then three markdown stickers applied one over the other, the red one on top */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1EDE5; }
+  .banner { --panel: 70vmin; --k: 1; position: fixed; inset: 0; overflow: hidden; background: #F1EDE5; color: #1A1916; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+
+  .copy { position: absolute; left: 6vmin; width: 44vmin; bottom: 6vmin; height: calc(var(--panel) - 12vmin); display: flex; flex-direction: column; }
+  .kick { font-size: 1.8vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; display: flex; align-items: center; gap: 1.2vmin; }
+  .kick i { width: 1.8vmin; height: 1.8vmin; border-radius: 50%; background: #D2331F; }
+  h1 { margin: 2.6vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 8.2vmin; line-height: .98; letter-spacing: -.015em; }
+  h1 em { color: #D2331F; }
+  .body { margin: 2.4vmin 0 0; font-size: 2.2vmin; line-height: 1.45; color: #4B4740; }
+  .cta { margin-top: auto; align-self: flex-start; display: flex; align-items: center; gap: 1.6vmin; font-size: 2vmin; font-weight: 700; font-stretch: 85%; letter-spacing: .16em; text-transform: uppercase; background: #1A1916; color: #F1EDE5; padding: 1.8vmin 2.8vmin; white-space: nowrap; }
+
+  /* the pile */
+  .pile { position: absolute; right: 5vmin; bottom: 7vmin; width: 44vmin; height: 52vmin; transform: scale(var(--k)); transform-origin: 100% 100%; }
+  .lbl { position: absolute; left: -3vmin; top: 39vmin; width: 24vmin; height: 13vmin; background: #FFFFFF; transform: rotate(-7deg); box-shadow: 0 .3vmin .8vmin rgba(0,0,0,.12); padding: 1.6vmin 2vmin; box-sizing: border-box; }
+  .lbl small { display: block; font-size: 1.6vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #6A655C; }
+  .lbl b { display: block; margin-top: .6vmin; font-weight: 600; font-stretch: 75%; font-size: 5vmin; line-height: 1; }
+  .st { position: absolute; border-radius: 50%; box-shadow: 0 .4vmin 1vmin rgba(0,0,0,.14), inset 0 0 0 .5vmin rgba(255,255,255,.18); display: flex; flex-direction: column; align-items: center; }
+  .st svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .st b { position: relative; font-weight: 700; font-stretch: 75%; line-height: 1; letter-spacing: -.02em; }
+  .st small { position: relative; font-size: 1.6vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+  .s1 { left: 1vmin; top: 0; width: 25vmin; height: 25vmin; background: #FFFFFF; transform: rotate(-9deg); padding-top: 5vmin; box-sizing: border-box; }
+  .s1 b { font-size: 8vmin; }
+  .s2 { left: 19vmin; top: 7vmin; width: 25vmin; height: 25vmin; background: #EFCB3A; transform: rotate(8deg); padding-top: 4.4vmin; box-sizing: border-box; }
+  .s2 b { font-size: 8vmin; }
+  .s3 { left: 7vmin; top: 20vmin; width: 32vmin; height: 32vmin; background: #D2331F; color: #FFF6EE; transform: rotate(-5deg); justify-content: center; }
+  .s3 b { font-size: 11.4vmin; }
+  .s3 small { margin-top: .6vmin; }
+  .peel { position: absolute; right: 2.2vmin; top: 3vmin; width: 5vmin; height: 5vmin; border-radius: 50%; background: linear-gradient(225deg, rgba(255,255,255,.55), rgba(255,255,255,0) 60%); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 60vmin; --k: .86; }
+    .copy { bottom: 5vmin; height: calc(var(--panel) - 10vmin); }
+    h1 { font-size: 7.4vmin; margin-top: 2vmin; }
+    .body { font-size: 2vmin; margin-top: 1.8vmin; }
+    .pile { bottom: 4.6vmin; }
+  }
+  /* square — photo left; the pile on top of the paper side, copy below it */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --k: .82; }
+    .photo { width: 52%; height: 100%; object-position: 50% 25%; }
+    .pile { right: calc(24% - 18vmin); top: 5vmin; bottom: auto; transform-origin: 50% 0; }
+    .copy { left: calc(52% + 5vmin); right: 5vmin; width: auto; top: 52vmin; bottom: 5vmin; height: auto; }
+    .kick { display: none; }
+    h1 { font-size: 6.2vmin; margin-top: 0; }
+    .body { display: none; }
+    .cta { font-size: 1.8vmin; padding: 1.6vmin 2.4vmin; }
+  }
+  /* wide — photo left; copy and pile side by side */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --k: .92; }
+    .photo { width: 42%; object-position: 64% 25%; }
+    .copy { left: calc(42% + 6vmin); right: auto; width: 30vmin; top: 7vmin; bottom: 7vmin; }
+    .kick { display: flex; }
+    h1 { font-size: 7.4vmin; margin-top: 3vmin; }
+    .body { display: block; }
+    .pile { right: 6vmin; top: auto; bottom: 20vmin; transform-origin: 100% 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="kick"><i></i>Final reduction</div>
+    <h1>Reduced, then reduced <em>again.</em></h1>
+    <p class="body">End-of-season pieces at their lowest price yet. Online and in store.</p>
+    <div class="cta">Shop the final cut <span>→</span></div>
+  </div>
+  <div class="pile">
+    <div class="lbl"><small>Original</small><b>€240</b></div>
+    <div class="st s1"><small>Sale</small><b>−30%</b></div>
+    <div class="st s2"><small>Outlet</small><b>−50%</b><div class="peel"></div></div>
+    <div class="st s3">
+      <svg viewBox="0 0 100 100"><defs><path id="r" d="M50 50 m-41 0 a41 41 0 1 1 82 0 a41 41 0 1 1 -82 0"/></defs><circle cx="50" cy="50" r="46" fill="none" stroke="#FFF6EE" stroke-width=".5" opacity=".7"/><text font-family="Instrument Sans, Arial, sans-serif" font-size="5.2" font-weight="700" fill="#FFF6EE"><textPath href="#r" textLength="250" lengthAdjust="spacing">FINAL REDUCTION · LAST MARKDOWN · FINAL REDUCTION · LAST MARKDOWN · </textPath></text></svg>
+      <b>−70%</b><small>Final</small>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Linen Calendar — the studio's printed linen tea towel: slubby natural linen, woven indigo stripes at top and
+     bottom, a stitched hem, and the month printed in one ink colour — with the sale weekend inked in solid.
+     tall → photo above, towel below · 3:4 and wider → photo left, towel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E8E0CF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2C3A5E; font-family: "Courier Prime", "Courier New", monospace; background: #E8E0CF; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .towel { position: absolute; left: 0; right: 0; bottom: 0; height: 86vmin; box-sizing: border-box; padding: 15vmin 7vmin 16vmin; display: flex; flex-direction: column;
+    background:
+      repeating-linear-gradient(0deg, rgba(120,100,70,.09) 0 1px, transparent 1px .42vmin),
+      repeating-linear-gradient(90deg, rgba(120,100,70,.08) 0 1px, transparent 1px .5vmin),
+      #E8E0CF; }
+  .towel .slub { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .55; }
+  /* woven stripes (thick · thin · thin) + running hem */
+  .stripes { position: absolute; left: 0; right: 0; height: 6.4vmin;
+    background: linear-gradient(180deg, #2C3A5E 0 2.4vmin, transparent 2.4vmin 3.4vmin, #2C3A5E 3.4vmin 4.1vmin, transparent 4.1vmin 5.1vmin, #2C3A5E 5.1vmin 5.8vmin, transparent 5.8vmin);
+    -webkit-mask: repeating-linear-gradient(90deg, #000 0 .5vmin, rgba(0,0,0,.82) .5vmin .75vmin); mask: repeating-linear-gradient(90deg, #000 0 .5vmin, rgba(0,0,0,.82) .5vmin .75vmin); }
+  .stripes.t { top: 5vmin; }
+  .stripes.b { bottom: 5vmin; transform: scaleY(-1); }
+  .hem { position: absolute; left: 0; right: 0; height: 0; border-top: .3vmin dashed rgba(44,58,94,.45); }
+  .hem.t { top: 2.2vmin; } .hem.b { bottom: 2.2vmin; }
+
+  .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .head small { display: block; font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .86; letter-spacing: -.01em; }
+  h1 i { font-size: .5em; letter-spacing: 0; }
+  .year { font-family: "DM Serif Display", Georgia, serif; font-size: 7vmin; line-height: .9; }
+
+  .cal { margin-top: 4vmin; display: grid; grid-template-columns: repeat(7, 1fr); row-gap: .6vmin; text-align: center; border-top: .3vmin solid #2C3A5E; padding-top: 1.2vmin; }
+  .cal b { font-size: 1.8vmin; font-weight: 700; letter-spacing: .1em; padding-bottom: .6vmin; }
+  .cal span, .cal i { display: grid; place-items: center; height: 4.8vmin; font-size: 2.4vmin; font-style: normal; }
+  .cal span:nth-child(7n) { color: #8A4A35; }
+  .cal span.on { position: relative; color: #EDE6D6; font-weight: 700; }
+  .cal span.on::before { content: ""; position: absolute; left: 50%; top: 50%; width: 4.6vmin; height: 4.6vmin; margin: -2.3vmin 0 0 -2.3vmin; border-radius: 50%; background: #2C3A5E; z-index: -1; }
+  .cal { position: relative; z-index: 0; }
+
+  .art { display: none; flex: 1; min-height: 0; width: 100%; max-height: 30vmin; margin: 3vmin 0; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .note { font-size: 2.1vmin; line-height: 1.5; }
+  .note b { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 3.6vmin; line-height: 1.1; display: block; }
+  .cta { flex: none; white-space: nowrap; font-size: 1.9vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #EDE6D6; background: #2C3A5E; padding: 1.4vmin 2.4vmin; }
+
+  /* ── 3:4 / 4:5 → photo left, towel right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .towel { left: 50%; top: 0; height: auto; padding: 16vmin 4.6vmin 17vmin; box-shadow: -.6vmin 0 1.4vmin rgba(40,34,26,.14); }
+    .head { flex-direction: column; align-items: flex-start; gap: 1vmin; }
+    h1 { font-size: 10vmin; }
+    .year { font-size: 5vmin; }
+    .cal b { font-size: 1.6vmin; letter-spacing: 0; }
+    .cal span, .cal i { height: 4.6vmin; font-size: 2.1vmin; }
+    .cal span.on::before { width: 4.2vmin; height: 4.2vmin; margin: -2.1vmin 0 0 -2.1vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .art { display: block; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .towel { left: 48%; padding: 14.4vmin 4.6vmin 14.6vmin; }
+    .head { flex-direction: row; align-items: flex-end; }
+    .head small { font-size: 1.6vmin; letter-spacing: .14em; }
+    h1 { font-size: 8vmin; margin-top: 1vmin; }
+    .year { font-size: 4.4vmin; }
+    .cal { margin-top: 2.4vmin; padding-top: .8vmin; row-gap: 0; }
+    .cal span, .cal i { height: 3.8vmin; font-size: 1.9vmin; }
+    .cal span.on::before { width: 3.6vmin; height: 3.6vmin; margin: -1.8vmin 0 0 -1.8vmin; }
+    .foot { flex-direction: row; align-items: flex-end; gap: 2vmin; }
+    .note { font-size: 1.7vmin; }
+    .note b { font-size: 2.8vmin; }
+    .cta { font-size: 1.6vmin; padding: 1.2vmin 1.6vmin; letter-spacing: .1em; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 72% 30%; }
+    .towel { left: 42%; padding: 15vmin 6vmin 15vmin; }
+    .head small { font-size: 1.7vmin; letter-spacing: .22em; }
+    h1 { font-size: 10.4vmin; }
+    .year { font-size: 6vmin; }
+    .cal { margin-top: 3vmin; }
+    .cal span, .cal i { height: 4.2vmin; font-size: 2.2vmin; }
+    .cal span.on::before { width: 4vmin; height: 4vmin; margin: -2vmin 0 0 -2vmin; }
+    .note { font-size: 2vmin; }
+    .note b { font-size: 3.4vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.4vmin 2.4vmin; letter-spacing: .18em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="towel">
+    <svg class="slub" preserveAspectRatio="none" aria-hidden="true">
+      <filter id="slub" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency=".5 .012" numOctaves="2" seed="6"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 .55  0 0 0 0 .47  0 0 0 0 .35  0 0 0 -2.2 1.02"/>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#slub)"/>
+    </svg>
+    <i class="hem t"></i><i class="stripes t"></i>
+    <i class="hem b"></i><i class="stripes b"></i>
+    <div class="head">
+      <div><small>Atelier Nord · Linen calendar</small><h1>October</h1></div>
+      <div class="year">2026</div>
+    </div>
+    <div class="cal">
+      <b>M</b><b>T</b><b>W</b><b>T</b><b>F</b><b>S</b><b>S</b>
+      <i></i><i></i><i></i><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span class="on">10</span><span class="on">11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><i></i>
+    </div>
+    <svg class="art" viewBox="0 0 240 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <g fill="none" stroke="#2C3A5E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 94 H234"/>
+        <!-- jug -->
+        <path d="M52 94 C40 94 36 80 38 66 C40 52 46 44 46 36 C46 30 42 26 40 22 L66 22 C70 28 72 30 72 36 C72 44 78 52 80 66 C82 80 78 94 66 94 Z"/>
+        <path d="M40 22 L34 18"/><path d="M76 44 C92 44 94 70 78 76"/>
+        <path d="M44 58 C54 60 64 60 76 58" stroke-width="1.1"/><path d="M42 64 C54 66 66 66 79 64" stroke-width="1.1"/>
+        <!-- bowl -->
+        <path d="M96 76 H150 C148 88 138 94 123 94 C108 94 98 88 96 76 Z"/><path d="M114 94 L116 90 H130 L132 94"/>
+        <path d="M104 83 C112 86 134 86 142 83" stroke-width="1.1" stroke-dasharray="2 3"/>
+        <!-- cups -->
+        <path d="M166 70 H188 L186 90 C186 93 184 94 181 94 H173 C170 94 168 93 168 90 Z"/><path d="M188 76 C196 76 196 86 187 86"/>
+        <path d="M204 60 C204 52 214 50 222 52 L224 62 C224 70 220 74 214 74 C208 74 204 70 204 60 Z"/><path d="M200 74 H228" /><path d="M208 74 C208 84 206 90 204 94 M220 74 C220 84 222 90 224 94" stroke-width="1.1"/>
+        <!-- steam -->
+        <path d="M174 64 C170 58 178 54 174 48" stroke-width="1.1"/><path d="M181 64 C177 58 185 54 181 48" stroke-width="1.1"/>
+      </g>
+    </svg>
+    <div class="foot">
+      <div class="note"><b>Linen weekend</b>Sat 10 — Sun 11 · −20% on all linen</div>
+      <div class="cta">Mark the date</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

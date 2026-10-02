@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Auction Lot — a page from an evening-sale catalogue: the look reproduced as a plate with generous margins,
+     a light-weight lot number, provenance line, estimate and a drawn bidder's paddle.
+     tall → plate above the lot entry; square/wide → plate left, lot entry right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5F2EB; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F5F2EB; color: #1E1D1B; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; font-variant-numeric: lining-nums; }
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 4.6vmin; display: flex; justify-content: space-between; padding-bottom: 1.6vmin; border-bottom: 1px solid #1E1D1B;
+    font-size: 1.8vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; white-space: nowrap; }
+  .head span:last-child { font-weight: 500; color: #5E5A52; }
+  .photo { position: absolute; left: 7vmin; top: 12vmin; width: calc(100% - 14vmin); height: calc(100% - 12vmin - 57vmin); object-fit: cover; object-position: 50% 20%; }
+  .cap { position: absolute; right: 7vmin; top: calc(100% - 57vmin + 1.2vmin); font-family: "Spectral", Georgia, serif; font-style: italic; font-size: 1.8vmin; color: #5E5A52; }
+
+  .entry { position: absolute; left: 7vmin; right: 7vmin; top: calc(100% - 50vmin); bottom: 5vmin; display: flex; flex-direction: column; }
+  .row1 { display: flex; gap: 5vmin; align-items: flex-start; }
+  .lot { flex: none; text-align: left; }
+  .lot small { display: block; font-size: 1.8vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #6E1E22; }
+  .lot b { display: block; margin-top: .4vmin; font-family: "Spectral", Georgia, serif; font-weight: 300; font-size: 20vmin; line-height: .8; letter-spacing: -.04em; }
+  .desc { flex: 1; min-width: 0; padding-top: .4vmin; }
+  .prov { font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; line-height: 1.5; }
+  .title { margin-top: 1.2vmin; font-family: "Spectral", Georgia, serif; font-style: italic; font-weight: 400; font-size: 5.2vmin; line-height: 1.05; }
+  .note { margin-top: 1.4vmin; font-family: "Spectral", Georgia, serif; font-size: 2.3vmin; line-height: 1.4; color: #4A463F; }
+  .est { margin-top: 3vmin; display: flex; align-items: baseline; gap: 2.4vmin; padding: 1.6vmin 0; border-top: 1px solid rgba(30,29,27,.35); border-bottom: 1px solid rgba(30,29,27,.35); white-space: nowrap; }
+  .est span { font-size: 1.8vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: #5E5A52; }
+  .est b { font-family: "Spectral", Georgia, serif; font-weight: 400; font-size: 4.2vmin; }
+  .est em { margin-left: auto; font-style: normal; font-size: 2vmin; font-weight: 500; color: #6E1E22; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; white-space: nowrap; }
+  .when { font-size: 2vmin; font-weight: 500; letter-spacing: .04em; }
+  .bid { display: flex; align-items: center; gap: 2vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; }
+  .paddle { width: 6.6vmin; height: 11vmin; flex: none; transform: rotate(-12deg); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 12vmin - 51vmin); }
+    .cap { top: calc(100% - 51vmin + 1.2vmin); }
+    .entry { top: calc(100% - 45vmin); bottom: 4.6vmin; }
+    .lot b { font-size: 17vmin; }
+    .title { font-size: 4.6vmin; }
+    .note { display: none; }
+    .est { margin-top: 2.4vmin; }
+  }
+  /* square: plate left, the entry reads down the right column */
+  @media (min-aspect-ratio: 9/10) {
+    .head { left: calc(52% + 3vmin); right: 6vmin; top: 6vmin; flex-direction: column; gap: 1vmin; font-size: 1.6vmin; }
+    .photo { left: 6vmin; top: 6vmin; width: calc(52% - 6vmin); height: calc(100% - 12vmin); object-position: 50% 25%; }
+    .cap { right: auto; left: 6vmin; top: auto; bottom: 2.4vmin; font-size: 1.6vmin; }
+    .entry { left: calc(52% + 3vmin); right: 6vmin; top: 19vmin; bottom: 6vmin; }
+    .row1 { flex-direction: column; gap: 2.4vmin; }
+    .lot b { font-size: 14vmin; }
+    .prov { font-size: 1.6vmin; letter-spacing: .14em; }
+    .title { font-size: 4.2vmin; }
+    .note { display: none; }
+    .est { margin-top: 2.4vmin; flex-wrap: wrap; row-gap: .6vmin; padding: 1.2vmin 0; }
+    .est b { font-size: 3.6vmin; }
+    .est em { margin-left: 0; width: 100%; font-size: 1.8vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1vmin; }
+    .when { font-size: 1.8vmin; }
+    .bid { font-size: 1.7vmin; letter-spacing: .16em; }
+    .paddle { width: 5.6vmin; height: 9.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .head { left: calc(46% + 5vmin); right: 7vmin; top: 7vmin; flex-direction: row; font-size: 1.8vmin; }
+    .photo { left: 7vmin; top: 7vmin; width: calc(46% - 7vmin); height: calc(100% - 14vmin); object-position: 40% 25%; }
+    .cap { left: 7vmin; bottom: 2.6vmin; font-size: 1.8vmin; }
+    .entry { left: calc(46% + 5vmin); right: 7vmin; top: 17vmin; bottom: 7vmin; }
+    .row1 { flex-direction: row; gap: 5vmin; }
+    .lot b { font-size: 24vmin; }
+    .prov { font-size: 1.8vmin; letter-spacing: .2em; }
+    .title { font-size: 6.2vmin; }
+    .note { display: block; font-size: 2.5vmin; }
+    .est { flex-wrap: nowrap; padding: 2vmin 0; margin-top: 6vmin; }
+    .est b { font-size: 5vmin; }
+    .est em { margin-left: auto; width: auto; font-size: 2vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .when { font-size: 2vmin; }
+    .bid { font-size: 1.9vmin; letter-spacing: .24em; }
+    .paddle { width: 7.2vmin; height: 12vmin; }
+  }
+  /* ───────── motion (6s loop, t=0 = the static page) ─────────
+     constant: the plate breathes in a slow push-in (clip-compensated, so its margins never move)
+     beats: 1.4s the lot number turns like a catalogue page · 3.0s the paddle is raised — a bid ·
+            4.3s a burgundy hairline runs along the estimate · 4.8s "Members −20%" warms */
+  .photo { animation: plate 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes plate { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.456%); } }
+
+  .lot b { animation: turn 6s linear infinite; }
+  @keyframes turn {
+    0%, 22% { transform: translateY(0); opacity: 1; clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    28% { transform: translateY(-2vmin); opacity: 0; clip-path: inset(0 0 60% 0); animation-timing-function: steps(1, end); }
+    28.5% { transform: translateY(3vmin); opacity: 0; clip-path: inset(40% 0 0 0); animation-timing-function: cubic-bezier(.2,.8,.25,1); }
+    38%, 100% { transform: translateY(0); opacity: 1; clip-path: inset(0 0 0 0); }
+  }
+
+  .paddle { animation: bid 6s linear infinite; }
+  @keyframes bid {
+    0%, 48% { transform: rotate(-12deg) translateY(0); animation-timing-function: cubic-bezier(.3,0,.15,1); }
+    54% { transform: rotate(4deg) translateY(-1.8vmin); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    57% { transform: rotate(1deg) translateY(-1.5vmin); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    60% { transform: rotate(4deg) translateY(-1.8vmin); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    66% { transform: rotate(4deg) translateY(-1.8vmin); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    74%, 100% { transform: rotate(-12deg) translateY(0); }
+  }
+
+  .est { position: relative; }
+  .est::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #6E1E22; transform-origin: 0 50%; transform: scaleX(0); animation: hair 6s linear infinite; }
+  @keyframes hair {
+    0%, 70% { transform: scaleX(0); opacity: 1; transform-origin: 0 50%; animation-timing-function: cubic-bezier(.65,0,.25,1); }
+    80% { transform: scaleX(1); opacity: 1; transform-origin: 0 50%; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    92% { transform: scaleX(1); opacity: 0; transform-origin: 0 50%; }
+    93%, 100% { transform: scaleX(0); opacity: 0; }
+  }
+  .est em { animation: warm 6s linear infinite; }
+  @keyframes warm {
+    0%, 76% { color: #6E1E22; text-shadow: 0 0 0 rgba(110,30,34,0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    81% { color: #A3262D; text-shadow: 0 0 1.2vmin rgba(163,38,45,.25); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    94%, 100% { color: #6E1E22; text-shadow: 0 0 0 rgba(110,30,34,0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head"><span>Evening Sale</span><span>London · 14 October</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cap">Lot 27, illustrated</div>
+  <div class="entry">
+    <div class="row1">
+      <div class="lot"><small>Lot</small><b>27</b></div>
+      <div class="desc">
+        <div class="prov">Property from a private wardrobe</div>
+        <div class="title">The Autumn Collection</div>
+        <div class="note">Offered in the round, without reserve.</div>
+      </div>
+    </div>
+    <div class="est"><span>Estimate</span><b>from €180</b><em>Members −20%</em></div>
+    <div class="foot">
+      <div class="when">Bidding opens Thursday, 10:00</div>
+      <div class="bid">
+        <svg class="paddle" viewBox="0 0 60 100" aria-hidden="true"><rect x="26" y="52" width="8" height="46" rx="3" fill="#8A5A34"/><ellipse cx="30" cy="30" rx="27" ry="28" fill="#FFFFFF" stroke="#1E1D1B" stroke-width="2.4"/><text x="30" y="38" text-anchor="middle" font-family="Spectral, Georgia, serif" font-size="24" font-weight="500" letter-spacing="0" fill="#1E1D1B">114</text></svg>
+        View the lots
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

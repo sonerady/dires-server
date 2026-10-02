@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Yesteryear&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* 1950s department-store catalogue page — two-colour print (navy + red) on paper: masthead, script headline,
+     "satisfaction guaranteed" seal, photo on an off-register halftone block, item column with price and dotted leaders.
+     Same page grid at every ratio; only the proportions change. */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EAD6; }
+  .banner { --navy: #1E2A47; --red: #C63A2E; --paper: #F3EAD6;
+    --ht: 16vmin; --pt: 43vmin; --pw: 57vmin; --pb: 7vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--paper); color: var(--navy); font-family: "Old Standard TT", "Times New Roman", Georgia, serif; }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .5; mix-blend-mode: multiply; }
+  .mast { position: absolute; left: 6vmin; right: 6vmin; top: 4.4vmin; display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 1.6vmin; border-bottom: .7vmin double var(--navy); }
+  .mast span { font-size: 1.8vmin; font-style: italic; }
+  .mast b { font-weight: 700; font-size: 3vmin; letter-spacing: .28em; text-transform: uppercase; }
+  .hd { position: absolute; left: 6vmin; top: var(--ht); right: 30vmin; }
+  h1 { margin: 0; font-family: "Yesteryear", "Brush Script MT", cursive; font-weight: 400; font-size: 15vmin; line-height: .95; color: var(--red); transform: rotate(-4deg); transform-origin: 0 50%; white-space: nowrap; }
+  .sub { margin-top: 1.2vmin; font-size: 2.3vmin; font-style: italic; }
+  .sub b { font-style: normal; font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 500; font-size: 1.9vmin; letter-spacing: .24em; text-transform: uppercase; margin-right: 1.2vmin; color: var(--red); }
+  .seal { position: absolute; right: 5vmin; top: calc(var(--ht) - 3vmin); width: 23vmin; height: 23vmin; transform: rotate(10deg); }
+  .seal svg { width: 100%; height: 100%; display: block; }
+  .ph { position: absolute; left: 6vmin; top: var(--pt); width: var(--pw); bottom: var(--pb); }
+  .ph::before { content: ""; position: absolute; left: 2.6vmin; top: 2.6vmin; right: -2.6vmin; bottom: -2.6vmin;
+    background: radial-gradient(circle, var(--red) 0 .42vmin, transparent .48vmin) 0 0 / 1.3vmin 1.3vmin; opacity: .9; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .info { position: absolute; left: calc(var(--pw) + 12vmin); right: 5vmin; top: var(--pt); bottom: var(--pb); display: flex; flex-direction: column; }
+  .no { font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 500; font-size: 2vmin; letter-spacing: .18em; color: var(--red); }
+  .t { margin-top: 1vmin; font-weight: 700; font-size: 3.6vmin; line-height: 1.05; }
+  .d { margin-top: 1.4vmin; font-size: 2.1vmin; font-style: italic; line-height: 1.4; }
+  .pr { margin-top: 2.4vmin; padding-top: 1.8vmin; border-top: 1px solid var(--navy); }
+  .pr b { display: block; font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 600; font-size: 8.4vmin; line-height: .95; letter-spacing: -.01em; }
+  .pr s { display: block; margin-top: .8vmin; font-size: 1.9vmin; }
+  .sw { margin-top: 2.4vmin; font-size: 1.8vmin; font-style: italic; }
+  .sw div { display: flex; gap: 1.2vmin; margin-top: 1vmin; }
+  .sw span { width: 4.2vmin; height: 4.2vmin; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: "Oswald", "Arial Narrow", sans-serif; font-style: normal; font-size: 1.7vmin; font-weight: 600; color: var(--paper); }
+  .cp { margin-top: 2.6vmin; position: relative; border: .35vmin dashed var(--navy); padding: 1.8vmin 2vmin 1.6vmin; }
+  .cp::before { content: "\2702"; position: absolute; left: 1.6vmin; top: -1.9vmin; background: var(--paper); padding: 0 .6vmin; font-size: 2.6vmin; line-height: 1; color: var(--red); }
+  .cp span { display: block; font-size: 1.8vmin; font-style: italic; }
+  .cp b { display: block; margin-top: .4vmin; font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 600; font-size: 3.4vmin; letter-spacing: .08em; color: var(--red); }
+  .ld { margin-top: 2vmin; font-size: 1.9vmin; }
+  .ld div { display: flex; align-items: baseline; gap: .8vmin; margin-top: .6vmin; }
+  .ld i { flex: 1; border-bottom: .3vmin dotted var(--navy); transform: translateY(-.4vmin); }
+  .ld em { font-style: normal; font-weight: 700; }
+  .cta { margin-top: 2.6vmin; align-self: flex-start; background: var(--navy); color: var(--paper); padding: 1.6vmin 2.6vmin; font-family: "Oswald", "Arial Narrow", sans-serif; font-weight: 500; font-size: 2.2vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .fo { margin-top: auto; padding-top: 2vmin; font-size: 1.7vmin; font-style: italic; }
+  .fo b { font-style: normal; font-family: "Oswald", "Arial Narrow", sans-serif; font-size: 3.4vmin; font-weight: 500; margin-right: 1vmin; vertical-align: -.4vmin; }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --ht: 15vmin; --pt: 39vmin; --pw: 54vmin; --pb: 6vmin; }
+    h1 { font-size: 14vmin; }
+    .seal { width: 20vmin; height: 20vmin; }
+    .d, .sw { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --ht: 12.5vmin; --pt: 33vmin; --pw: 44vmin; --pb: 5vmin; }
+    .mast { top: 3.6vmin; padding-bottom: 1.2vmin; }
+    h1 { font-size: 12.5vmin; }
+    .sub { font-size: 2.1vmin; }
+    .seal { width: 18vmin; height: 18vmin; top: calc(var(--ht) - 2vmin); }
+    .info { left: calc(var(--pw) + 13vmin); }
+    .d { display: block; }
+    .ld { display: none; }
+    .pr b { font-size: 8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --ht: 15vmin; --pt: 35vmin; --pw: 45vmin; }
+    .mast, .hd { left: 7vmin; }
+    .mast { right: 7vmin; }
+    .ph { left: 7vmin; }
+    h1 { font-size: 13.5vmin; }
+    .seal { right: 8vmin; width: 20vmin; height: 20vmin; }
+    .info { left: calc(var(--pw) + 16vmin); right: 7vmin; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr auto auto; column-gap: 6vmin; align-content: start; }
+    .no, .t, .d { grid-column: 1; }
+    .pr { grid-column: 2; grid-row: 1 / 3; margin-top: 0; }
+    .d { grid-row: 3; }
+    .sw { display: block; grid-column: 2; grid-row: 3; }
+    .cp { grid-column: 1; grid-row: 4; align-self: end; justify-self: start; }
+    .cta { grid-column: 2; grid-row: 4; align-self: end; justify-self: start; }
+    .fo { grid-column: 1 / 3; grid-row: 5; }
+    .t { font-size: 4.2vmin; }
+    .d { font-size: 2.3vmin; }
+    .pr b { font-size: 10vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" aria-hidden="true"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .22  0 0 0 .22 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+  <div class="mast"><span>Page 42</span><b>Harlow &amp; Finch</b><span>Spring · Summer</span></div>
+  <div class="hd">
+    <h1>Sunday Best</h1>
+    <div class="sub"><b>New</b>Smart styles for town &amp; country</div>
+  </div>
+  <div class="seal"><svg viewBox="0 0 100 100"><defs><path id="c" d="M50 50m-38 0a38 38 0 1 1 76 0a38 38 0 1 1-76 0"/></defs>
+    <circle cx="50" cy="50" r="48" fill="#F3EAD6" stroke="#C63A2E" stroke-width="2"/><circle cx="50" cy="50" r="44.5" fill="none" stroke="#C63A2E" stroke-width=".8"/><circle cx="50" cy="50" r="30" fill="#C63A2E"/>
+    <text font-family="Oswald, Arial Narrow, sans-serif" font-weight="500" font-size="8.6" letter-spacing="1.6" fill="#C63A2E"><textPath href="#c">SATISFACTION GUARANTEED ★ SAVE THIS WEEK ★</textPath></text>
+    <text x="50" y="54" text-anchor="middle" font-family="Oswald, Arial Narrow, sans-serif" font-weight="600" font-size="19" fill="#F3EAD6">30%</text>
+    <text x="50" y="66" text-anchor="middle" font-family="Oswald, Arial Narrow, sans-serif" font-weight="500" font-size="7" letter-spacing="2" fill="#F3EAD6">OFF</text></svg></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="info">
+    <div class="no">No. 7 A 4412</div>
+    <div class="t">The Weekend Edit</div>
+    <div class="d">Easy-care pieces in fresh new colours. Sizes 6 to 18.</div>
+    <div class="pr"><b>$39.98</b><s>Reg. $56.98</s></div>
+    <div class="ld"><div>Delivery<i></i><em>Free</em></div><div>Returns<i></i><em>30 days</em></div></div>
+    <div class="cta">Order today</div>
+    <div class="sw">In four colours<div><span style="background:#C63A2E">A</span><span style="background:#1E2A47">B</span><span style="background:#D9A93E">C</span><span style="background:#5E7D6A">D</span></div></div>
+    <div class="cp"><span>Clip &amp; save — use code</span><b>SUNDAY30</b></div>
+    <div class="fo"><b>42</b>Harlow &amp; Finch catalogue</div>
+  </div>
+</div>
+</body>
+</html>

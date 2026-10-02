@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Barometer Dial — an antique aneroid barometer in a brass bezel on bottle-green: STORMY · RAIN · CHANGE · FAIR
+     around an enamel face, the blued needle swinging from rain to CHANGE and a brass set-hand already waiting there.
+     "Change is coming." tall → photo above, dial + offer below · square → photo left, stacked · wide → photo left, dial beside copy */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1E3A33; }
+  .banner { --panel: 88vmin; position: fixed; inset: 0; overflow: hidden; background: #1E3A33; color: #F1E8D4; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .serif { font-family: "Young Serif", Georgia, serif; font-weight: 400; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 5vmin 6vmin 5vmin;
+    display: grid; grid-template-columns: 48vmin 1fr; grid-template-rows: auto 1fr auto; column-gap: 5vmin;
+    grid-template-areas: "dial side" "head head" "foot foot";
+    background: radial-gradient(90% 60% at 20% 30%, #28493F, #1E3A33 70%); }
+  .panel::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .6vmin; background: linear-gradient(90deg, #8E6A24, #E9CD86 30%, #B08A3A 60%, #8E6A24); }
+
+  .dial { grid-area: dial; width: 48vmin; height: 48vmin; filter: drop-shadow(0 1.4vmin 1.6vmin rgba(0,0,0,.35)); }
+  .side { grid-area: side; align-self: center; min-width: 0; }
+  .side .k { font-size: 1.8vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #D9BE7A; }
+  .side .big { margin-top: 1.4vmin; font-size: 15vmin; line-height: .9; letter-spacing: -.03em; }
+  .side p { margin: 1.6vmin 0 0; font-size: 2.3vmin; line-height: 1.4; color: #CFD8CF; }
+  h1 { grid-area: head; align-self: center; margin: 3.4vmin 0 0; font-size: 9.2vmin; line-height: 1; letter-spacing: -.02em; }
+  h1 i { font-style: normal; color: #D9BE7A; }
+  .foot { grid-area: foot; margin-top: 3vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(217,190,122,.5); display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .foot .code { font-size: 2vmin; line-height: 1.45; letter-spacing: .06em; color: #CFD8CF; }
+  .foot .code b { color: #F1E8D4; font-weight: 600; letter-spacing: .16em; }
+  .cta { flex: none; padding: 1.9vmin 3.2vmin; background: linear-gradient(180deg, #E9CD86, #C49B45); color: #1E3A33; font-weight: 600; font-size: 2vmin; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --panel: 80vmin; }
+    .panel { padding: 4.4vmin 6vmin 4.4vmin; grid-template-columns: 42vmin 1fr; }
+    .dial { width: 42vmin; height: 42vmin; }
+    .side .big { font-size: 13vmin; }
+    h1 { font-size: 8.4vmin; margin-top: 2.6vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 66vmin; }
+    .panel { padding: 3.8vmin 5.4vmin 3.8vmin; grid-template-columns: 34vmin 1fr; column-gap: 4vmin; }
+    .dial { width: 34vmin; height: 34vmin; }
+    .side .big { font-size: 11vmin; }
+    .side p { font-size: 2.1vmin; }
+    h1 { font-size: 7vmin; margin-top: 2vmin; }
+    .foot { margin-top: 2vmin; padding-top: 1.8vmin; }
+    .cta { padding: 1.6vmin 2.6vmin; }
+  }
+  /* square → photo left, dial and copy stacked on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 22%; }
+    .panel { left: 48%; top: 0; height: auto; padding: 5vmin 4.6vmin 4.6vmin; grid-template-columns: 1fr; grid-template-rows: auto auto auto 1fr auto;
+      grid-template-areas: "dial" "side" "head" "." "foot"; background: radial-gradient(90% 60% at 40% 25%, #28493F, #1E3A33 70%); }
+    .panel::before { right: auto; bottom: 0; width: .6vmin; height: auto; background: linear-gradient(180deg, #8E6A24, #E9CD86 30%, #B08A3A 60%, #8E6A24); }
+    .dial { justify-self: center; width: 36vmin; height: 36vmin; }
+    .side { margin-top: 2.4vmin; display: flex; align-items: baseline; gap: 2vmin; flex-wrap: wrap; }
+    .side .k { width: 100%; font-size: 1.6vmin; }
+    .side .big { margin-top: .6vmin; font-size: 8.4vmin; }
+    .side p { margin: 0; font-size: 1.9vmin; flex: 1; min-width: 16vmin; }
+    h1 { margin-top: 2vmin; font-size: 5.4vmin; }
+    .foot { margin-top: 0; padding-top: 1.8vmin; gap: 2vmin; }
+    .foot .code { font-size: 1.7vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2vmin; }
+  }
+  /* wide → photo left, dial beside the copy */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 50% 28%; }
+    .panel { left: 42%; padding: 5.6vmin 6vmin 5.4vmin; grid-template-columns: 38vmin 1fr; grid-template-rows: 1fr auto auto; column-gap: 5vmin;
+      grid-template-areas: "dial side" "dial head" "foot foot"; }
+    .dial { align-self: center; justify-self: start; width: 38vmin; height: 38vmin; }
+    .side { display: block; margin-top: 0; align-self: end; }
+    .side .k { font-size: 1.8vmin; }
+    .side .big { margin-top: 1.2vmin; font-size: 11vmin; }
+    .side p { margin-top: 1.4vmin; font-size: 2.1vmin; }
+    h1 { align-self: start; margin-top: 2.4vmin; font-size: 6.4vmin; }
+    .foot { margin-top: 3vmin; padding-top: 2.2vmin; }
+    .foot .code { font-size: 1.9vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.7vmin 2.8vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     the needle trembles on "rain", then the pressure drops: it swings to CHANGE with a damped overshoot (2.4s),
+     the red CHANGE mark and the brass set-hand glow as it lands, the −30% answers with a small punch,
+     "is coming." wipes out and re-writes itself, a brass sheen crosses the CTA, then the needle eases back home */
+  .needle { transform-origin: 100px 100px; animation: needle 6s linear infinite; }
+  @keyframes needle {
+    0% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    7% { transform: rotate(1.2deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    13% { transform: rotate(-.6deg); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    24% { transform: rotate(-17deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    28% { transform: rotate(-15.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    31% { transform: rotate(-16.6deg); animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    42% { transform: rotate(19.5deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    47% { transform: rotate(14.2deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    51% { transform: rotate(16.9deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    55% { transform: rotate(15.6deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    58%, 76% { transform: rotate(16deg); animation-timing-function: cubic-bezier(.55,0,.35,1); }
+    94%, 100% { transform: rotate(0deg); }
+  }
+  .chg { animation: chg 6s linear infinite; }
+  @keyframes chg { 0%, 40%, 72%, 100% { fill: #A8322A; } 44%, 60% { fill: #E0412F; } }
+  .set { animation: setglow 6s linear infinite; }
+  @keyframes setglow { 0%, 40%, 74%, 100% { fill: #B08A3A; } 45%, 62% { fill: #F4DE9C; } }
+  .side .big { transform-origin: 0% 70%; animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 42% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.2); }
+    46% { transform: scale(1.07); animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    53%, 100% { transform: scale(1); }
+  }
+  h1 i { display: inline-block; animation: wipe 6s linear infinite; }
+  @keyframes wipe {
+    0%, 52% { clip-path: inset(-10% -4% -20% -4%); opacity: 1; animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    59% { clip-path: inset(-10% 104% -20% -4%); opacity: 1; animation-timing-function: steps(1, end); }
+    60% { clip-path: inset(-10% 104% -20% -4%); opacity: 1; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    70%, 100% { clip-path: inset(-10% -4% -20% -4%); opacity: 1; }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 36%;
+    background: linear-gradient(90deg, rgba(255,250,230,0), rgba(255,250,230,.25) 35%, rgba(255,255,255,.7) 50%, rgba(255,250,230,.25) 65%, rgba(255,250,230,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 72% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    86%, 100% { transform: translateX(340%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <svg class="dial" viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <linearGradient id="bdBrass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4DE9C"/><stop offset=".35" stop-color="#C79C45"/><stop offset=".6" stop-color="#8E6A24"/><stop offset=".85" stop-color="#E2C279"/><stop offset="1" stop-color="#9A7428"/></linearGradient>
+        <radialGradient id="bdFace" cx="42%" cy="36%" r="70%"><stop offset="0" stop-color="#FCF6E7"/><stop offset=".7" stop-color="#EFE4CB"/><stop offset="1" stop-color="#DCCDAC"/></radialGradient>
+      </defs>
+      <circle cx="100" cy="100" r="98" fill="url(#bdBrass)"/>
+      <circle cx="100" cy="100" r="91" fill="none" stroke="#6E5118" stroke-width=".8"/>
+      <circle cx="100" cy="100" r="87" fill="url(#bdFace)" stroke="#8E6A24" stroke-width="1"/>
+      <path d="M34.5 147.6L38.1 145.0 M27.8 136.8L31.8 134.7 M23.0 125.0L27.2 123.6 M20.0 112.7L24.4 112.0 M20.0 87.3L24.4 88.0 M23.0 75.0L27.2 76.4 M27.8 63.2L31.8 65.3 M34.5 52.4L38.1 55.0 M52.4 34.5L55.0 38.1 M63.2 27.8L65.3 31.8 M75.0 23.0L76.4 27.2 M87.3 20.0L88.0 24.4 M112.7 20.0L112.0 24.4 M125.0 23.0L123.6 27.2 M136.8 27.8L134.7 31.8 M147.6 34.5L145.0 38.1 M165.5 52.4L161.9 55.0 M172.2 63.2L168.2 65.3 M177.0 75.0L172.8 76.4 M180.0 87.3L175.6 88.0 M180.0 112.7L175.6 112.0 M177.0 125.0L172.8 123.6 M172.2 136.8L168.2 134.7 M165.5 147.6L161.9 145.0" stroke="#2A2620" stroke-width=".6"/>
+      <path d="M42.7 157.3L50.5 149.5 M19.0 100.0L26.0 100.0 M42.7 42.7L50.5 50.5 M100.0 19.0L100.0 26.0 M157.3 42.7L149.5 50.5 M181.0 100.0L174.0 100.0 M157.3 157.3L149.5 149.5" stroke="#2A2620" stroke-width="1.3"/>
+      <path d="M42.7 157.3 A81 81 0 1 1 157.3 157.3" fill="none" stroke="#2A2620" stroke-width=".6"/>
+      <g font-family="Young Serif, Georgia, serif" fill="#2A2620">
+        <text x="56.9" y="146.6" text-anchor="middle" font-size="10">28</text>
+        <text x="56.9" y="60.4" text-anchor="middle" font-size="10">29</text>
+        <text x="143.1" y="60.4" text-anchor="middle" font-size="10">30</text>
+        <text x="143.1" y="146.6" text-anchor="middle" font-size="10">31</text>
+      </g>
+      <g font-family="Jost, Arial, sans-serif" font-weight="600" fill="#2A2620">
+        <text x="100" y="54" text-anchor="middle" font-size="7.4" letter-spacing="1.2" transform="rotate(-108 100 100)">STORMY</text>
+        <text x="100" y="54" text-anchor="middle" font-size="7.4" letter-spacing="1.2" transform="rotate(-62 100 100)">RAIN</text>
+        <text x="100" y="54" text-anchor="middle" font-size="7.4" letter-spacing="1.2" fill="#A8322A" class="chg" transform="rotate(0 100 100)">CHANGE</text>
+        <text x="100" y="54" text-anchor="middle" font-size="7.4" letter-spacing="1.2" transform="rotate(62 100 100)">FAIR</text>
+        <text x="100" y="54" text-anchor="middle" font-size="7.4" letter-spacing="1.2" transform="rotate(108 100 100)">VERY DRY</text>
+      </g>
+      <text x="100" y="153" text-anchor="middle" font-family="Jost, Arial, sans-serif" font-weight="500" font-size="5.2" letter-spacing="1.6" fill="#6B5F4A">ATELIER NORD</text>
+      <g transform="rotate(0 100 100)"><path class="set" d="M100 30 L104 42 L101.2 42 L101.2 96 L98.8 96 L98.8 42 L96 42 Z" fill="#B08A3A" stroke="#6E5118" stroke-width=".5"/></g>
+      <g transform="rotate(-16 100 100)"><g class="needle">
+        <path d="M100 22 L102.4 98 L100 124 L97.6 98 Z" fill="#1F3656"/>
+        <circle cx="100" cy="66" r="4.6" fill="none" stroke="#1F3656" stroke-width="2"/>
+      </g></g>
+      <circle cx="100" cy="100" r="7" fill="url(#bdBrass)" stroke="#6E5118" stroke-width=".6"/>
+      <circle cx="100" cy="100" r="2" fill="#6E5118"/>
+    </svg>
+
+    <div class="side">
+      <div class="k">Pressure falling</div>
+      <div class="big serif">−30%</div>
+      <p>on the transitional edit, Thursday to Sunday.</p>
+    </div>
+
+    <h1 class="serif">Change <i>is coming.</i></h1>
+
+    <div class="foot"><div class="code">Code <b>CHANGE30</b><br>Online &amp; in store</div><div class="cta">Shop the change</div></div>
+  </div>
+</div>
+</body>
+</html>

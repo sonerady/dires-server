@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Alumni+Sans:wght@500;700;800&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Class Tassel — graduation season: a gold mortarboard tassel with a stamped "2026" year charm hangs from the seam
+     into a deep navy panel; tall condensed collegiate caps say "Toss the cap." and the graduation edit offer.
+     tall → photo above, tassel hanging from the seam; square/wide → navy panel left, tassel from the top edge */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #13203A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F3EEE2; font-family: "Crimson Pro", Georgia, serif; background: #13203A; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 78vmin); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 78vmin;
+    background: radial-gradient(70% 60% at 80% 10%, rgba(80,110,170,.22), transparent 70%), #13203A; }
+  .panel::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .8vmin; background: #C9A45C; }
+
+  /* the tassel */
+  .tassel { position: absolute; right: 9vmin; top: 0; width: 16vmin; display: flex; flex-direction: column; align-items: center; transform: rotate(4deg); transform-origin: 50% 0; }
+  .tassel .btn { width: 3.6vmin; height: 3.6vmin; margin-top: -1.4vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F4DDA0, #C9A45C 55%, #8E6E2E); box-shadow: 0 .4vmin .6vmin rgba(0,0,0,.4); position: relative; z-index: 2; }
+  .tassel .cord { width: .7vmin; height: 7vmin; margin-top: -.6vmin; background: repeating-linear-gradient(160deg, #E6C77E 0 .5vmin, #A9863F .5vmin .9vmin); }
+  .tassel .charm { position: relative; width: 14vmin; height: 7.2vmin; border-radius: .6vmin; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #F6E2A8, #D0AC5E 40%, #A57F35 70%, #E3C57E); box-shadow: inset 0 0 0 .35vmin rgba(255,240,200,.55), 0 .6vmin 1vmin rgba(0,0,0,.45);
+    font-family: "Alumni Sans", "Arial Narrow", sans-serif; font-weight: 800; font-size: 6vmin; line-height: 1; letter-spacing: .04em; color: #5A4318; text-shadow: 0 .15vmin 0 rgba(255,240,200,.6); }
+  .tassel .head { width: 5.4vmin; height: 6vmin; margin-top: .8vmin; border-radius: 50% 50% 22% 22%; background: repeating-linear-gradient(90deg, #E6C77E 0 .45vmin, #B89140 .45vmin .8vmin); box-shadow: 0 .4vmin .6vmin rgba(0,0,0,.35); }
+  .tassel .band { width: 6.2vmin; height: 1.4vmin; margin-top: -.4vmin; background: linear-gradient(180deg, #F2D790, #A9863F); border-radius: .3vmin; }
+  .tassel .fringe { width: 10vmin; height: 26vmin; margin-top: -.2vmin;
+    background: repeating-linear-gradient(90deg, #F0D48C 0 .28vmin, #C9A45C .28vmin .5vmin, #9C7A34 .5vmin .62vmin), #C9A45C;
+    clip-path: polygon(28% 0, 72% 0, 100% 94%, 96% 99%, 90% 95%, 84% 100%, 76% 96%, 68% 100%, 60% 96%, 52% 100%, 44% 97%, 36% 100%, 28% 96%, 20% 99%, 12% 95%, 5% 99%, 0 94%);
+    filter: drop-shadow(0 .6vmin .8vmin rgba(0,0,0,.4)); }
+
+  .copy { position: absolute; left: 8vmin; right: 34vmin; top: 9vmin; bottom: 7vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .ov { font-family: "Alumni Sans", "Arial Narrow", sans-serif; font-weight: 700; font-size: 2.4vmin; letter-spacing: .3em; text-transform: uppercase; color: #C9A45C; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Alumni Sans", "Arial Narrow", sans-serif; font-weight: 800; font-size: 19vmin; line-height: .82; letter-spacing: -.005em; text-transform: uppercase; }
+  .sub { margin: 2.4vmin 0 0; font-style: italic; font-size: 3.2vmin; line-height: 1.25; color: #D9D3C4; }
+  .offer { border-top: 1px solid rgba(201,164,92,.7); padding-top: 2vmin; display: flex; flex-direction: column; gap: 1vmin; }
+  .offer b { font-family: "Crimson Pro", Georgia, serif; font-weight: 400; font-size: 4.6vmin; line-height: 1.05; }
+  .offer b em { display: block; font-style: normal; font-size: 1.6em; line-height: .95; color: #E7C77F; margin-bottom: .6vmin; }
+  .offer span { font-family: "Alumni Sans", "Arial Narrow", sans-serif; font-weight: 500; font-size: 2.3vmin; letter-spacing: .22em; text-transform: uppercase; color: #C9A45C; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .panel { height: 66vmin; }
+    .copy { top: 7vmin; bottom: 5.5vmin; }
+    h1 { font-size: 15vmin; }
+    .sub { font-size: 2.8vmin; margin-top: 1.6vmin; }
+    .offer b { font-size: 4vmin; }
+    .tassel .fringe { height: 20vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { top: 0; right: 50%; height: auto; }
+    .panel::before { left: auto; top: 0; bottom: 0; right: 0; width: .8vmin; height: auto; }
+    .tassel { right: auto; left: 50%; margin-left: -8vmin; transform: rotate(-3deg); }
+    .tassel .fringe { height: 18vmin; }
+    .copy { left: 6vmin; right: 6vmin; top: 45vmin; bottom: 6vmin; justify-content: flex-end; gap: 2.4vmin; }
+    .ov { font-size: 2vmin; }
+    h1 { font-size: 11vmin; margin-top: 1vmin; }
+    .sub { font-size: 2.4vmin; margin-top: 1.4vmin; }
+    .offer b { font-size: 3.8vmin; }
+    .offer span { font-size: 2vmin; letter-spacing: .16em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { right: 46%; }
+    .tassel { left: auto; right: 8vmin; margin-left: 0; transform: rotate(4deg); }
+    .tassel .fringe { height: 30vmin; }
+    .copy { left: 8vmin; right: 32vmin; top: 8vmin; bottom: 7vmin; justify-content: space-between; }
+    .ov { font-size: 2.4vmin; }
+    h1 { font-size: 17vmin; margin-top: 1.6vmin; }
+    .sub { font-size: 3vmin; }
+    .offer b { font-size: 4.4vmin; }
+    .offer span { font-size: 2.2vmin; letter-spacing: .22em; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the tassel idles with a slow pendulum. beats: 1.8s "Toss" is flung up and lands ·
+     2.1s the tassel takes the hit — a big swing that dies away over ~2s, the fringe lagging behind ·
+     3.6s a glint crosses the gold 2026 charm · 4.6s "15% off" warms up, 5.2s the arrow nudges. */
+  .tassel { --r: 4deg; animation: swing 6s linear infinite; }
+  @keyframes swing {
+    0% { transform: rotate(var(--r)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    17% { transform: rotate(calc(var(--r) + 1.2deg)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    34% { transform: rotate(var(--r)); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    40% { transform: rotate(calc(var(--r) + 10deg)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    48% { transform: rotate(calc(var(--r) - 7deg)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    56% { transform: rotate(calc(var(--r) + 4deg)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    64% { transform: rotate(calc(var(--r) - 2deg)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    72% { transform: rotate(calc(var(--r) + .8deg)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    82% { transform: rotate(calc(var(--r) - 1deg)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    100% { transform: rotate(var(--r)); }
+  }
+  .tassel .fringe { transform-origin: 50% 0; animation: lag 6s linear infinite; }
+  @keyframes lag {
+    0%, 36% { transform: rotate(0); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    43% { transform: rotate(-4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    51% { transform: rotate(3deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    59% { transform: rotate(-1.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    68% { transform: rotate(.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    76%, 100% { transform: rotate(0); }
+  }
+  .tassel .charm { overflow: hidden; }
+  .tassel .charm::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,250,230,0), rgba(255,250,230,.75) 50%, rgba(255,250,230,0));
+    transform: translateX(-150%) skewX(-18deg); animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 58% { transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    70%, 100% { transform: translateX(320%) skewX(-18deg); }
+  }
+  h1 .toss { display: inline-block; transform-origin: 50% 100%; animation: toss 6s linear infinite; }
+  @keyframes toss {
+    0%, 28% { transform: translateY(0) rotate(0); animation-timing-function: cubic-bezier(.2,.7,.35,1); }
+    34% { transform: translateY(-4.5vmin) rotate(-5deg); animation-timing-function: cubic-bezier(.6,0,.85,.45); }
+    39% { transform: translateY(.5vmin) rotate(1deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    42.5% { transform: translateY(-.6vmin) rotate(0); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    45%, 100% { transform: translateY(0) rotate(0); }
+  }
+  .offer b em { transform-origin: 0 70%; animation: warm 6s linear infinite; }
+  @keyframes warm {
+    0%, 74% { transform: scale(1); color: #E7C77F; animation-timing-function: cubic-bezier(.25,0,.2,1); }
+    78% { transform: scale(1.08); color: #FFE7AE; animation-timing-function: cubic-bezier(.5,0,.4,1); }
+    84%, 100% { transform: scale(1); color: #E7C77F; }
+  }
+  .offer .ar { display: inline-block; font-style: normal; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 85% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    88% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    91% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    94% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    97%, 100% { transform: translateX(0); }
+  }
+  @media (min-aspect-ratio: 9/10) { .tassel { --r: -3deg; } }
+  @media (min-aspect-ratio: 6/5) { .tassel { --r: 4deg; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="copy">
+      <div class="top">
+        <div class="ov">Class of 2026</div>
+        <h1><span class="toss">Toss</span><br>the cap.</h1>
+        <p class="sub">Ceremony to after-party —<br>the graduation edit.</p>
+      </div>
+      <div class="offer"><b><em>15% off</em>with code GRAD26</b><span>Shop the edit <i class="ar">→</i></span></div>
+    </div>
+    <div class="tassel"><div class="btn"></div><div class="cord"></div><div class="charm">2026</div><div class="head"></div><div class="band"></div><div class="fringe"></div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@300;900&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Justified Stack — a poster block where every line is sized to the exact same measure,
+     so hairline-light and black-heavy words lock into one solid column of type.
+     The column has a fixed measure in vmin at every ratio; the photo takes all remaining width. */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFD400; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FFD400; color: #111; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif; display: flex; }
+  .col { flex: none; width: 41vmin; box-sizing: border-box; padding: 4.4vmin 4.5vmin; display: flex; flex-direction: column; }
+  .ph { position: relative; flex: 1; min-width: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .lab { font-size: 1.7vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; line-height: 1.45; padding-bottom: 1.4vmin; border-bottom: .5vmin solid #111; }
+  .lab span { display: block; font-weight: 400; }
+  .stack { margin: auto 0; padding: 3vmin 0; font-family: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif; text-transform: uppercase; }
+  .s { display: block; white-space: nowrap; line-height: .81; letter-spacing: 0; }
+  .s + .s { margin-top: 2vmin; }
+  .s1 { font-weight: 300; font-size: 23.04vmin; }
+  .s2 { font-weight: 900; font-size: 18.78vmin; color: #E0221B; }
+  .s3 { font-weight: 900; font-size: 24.46vmin; }
+  .sa { font-weight: 900; font-size: 11.14vmin; }
+  .sb { font-weight: 300; font-size: 27.9vmin; }
+  @media (min-aspect-ratio: 7/10) { .sa, .sb { display: none; } .sa + .sb + .s1 { margin-top: 0; } }
+  .rule { height: .5vmin; background: #111; }
+  .foot { padding-top: 1.6vmin; display: flex; flex-direction: column; gap: 1.6vmin; }
+  .foot p { margin: 0; font-size: 1.8vmin; line-height: 1.45; }
+  .foot p b { font-weight: 600; }
+  .cta { display: flex; justify-content: space-between; align-items: center; background: #111; color: #FFD400; font-size: 2vmin; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 1.7vmin 2vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 9/10) {
+    .col { padding: 3.6vmin 4.5vmin; }
+    .stack { padding: 2vmin 0; }
+    .s + .s { margin-top: 1.6vmin; }
+    .foot { gap: 1.2vmin; }
+    .cta { padding: 1.4vmin 1.8vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .col { width: 44vmin; padding: 4vmin 6vmin 4vmin 6vmin; }
+    .s1 { font-size: 23.04vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the locked column) ─────────
+     0.4s  the slabs are re-justified: each line slides out of the measure to the left and snaps back in, top to bottom
+     2.6s  the red 50% strobes black/red twice (sale beat) and kicks
+     3.4s  the heavy rule is re-drawn · 4.4s CTA sheen + arrow nudge · constant: slow photo push-in */
+  .s { animation: slab 6s linear infinite; }
+  @keyframes slab {
+    0%, 6% { transform: translateX(0); clip-path: inset(-10% -2% -10% -2%); animation-timing-function: cubic-bezier(.7,0,.9,.4); }
+    10% { transform: translateX(-30%); clip-path: inset(-10% 102% -10% -2%); animation-timing-function: steps(1, end); }
+    10.5% { transform: translateX(30%); clip-path: inset(-10% -2% -10% 102%); animation-timing-function: cubic-bezier(.15,.75,.25,1); }
+    17%, 100% { transform: translateX(0); clip-path: inset(-10% -2% -10% -2%); }
+  }
+  .col { overflow: hidden; }
+  .sb { animation-delay: -5.92s; }
+  .s1 { animation-delay: -5.84s; }
+  .s2 { animation-delay: -5.76s; }
+  .s3 { animation-delay: -5.68s; }
+  .s2 { animation-name: slab, strobe; animation-duration: 6s, 6s; animation-timing-function: linear, steps(1, end); animation-iteration-count: infinite, infinite; animation-delay: -5.76s, 0s; }
+  @keyframes strobe {
+    0%, 43% { color: #E0221B; } 43.5%, 44.9% { color: #111; } 45%, 46.4% { color: #E0221B; } 46.5%, 47.9% { color: #111; } 48%, 100% { color: #E0221B; }
+  }
+  .rule { animation: rule 6s linear infinite; }
+  @keyframes rule {
+    0%, 56% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    60% { clip-path: inset(0 0 0 100%); animation-timing-function: steps(1, end); }
+    60.5% { clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.4,.1,.2,1); }
+    67%, 100% { clip-path: inset(0 0 0 0); }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%;
+    background: linear-gradient(90deg, rgba(255,212,0,0), rgba(255,212,0,.3) 50%, rgba(255,212,0,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 73% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    87%, 100% { transform: translateX(330%) skewX(-18deg); }
+  }
+  .cta span:last-child { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 76% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    79% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    82% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    85% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88%, 100% { transform: translateX(0); }
+  }
+  .ph { overflow: hidden; }
+  .photo { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="col">
+    <div class="lab">The season sale<span>Everything new · Nº 03</span></div>
+    <div class="stack">
+      <span class="s sa">Season</span>
+      <span class="s sb">Sale</span>
+      <span class="s s1">Up to</span>
+      <span class="s s2">50%</span>
+      <span class="s s3">Off</span>
+    </div>
+    <div class="rule"></div>
+    <div class="foot">
+      <p>Three days only.<br>Code <b>BLOCK50</b> online &amp; in store.</p>
+      <div class="cta"><span>Shop sale</span><span>→</span></div>
+    </div>
+  </div>
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;1,400&family=Albert+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Moon Sighting — Ramadan to Eid al-Fitr told by the moon: a strip of lunar phases waxes and wanes across the
+     dusk sky, night by night, until the thin new crescent (the hilal) is ringed in gold and marked "Eid".
+     Amiri, a classical naskh-derived serif, sets the headline. tall → photo above the sky panel;
+     square/wide → photo left, sky panel right (square shows every other night) */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #151B3E; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #151B3E; color: #F3E6C8; font-family: "Albert Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 18%; }
+  .sky { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100% - 80vmin); overflow: hidden;
+    background: radial-gradient(circle at 30% 20%, rgba(243,230,200,.5) 0 .12vmin, transparent .2vmin) 0 0 / 7vmin 6vmin,
+                radial-gradient(circle at 70% 60%, rgba(243,230,200,.35) 0 .1vmin, transparent .18vmin) 0 0 / 5vmin 9vmin,
+                linear-gradient(180deg, #151B3E 0%, #1E2350 45%, #3A2B58 80%, #5A3858 100%); }
+  .strip { position: absolute; left: 7vmin; right: 7vmin; top: 5vmin; display: flex; justify-content: space-between; padding-bottom: 1.6vmin; border-bottom: 1px solid rgba(243,230,200,.3); }
+  .m { display: flex; flex-direction: column; align-items: center; gap: 1vmin; }
+  .m svg { width: 4.2vmin; height: 4.2vmin; }
+  .m span { font-size: 1.6vmin; font-weight: 500; letter-spacing: .04em; color: rgba(243,230,200,.7); }
+  .m.eid svg { width: 5.6vmin; height: 5.6vmin; margin-top: -1.4vmin; }
+  .m.eid span { color: #E2B45E; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 20vmin; bottom: 6vmin; display: flex; flex-direction: column; }
+  .k { font-size: 1.8vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #E2B45E; }
+  h1 { margin: 1.8vmin 0 0; font-family: "Amiri", Georgia, serif; font-weight: 400; font-size: 12vmin; line-height: 1; letter-spacing: -.005em; }
+  h1 i { color: #F6CD7A; display: inline-block; line-height: 1; }
+  .p { margin-top: 2.4vmin; font-size: 2.3vmin; line-height: 1.45; color: #D9CDE0; }
+  .ar { display: none; margin-top: auto; align-self: flex-start; font-family: "Amiri", serif; font-size: 7vmin; line-height: 1.5; color: #E2B45E; }
+  .foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .offer { display: flex; flex-direction: column; gap: 1vmin; }
+  .offer b { font-family: "Amiri", Georgia, serif; font-weight: 400; font-size: 6.6vmin; line-height: 1; }
+  .offer span { font-size: 1.8vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #D9CDE0; white-space: nowrap; }
+  .offer span em { font-style: normal; color: #F3E6C8; border-bottom: 1px solid #E2B45E; }
+  .cta { flex: none; font-size: 2vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; background: #F3E6C8; color: #151B3E; padding: 1.6vmin 3vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .sky { top: calc(100% - 66vmin); }
+    .strip { top: 3.6vmin; }
+    .m svg { width: 3.8vmin; height: 3.8vmin; }
+    .copy { top: 17vmin; bottom: 4.4vmin; }
+    h1 { font-size: 10vmin; }
+    .p { display: none; }
+    .offer b { font-size: 5.8vmin; }
+  }
+  /* square / wide → photo left, sky right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .sky { left: 48%; top: 0; }
+    .strip { left: 5vmin; right: 5vmin; top: 7vmin; }
+    .m:nth-child(odd):not(.eid) { display: none; }
+    .m svg { width: 3.8vmin; height: 3.8vmin; }
+    .copy { left: 5vmin; right: 5vmin; top: 22vmin; bottom: 6vmin; }
+    .k { letter-spacing: .2em; }
+    h1 { font-size: 8.8vmin; }
+    .p { display: block; font-size: 2.1vmin; }
+    .ar { display: block; font-size: 6vmin; }
+    .foot { margin-top: 1.4vmin; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .offer b { font-size: 5.6vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.4vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .sky { left: 46%; }
+    .strip { left: 7vmin; right: 7vmin; top: 8vmin; }
+    .m:nth-child(odd):not(.eid) { display: flex; }
+    .m svg { width: 3.4vmin; height: 3.4vmin; }
+    .m.eid svg { width: 5vmin; height: 5vmin; }
+    .copy { left: 7vmin; right: 7vmin; top: 25vmin; bottom: 8vmin; }
+    h1 { font-size: 10.6vmin; }
+    .p { font-size: 2.3vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .offer b { font-size: 6.2vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.5vmin 2.8vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: two layers of faint stars twinkle in the dusk sky (3s / 2s, invisible at t=0)
+     beats: 0.4s a glint travels night by night along the lunar strip (each phase lifts and brightens in turn) ·
+     2.8s it reaches the hilal: the Eid crescent swells, a gold halo ripples out and "Eid" flares ·
+     3.6s a moonlight sweep runs through "new moon." · 4.8s a sheen crosses the CTA */
+  .sky::before, .sky::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+  .sky::before { background: radial-gradient(circle at 50% 50%, rgba(255,246,222,.95) 0 .14vmin, transparent .3vmin) 2vmin 1vmin / 11vmin 8vmin;
+    animation: twinkle 3s cubic-bezier(.45,0,.55,1) infinite; }
+  .sky::after { background: radial-gradient(circle at 50% 50%, rgba(255,246,222,.85) 0 .12vmin, transparent .26vmin) 6vmin 4vmin / 9vmin 13vmin;
+    animation: twinkle 2s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes twinkle { 0%, 100% { opacity: 0; } 50% { opacity: .8; } }
+  .strip, .copy { z-index: 1; }
+  .strip .m svg { animation: glint 6s linear infinite; }
+  .strip .m:nth-child(1) svg { animation-delay: 0.00s; }
+  .strip .m:nth-child(2) svg { animation-delay: -5.85s; }
+  .strip .m:nth-child(3) svg { animation-delay: -5.70s; }
+  .strip .m:nth-child(4) svg { animation-delay: -5.55s; }
+  .strip .m:nth-child(5) svg { animation-delay: -5.40s; }
+  .strip .m:nth-child(6) svg { animation-delay: -5.25s; }
+  .strip .m:nth-child(7) svg { animation-delay: -5.10s; }
+  .strip .m:nth-child(8) svg { animation-delay: -4.95s; }
+  .strip .m:nth-child(9) svg { animation-delay: -4.80s; }
+  .strip .m:nth-child(10) svg { animation-delay: -4.65s; }
+  .strip .m:nth-child(11) svg { animation-delay: -4.50s; }
+  .strip .m:nth-child(12) svg { animation-delay: -4.35s; }
+  .strip .m:nth-child(13) svg { animation-delay: -4.20s; }
+  .strip .m:nth-child(14) svg { animation-delay: -4.05s; }
+  @keyframes glint {
+    0%, 6% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 0 rgba(246,205,122,0)); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    9.5% { transform: translateY(-.8vmin) scale(1.22); filter: drop-shadow(0 0 .9vmin rgba(246,205,122,.9)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    17%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 0 rgba(246,205,122,0)); }
+  }
+  .strip .m.eid svg { animation: eid 6s linear infinite; animation-delay: 0s; }
+  @keyframes eid {
+    0%, 46% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0 rgba(246,205,122,0)); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    51% { transform: scale(1.3) rotate(-10deg); filter: drop-shadow(0 0 1.4vmin rgba(246,205,122,1)); animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    60% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 .6vmin rgba(246,205,122,.6)); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    75%, 100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 0 rgba(246,205,122,0)); }
+  }
+  .halo { opacity: 0; animation: halo 6s linear infinite; }
+  @keyframes halo {
+    0%, 48% { transform: scale(1); opacity: 0; animation-timing-function: steps(1, end); }
+    49% { transform: scale(1); opacity: 1; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    68%, 100% { transform: scale(2.1); opacity: 0; }
+  }
+  .m.eid span { animation: eidtxt 6s linear infinite; }
+  @keyframes eidtxt {
+    0%, 48% { color: #E2B45E; text-shadow: 0 0 0 rgba(246,205,122,0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    52%, 62% { color: #FFE3A8; text-shadow: 0 0 1vmin rgba(246,205,122,.9); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    76%, 100% { color: #E2B45E; text-shadow: 0 0 0 rgba(246,205,122,0); }
+  }
+  h1 i { background: linear-gradient(100deg, #F6CD7A 0 40%, #FFF6DC 50%, #F6CD7A 60% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; padding-right: .1em; margin-right: -.1em;
+    animation: shine 6s linear infinite; }
+  @keyframes shine {
+    0%, 60% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    78%, 100% { background-position: 0% 0; }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 36%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.85) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 80% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    94%, 100% { transform: translateX(340%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sky">
+    <div class="strip">
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A9.11 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>2</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A6.59 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>4</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A2.89 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>6</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A1.33 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>8</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A5.30 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>10</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A8.33 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>12</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A9.87 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>14</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A9.65 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>16</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A7.70 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>18</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A4.37 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>20</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A0.27 10 0 0 0 0 -10 Z" fill="#F3E6C8"/></svg><span>22</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A3.89 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>24</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A7.35 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>26</span></div>
+        <div class="m"><svg viewBox="-12 -12 24 24" aria-hidden="true"><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 0 0 10 A9.49 10 0 0 1 0 -10 Z" fill="#F3E6C8"/></svg><span>28</span></div>
+        <div class="m eid"><svg viewBox="-12 -12 24 24" aria-hidden="true" overflow="visible"><circle class="halo" r="11.4" fill="none" stroke="#E2B45E" stroke-width=".6"/><circle r="11.4" fill="none" stroke="#E2B45E" stroke-width=".8"/><circle r="10" fill="#F3E6C8" fill-opacity=".12"/><path d="M0 -10 A10 10 0 0 1 0 10 A9.42 10 0 0 0 0 -10 Z" fill="#F6CD7A"/></svg><span>Eid</span></div>
+    </div>
+    <div class="copy">
+      <div class="k">Ramadan to Eid al-Fitr</div>
+      <h1>Until the<br><i>new moon.</i></h1>
+      <div class="p">From the first iftar to Eid morning.</div>
+      <div class="ar" lang="ar" dir="rtl">عيد مبارك</div>
+      <div class="foot">
+        <div class="offer"><b>Up to 30% off</b><span>The Eid edit · Code <em>HILAL30</em></span></div>
+        <div class="cta">Shop Eid</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

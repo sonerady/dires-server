@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;800&family=Jost:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Streamline Express — 1930s streamline moderne: the photo rides above a polished aluminium trim, the name is set
+     in heavy extended caps leaning into the wind with speed whiskers trailing off, and the offer is the classic
+     speed-circle — an oxblood disc dragging three tapering lines out of the frame. Cream enamel, ink, oxblood.
+     tall / 3:4 → photo above the cream deck; square / wide → deck left, photo right behind a vertical trim */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEE5D1; }
+  .banner { --cream: #EEE5D1; --ink: #15171C; --ox: #8C1D22; --pan: 72vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--cream); color: var(--ink);
+    font-family: "Jost", "Futura", "Century Gothic", "Helvetica Neue", sans-serif; }
+  .ph { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--pan)); overflow: hidden; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .trim { position: absolute; left: 0; right: 0; bottom: var(--pan); height: 1.8vmin; margin-bottom: -.9vmin; z-index: 2;
+    background: linear-gradient(180deg, #F7F7F4 0%, #C9CBCC 28%, #8D9194 52%, #D9DBDC 70%, #7C8083 100%);
+    box-shadow: 0 .5vmin 1vmin rgba(21,23,28,.25); }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: var(--pan); box-sizing: border-box; padding: 6vmin 6vmin 5vmin;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: repeating-linear-gradient(180deg, rgba(21,23,28,0) 0 3.4vmin, rgba(21,23,28,.035) 3.4vmin 3.6vmin), var(--cream); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .14; mix-blend-mode: multiply; pointer-events: none; }
+
+  .kick { display: flex; justify-content: space-between; align-items: center; font-size: 1.9vmin; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; white-space: nowrap; }
+  .kick span:last-child { color: var(--ox); letter-spacing: .2em; }
+  .kick i { flex: 1; height: 1px; background: var(--ink); margin: 0 2.4vmin; opacity: .5; }
+
+  .head em { display: block; font-style: italic; font-size: 4.6vmin; line-height: 1; letter-spacing: .01em; margin-left: .6vmin; }
+  .ex { display: flex; align-items: center; gap: 2vmin; margin-top: .6vmin; }
+  .ex b { font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 12.4vmin; line-height: 1.02; letter-spacing: -.02em; white-space: nowrap;
+    display: inline-block; transform: skewX(-11deg); transform-origin: 0 100%; }
+  .ex i { flex: 1; min-width: 6vmin; height: 5.2vmin; margin-right: -6vmin;
+    background: linear-gradient(180deg, var(--ink) 0 1vmin, transparent 1vmin 2vmin, var(--ink) 2vmin 2.6vmin, transparent 2.6vmin 3.8vmin, var(--ink) 3.8vmin 4.1vmin, transparent 4.1vmin); }
+
+  .run { position: relative; height: 26vmin; margin: 0 -6vmin; }
+  .run .lines { position: absolute; left: 0; right: 19vmin; top: 50%; height: 9.4vmin; transform: translateY(-50%);
+    background: linear-gradient(180deg, var(--ox) 0 2.6vmin, transparent 2.6vmin 4.2vmin, var(--ox) 4.2vmin 5.8vmin, transparent 5.8vmin 7.4vmin, var(--ox) 7.4vmin 8.2vmin, transparent 8.2vmin); }
+  .run .note { position: absolute; left: 6vmin; top: 0; font-size: 2vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .run .note2 { top: auto; bottom: 0; color: #4A4B50; }
+  .disc { position: absolute; right: 6vmin; top: 0; width: 26vmin; height: 26vmin; border-radius: 50%; background: var(--ox); color: var(--cream);
+    box-shadow: 0 0 0 .7vmin var(--cream), 0 0 0 1.1vmin #9A9EA1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .disc small { font-size: 1.7vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; padding-left: .3em; }
+  .disc b { font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 6vmin; line-height: 1; margin: .8vmin 0 .6vmin; letter-spacing: -.03em; transform: skewX(-11deg); }
+
+  .foot { display: flex; justify-content: space-between; align-items: baseline; padding-top: 1.8vmin; border-top: .5vmin solid var(--ink); font-size: 2.1vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .foot b { font-family: "Unbounded", sans-serif; font-weight: 800; letter-spacing: .04em; }
+  .foot .cta { font-weight: 600; letter-spacing: .2em; }
+
+  /* 3:4 · 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pan: 62vmin; }
+    .panel { padding: 5vmin 6vmin 4.4vmin; }
+    .ex b { font-size: 11vmin; }
+    .ex i { height: 4.6vmin; }
+    .head em { font-size: 4vmin; }
+    .run { height: 22vmin; }
+    .disc { width: 22vmin; height: 22vmin; }
+    .disc b { font-size: 5.1vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .ph { left: auto; right: 0; top: 0; bottom: 0; width: 52%; height: 100%; }
+    .trim { left: auto; right: 52%; top: 0; bottom: 0; width: 1.6vmin; height: auto; margin: 0 -.8vmin 0 0;
+      background: linear-gradient(90deg, #7C8083 0%, #D9DBDC 30%, #8D9194 48%, #C9CBCC 72%, #F7F7F4 100%); box-shadow: -.5vmin 0 1vmin rgba(21,23,28,.25); }
+    .panel { top: 0; right: auto; width: 48%; height: auto; padding: 6vmin 5vmin 5vmin; }
+    .kick { font-size: 1.7vmin; letter-spacing: .24em; }
+    .kick i { margin: 0 1.6vmin; }
+    .head em { font-size: 3.6vmin; }
+    .ex b { font-size: 7.4vmin; }
+    .ex i { height: 3.4vmin; min-width: 3vmin; margin-right: -5vmin;
+      background: linear-gradient(180deg, var(--ink) 0 .8vmin, transparent .8vmin 1.5vmin, var(--ink) 1.5vmin 1.9vmin, transparent 1.9vmin 2.7vmin, var(--ink) 2.7vmin 2.95vmin, transparent 2.95vmin); }
+    .run { height: 21vmin; margin: 0 -5vmin; }
+    .run .lines { right: 15vmin; height: 7.6vmin;
+      background: linear-gradient(180deg, var(--ox) 0 2vmin, transparent 2vmin 3.4vmin, var(--ox) 3.4vmin 4.8vmin, transparent 4.8vmin 6.2vmin, var(--ox) 6.2vmin 6.9vmin, transparent 6.9vmin); }
+    .run .note { left: 5vmin; font-size: 1.7vmin; letter-spacing: .14em; }
+    .disc { right: 5vmin; width: 21vmin; height: 21vmin; }
+    .disc b { font-size: 4.7vmin; }
+    .disc small { font-size: 1.6vmin; letter-spacing: .22em; }
+    .foot { font-size: 1.7vmin; letter-spacing: .04em; flex-wrap: wrap; row-gap: 1vmin; }
+    .foot .cta { letter-spacing: .14em; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .ph { width: 50%; }
+    .trim { right: 50%; }
+    .panel { width: 50%; padding: 7vmin 6vmin 6vmin 7vmin; }
+    .kick { font-size: 1.8vmin; letter-spacing: .3em; }
+    .head em { font-size: 4.4vmin; }
+    .ex b { font-size: 10.6vmin; }
+    .ex i { height: 4.6vmin; margin-right: -6vmin;
+      background: linear-gradient(180deg, var(--ink) 0 1vmin, transparent 1vmin 2vmin, var(--ink) 2vmin 2.6vmin, transparent 2.6vmin 3.8vmin, var(--ink) 3.8vmin 4.1vmin, transparent 4.1vmin); }
+    .run { height: 24vmin; margin: 0 -6vmin 0 -7vmin; }
+    .run .lines { right: 17vmin; height: 9.4vmin;
+      background: linear-gradient(180deg, var(--ox) 0 2.6vmin, transparent 2.6vmin 4.2vmin, var(--ox) 4.2vmin 5.8vmin, transparent 5.8vmin 7.4vmin, var(--ox) 7.4vmin 8.2vmin, transparent 8.2vmin); }
+    .run .note { left: 7vmin; font-size: 1.9vmin; }
+    .disc { right: 6vmin; width: 24vmin; height: 24vmin; }
+    .disc b { font-size: 5.5vmin; }
+    .foot { font-size: 2vmin; letter-spacing: .08em; flex-wrap: nowrap; }
+  }
+  /* ───────── motion (6s loop) ─────────
+     photo breathes (slow 1.03 push) · 1.2s the oxblood speed lines are sucked into the disc, 1.9s the disc punches and
+     the lines shoot back out · 3.0s "Express" leans harder into the wind while its whiskers streak out & redraw ·
+     4.3s a specular glint runs along the aluminium trim · CTA arrow nudges with it */
+  .ph img { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .run .lines { animation: lines 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes lines {
+    0%, 19% { clip-path: inset(0 0 0 0); }
+    29%, 31% { clip-path: inset(0 0 0 100%); }
+    42%, 100% { clip-path: inset(0 0 0 0); }
+  }
+  .disc { animation: disc 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes disc { 0%, 29%, 45%, 100% { transform: scale(1) rotate(0deg); } 34% { transform: scale(1.08) rotate(-4deg); } 39% { transform: scale(.985) rotate(1deg); } }
+
+  .ex b { animation: lean 6s cubic-bezier(.5,0,.25,1) infinite; }
+  @keyframes lean {
+    0%, 49% { transform: skewX(-11deg) translateX(0); }
+    54% { transform: skewX(-18deg) translateX(1.2vmin); }
+    64%, 100% { transform: skewX(-11deg) translateX(0); }
+  }
+  .ex i { animation: whisk 6s cubic-bezier(.6,0,.2,1) infinite; }
+  @keyframes whisk {
+    0%, 49% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+    54% { clip-path: inset(0 0 0 70%); transform: translateX(3vmin); }
+    55% { clip-path: inset(0 100% 0 0); transform: translateX(0); }
+    68%, 100% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+  }
+
+  .trim { overflow: hidden; }
+  .trim::after { content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+    background: linear-gradient(90deg, transparent 0 40%, rgba(255,255,255,.95) 50%, transparent 60% 100%) no-repeat;
+    background-size: 40% 100%; background-position: -60% 0; animation: glint 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes glint { 0%, 70% { background-position: -60% 0; } 88%, 100% { background-position: 160% 0; } }
+  .foot .cta { display: inline-block; animation: nudge 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 72%, 88%, 100% { transform: translateX(0); } 80% { transform: translateX(1vmin); } }
+
+  @media (min-aspect-ratio: 9/10) {
+    .trim::after { background: linear-gradient(180deg, transparent 0 40%, rgba(255,255,255,.95) 50%, transparent 60% 100%) no-repeat;
+      background-size: 100% 40%; background-position: 0 -60%; animation-name: glintV; }
+    @keyframes glintV { 0%, 70% { background-position: 0 -60%; } 88%, 100% { background-position: 0 160%; } }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="panel">
+    <svg class="grain" aria-hidden="true"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .08  0 0 0 0 .06  0 0 0 1.1 -.4"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
+    <div class="kick"><span>Streamline Series</span><i></i><span>Nº 07</span></div>
+    <div class="head"><em>The spring</em><div class="ex"><b>Express</b><i></i></div></div>
+    <div class="run">
+      <div class="note">Departs 12.05</div>
+      <div class="lines"></div>
+      <div class="note note2">Runs to 31 May</div>
+      <div class="disc"><small>All lines</small><b>−30%</b><small>Off</small></div>
+    </div>
+    <div class="foot"><span>Code <b>EXPRESS30</b></span><span class="cta">Board now →</span></div>
+  </div>
+  <div class="trim"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Federo&family=Didact+Gothic&family=Cormorant:ital,wght@1,500&display=swap" rel="stylesheet">
+<style>
+  /* Secession Gold — a Vienna 1900s gilt panel: hammered gold leaf scattered with Klimt's eyes, spirals and
+     enamel flowers, black-and-ivory "robe" bars down each side, the look set in a Hoffmann checkerboard frame;
+     square-cut Secession lettering on black.
+     tall → lettering / gold panel / offer · square & wide → lettering left, gold panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #141210; }
+  .banner { --blk: #141210; --ivory: #F2EAD6; --gold: #D8B25A; --gold2: #F1D78C; --red: #B5412E; --teal: #3F6F6A;
+    --pi: 11vmin; --pt: 5vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ivory); font-family: "Didact Gothic", "Century Gothic", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(80% 60% at 50% 45%, #211D18 0%, #141210 70%, #0D0C0A 100%); }
+
+  /* the gold-leaf panel */
+  .panel { position: absolute; left: 5vmin; right: 5vmin; top: 29vmin; bottom: 44vmin;
+    background:
+      radial-gradient(circle, var(--red) 0 .7vmin, var(--ivory) .7vmin .95vmin, rgba(0,0,0,0) 1vmin) 2vmin 5vmin / 13vmin 11vmin,
+      radial-gradient(circle, var(--teal) 0 .6vmin, var(--ivory) .6vmin .85vmin, rgba(0,0,0,0) .9vmin) 8.5vmin 1vmin / 13vmin 11vmin,
+      radial-gradient(circle, #1A140C 0 .42vmin, #F8E7AA .46vmin .78vmin, rgba(0,0,0,0) .82vmin) 0 0 / 6.4vmin 6.4vmin,
+      radial-gradient(circle, rgba(0,0,0,0) 0 1.2vmin, rgba(104,70,18,.75) 1.2vmin 1.42vmin, rgba(0,0,0,0) 1.42vmin 2vmin, rgba(104,70,18,.75) 2vmin 2.22vmin, rgba(0,0,0,0) 2.22vmin) 3.2vmin 3.2vmin / 6.4vmin 6.4vmin,
+      repeating-linear-gradient(115deg, rgba(255,244,200,.14) 0 .25vmin, rgba(0,0,0,0) .25vmin 1.3vmin),
+      linear-gradient(135deg, #A87725 0%, #E9C866 20%, #BE8F37 38%, #F3D98A 55%, #AE7E2A 74%, #DDB85B 100%);
+    box-shadow: 0 0 0 .5vmin var(--blk), 0 0 0 .8vmin var(--gold), 0 2vmin 5vmin rgba(0,0,0,.6); }
+  /* black-and-ivory robe bars */
+  .robe { position: absolute; top: var(--pt); bottom: var(--pt); width: 3.6vmin; left: calc((var(--pi) - 3.6vmin) / 2);
+    background:
+      repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 1.5vmin, var(--blk) 1.5vmin 4.9vmin, rgba(0,0,0,0) 4.9vmin 8vmin) 50% 0 / .9vmin 100% no-repeat,
+      repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 .7vmin, var(--ivory) .7vmin 5.7vmin, rgba(0,0,0,0) 5.7vmin 8vmin) 50% 0 / 2vmin 100% no-repeat,
+      repeating-linear-gradient(180deg, var(--blk) 0 6.4vmin, rgba(0,0,0,0) 6.4vmin 8vmin); }
+  .robe.r { left: auto; right: calc((var(--pi) - 3.6vmin) / 2); }
+  /* Hoffmann checker frame + the look */
+  .ph { position: absolute; left: var(--pi); right: var(--pi); top: var(--pt); bottom: var(--pt);
+    background: conic-gradient(var(--blk) 25%, var(--ivory) 0 50%, var(--blk) 0 75%, var(--ivory) 0) 0 0 / 2.4vmin 2.4vmin;
+    box-shadow: 0 0 0 .5vmin var(--blk); }
+  .ph img { position: absolute; left: 1.2vmin; top: 1.2vmin; width: calc(100% - 2.4vmin); height: calc(100% - 2.4vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  /* lettering */
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 4vmin; height: 22vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .mark { display: inline-grid; grid-template-columns: repeat(3, 1.1vmin); gap: .45vmin; vertical-align: middle; margin-right: 1.8vmin; }
+  .mark i { width: 1.1vmin; height: 1.1vmin; background: var(--gold); }
+  .mark i:nth-child(5) { background: var(--red); }
+  .k { display: flex; align-items: center; justify-content: center; font-size: 2vmin; letter-spacing: .42em; margin-right: -.42em; text-transform: uppercase; color: var(--gold2); white-space: nowrap; }
+  h1 { margin: 2vmin 0 0; font-family: "Federo", "Futura", "Century Gothic", sans-serif; font-weight: 400; font-size: 12.6vmin; line-height: .95; letter-spacing: .05em; margin-right: -.05em; text-transform: uppercase; white-space: nowrap;
+    background: linear-gradient(180deg, #F8E3A0 0%, #D8B25A 55%, #A87725 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 3vmin; height: 37vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .sub { font-family: "Cormorant", Georgia, serif; font-style: italic; font-weight: 500; font-size: 3.6vmin; line-height: 1.2; color: var(--ivory); text-wrap: balance; }
+  .fine i { font-style: normal; }
+  .deal { margin-top: 2.6vmin; display: flex; align-items: center; justify-content: center; gap: 3vmin; }
+  .deal b { font-family: "Federo", sans-serif; font-weight: 400; font-size: 9vmin; line-height: 1; color: var(--gold2); white-space: nowrap; }
+  .deal span { text-align: left; font-size: 2vmin; line-height: 1.6; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .deal span u { text-decoration: none; color: var(--gold2); }
+  .deal s { width: 1px; align-self: stretch; background: rgba(216,178,90,.6); text-decoration: none; }
+  .cta { margin-top: 3vmin; padding: 1.5vmin 4.4vmin 1.4vmin; border: .35vmin solid var(--gold); outline: 1px solid rgba(216,178,90,.5); outline-offset: .6vmin;
+    font-size: 2vmin; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; white-space: nowrap; color: var(--gold2); }
+  .fine { margin-top: 2.8vmin; font-size: 1.7vmin; letter-spacing: .24em; margin-right: -.24em; text-transform: uppercase; color: rgba(242,234,214,.7); white-space: nowrap; }
+
+  /* shorter portrait */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pi: 9vmin; --pt: 4vmin; }
+    .panel { left: 12vmin; right: 12vmin; top: 22vmin; bottom: 36vmin; }
+    .head { top: 3vmin; height: 16vmin; }
+    h1 { font-size: 10vmin; margin-top: 1.4vmin; }
+    .copy { height: 32vmin; bottom: 2vmin; }
+    .sub { font-size: 3.1vmin; }
+    .deal { margin-top: 2vmin; }
+    .deal b { font-size: 7.6vmin; }
+    .cta { margin-top: 2.4vmin; }
+    .fine { margin-top: 2.4vmin; }
+  }
+  /* square: lettering left, panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pi: 8.4vmin; --pt: 5vmin; }
+    .panel { left: auto; right: 5vmin; width: 52vmin; top: 5vmin; bottom: 5vmin; }
+    .head { left: 5vmin; right: auto; width: calc(100% - 66vmin); top: 5vmin; height: auto; bottom: 52vmin; justify-content: flex-end; align-items: flex-start; text-align: left; }
+    .k { font-size: 1.7vmin; letter-spacing: .2em; margin-right: 0; justify-content: flex-start; white-space: normal; line-height: 1.5; }
+    h1 { font-size: 7vmin; white-space: normal; line-height: 1.02; margin-right: 0; }
+    .copy { left: 5vmin; right: auto; width: calc(100% - 66vmin); top: 51vmin; bottom: 5vmin; height: auto; justify-content: flex-start; align-items: flex-start; text-align: left; }
+    .sub { font-size: 3vmin; margin-top: 1vmin; }
+    .deal { justify-content: flex-start; flex-direction: column; align-items: flex-start; margin-top: 2.6vmin; gap: 1.2vmin; }
+    .deal s { display: none; }
+    .deal b { font-size: 7.4vmin; }
+    .deal span { font-size: 1.7vmin; letter-spacing: .16em; }
+    .cta { margin-top: 3vmin; padding: 1.3vmin 3vmin 1.2vmin; font-size: 1.8vmin; letter-spacing: .24em; margin-right: 0; }
+    .fine { font-size: 1.6vmin; letter-spacing: .16em; margin-right: 0; white-space: normal; line-height: 1.6; }
+    .fine i { display: none; } .fine span { display: block; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pi: 9.6vmin; --pt: 5vmin; }
+    .panel { width: 66vmin; }
+    .head { left: 8vmin; width: calc(100% - 86vmin); bottom: 50vmin; align-items: center; text-align: center; }
+    .k { justify-content: center; font-size: 1.9vmin; letter-spacing: .34em; margin-right: -.34em; white-space: nowrap; }
+    h1 { font-size: 9.6vmin; white-space: normal; line-height: 1; margin-right: -.05em; }
+    .copy { left: 8vmin; width: calc(100% - 86vmin); top: 52vmin; align-items: center; text-align: center; }
+    .deal { justify-content: center; flex-direction: row; align-items: center; gap: 2.4vmin; }
+    .deal s { display: block; }
+    .deal b { font-size: 7.6vmin; }
+    .cta { margin-right: -.24em; }
+    .fine { white-space: nowrap; margin-right: -.16em; }
+    .fine i { display: inline; } .fine span { display: inline; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) — slow & restrained, like gilt catching candlelight ─────────
+     constant: the robe bars' pattern glides upward exactly one tile · the look breathes in its checker frame (≤1.03)
+     beats: 0.9s a wave of light runs across the 3×3 mark · 1.8s a soft specular pass crosses the gold-leaf panel ·
+            3.3s the gilt lettering catches a glint · 4.8s the CTA frame's gold gleams */
+  .ph .fr { position: absolute; left: 1.2vmin; top: 1.2vmin; right: 1.2vmin; bottom: 1.2vmin; overflow: hidden; }
+  .ph .fr img { left: 0; top: 0; width: 100%; height: 100%; transform-origin: 50% 30%; animation: grow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes grow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .robe { background:
+      repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 1.5vmin, var(--blk) 1.5vmin 4.9vmin, rgba(0,0,0,0) 4.9vmin 8vmin) 50% 0 / .9vmin 8vmin repeat-y,
+      repeating-linear-gradient(180deg, rgba(0,0,0,0) 0 .7vmin, var(--ivory) .7vmin 5.7vmin, rgba(0,0,0,0) 5.7vmin 8vmin) 50% 0 / 2vmin 8vmin repeat-y,
+      repeating-linear-gradient(180deg, var(--blk) 0 6.4vmin, rgba(0,0,0,0) 6.4vmin 8vmin) 0 0 / 100% 8vmin repeat-y;
+    animation: robe 6s linear infinite; }
+  @keyframes robe { from { background-position: 50% 0, 50% 0, 0 0; } to { background-position: 50% -8vmin, 50% -8vmin, 0 -8vmin; } }
+  .robe.r { animation-direction: reverse; }
+
+  .panel::after { content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light;
+    background: linear-gradient(120deg, transparent 38%, rgba(255,248,220,.75) 50%, transparent 62%) no-repeat;
+    background-size: 300% 300%; background-position: 110% 110%; animation: leaf 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes leaf { 0%, 28% { background-position: 110% 110%; } 62%, 100% { background-position: -10% -10%; } }
+
+  .mark i { animation: tile 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .mark i:nth-child(2), .mark i:nth-child(4) { animation-delay: -.12s; }
+  .mark i:nth-child(3), .mark i:nth-child(5), .mark i:nth-child(7) { animation-delay: -.24s; }
+  .mark i:nth-child(6), .mark i:nth-child(8) { animation-delay: -.36s; }
+  .mark i:nth-child(9) { animation-delay: -.48s; }
+  @keyframes tile { 0%, 15%, 27%, 100% { filter: brightness(1); transform: scale(1); } 20% { filter: brightness(1.55); transform: scale(1.18); } }
+
+  h1 { background:
+      linear-gradient(105deg, rgba(255,250,225,0) 42%, rgba(255,250,225,.95) 50%, rgba(255,250,225,0) 58%) no-repeat,
+      linear-gradient(180deg, #F8E3A0 0%, #D8B25A 55%, #A87725 100%);
+    background-size: 300% 100%, 100% 100%; background-position: 110% 0, 0 0; -webkit-background-clip: text; background-clip: text;
+    animation: glint 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes glint { 0%, 52% { background-position: 110% 0, 0 0; } 76%, 100% { background-position: -10% 0, 0 0; } }
+
+  .cta { animation: frame 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes frame { 0%, 76%, 100% { border-color: var(--gold); outline-color: rgba(216,178,90,.5); box-shadow: 0 0 0 rgba(241,215,140,0); }
+                     84% { border-color: var(--gold2); outline-color: rgba(241,215,140,.9); box-shadow: 0 0 2.2vmin rgba(241,215,140,.35); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="panel">
+    <i class="robe" aria-hidden="true"></i>
+    <i class="robe r" aria-hidden="true"></i>
+    <div class="ph"><div class="fr"><img src="{{PRODUCT_IMAGE}}" alt=""></div></div>
+  </div>
+  <div class="head">
+    <div class="k"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>Atelier Kranz · Wien</div>
+    <h1>Gilt Edition</h1>
+  </div>
+  <div class="copy">
+    <div class="sub">Twelve new pieces, finished in gold.</div>
+    <div class="deal"><b>20% off</b><s></s><span>The whole edition<br>Code <u>GILT20</u></span></div>
+    <div class="cta">Shop the edition</div>
+    <div class="fine">Until 12 December<i> · </i><span>kranz-atelier.com</span></div>
+  </div>
+</div>
+</body>
+</html>

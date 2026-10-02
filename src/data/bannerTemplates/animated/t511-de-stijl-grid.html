@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* De Stijl Grid — a Mondrian composition: thick black lines are the grid gaps, the photo is the biggest white plane,
+     primaries carry the offer. tall: photo in the middle band · 3:4: shallower copy rows · square: photo right half · wide: photo centre column */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #111; }
+  .banner { --line: 1.7vmin; --red: #D52B1E; --yel: #F4C51B; --blu: #1D3F95; --wht: #F3EFE6; --ink: #111;
+    position: fixed; inset: 0; overflow: hidden; background: var(--ink); color: var(--ink);
+    font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    display: grid; gap: var(--line);
+    grid-template-columns: 19vmin 1fr 30vmin;
+    grid-template-rows: 11vmin 1fr 22vmin 25vmin 14vmin;
+    grid-template-areas:
+      "y k k"
+      "b p p"
+      "c p p"
+      "h h r"
+      "h h s"; }
+  .cell { position: relative; min-width: 0; min-height: 0; background: var(--wht); box-sizing: border-box; }
+  .y { grid-area: y; background: var(--yel); }
+  .b { grid-area: b; }
+  .c { grid-area: c; background: var(--blu); }
+  .k { grid-area: k; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; padding: 0 3vmin;
+    font-family: "DM Mono", monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+  .k span:last-child { color: var(--red); }
+  .photo { grid-area: p; display: block; width: 100%; height: 100%; min-height: 0; object-fit: cover; object-position: 50% 22%; }
+  .h { grid-area: h; padding: 3.4vmin 3.6vmin; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-weight: 800; font-size: 10.4vmin; line-height: .86; letter-spacing: -.045em; }
+  h1 em { font-style: normal; color: var(--blu); }
+  .h p { margin: auto 0 0; font-size: 2.1vmin; line-height: 1.36; font-weight: 500; max-width: 46vmin; color: #33302A; }
+  .r { grid-area: r; background: var(--red); color: var(--wht); padding: 2.6vmin 2.8vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .r small { font-family: "DM Mono", monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .r b { font-size: 10vmin; font-weight: 800; line-height: .8; letter-spacing: -.05em; }
+  .s { grid-area: s; padding: 2vmin 2.8vmin; display: flex; flex-direction: column; justify-content: center; gap: .9vmin; }
+  .s b { font-size: 2.4vmin; font-weight: 700; white-space: nowrap; }
+  .s small { font-family: "DM Mono", monospace; font-size: 1.6vmin; letter-spacing: .06em; color: #4A463E; white-space: nowrap; }
+
+  /* 3:4 — copy rows get shallower so the photo keeps its height */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { grid-template-columns: 16vmin 1fr 30vmin; grid-template-rows: 9vmin 1fr 17vmin 13vmin;
+      grid-template-areas:
+        "y k k"
+        "c p p"
+        "h h r"
+        "h h s"; }
+    .b { display: none; }
+    .h { padding: 2.6vmin 3.2vmin; }
+    h1 { font-size: 8.6vmin; }
+    .h p { font-size: 1.9vmin; max-width: 44vmin; }
+    .r { padding: 2vmin 2.6vmin; }
+    .r b { font-size: 8vmin; }
+    .s { padding: 1.4vmin 2.6vmin; gap: .6vmin; }
+    .s b { font-size: 2.2vmin; }
+  }
+  /* square-ish — photo takes the right half, copy planes on the left */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { grid-template-columns: 10vmin 1fr 47%; grid-template-rows: 10vmin 1fr 18vmin 12vmin;
+      grid-template-areas:
+        "y k p"
+        "h h p"
+        "c r p"
+        "c s p"; }
+    .b { display: none; }
+    .k { padding: 0 2.4vmin; }
+    .k span:last-child { display: none; }
+    .h { padding: 3.2vmin 3vmin; }
+    h1 { font-size: 10.4vmin; }
+    .h p { font-size: 1.9vmin; max-width: 40vmin; }
+    .r { flex-direction: row; align-items: flex-end; gap: 2vmin; padding: 2.4vmin 2.6vmin; }
+    .r small { max-width: 14vmin; line-height: 1.3; }
+    .r b { font-size: 9vmin; }
+    .s { padding: 1.2vmin 2.6vmin; gap: .5vmin; }
+  }
+  /* wide — photo in a big centre column, primaries flank it */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: 1fr 44% 17vmin; grid-template-rows: 11vmin 1fr 20vmin 13vmin;
+      grid-template-areas:
+        "k p y"
+        "h p b"
+        "r p c"
+        "s p c"; }
+    .b { display: block; }
+    .k { padding: 0 3vmin; }
+    .k span:last-child { display: inline; }
+    .h { padding: 3.4vmin 3.4vmin; }
+    h1 { font-size: 11vmin; }
+    .h p { font-size: 2vmin; max-width: 44vmin; }
+    .r { padding: 2.4vmin 3vmin; }
+    .r b { font-size: 9.6vmin; }
+    .s { padding: 1.4vmin 3vmin; }
+    .s b { font-size: 2.4vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     the composition repaints itself, one primary at a time, on a clean rhythm:
+     0.8s yellow plane drains down to white and floods back · 1.8s blue plane is re-laid left→right ·
+     3.0s the red "−30%" block punches · 3.9s "objects." is re-set with a hard wipe · 4.8s CTA arrow nudges twice ·
+     constant: a slow vertical drift of the photo inside its plane */
+  .y { background: linear-gradient(var(--yel), var(--yel)) 0 100% / 100% 100% no-repeat, var(--wht); animation: drainY 6s cubic-bezier(.7,0,.25,1) infinite; }
+  @keyframes drainY { 0%, 13%, 35%, 100% { background-size: 100% 100%; } 20%, 23% { background-size: 100% 0%; } }
+  .c { background: linear-gradient(var(--blu), var(--blu)) 0 0 / 100% 100% no-repeat, var(--wht); animation: layC 6s cubic-bezier(.7,0,.25,1) infinite; }
+  @keyframes layC { 0%, 30%, 50%, 100% { background-size: 100% 100%; background-position: 0 0; }
+    36% { background-size: 0% 100%; background-position: 100% 0; } 36.01%, 39% { background-size: 0% 100%; background-position: 0 0; } }
+  .r { overflow: hidden; }
+  .r b { display: inline-block; transform-origin: 0 100%; animation: punch 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes punch { 0%, 49%, 62%, 100% { transform: scale(1); } 53% { transform: scale(1.06); } 57% { transform: scale(.98); } }
+  h1 em { display: inline-block; animation: reset 6s cubic-bezier(.75,0,.2,1) infinite; }
+  @keyframes reset { 0%, 64% { clip-path: inset(-10% 0 -20% 0); } 67%, 69% { clip-path: inset(-10% 0 -20% 100%); } 69.01% { clip-path: inset(-10% 100% -20% 0); } 76%, 100% { clip-path: inset(-10% 0 -20% 0); } }
+  .s .ar { display: inline-block; animation: nudge 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes nudge { 0%, 80%, 94%, 100% { transform: translateX(0); } 83% { transform: translateX(1vmin); } 86% { transform: translateX(0); } 89% { transform: translateX(1vmin); } }
+  .photo { animation: drift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes drift { 0%, 100% { object-position: 50% 22%; } 50% { object-position: 50% 30%; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="cell y"></div>
+  <div class="cell k"><span>Halve &amp; Co. · Line edit</span><span>No. 11</span></div>
+  <div class="cell b"></div>
+  <div class="cell c"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cell h">
+    <h1>Primary<br><em>objects.</em></h1>
+    <p>Clean lines, nothing extra. The new colour-block essentials, built to last.</p>
+  </div>
+  <div class="cell r"><small>Grid week</small><b>−30%</b></div>
+  <div class="cell s"><b>Shop the grid <span class="ar">→</span></b><small>Code GRID30 · ends Sunday</small></div>
+</div>
+</body>
+</html>

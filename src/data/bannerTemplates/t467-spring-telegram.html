@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&family=Cutive+Mono&display=swap" rel="stylesheet">
+<style>
+  /* Spring Telegram — a 1930s wire-office telegram form on pale yellow stock: the wire company's winged-bolt masthead,
+     the ruled "class of service / filed / received" boxes, and the message itself pasted on in strips of teleprinter
+     tape — ending every line in STOP, the offer on the heaviest strip — signed off with the house name.
+     tall / 3:4 → photo above the form; square / wide → form left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2E4B3; }
+  .banner { --form: #F2E4B3; --ink: #1D2130; --red: #B02A25; --tape: #FBF8EC; --pan: 94vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--form); color: var(--ink);
+    font-family: "Josefin Sans", "Futura", "Helvetica Neue", Arial, sans-serif; }
+  .ph { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--pan)); overflow: hidden; background: #2A2A2A; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .form { position: absolute; left: 0; right: 0; bottom: 0; height: var(--pan); box-sizing: border-box; padding: 5vmin 6vmin 4.4vmin;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: radial-gradient(ellipse at 30% 20%, rgba(255,250,225,.55), transparent 65%), var(--form); border-top: .5vmin solid var(--ink); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .16; mix-blend-mode: multiply; pointer-events: none; }
+  .mono { font-family: "Cutive Mono", "Courier New", monospace; }
+
+  .mast { position: relative; display: flex; align-items: center; gap: 2.6vmin; padding-bottom: 1.8vmin; border-bottom: .8vmin double var(--ink); }
+  .bolt { flex: none; width: 9vmin; height: 9vmin; }
+  .mast .co { flex: 1; min-width: 0; }
+  .mast small { display: block; font-size: 1.7vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; }
+  .mast b { display: block; margin-top: .6vmin; font-weight: 700; font-size: 10vmin; line-height: .9; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .mast .no { flex: none; text-align: right; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .mast .no span { display: block; margin-top: .6vmin; font-family: "Cutive Mono", monospace; font-size: 2.8vmin; letter-spacing: .02em; color: var(--red); }
+
+  .boxes { position: relative; display: grid; grid-template-columns: 1.2fr 1fr 1fr; border: 1px solid var(--ink); border-top: 0; }
+  .boxes div { padding: 1vmin 1.4vmin 1.1vmin; border-left: 1px solid var(--ink); font-size: 1.6vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .boxes div:first-child { border-left: 0; }
+  .boxes span { display: block; margin-top: .4vmin; font-family: "Cutive Mono", monospace; font-weight: 400; font-size: 2.3vmin; letter-spacing: 0; text-transform: none; }
+
+  .msg { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+  .msg .to { font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; margin-bottom: .6vmin; white-space: nowrap; }
+  .msg .to span { font-family: "Cutive Mono", monospace; font-weight: 400; font-size: 2.4vmin; letter-spacing: .02em; text-transform: none; margin-left: 1.2vmin; }
+  .t { display: block; padding: .7vmin 1.4vmin .6vmin; background: var(--tape); font-family: "Cutive Mono", monospace; font-size: 3.9vmin; line-height: 1.1; letter-spacing: .02em; white-space: nowrap;
+    box-shadow: 0 .2vmin .4vmin rgba(60,45,10,.22); }
+  .t:nth-of-type(2) { margin-left: 2vmin; }
+  .t:nth-of-type(4) { margin-left: 1vmin; }
+  .t.big { font-size: 6.2vmin; font-weight: 700; padding: .8vmin 1.6vmin .7vmin; -webkit-text-stroke: .08vmin var(--ink); }
+  .t.big em { font-style: normal; color: var(--red); -webkit-text-stroke-color: var(--red); }
+  .sig { margin-top: .6vmin; font-family: "Cutive Mono", monospace; font-size: 3.4vmin; white-space: nowrap; }
+
+  .foot { position: relative; display: flex; justify-content: space-between; align-items: center; padding-top: 1.6vmin; border-top: 1px solid var(--ink); font-size: 1.8vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .foot .cta { display: inline-flex; align-items: center; padding: 1.3vmin 2.4vmin 1vmin; background: var(--red); color: var(--tape); letter-spacing: .2em; }
+
+  /* 3:4 · 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pan: 80vmin; }
+    .form { padding: 4.2vmin 6vmin 3.8vmin; }
+    .bolt { width: 7.6vmin; height: 7.6vmin; }
+    .mast b { font-size: 8.4vmin; }
+    .msg { gap: 1vmin; }
+    .t { font-size: 3vmin; }
+    .t.big { font-size: 4.4vmin; }
+    .sig { font-size: 2.6vmin; margin-top: .2vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .ph { left: auto; right: 0; top: 0; width: 46%; height: 100%; }
+    .form { top: 0; right: auto; width: 54%; height: 100%; padding: 5vmin 4.6vmin 4.4vmin; border-top: 0; border-right: .5vmin solid var(--ink); }
+    .mast { gap: 1.6vmin; }
+    .bolt { width: 6vmin; height: 6vmin; }
+    .mast small { font-size: 1.6vmin; letter-spacing: .16em; }
+    .mast b { font-size: 6.4vmin; letter-spacing: .04em; }
+    .mast .no { display: none; }
+    .mast .no { font-size: 1.6vmin; letter-spacing: .06em; }
+    .mast .no span { font-size: 2.2vmin; }
+    .boxes { grid-template-columns: 1fr 1fr; }
+    .boxes div { padding: .8vmin 1vmin .9vmin; letter-spacing: .06em; }
+    .boxes div:nth-child(3) { display: none; }
+    .boxes span { font-size: 2vmin; }
+    .msg { gap: 1.6vmin; }
+    .msg .to { font-size: 1.6vmin; letter-spacing: .12em; }
+    .msg .to span { font-size: 2vmin; }
+    .t { font-size: 2.3vmin; padding: .6vmin 1vmin .5vmin; }
+    .t.big { font-size: 3.3vmin; padding: .7vmin 1.1vmin .6vmin; }
+    .t:nth-of-type(2) { margin-left: 1.2vmin; }
+    .sig { font-size: 2.3vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.4vmin; font-size: 1.6vmin; letter-spacing: .1em; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .ph { width: 48%; }
+    .form { width: 52%; padding: 5vmin 6vmin 4.6vmin; }
+    .bolt { width: 7vmin; height: 7vmin; }
+    .mast small { font-size: 1.7vmin; letter-spacing: .26em; }
+    .mast b { font-size: 8.4vmin; }
+    .mast .no { display: none; }
+    .boxes { grid-template-columns: 1.2fr 1fr 1fr; }
+    .boxes div:nth-child(3) { display: block; }
+    .boxes div { padding: 1vmin 1.4vmin 1.1vmin; letter-spacing: .1em; }
+    .t { font-size: 3.3vmin; padding: .6vmin 1.4vmin .5vmin; }
+    .t.big { font-size: 5vmin; }
+    .msg { gap: 1.6vmin; }
+    .sig { font-size: 2.8vmin; }
+    .foot { flex-direction: row; align-items: center; font-size: 1.8vmin; letter-spacing: .16em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="form">
+    <svg class="grain" aria-hidden="true"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="3" seed="11"/><feColorMatrix values="0 0 0 0 .3  0 0 0 0 .25  0 0 0 0 .05  0 0 0 1 -.35"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
+    <div>
+      <div class="mast">
+        <svg class="bolt" viewBox="0 0 100 100" aria-hidden="true">
+          <circle cx="50" cy="50" r="46" fill="none" stroke="#1D2130" stroke-width="3"/>
+          <circle cx="50" cy="50" r="39" fill="#1D2130"/>
+          <path d="M8 44 Q 26 38 36 46 M8 56 Q 26 50 34 56 M92 44 Q 74 38 64 46 M92 56 Q 74 50 66 56" stroke="#1D2130" stroke-width="3" fill="none"/>
+          <path d="M56 18 L 36 54 L 50 54 L 42 82 L 66 42 L 52 42 L 60 18 Z" fill="#B02A25" stroke="#F2E4B3" stroke-width="2.5" stroke-linejoin="round"/>
+        </svg>
+        <div class="co"><small>Meridian Wire Co.</small><b>Telegram</b></div>
+        <div class="no">Nº<span>SF 2604</span></div>
+      </div>
+      <div class="boxes">
+        <div>Class<span>Full rate</span></div>
+        <div>Filed<span>12 May 9.04a</span></div>
+        <div>Received<span>9.11a</span></div>
+      </div>
+    </div>
+    <div class="msg">
+      <div class="to">To<span>Our customers, everywhere</span></div>
+      <span class="t">NEW SEASON ARRIVED STOP</span>
+      <span class="t big">ALL LINES <em>30 PCT OFF</em></span>
+      <span class="t">CODE WIRE30 TILL 31 MAY STOP</span>
+      <span class="t">COME AT ONCE =</span>
+      <div class="sig">= ATELIER MERIDIAN</div>
+    </div>
+    <div class="foot"><span>Free delivery · all stations</span><span class="cta">Reply by order →</span></div>
+  </div>
+</div>
+</body>
+</html>

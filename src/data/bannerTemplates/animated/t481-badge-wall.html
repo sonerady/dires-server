@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Silkscreen:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Badge Wall — the offer told in 88×31 web buttons: a tidy wall of pixel badges (each one keeps the true 88:31 ratio),
+     under a quiet serif "Click here." with a link-blue underline and a pixel arrow cursor clicking it.
+     tall → photo above, paper panel below · square & wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEEBE3; }
+  .banner { --paper: #EEEBE3; --ink: #151412; --link: #2233E6; --panel: 60vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--paper); color: var(--ink); font-family: "Inter", "Helvetica Neue", Arial, sans-serif; }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--panel)); overflow: hidden; }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .photo .cap { position: absolute; left: 0; bottom: 0; background: var(--paper); padding: 1vmin 1.8vmin .9vmin 6vmin; font-family: "Silkscreen", monospace; font-size: 1.7vmin; letter-spacing: .04em; white-space: nowrap; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 9vmin); display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; padding-bottom: 1.4vmin; border-bottom: 1px solid var(--ink); white-space: nowrap; }
+  .hl { position: relative; margin-top: 3.2vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  h1 { margin: 0; font-family: "Instrument Serif", "Times New Roman", serif; font-weight: 400; font-size: 15.5vmin; line-height: .82; letter-spacing: -.035em; white-space: nowrap; }
+  h1 i { position: relative; color: var(--link); }
+  h1 i::after { content: ""; position: absolute; left: .02em; right: .06em; bottom: -.02em; height: .8vmin; background: var(--link); }
+  .cur { position: absolute; left: 52%; bottom: -5.4vmin; width: 4.4vmin; height: 6.8vmin; }
+  .hl p { margin: 0 0 .4vmin; max-width: 27vmin; font-size: 2vmin; line-height: 1.38; }
+  .hl p b { font-weight: 600; }
+
+  .wall { margin-top: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.6vmin; }
+  .b { position: relative; aspect-ratio: 88 / 31; display: flex; box-sizing: border-box; border: 1px solid #000; overflow: hidden;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,.55), inset -1px -1px 0 rgba(0,0,0,.35); font-family: "Silkscreen", monospace; font-size: 1.62vmin; line-height: 1.05; letter-spacing: .02em; white-space: nowrap; }
+  .b .l { flex: none; width: 34%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .b .r { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 .9vmin; gap: .3vmin; }
+  .b1 { background: #F4EFE2; color: #111; } .b1 .l { background: #D8231F; color: #fff; font-size: 2.3vmin; }
+  .b2 { background: #10173A; color: #E9ECFF; } .b2 .l { background: linear-gradient(180deg, #7F92FF, #3647C8); color: #fff; }
+  .b3 { background: linear-gradient(180deg, #FFFFFF 0%, #D2D2CE 48%, #B8B8B3 52%, #E6E6E2 100%); color: #111; justify-content: center; align-items: center; text-align: center; }
+  .b3 .r { align-items: center; }
+  .b4 { background: #111; color: #C9F24A; } .b4 .l { background: #C9F24A; color: #111; }
+  .b5 { background: repeating-conic-gradient(#E9DDF8 0 25%, #F7F1FF 0 50%) 0 0 / .5vmin .5vmin; color: #2A1450; } .b5 .l { background: #6A3FB8; color: #fff; }
+  .b6 { background: #0F5B57; color: #F2F5EE; } .b6 .l { background: #F2F5EE; color: #0F5B57; }
+  .b7 { background: #F9D949; color: #111; } .b7 .l { background: #111; color: #F9D949; }
+  .b8 { background: #fff; color: #111; } .b8 .l { background: repeating-linear-gradient(135deg, #111 0 .5vmin, #fff .5vmin 1vmin); color: #111; }
+  .b8 .l span { background: #fff; padding: .2vmin .4vmin; }
+  .note { margin-top: 1.8vmin; display: flex; justify-content: space-between; font-family: "Silkscreen", monospace; font-size: 1.6vmin; letter-spacing: .04em; white-space: nowrap; opacity: .72; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 56vmin; }
+    .panel { left: 10vmin; right: 10vmin; }
+    h1 { font-size: 13.5vmin; }
+      .b { font-size: 1.6vmin; }
+  }
+
+  /* square & wide: photo left, badge panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; bottom: 0; height: 100%; width: 50%; }
+    .photo .cap { padding-left: 4vmin; }
+    .panel { left: calc(50% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .hl { flex-direction: column; align-items: flex-start; gap: 10vmin; margin-top: 4vmin; }
+    h1 { font-size: 13vmin; }
+      .hl p { max-width: none; font-size: 1.9vmin; }
+    .wall { grid-template-columns: repeat(2, 1fr); gap: 1.4vmin; }
+    .b { font-size: 1.62vmin; }
+    .note { margin-top: 1.6vmin; }
+    .note span + span { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .panel { left: calc(44% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .hl { flex-direction: row; align-items: flex-end; margin-top: 3.4vmin; }
+    h1 { font-size: 15vmin; }
+      .hl p { max-width: 24vmin; }
+    .wall { grid-template-columns: repeat(4, 1fr); }
+    .b { font-size: 1.6vmin; }
+    .note span + span { display: inline; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     early-web rhythm, stepped timing: the 30% badge blinks, the chrome button gets a specular sweep,
+     the SHOP stripes crawl, the CODE badge's cursor blinks; beat: the pixel cursor wanders off,
+     glides back and clicks "here." at 3.4 s — link flashes visited-purple, the underline flickers, then settles */
+  .photo img { transform-origin: 50% 35%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .cur { transform-origin: 10% 5%; animation: cursor 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes cursor {
+    0%, 12% { transform: translate(0, 0) scale(1); }
+    30% { transform: translate(9vmin, 3vmin) scale(1); }
+    38% { transform: translate(8vmin, 2.6vmin) scale(1); }
+    55% { transform: translate(0, 0) scale(1); }
+    57% { transform: translate(0, 0) scale(.84); }
+    60%, 100% { transform: translate(0, 0) scale(1); }
+  }
+  h1 i { animation: visited 6s steps(1, end) infinite; }
+  @keyframes visited { 0%, 56% { color: #2233E6; } 57%, 75% { color: #6A1FB0; } 76%, 100% { color: #2233E6; } }
+  h1 i::after { animation: ul 6s steps(1, end) infinite; }
+  @keyframes ul { 0%, 56%, 76%, 100% { opacity: 1; background: #2233E6; } 57%, 60%, 63% { opacity: 1; background: #6A1FB0; } 58.5%, 61.5% { opacity: 0; background: #6A1FB0; } }
+
+  .b1 .l { animation: blink 1s steps(1, end) infinite; }
+  @keyframes blink { 0%, 60% { color: #fff; } 61%, 100% { color: #D8231F; } }
+
+  .b3::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; pointer-events: none;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.95) 50%, transparent); opacity: 0;
+    animation: chrome 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes chrome { 0%, 40% { transform: translateX(0); opacity: 0; } 42% { opacity: 1; } 70% { transform: translateX(420%); opacity: 1; } 72%, 100% { transform: translateX(420%); opacity: 0; } }
+
+  .b8 .l { animation: crawl 1.5s steps(6, end) infinite; }
+  @keyframes crawl { from { background-position: 0 0; } to { background-position: 1.4142vmin 0; } }
+
+  .b4 .r b { animation: caret 1s steps(1, end) infinite; }
+  @keyframes caret { 0%, 50% { box-shadow: .5vmin 0 0 -.1vmin transparent; } 51%, 100% { box-shadow: .5vmin 0 0 -.1vmin #C9F24A; } }
+  /* same-time pulse on the b2 gradient when the link is clicked */
+  .b2 .l { animation: newflash 6s steps(1, end) infinite; }
+  @keyframes newflash { 0%, 57%, 67%, 100% { filter: none; } 60%, 64% { filter: brightness(1.45); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="cap">new_season.jpg · 88×31 approved</div></div>
+  <div class="panel">
+    <div class="meta"><span>Studio Oro — Web buttons</span><span>SS26</span></div>
+    <div class="hl">
+      <h1>Click <i>here.<svg class="cur" viewBox="0 0 11 17" shape-rendering="crispEdges"><path d="M0 0h1v1h-1zM0 1h2v1h-2zM0 2h1v1h-1zM2 2h1v1h-1zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM4 4h1v1h-1zM0 5h1v1h-1zM5 5h1v1h-1zM0 6h1v1h-1zM6 6h1v1h-1zM0 7h1v1h-1zM7 7h1v1h-1zM0 8h1v1h-1zM8 8h1v1h-1zM0 9h1v1h-1zM9 9h1v1h-1zM0 10h1v1h-1zM6 10h5v1h-5zM0 11h1v1h-1zM3 11h1v1h-1zM6 11h1v1h-1zM0 12h1v1h-1zM2 12h1v1h-1zM4 12h1v1h-1zM7 12h1v1h-1zM0 13h2v1h-2zM4 13h1v1h-1zM7 13h1v1h-1zM0 14h1v1h-1zM5 14h1v1h-1zM8 14h1v1h-1zM5 15h1v1h-1zM8 15h1v1h-1zM6 16h2v1h-2z" fill="#151412"/><path d="M1 2h1v1h-1zM1 3h2v1h-2zM1 4h3v1h-3zM1 5h4v1h-4zM1 6h5v1h-5zM1 7h6v1h-6zM1 8h7v1h-7zM1 9h8v1h-8zM1 10h5v1h-5zM1 11h2v1h-2zM4 11h2v1h-2zM1 12h1v1h-1zM5 12h2v1h-2zM5 13h2v1h-2zM6 14h2v1h-2zM6 15h2v1h-2z" fill="#fff"/></svg></i></h1>
+      <p>The new season is one button away. <b>30% off everything</b> until Sunday.</p>
+    </div>
+    <div class="wall">
+      <div class="b b1"><div class="l">30%</div><div class="r"><span>OFF</span><span>THIS WEEK</span></div></div>
+      <div class="b b2"><div class="l">NEW</div><div class="r"><span>DROP</span><span>NO. 04</span></div></div>
+      <div class="b b3"><div class="r"><span>BEST VIEWED</span><span><b>IN PERSON</b></span></div></div>
+      <div class="b b4"><div class="l">CODE</div><div class="r"><span><b>BTN30</b></span><span>ONLINE</span></div></div>
+      <div class="b b5"><div class="l">FREE</div><div class="r"><span>SHIPPING</span><span>OVER $80</span></div></div>
+      <div class="b b6"><div class="l">EST.</div><div class="r"><span>2001</span><span>EDITION</span></div></div>
+      <div class="b b7"><div class="l">ENDS</div><div class="r"><span>SUNDAY</span><span>23:59</span></div></div>
+      <div class="b b8"><div class="l"><span>SHOP</span></div><div class="r"><span>ENTER</span><span>SITE &gt;&gt;</span></div></div>
+    </div>
+    <div class="note"><span>▸ link me: studio-oro/shop</span><span>8 of 8 buttons</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Karla:wght@400;500;600;700&family=Mrs+Saint+Delafield&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Join Me Live — a personal invitation from the host: an editorial "Join me live" headline, the photo as the piece she'll style,
+     a date stamp over the photo's corner, and a host card with portrait initials, a short note, a signature and the RSVP CTA.
+     tall / 3:4 → headline · photo · host card stacked · square / wide → headline + host card left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EBDF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2B211C; font-family: "Karla", "Helvetica Neue", Arial, sans-serif;
+    background: #F2EBDF; display: flex; flex-direction: column; padding: 5.4vmin 6.4vmin 5.4vmin; box-sizing: border-box; }
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(70vmin 60vmin at 100% 0%, rgba(184,85,58,.12), transparent 70%); }
+
+  .top { position: relative; flex: none; }
+  .kick { display: flex; align-items: center; gap: 1.4vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #8A6F60; white-space: nowrap; }
+  .kick i { display: block; width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: #D8442C; box-shadow: 0 0 0 .6vmin rgba(216,68,44,.18); }
+  h1 { margin: 2vmin 0 0; font-family: "Playfair Display", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .9; letter-spacing: -.03em; }
+  h1 i { font-weight: 400; color: #B8553A; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin: 4.4vmin 3vmin 0 0; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+  .stamp { position: absolute; right: -3vmin; top: -3vmin; width: 15vmin; height: 15vmin; border-radius: 50%; background: #B8553A; color: #F9EDE2;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    box-shadow: 0 .8vmin 2.4vmin rgba(80,30,15,.25); }
+  .stamp::after { content: ""; position: absolute; inset: 1vmin; border-radius: 50%; border: 1px dashed rgba(249,237,226,.6); }
+  .stamp small { position: relative; font-size: 1.6vmin; line-height: 1.2; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .stamp b { position: relative; font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 4.2vmin; line-height: 1.15; margin: .2vmin 0 .4vmin; white-space: nowrap; }
+
+  .host { position: relative; flex: none; margin-top: 4vmin; }
+  .id { display: flex; align-items: center; gap: 2vmin; }
+  .av { flex: none; width: 8vmin; height: 8vmin; border-radius: 50%; display: grid; place-items: center; background: #2B211C; color: #F2EBDF;
+    font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: 3.2vmin; box-shadow: 0 0 0 .5vmin #F2EBDF, 0 0 0 .8vmin #D8442C; }
+  .id b { display: block; font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 3.4vmin; line-height: 1.1; }
+  .id span { display: block; margin-top: .4vmin; font-size: 1.8vmin; color: #7B665A; }
+  .note { margin: 2.4vmin 0 0; font-size: 2.2vmin; line-height: 1.5; color: #4A3C33; max-width: 76vmin; }
+  .sig { margin-top: .4vmin; font-family: "Mrs Saint Delafield", cursive; font-size: 6vmin; line-height: 1; color: #B8553A; }
+  .row { margin-top: 1.6vmin; display: flex; align-items: center; gap: 2.4vmin; }
+  .cta { flex: none; padding: 2vmin 3.4vmin; border-radius: 99vmin; background: #2B211C; color: #F9EDE2; font-size: 2.1vmin; font-weight: 700; white-space: nowrap; }
+  .when { font-size: 1.7vmin; line-height: 1.5; letter-spacing: .04em; color: #7B665A; }
+  .when b { color: #2B211C; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.6vmin 6.4vmin 4.6vmin; }
+    h1 { font-size: 11vmin; margin-top: 1.6vmin; }
+    .photo { margin-top: 4vmin; }
+    .host { margin-top: 3.2vmin; }
+    .note { margin-top: 1.8vmin; font-size: 2vmin; }
+    .sig { font-size: 5vmin; }
+    .stamp { width: 13.6vmin; height: 13.6vmin; }
+    .stamp b { font-size: 3.6vmin; }
+  }
+  /* ── square: copy left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .photo { position: absolute; right: 6vmin; top: 8vmin; bottom: 6vmin; width: 40%; height: auto; margin: 0; }
+    .stamp { left: -5vmin; right: auto; top: -3vmin; width: 13.6vmin; height: 13.6vmin; }
+    .stamp b { font-size: 3.6vmin; }
+    .top { position: absolute; left: 6vmin; width: calc(60% - 17vmin); top: 6vmin; }
+    .kick { white-space: normal; line-height: 1.6; }
+    h1 { font-size: 9.6vmin; }
+    .host { position: absolute; left: 6vmin; width: calc(60% - 17vmin); bottom: 6vmin; margin: 0; }
+    .av { width: 7vmin; height: 7vmin; font-size: 2.8vmin; }
+    .id b { font-size: 3vmin; }
+    .note { font-size: 1.9vmin; }
+    .sig { font-size: 4.6vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { right: 7vmin; top: 8vmin; bottom: 7vmin; width: 38%; }
+    .stamp { width: 15vmin; height: 15vmin; left: -6vmin; }
+    .stamp b { font-size: 4.2vmin; }
+    .top { left: 7vmin; width: calc(62% - 22vmin); top: 7vmin; }
+    h1 { font-size: 12vmin; }
+    .host { left: 7vmin; width: calc(62% - 22vmin); bottom: 7vmin; }
+    .note { font-size: 2.1vmin; }
+    .sig { font-size: 5.4vmin; }
+    .row { flex-direction: row; align-items: center; gap: 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <div class="kick"><i></i>An invitation · live from the studio</div>
+    <h1>Join me <i>live.</i></h1>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="stamp"><small>Thu</small><b>7 PM</b><small>CET</small></div>
+  </div>
+  <div class="host">
+    <div class="id"><div class="av">CL</div><div><b>Céline Laurent</b><span>Stylist &amp; founder, Maison Laure</span></div></div>
+    <p class="note">I'll style this piece three ways, answer your fit questions and share a code you won't find anywhere else.</p>
+    <div class="sig">Céline</div>
+    <div class="row"><div class="cta">Save my seat →</div><div class="when"><b>45 minutes</b> · replay for 7 days</div></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Barlow+Semi+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Grass Court — the club lawn seen from the umpire's chair: mown stripes, chalk lines and the net.
+     The offer is the score: "Thirty–love" = 30% off, kept on a small green scoreboard in the service box;
+     the headline plays in the back court. tall → photo above, net on the seam; square/wide → photo left, court right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2F5A3A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #2F5A3A; color: #FAF8F0; font-family: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 66vmin); object-fit: cover; object-position: 50% 20%; }
+
+  .court { position: absolute; left: 0; right: 0; bottom: 0; height: 66vmin; overflow: hidden;
+    background: repeating-linear-gradient(180deg, #33613F 0 7vmin, #2B5436 7vmin 14vmin); }
+  .net { position: absolute; left: 0; right: 0; top: 0; height: 4.2vmin;
+    background:
+      linear-gradient(180deg, #FAF8F0 0 1.3vmin, transparent 1.3vmin),
+      repeating-linear-gradient(90deg, rgba(10,20,14,.9) 0 1px, transparent 1px .8vmin),
+      repeating-linear-gradient(180deg, rgba(10,20,14,.9) 0 1px, transparent 1px .8vmin),
+      #1D3A26;
+    box-shadow: 0 .6vmin 1vmin rgba(0,0,0,.3); }
+  .l { position: absolute; background: rgba(250,248,240,.9); }
+  .v { width: .55vmin; }
+  .h { height: .55vmin; }
+  .sideL { left: 5vmin; top: 4vmin; bottom: 6vmin; }
+  .sideR { right: 5vmin; top: 4vmin; bottom: 6vmin; }
+  .singL { left: 11vmin; top: 4vmin; bottom: 6vmin; }
+  .singR { right: 11vmin; top: 4vmin; bottom: 6vmin; }
+  .serv { left: 11vmin; right: 11vmin; top: 28vmin; }
+  .centre { left: calc(50% - .275vmin); top: 4vmin; height: 24vmin; }
+  .base { left: 5vmin; right: 5vmin; bottom: 6vmin; }
+  .mark { left: calc(50% - .275vmin); bottom: 6vmin; height: 2vmin; }
+
+  .kick { position: absolute; left: 14vmin; top: 8.5vmin; width: calc(50% - 17vmin); }
+  .kick .k { font-size: 1.8vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #E6DDB8; }
+  .kick .t { margin-top: 1.4vmin; font-family: "Gilda Display", Didot, Georgia, serif; font-size: 3.6vmin; line-height: 1.12; }
+
+  .board { position: absolute; right: 14vmin; top: 8vmin; width: calc(50% - 20vmin); max-width: 28vmin; background: #10261A; box-shadow: 0 .8vmin 1.4vmin rgba(0,0,0,.35); padding: 1.4vmin 2vmin 1.6vmin; box-sizing: border-box; }
+  .board .bh { font-size: 1.6vmin; font-weight: 600; letter-spacing: .34em; text-transform: uppercase; color: #C9B77A; padding-bottom: 1vmin; border-bottom: 1px solid rgba(201,183,122,.5); }
+  .board .row { display: flex; justify-content: space-between; align-items: baseline; padding-top: .8vmin; font-size: 2.1vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+  .board .row b { font-family: "Gilda Display", Georgia, serif; font-weight: 400; font-size: 4.2vmin; letter-spacing: 0; line-height: 1; }
+  .board .row.me b { color: #F2E7B8; }
+
+  .back { position: absolute; left: 14vmin; right: 14vmin; top: 32vmin; bottom: 9vmin; display: flex; flex-direction: column; justify-content: center; }
+  h1 { margin: 0; font-family: "Gilda Display", Didot, Georgia, serif; font-weight: 400; font-size: 10.4vmin; line-height: .98; letter-spacing: -.01em; white-space: nowrap; }
+  .sub { margin-top: 1.6vmin; font-size: 2.4vmin; line-height: 1.35; color: #E9E5D3; }
+  .foot { margin-top: 2.4vmin; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; white-space: nowrap; font-size: 2vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; }
+  .foot .code { color: #E6DDB8; }
+  .foot .cta { border-bottom: .3vmin solid #FAF8F0; padding-bottom: .4vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 60vmin); }
+    .court { height: 60vmin; }
+    .serv { top: 25vmin; }
+    .centre { height: 21vmin; }
+    .kick { top: 7.5vmin; }
+    .kick .t { font-size: 3.2vmin; }
+    .board { top: 7vmin; padding: 1.1vmin 2vmin 1.2vmin; }
+    .board .row b { font-size: 3.6vmin; }
+    .back { top: 28vmin; bottom: 8vmin; }
+    h1 { font-size: 9.6vmin; }
+  }
+  /* square: photo left; the court stands upright in the right-hand panel, net across its top */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 44%; height: 100%; object-position: 50% 25%; }
+    .court { left: 44%; top: 0; height: auto; }
+    .sideL { left: 3.5vmin; } .sideR { right: 3.5vmin; }
+    .singL { left: 7.5vmin; } .singR { right: 7.5vmin; }
+    .sideL, .sideR, .singL, .singR { bottom: 5vmin; }
+    .base { left: 3.5vmin; right: 3.5vmin; bottom: 5vmin; }
+    .mark { bottom: 5vmin; }
+    .serv { left: 7.5vmin; right: 7.5vmin; top: 36vmin; }
+    .centre { height: 32vmin; }
+    .kick { left: 10vmin; top: 8vmin; width: calc(50% - 12vmin); }
+    .kick .k { font-size: 1.6vmin; letter-spacing: .2em; line-height: 1.5; }
+    .kick .t { font-size: 3vmin; }
+    .board { right: 10vmin; top: 8vmin; width: calc(50% - 13vmin); padding: 1.2vmin 1.6vmin 1.4vmin; }
+    .board .bh { font-size: 1.6vmin; letter-spacing: .2em; }
+    .board .row { font-size: 1.8vmin; letter-spacing: .08em; }
+    .board .row b { font-size: 3.6vmin; }
+    .back { left: 10vmin; right: 10vmin; top: 40vmin; bottom: 8vmin; }
+    h1 { font-size: 8.4vmin; white-space: normal; }
+    .sub { font-size: 2.2vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 40% 25%; }
+    .court { left: 48%; }
+    .sideL { left: 4.5vmin; } .sideR { right: 4.5vmin; }
+    .singL { left: 10vmin; } .singR { right: 10vmin; }
+    .serv { left: 10vmin; right: 10vmin; top: 36vmin; }
+    .kick { left: 13vmin; top: 9vmin; width: calc(50% - 16vmin); }
+    .kick .k { font-size: 1.8vmin; letter-spacing: .26em; }
+    .kick .t { font-size: 3.6vmin; }
+    .board { right: 13vmin; top: 8.5vmin; width: calc(50% - 20vmin); padding: 1.4vmin 2vmin 1.6vmin; }
+    .board .row { font-size: 2vmin; letter-spacing: .14em; }
+    .back { left: 13vmin; right: 13vmin; top: 42vmin; bottom: 9vmin; }
+    h1 { font-size: 9.6vmin; white-space: nowrap; }
+    .sub { font-size: 2.4vmin; }
+    .foot { flex-direction: row; align-items: center; font-size: 1.9vmin; }
+  }
+  /* ── animated loop (6s) ── a cloud shadow drifts across the lawn, the net shivers as a point is won,
+     the scoreboard "30" flips over like a card, "Thirty–love." re-reveals and the CTA underline redraws */
+  .court::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(40% 55% at 50% 50%, rgba(8,24,14,.26), rgba(8,24,14,0) 70%) 100% 0 / 300% 100% no-repeat;
+    animation: gcCloud 6s linear infinite; }
+  @keyframes gcCloud { 0% { background-position: 100% 0; } 100% { background-position: 0% 0; } }
+  .net { transform-origin: 50% 0; animation: gcNet 6s linear infinite; }
+  @keyframes gcNet {
+    0%, 30% { transform: none; }
+    32% { transform: scaleY(1.22); } 34.5% { transform: scaleY(.9); } 37% { transform: scaleY(1.1); } 40% { transform: scaleY(.97); }
+    43%, 100% { transform: none; }
+  }
+  .board .row.me b { display: inline-block; animation: gcFlip 6s linear infinite; }
+  @keyframes gcFlip {
+    0%, 40% { transform: perspective(20vmin) rotateX(0deg); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    44% { transform: perspective(20vmin) rotateX(90deg); animation-timing-function: steps(1, end); }
+    44.5% { transform: perspective(20vmin) rotateX(-90deg); animation-timing-function: cubic-bezier(.2,.8,.3,1.2); }
+    52%, 100% { transform: perspective(20vmin) rotateX(0deg); }
+  }
+  h1 { animation: gcHead 6s linear infinite; }
+  @keyframes gcHead {
+    0%, 8% { clip-path: inset(-15% -4% -25% -4%); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    16% { clip-path: inset(-15% -4% -25% 104%); animation-timing-function: steps(1, end); }
+    17% { clip-path: inset(-15% 104% -25% -4%); animation-timing-function: cubic-bezier(.3,.1,.2,1); }
+    30%, 100% { clip-path: inset(-15% -4% -25% -4%); }
+  }
+  .foot .cta { position: relative; border-bottom-color: transparent; }
+  .foot .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.3vmin; height: .3vmin; background: #FAF8F0; animation: gcLine 6s linear infinite; }
+  @keyframes gcLine {
+    0%, 64% { transform: scaleX(1); transform-origin: 100% 50%; animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    72% { transform: scaleX(0); transform-origin: 100% 50%; animation-timing-function: steps(1, end); }
+    73% { transform: scaleX(0); transform-origin: 0 50%; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    86%, 100% { transform: scaleX(1); transform-origin: 0 50%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="court">
+    <div class="l v sideL"></div><div class="l v sideR"></div><div class="l v singL"></div><div class="l v singR"></div>
+    <div class="l h serv"></div><div class="l v centre"></div><div class="l h base"></div><div class="l v mark"></div>
+    <div class="net"></div>
+    <div class="kick"><div class="k">The Club Shop</div><div class="t">Members’ fortnight</div></div>
+    <div class="board"><div class="bh">Score</div><div class="row me"><span>You</span><b>30</b></div><div class="row"><span>House</span><b>0</b></div></div>
+    <div class="back">
+      <h1>Thirty–love.</h1>
+      <div class="sub">30% off the new collection, this fortnight only.</div>
+      <div class="foot"><span class="code">Code LOVE30</span><span class="cta">Shop the edit</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

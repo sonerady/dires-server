@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Gochi+Hand&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Margin Notes — a torn-out magazine page kept in a journal and marked up in red pen: the typeset headline, deck
+     and body copy stay intact, while the reader's notes live in the margin — "THIS." underlined twice, "want it in
+     every colour" with an arrow back into the text, a boxed code — plus a yellow highlighter swipe and the price
+     circled inside the copy. tall → photo on top, text column + margin column below · 3:4 & square → photo left,
+     text with notes run in underneath on the right · wide → photo, text column and a true margin column side by side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F0E6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1E1C19; font-family: "Libre Caslon Text", Georgia, serif;
+    background:
+      repeating-linear-gradient(0deg, rgba(120,100,70,.025) 0 1px, transparent 1px .4vmin),
+      linear-gradient(180deg, #F6F2E9 0%, #F1ECE0 100%); }
+
+  .rh { position: absolute; left: 7vmin; right: 7vmin; top: 4vmin; display: flex; justify-content: space-between; padding-bottom: 1vmin; border-bottom: 1px solid #1E1C19;
+    font-size: 1.6vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .photo { position: absolute; left: 7vmin; top: 10vmin; width: calc(100% - 14vmin); height: calc(100% - 91vmin); object-fit: cover; object-position: 50% 30%; display: block; }
+
+  .col { position: absolute; left: 7vmin; right: 5vmin; bottom: 5vmin; height: 74vmin; display: grid; grid-template-columns: 1fr 22vmin; column-gap: 4vmin;
+    grid-template-rows: auto auto 1fr auto; grid-template-areas: "h1 n1" "deck n2" "body n2" "body n3"; align-content: start; }
+  h1 { grid-area: h1; margin: 0; font-weight: 400; font-size: 8.4vmin; line-height: 1; letter-spacing: -.02em; }
+  h1 i { font-style: italic; }
+  .deck { grid-area: deck; margin-top: 1.8vmin; font-style: italic; font-size: 2.8vmin; line-height: 1.35; color: #4A453D; }
+  .body { grid-area: body; margin-top: 1.8vmin; padding-top: 1.6vmin; border-top: 1px solid rgba(30,28,25,.5); font-size: 2.5vmin; line-height: 1.5; }
+  .body p { margin: 0 0 1vmin; }
+  .body p:first-child::first-letter { float: left; font-size: 6.4vmin; line-height: .9; font-weight: 700; margin: .4vmin .6vmin 0 0; }
+  .hl { background: linear-gradient(100deg, transparent 0 1%, rgba(255,226,70,.75) 2% 97%, transparent 98%); padding: 0 .3vmin; }
+  .ring { position: relative; display: inline-block; margin: 0 1.1vmin; white-space: nowrap; font-weight: 700; }
+  .ring::after { content: ""; position: absolute; left: -1vmin; right: -1vmin; top: -.7vmin; bottom: -.6vmin; border: .3vmin solid #D2332B; border-radius: 48% 52% 45% 55% / 55% 48% 52% 45%; transform: rotate(-4deg); }
+  .ul { white-space: nowrap; text-decoration: underline; text-decoration-color: #D2332B; text-decoration-thickness: .3vmin; text-underline-offset: .5vmin; }
+  .go { font-weight: 700; }
+
+  .n { font-family: "Gochi Hand", "Comic Sans MS", cursive; color: #D2332B; line-height: 1.05; }
+  .n1 { grid-area: n1; align-self: center; font-size: 6vmin; transform: rotate(-6deg); }
+  .n1 span { display: inline-block; border-bottom: .35vmin solid #D2332B; box-shadow: 0 .8vmin 0 -.2vmin #F4F0E6, 0 1.1vmin 0 -.2vmin #D2332B; padding-bottom: .1vmin; }
+  .n2 { grid-area: n2; align-self: center; font-size: 3.2vmin; transform: rotate(-3deg); }
+  .n2 svg { display: block; width: 14vmin; height: 5vmin; margin-top: .6vmin; overflow: visible; }
+  .n3 { grid-area: n3; align-self: end; font-size: 2.8vmin; text-align: center; border: .3vmin solid #D2332B; border-radius: 1vmin .4vmin 1.2vmin .6vmin; padding: 1vmin 1.2vmin; transform: rotate(2deg); }
+  .n3 b { display: block; font-weight: 400; font-size: 3.6vmin; }
+
+  /* ── 3:4 — photo left, text right with notes run in below ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50vmin; height: calc(100% - 16vmin); }
+    .col { left: 62vmin; right: 5vmin; top: 10vmin; bottom: 5vmin; height: auto; grid-template-columns: 1fr; column-gap: 0;
+      grid-template-rows: auto auto auto auto auto 1fr; grid-template-areas: "h1" "n1" "deck" "body" "n2" "n3"; }
+    h1 { font-size: 6.2vmin; }
+    .n1 { font-size: 4.4vmin; align-self: start; justify-self: end; margin: 1.4vmin 0 0; }
+    .deck { font-size: 2.3vmin; margin-top: 1vmin; }
+    .body { font-size: 2.1vmin; line-height: 1.45; }
+    .body p:first-child::first-letter { font-size: 5vmin; }
+    .n2 { font-size: 2.8vmin; margin-top: 1.4vmin; align-self: start; }
+    .n2 svg { transform: scaleX(-1) rotate(-20deg); width: 11vmin; height: 4vmin; }
+    .n3 { justify-self: start; font-size: 2.4vmin; }
+    .n3 b { font-size: 3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 45vmin; }
+    .col { left: 57vmin; top: 9.6vmin; bottom: 4vmin; grid-template-columns: 1fr auto; column-gap: 2vmin;
+      grid-template-rows: auto auto auto 1fr; grid-template-areas: "h1 h1" "deck deck" "body body" "n2 n3"; }
+    .n1 { display: none; }
+    h1 { font-size: 5.4vmin; }
+    .deck { font-size: 2vmin; }
+    .body { font-size: 1.85vmin; margin-top: 1.2vmin; padding-top: 1.2vmin; }
+    .body p { margin-bottom: .6vmin; }
+    .n2 { align-self: end; margin-top: 0; font-size: 2.6vmin; }
+    .n2 svg { display: none; }
+    .n3 { align-self: end; }
+  }
+  /* ── wide — photo · text column · margin column ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54vmin; }
+    .col { left: 67vmin; right: 5vmin; top: 10vmin; bottom: 5vmin; grid-template-columns: 1fr 28vmin; column-gap: 5vmin;
+      grid-template-rows: auto auto 1fr auto; grid-template-areas: "h1 n1" "deck n2" "body n2" "body n3"; }
+    .n1 { display: block; font-size: 6vmin; justify-self: start; align-self: center; margin: 0; }
+    h1 { font-size: 6.4vmin; }
+    .deck { font-size: 2.3vmin; }
+    .body { font-size: 2.15vmin; margin-top: 1.6vmin; padding-top: 1.4vmin; }
+    .body p { margin-bottom: .9vmin; }
+    .n2 { font-size: 3.2vmin; align-self: center; }
+    .n2 svg { display: block; transform: none; width: 14vmin; height: 5vmin; }
+    .n3 { justify-self: stretch; font-size: 2.6vmin; }
+  }
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     the reader goes over the page again with pens in hand — first ~0.7s calm:
+       0.7s highlighter lifts off and is swiped back on · 2.0s the price is re-circled in red ·
+       3.1s the margin arrow is redrawn back into the text · 4.4s "THIS." gets an emphatic double tap ·
+       5.0s the code box gives a little nudge · photo breathes in very slowly all loop */
+  .photo { transform-origin: 50% 40%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.025); clip-path: inset(1.22%); } }
+
+  .hl { background-repeat: no-repeat; background-size: 100% 100%; background-position: 0 0; animation: swipe 6s cubic-bezier(.6,0,.2,1) infinite; }
+  @keyframes swipe { 0%, 11% { background-size: 100% 100%; } 15%, 19% { background-size: 0% 100%; } 29%, 100% { background-size: 100% 100%; } }
+
+  .ring::after { animation: circle 6s cubic-bezier(.55,0,.25,1) infinite; }
+  @keyframes circle {
+    0%, 30% { clip-path: inset(-20% -20% -20% -20%); opacity: 1; }
+    33% { clip-path: inset(-20% -20% -20% -20%); opacity: 0; }
+    34% { clip-path: inset(-20% 120% -20% -20%); opacity: 0; }
+    35% { clip-path: inset(-20% 120% -20% -20%); opacity: 1; }
+    47%, 100% { clip-path: inset(-20% -20% -20% -20%); opacity: 1; }
+  }
+
+  .n2 path { stroke-dasharray: 1 1; stroke-dashoffset: 0; animation: arrow 6s cubic-bezier(.55,0,.3,1) infinite; }
+  @keyframes arrow { 0%, 49% { stroke-dashoffset: 0; opacity: 1; } 52% { stroke-dashoffset: 0; opacity: 0; } 53% { stroke-dashoffset: 1; opacity: 0; } 54% { stroke-dashoffset: 1; opacity: 1; } 68%, 100% { stroke-dashoffset: 0; opacity: 1; } }
+
+  .n1 { transform-origin: 30% 70%; animation: this 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes this {
+    0%, 72%, 86%, 100% { transform: rotate(-6deg) scale(1); }
+    75% { transform: rotate(-9deg) scale(1.12); }
+    78% { transform: rotate(-5deg) scale(.98); }
+    81% { transform: rotate(-8deg) scale(1.07); }
+  }
+
+  .n3 { animation: code 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes code { 0%, 82%, 97%, 100% { transform: rotate(2deg) translateY(0); } 86% { transform: rotate(-1.5deg) translateY(-.5vmin); } 91% { transform: rotate(3deg) translateY(0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="rh"><span>Veloura Journal · Issue 12</span><span>p. 34</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="col">
+    <h1>The one everyone's <i>asking about</i></h1>
+    <div class="deck">New this season, and already on every wish list we know.</div>
+    <div class="body">
+      <p>Some pieces earn their place slowly. This one did it in a week: clean lines, <span class="hl">finished by hand</span>, easy to live with from Monday to the weekend.</p>
+      <p>It comes in three colours and ships in two days. At <span class="ring">$148</span> it is the rare new buy that feels like <span class="ul">an old favourite.</span></p>
+      <p class="go">Shop it at veloura.shop/edit →</p>
+    </div>
+    <div class="n n1"><span>THIS.</span></div>
+    <div class="n n2">want it in every colour!
+      <svg viewBox="0 0 140 50" aria-hidden="true"><path pathLength="1" d="M134,8 C110,40 60,46 14,30 M26,18 L12,30 L28,40" fill="none" stroke="#D2332B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="n n3">code<b>MARGIN10</b>−10% off</div>
+  </div>
+</div>
+</body>
+</html>

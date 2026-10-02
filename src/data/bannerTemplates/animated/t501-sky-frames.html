@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Sky Frames — a Magritte afternoon: the look hangs weightless in a painted blue sky above a calm sea, two
+     smaller frames drift beside it holding other crops of the same photo, and soft-bellied clouds pass in front
+     of them (never in front of the main look). Its shadow falls on the water.
+     tall → headline in the sky, look below, offer on the sea · square / wide → look left, sky column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #8DB8E0; }
+  .banner { --sea: 16%; position: fixed; inset: 0; overflow: hidden; color: #10243D; font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #6FA3D6 0%, #8DB8E0 38%, #BBD4EA 70%, #E3ECF2 84%); }
+  /* sea */
+  .sea { position: absolute; left: 0; right: 0; bottom: 0; height: var(--sea); background: linear-gradient(180deg, #34597F 0%, #26476B 45%, #1B3553 100%); }
+  .sea::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: rgba(255,255,255,.55); }
+  .sea::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(180deg, transparent 0 2.2vmin, rgba(255,255,255,.07) 2.2vmin calc(2.2vmin + 1px)); }
+  .shadow { position: absolute; bottom: calc(var(--sea) - 5vmin); height: 7vmin; left: 7vmin; width: 60%; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(8,22,40,.55), rgba(8,22,40,.3) 45%, rgba(8,22,40,0)); }
+
+  /* clouds */
+  .cloud { position: absolute; display: block; overflow: visible; }
+  .c1 { width: 44vmin; height: 22vmin; right: -8vmin; top: 1vmin; }
+  .c2 { width: 30vmin; height: 15vmin; left: -9vmin; top: 44%; }
+  .c3 { width: 40vmin; height: 20vmin; right: -8vmin; top: calc(36% + 25vmin); z-index: 3; }
+  .c4 { width: 30vmin; height: 15vmin; right: 1vmin; top: calc(36% + 60vmin); z-index: 3; }
+  .c5 { width: 60vmin; height: 16vmin; left: -12vmin; bottom: calc(var(--sea) - 2.4vmin); z-index: 1; }
+
+  /* frames */
+  .f { position: absolute; overflow: hidden; box-shadow: 0 2.6vmin 5vmin rgba(16,36,61,.28); z-index: 2; }
+  .f img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .main { left: 7vmin; top: 35vmin; width: 60%; height: calc(100% - var(--sea) - 43vmin); box-shadow: 0 3vmin 7vmin rgba(16,36,61,.32); }
+  .main img { object-position: 50% 20%; }
+  .f2 { right: 5vmin; top: 36%; width: 26vmin; height: 33vmin; }
+  .f2 img { object-position: 50% 45%; transform: scale(2.3); transform-origin: 50% 45%; }
+  .f3 { right: 8vmin; top: calc(36% + 45vmin); width: 17vmin; height: 21vmin; }
+  .f3 img { object-position: 50% 20%; transform: scaleX(-1) scale(1.5); transform-origin: 50% 20%; }
+
+  /* type */
+  .mast { position: absolute; left: 7vmin; right: 7vmin; top: 5vmin; display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; white-space: nowrap; z-index: 4; }
+  .mast span + span { font-weight: 500; letter-spacing: .2em; }
+  h1 { position: absolute; left: 6.4vmin; top: 10vmin; margin: 0; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 500; font-size: 12.4vmin; line-height: .9; letter-spacing: -.01em; white-space: nowrap; z-index: 4; }
+  h1 span { display: block; padding-left: 9vmin; }
+  .cap { position: absolute; right: 5vmin; top: calc(36% - 6.4vmin); width: 26vmin; font-size: 1.6vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; line-height: 1.35; text-align: right; color: #10243D; z-index: 4; }
+  .foot { position: absolute; left: 7vmin; right: 7vmin; bottom: 0; height: var(--sea); display: flex; align-items: center; justify-content: space-between; gap: 3vmin; color: #F2F6FA; z-index: 4; }
+  .offer { font-size: 2.3vmin; line-height: 1.35; letter-spacing: .02em; }
+  .offer b { display: block; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 500; font-size: 5.6vmin; line-height: 1; letter-spacing: 0; }
+  .offer small { display: block; margin-top: .8vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: rgba(242,246,250,.78); }
+  .cta { flex: none; background: #F2F6FA; color: #10243D; border-radius: 99vmin; padding: 1.8vmin 3.6vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --sea: 17%; }
+    h1 { font-size: 11vmin; top: 9.5vmin; }
+    .main { top: 31vmin; width: 58%; height: calc(100% - var(--sea) - 37vmin); }
+    .shadow { width: 58%; }
+    .f2 { top: 34%; width: 24vmin; height: 30vmin; right: 5vmin; }
+    .cap { top: calc(34% - 6.4vmin); width: 24vmin; }
+    .f3 { top: calc(34% + 35vmin); right: 8vmin; width: 14vmin; height: 16vmin; }
+    .c3 { top: calc(34% + 21vmin); }
+    .c4 { top: calc(34% + 44vmin); }
+  }
+  /* square → look left, sky column right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --sea: 19%; }
+    .main { left: 6vmin; top: 6vmin; width: 44%; height: calc(100% - var(--sea) - 9vmin); }
+    .shadow { left: 6vmin; width: 44%; }
+    .mast { left: 56%; right: 5vmin; top: 6vmin; flex-direction: column; gap: 1vmin; }
+    h1 { left: 55%; top: 14vmin; font-size: 9.6vmin; }
+    h1 span { padding-left: 5vmin; }
+    .cap { right: auto; left: 56%; top: 40vmin; width: 17vmin; text-align: left; }
+    .f2 { right: 6vmin; top: 36vmin; width: 20vmin; height: 26vmin; }
+    .f3 { display: none; }
+    .c1 { width: 36vmin; height: 18vmin; right: -12vmin; top: -2vmin; }
+    .c2 { top: 56vmin; left: 32vmin; width: 26vmin; height: 13vmin; z-index: 1; }
+    .c3 { right: -3vmin; top: 55vmin; width: 28vmin; height: 14vmin; }
+    .c4 { display: none; }
+    .foot { left: 56%; right: 5vmin; }
+    .offer { font-size: 1.9vmin; }
+    .offer b { font-size: 4.4vmin; }
+    .offer small { font-size: 1.6vmin; }
+    .cta { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --sea: 20%; }
+    .main { left: 7vmin; top: 7vmin; width: 36%; height: calc(100% - var(--sea) - 10vmin); }
+    .shadow { left: 7vmin; width: 36%; }
+    .mast { left: 46%; right: 7vmin; top: 7vmin; flex-direction: row; }
+    h1 { left: 45.4%; top: 16vmin; font-size: 12.6vmin; }
+    h1 span { padding-left: 9vmin; }
+    .cap { left: 47%; top: 46vmin; width: 22vmin; }
+    .f2 { right: 8vmin; top: 42vmin; width: 20vmin; height: 26vmin; }
+    .f3 { display: block; right: 33vmin; top: 55vmin; width: 13vmin; height: 16vmin; }
+    .c1 { right: -6vmin; top: 0; width: 40vmin; height: 20vmin; }
+    .c2 { left: 36%; top: 60vmin; }
+    .c3 { right: -1vmin; top: 59vmin; width: 32vmin; height: 16vmin; }
+    .c4 { display: block; right: 27vmin; top: 64vmin; width: 22vmin; height: 11vmin; }
+    .foot { left: 46%; right: 7vmin; }
+    .offer { font-size: 2vmin; }
+    .offer b { font-size: 5vmin; }
+    .cta { display: block; font-size: 1.8vmin; padding: 1.6vmin 3vmin; }
+  }
+
+  /* ───────── motion (8s loop, slow & weightless) ─────────
+     the three frames float on their own slow sine paths (main rises then dips; the small frames answer out of phase),
+     the shadow on the water tightens as the look rises, clouds drift a few vmin (the front ones only away from the main look),
+     the sea's swell lines roll toward us, and the look breathes inside its frame (≤1.03) */
+  .main { animation: floatA 8s cubic-bezier(.45,0,.55,1) infinite; }
+  .f2 { animation: floatB 8s cubic-bezier(.45,0,.55,1) infinite; }
+  .f3 { animation: floatC 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes floatA { 0%, 50%, 100% { transform: none; } 25% { transform: translateY(-1.4vmin); } 75% { transform: translateY(.8vmin); } }
+  @keyframes floatB { 0%, 50%, 100% { transform: none; } 25% { transform: translateY(1vmin) rotate(.6deg); } 75% { transform: translateY(-1.3vmin) rotate(-.5deg); } }
+  @keyframes floatC { 0%, 100% { transform: none; } 50% { transform: translateY(-1vmin) rotate(-.8deg); } }
+  .shadow { animation: shade 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes shade { 0%, 50%, 100% { transform: none; opacity: 1; } 25% { transform: scaleX(.93); opacity: .78; } 75% { transform: scaleX(1.03); opacity: 1; } }
+  .main img { animation: breathe 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  .c1 { animation: driftL 8s cubic-bezier(.45,0,.55,1) infinite; }
+  .c2 { animation: driftR 8s cubic-bezier(.45,0,.55,1) infinite; }
+  .c3 { animation: driftR3 8s cubic-bezier(.45,0,.55,1) infinite; }
+  .c4 { animation: driftR2 4s cubic-bezier(.45,0,.55,1) infinite; }
+  .c5 { animation: driftR4 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes driftL { 0%, 100% { transform: none; } 50% { transform: translateX(-3vmin); } }
+  @keyframes driftR { 0%, 100% { transform: none; } 50% { transform: translateX(2.4vmin); } }
+  @keyframes driftR3 { 0%, 100% { transform: none; } 60% { transform: translateX(3vmin) translateY(-.4vmin); } }
+  @keyframes driftR2 { 0%, 100% { transform: none; } 50% { transform: translateX(1.6vmin); } }
+  @keyframes driftR4 { 0%, 100% { transform: none; } 50% { transform: translateX(4vmin); } }
+  .sea::after { animation: swell 8s linear infinite; }
+  @keyframes swell { from { background-position: 0 0; } to { background-position: 0 calc(2.2vmin + 1px); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="#FFFFFF"/><stop offset=".72" stop-color="#EEF3F7"/><stop offset="1" stop-color="#BFCFDF"/></linearGradient>
+      <filter id="soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>
+      <symbol id="cl" viewBox="0 0 200 100"><g filter="url(#soft)" fill="#A9BED3"><circle cx="58" cy="64" r="24"/><circle cx="92" cy="50" r="31"/><circle cx="130" cy="56" r="26"/><circle cx="158" cy="68" r="19"/><circle cx="34" cy="76" r="15"/><rect x="30" y="64" width="144" height="26" rx="13"/></g><g filter="url(#soft)" fill="url(#cg)"><circle cx="56" cy="60" r="22"/><circle cx="90" cy="44" r="30"/><circle cx="127" cy="50" r="24"/><circle cx="154" cy="63" r="16"/><circle cx="34" cy="71" r="12"/><circle cx="74" cy="66" r="17"/><circle cx="110" cy="64" r="18"/></g><g fill="#fff" opacity=".85" filter="url(#soft)"><circle cx="84" cy="34" r="12"/><circle cx="122" cy="42" r="8"/><circle cx="52" cy="52" r="8"/></g></symbol>
+    </defs>
+  </svg>
+  <div class="sea"></div>
+  <div class="shadow"></div>
+  <svg class="cloud c1" viewBox="0 0 200 100" aria-hidden="true"><use href="#cl"/></svg>
+  <svg class="cloud c2" viewBox="0 0 200 100" aria-hidden="true"><use href="#cl"/></svg>
+  <svg class="cloud c5" viewBox="0 0 200 100" preserveAspectRatio="none" aria-hidden="true"><use href="#cl"/></svg>
+  <div class="f main"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="f f2"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="f f3"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <svg class="cloud c3" viewBox="0 0 200 100" aria-hidden="true"><use href="#cl"/></svg>
+  <svg class="cloud c4" viewBox="0 0 200 100" aria-hidden="true"><use href="#cl"/></svg>
+  <div class="mast"><span>Atelier Nord</span><span>Collection Nº 07</span></div>
+  <h1>Head in<span>the clouds.</span></h1>
+  <div class="cap">Fig. 2 — the same look, seen from a daydream</div>
+  <div class="foot">
+    <div class="offer"><b>Up to 30% off</b>the weightless edit<small>Code CLOUD30</small></div>
+    <span class="cta">Float in →</span>
+  </div>
+</div>
+</body>
+</html>

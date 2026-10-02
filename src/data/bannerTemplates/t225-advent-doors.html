@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital@1&family=DM+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Advent Doors — Christmas as an advent calendar: perforated paper doors numbered out of order on bottle-green
+     board; the big door 24 has swung open on its hinge to reveal the offer inside, lined in berry red.
+     tall → photo above the calendar (6 × 2 grid); square/wide → photo left, calendar right (4 × 3 grid) */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #173327; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #173327; color: #F1E8D4; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 18%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100% - 80vmin); overflow: hidden;
+    background: radial-gradient(circle at 20% 30%, rgba(241,232,212,.07) 0 .25vmin, transparent .3vmin) 0 0 / 4vmin 4vmin, linear-gradient(180deg, #1B3A2C, #132B20); }
+  .head { position: absolute; left: 8vmin; right: 8vmin; top: 5vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .k { font-size: 1.8vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #D9B86A; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Libre Caslon Display", Didot, Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: .95; letter-spacing: -.01em; }
+  h1 i { font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-size: .82em; color: #D9B86A; }
+  .dates { text-align: right; font-size: 1.8vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; line-height: 1.6; color: #C9CDB9; white-space: nowrap; }
+  .grid { position: absolute; left: 8vmin; right: 8vmin; top: 28vmin; height: 34vmin; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1.4vmin; }
+  .d { position: relative; background: #F1E8D4; color: #173327; box-shadow: 0 .3vmin .8vmin rgba(0,0,0,.25); }
+  .d::after { content: ""; position: absolute; inset: .8vmin; border: 1px dashed rgba(23,51,39,.35); }
+  .d span { position: absolute; left: 1.6vmin; top: 1.1vmin; font-family: "Libre Caslon Display", Georgia, serif; font-size: 4vmin; line-height: 1; }
+  .d:nth-child(3n) { background: #E6D9BC; }
+  .d:nth-child(4n+1) span { left: auto; right: 1.6vmin; top: auto; bottom: 1.1vmin; }
+  .d.o { grid-column: 1 / span 2; grid-row: 1 / span 2; background: #9E2430; box-shadow: inset 0 .6vmin 1.6vmin rgba(0,0,0,.45); }
+  .d.o::after { border-color: rgba(241,232,212,.35); }
+  .o .in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #F6E7C8; text-align: center; }
+  .o .in small { font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+  .o .in b { font-family: "Libre Caslon Display", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .95; margin: .6vmin 0; }
+  .o .in b sup { font-size: .4em; vertical-align: .9em; }
+  .o .leaf { position: absolute; right: 100%; top: -4%; width: 5vmin; height: 108%; background: linear-gradient(90deg, #F4ECD9, #CDBF9F); clip-path: polygon(0 0, 100% 3.7%, 100% 96.3%, 0 100%); }
+  .foot { position: absolute; left: 8vmin; right: 8vmin; bottom: 5vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .foot .code { color: #C9CDB9; white-space: nowrap; }
+  .foot .code em { font-style: normal; color: #F1E8D4; border: 1px dashed #D9B86A; padding: .8vmin 1.4vmin; margin-left: .8vmin; }
+  .foot .cta { background: #D9B86A; color: #173327; padding: 1.5vmin 2.8vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .panel { top: calc(100% - 66vmin); }
+    .head { top: 3.6vmin; }
+    h1 { font-size: 8vmin; }
+    .grid { top: 21.5vmin; height: 28vmin; }
+    .d span { font-size: 3.4vmin; }
+    .o .in b { font-size: 9.4vmin; }
+    .foot { bottom: 4vmin; font-size: 1.9vmin; }
+  }
+  /* square / wide → photo left, calendar right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 46%; top: 0; }
+    .head { left: 6vmin; right: 5vmin; top: 6vmin; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .dates { text-align: left; font-size: 1.7vmin; }
+    .grid { left: 6vmin; right: 5vmin; top: 33vmin; height: auto; bottom: 20vmin; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 1.2vmin; }
+    .d span { font-size: 3vmin; left: 1.2vmin; top: .9vmin; }
+    .d:nth-child(4n+1) span { right: 1.2vmin; bottom: .9vmin; }
+    .o .in b { font-size: 8vmin; }
+    .o .in small { font-size: 1.6vmin; letter-spacing: .16em; }
+    .foot { left: 6vmin; right: 5vmin; bottom: 6vmin; font-size: 1.7vmin; }
+    .foot .code em { padding: .6vmin 1vmin; }
+    .foot .cta { padding: 1.3vmin 2vmin; }
+    .o .leaf { width: 4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .panel { left: 44%; }
+    .head { left: 8vmin; right: 8vmin; top: 7vmin; flex-direction: row; align-items: flex-end; }
+    h1 { font-size: 9vmin; }
+    .dates { text-align: right; }
+    .grid { left: 8vmin; right: 8vmin; top: 31vmin; bottom: 20vmin; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1.4vmin; }
+    .d span { font-size: 3.6vmin; }
+    .o .in b { font-size: 10vmin; }
+    .foot { left: 8vmin; right: 8vmin; bottom: 7vmin; font-size: 1.9vmin; }
+    .foot .code em { padding: .8vmin 1.4vmin; }
+    .foot .cta { padding: 1.5vmin 2.8vmin; }
+    .o .leaf { width: 5vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="head">
+      <div><div class="k">The advent edit</div><h1>A door <i>a day.</i></h1></div>
+      <div class="dates">1—24 Dec<br>New gift daily</div>
+    </div>
+    <div class="grid">
+      <div class="d o"><div class="in"><small>Door 24</small><b>25<sup>%</sup></b><small>Off everything</small></div><div class="leaf"></div></div>
+      <div class="d"><span>7</span></div>
+      <div class="d"><span>19</span></div>
+      <div class="d"><span>3</span></div>
+      <div class="d"><span>12</span></div>
+      <div class="d"><span>22</span></div>
+      <div class="d"><span>5</span></div>
+      <div class="d"><span>16</span></div>
+      <div class="d"><span>9</span></div>
+    </div>
+    <div class="foot"><span class="code">Code<em>ADVENT24</em></span><span class="cta">Open today's door</span></div>
+  </div>
+</div>
+</body>
+</html>

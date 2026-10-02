@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Syncopate:wght@400;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* VHS tape sleeve — test-card colour bars across the top, on-screen-display counters, the photo as the "picture",
+     a hand-written tape label with printed fields, E-180 grade mark and a diagonal rainbow stripe.
+     tall: bars / OSD / picture / label / grade row · square & wide: picture left, sleeve details right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E0E10; }
+  .banner { --bk: #0E0E10; --w: #F4F1EA; --lab: #F6F3EA; --pen: #1F2F8F; --red: #E23B2E;
+    position: fixed; inset: 0; overflow: hidden; background: var(--bk); color: var(--w); font-family: "Syncopate", "Arial Black", Arial, sans-serif; }
+  .bars { position: absolute; left: 0; right: 0; top: 0; height: 5vmin;
+    background: linear-gradient(90deg, #C0C0C0 0 14.28%, #C0C000 14.28% 28.57%, #00C0C0 28.57% 42.85%, #00C000 42.85% 57.14%, #C000C0 57.14% 71.42%, #C00000 71.42% 85.71%, #0000C0 85.71% 100%); }
+  .bars::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 1.3vmin;
+    background: linear-gradient(90deg, #0000C0 0 14.28%, #111 14.28% 28.57%, #C000C0 28.57% 42.85%, #111 42.85% 57.14%, #00C0C0 57.14% 71.42%, #111 71.42% 85.71%, #C0C0C0 85.71% 100%); }
+  .osd { position: absolute; left: 6vmin; right: 6vmin; top: 8.6vmin; display: flex; justify-content: space-between; align-items: baseline; font-family: "VT323", "Courier New", monospace; font-size: 5vmin; line-height: 1; letter-spacing: .04em; text-shadow: .3vmin .3vmin 0 rgba(0,0,0,.6); }
+  .osd .rec { color: var(--red); }
+  .ph { position: absolute; left: 6vmin; right: 6vmin; top: 15vmin; height: calc(100% - 15vmin - 60vmin); }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .side { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 52vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .lab { position: relative; background: var(--lab); color: var(--pen); padding: 2.4vmin 3vmin 2.2vmin; transform: rotate(-1deg); box-shadow: 0 .6vmin 1.6vmin rgba(0,0,0,.4);
+    background-image: repeating-linear-gradient(180deg, transparent 0 5.9vmin, rgba(31,47,143,.22) 5.9vmin calc(5.9vmin + 1px)); background-position: 0 2.6vmin; }
+  .lab::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.2vmin; background: linear-gradient(90deg, var(--red) 0 33%, #F2A33A 33% 66%, #2D7FD3 66%); }
+  .f { font-family: "Syncopate", Arial, sans-serif; font-size: 1.6vmin; font-weight: 700; letter-spacing: .14em; color: #6D6A7A; }
+  .t { display: flex; align-items: baseline; gap: 2vmin; }
+  .t b { font-family: "Kalam", "Marker Felt", cursive; font-weight: 700; font-size: 7.6vmin; line-height: 1.1; color: var(--pen); }
+  .o { font-family: "Kalam", "Marker Felt", cursive; font-weight: 700; font-size: 4.4vmin; line-height: 1.3; color: var(--red); margin: .6vmin 0 0 7.4vmin; transform: rotate(-2deg); transform-origin: 0 50%; }
+  .fields { margin-top: .6vmin; display: flex; gap: 1vmin 4vmin; align-items: baseline; flex-wrap: wrap; }
+  .fields span { font-family: "Kalam", cursive; font-size: 2.8vmin; color: var(--pen); margin-left: 1vmin; }
+  .box { font-family: "Syncopate", Arial, sans-serif; font-size: 1.6vmin; font-weight: 700; letter-spacing: .1em; color: #6D6A7A; white-space: nowrap; }
+  .box i { display: inline-block; width: 1.8vmin; height: 1.8vmin; border: .25vmin solid #6D6A7A; vertical-align: -.35vmin; margin: 0 .6vmin 0 1.4vmin; font-style: normal; font-family: "Kalam", cursive; font-size: 2.4vmin; line-height: 1.2vmin; color: var(--pen); text-indent: .1vmin; }
+  .box i:first-child { margin-left: 0; }
+  .rbw { height: 7vmin; margin: 0 -6vmin 0 0; background: linear-gradient(180deg, var(--red) 0 20%, #F28A2E 20% 40%, #F2C94C 40% 60%, #3FAE6B 60% 80%, #2D7FD3 80% 100%);
+    clip-path: polygon(9vmin 0, 100% 0, 100% 100%, 0 100%); }
+  .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .grade { display: flex; align-items: flex-end; gap: 2.4vmin; }
+  .e { font-weight: 700; font-size: 9vmin; line-height: .8; letter-spacing: -.02em; font-style: italic; white-space: nowrap; }
+  .spec { font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; line-height: 1.6; white-space: nowrap; }
+  .spec u { text-decoration: none; display: inline-block; border: .25vmin solid var(--w); padding: .2vmin .8vmin; margin-top: .6vmin; }
+  .play { background: var(--w); color: var(--bk); padding: 1.6vmin 2.6vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .14em; white-space: nowrap; }
+  @media (min-aspect-ratio: 7/10) {
+    .ph { left: 16vmin; right: 16vmin; height: calc(100% - 15vmin - 56vmin); }
+    .osd { left: 16vmin; right: 16vmin; }
+    .side { height: 49vmin; bottom: 4vmin; left: 16vmin; right: 16vmin; }
+    .rbw { margin-right: -16vmin; height: 6vmin; }
+    .t b { font-size: 7vmin; }
+    .e { font-size: 8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .ph { left: 6vmin; right: auto; top: 12vmin; bottom: 6vmin; width: 46vmin; height: calc(100% - 18vmin); }
+    .osd { left: 58vmin; right: 5vmin; top: 11vmin; font-size: 4.2vmin; white-space: nowrap; }
+    .osd .rec { display: none; }
+    .side { left: 58vmin; right: 5vmin; top: 18.4vmin; bottom: 6vmin; height: auto; }
+    .lab { padding: 2vmin 2.4vmin; }
+    .t { display: block; }
+    .t .f { display: block; margin-bottom: .6vmin; }
+    .t b { display: block; font-size: 5.4vmin; line-height: 1.05; }
+    .o { margin-left: 0; font-size: 3.6vmin; margin-top: .6vmin; }
+    .fields { gap: .6vmin 3vmin; }
+    .rbw { margin-right: -5vmin; height: 5.4vmin; }
+    .row { flex-direction: column-reverse; align-items: flex-start; gap: 2.6vmin; }
+    .e { font-size: 6.4vmin; }
+    .spec { font-size: 1.5vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .ph { width: 58vmin; top: 12vmin; }
+    .osd { left: 72vmin; right: 7vmin; font-size: 4.6vmin; }
+    .osd .rec { display: inline; }
+    .side { left: 72vmin; right: 7vmin; }
+    .t { display: flex; }
+    .t .f { display: inline; margin-bottom: 0; }
+    .t b { display: inline; font-size: 6.6vmin; }
+    .o { margin-left: 7.4vmin; font-size: 4vmin; }
+    .rbw { margin-right: -7vmin; height: 6.4vmin; }
+    .row { flex-direction: row; align-items: flex-end; }
+    .e { font-size: 8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     (each @keyframes carries an invisible outline-color so no effect is compositor-only: the frame-stepped
+      video renderer parallel tabs otherwise freeze transform/opacity-only animations) */
+  /* REC dot: blinks every second */
+  .osd .rec { animation: rec 1s steps(1, end) infinite; }
+  @keyframes rec { 0%, 60% { outline-color: transparent; opacity: 1; } 61%, 100% { opacity: .2; } }
+  /* the rewind beat (≈40–60%): PLAY swaps to ◀◀ REW, the picture tracks and jitters, a noise band rolls up */
+  .osd > span:first-child { animation: playoff 6s steps(1, end) infinite; }
+  @keyframes playoff { 0%, 39% { outline-color: transparent; opacity: 1; } 40%, 61% { opacity: 0; } 62%, 100% { opacity: 1; } }
+  .osd::after { content: "◀◀ REW"; position: absolute; left: 0; top: 0; color: var(--w); opacity: 0; animation: rew 6s steps(1, end) infinite; }
+  @keyframes rew { 0%, 39% { outline-color: transparent; opacity: 0; } 40%, 43% { opacity: 1; } 44%, 46% { opacity: .15; } 47%, 61% { opacity: 1; } 62%, 100% { opacity: 0; } }
+  .osd > span:last-child { animation: counter 6s linear infinite; }
+  @keyframes counter { 0%, 39% { outline-color: transparent; transform: translateX(0); } 40%, 61% { transform: translateX(0); color: #FFE27A; } 62%, 100% { transform: translateX(0); color: var(--w); } }
+  .ph { overflow: hidden; }
+  .ph img { animation: track 6s linear infinite; }
+  @keyframes track {
+    0%, 39% { outline-color: transparent; transform: translate(0, 0) skewX(0); filter: saturate(1) contrast(1) brightness(1); animation-timing-function: steps(1, end); }
+    40% { transform: translate(-1.2vmin, 0) skewX(-2deg); filter: saturate(1.5) contrast(1.15) brightness(1.08); animation-timing-function: steps(1, end); }
+    43% { transform: translate(.8vmin, 0) skewX(1deg); animation-timing-function: steps(1, end); }
+    46% { transform: translate(-.6vmin, -.8vmin) skewX(-1deg); animation-timing-function: steps(1, end); }
+    49% { transform: translate(1vmin, .6vmin) skewX(1.5deg); filter: saturate(1.4) contrast(1.1) brightness(1.05); animation-timing-function: steps(1, end); }
+    52% { transform: translate(-.4vmin, 0) skewX(0); animation-timing-function: steps(1, end); }
+    55% { transform: translate(.5vmin, -.4vmin) skewX(-.8deg); animation-timing-function: steps(1, end); }
+    58% { transform: translate(0, 0) skewX(0); filter: saturate(1.15) contrast(1.05) brightness(1.02); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    64%, 100% { transform: translate(0, 0) skewX(0); filter: saturate(1) contrast(1) brightness(1); }
+  }
+  .ph::after { content: ""; position: absolute; left: -2%; right: -2%; top: 0; height: 18%; pointer-events: none;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,.0) 0 .5vmin, rgba(255,255,255,.28) .5vmin .7vmin, rgba(255,255,255,.0) .7vmin 1.3vmin, rgba(255,255,255,.14) 1.3vmin 1.5vmin),
+      linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.3) 30%, rgba(255,255,255,.1) 60%, rgba(255,255,255,.26));
+    mix-blend-mode: screen; opacity: 0; transform: translateY(600%); animation: noise 6s linear infinite; }
+  @keyframes noise {
+    0%, 39.9% { outline-color: transparent; opacity: 0; transform: translateY(600%); }
+    40% { opacity: 1; transform: translateY(560%); }
+    60% { opacity: 1; transform: translateY(-100%); }
+    60.1%, 100% { opacity: 0; transform: translateY(600%); }
+  }
+  /* colour bars: a quick signal drop right as the tape rewinds */
+  .bars { animation: sig 6s steps(1, end) infinite; }
+  @keyframes sig { 0%, 39% { outline-color: transparent; filter: brightness(1); } 40%, 41% { filter: brightness(1.6) saturate(1.4); } 42%, 58% { filter: brightness(1); } 59%, 60% { filter: brightness(.55); } 61%, 100% { filter: brightness(1); } }
+  /* back to play: the button flashes red and nudges its ▶ */
+  .play { animation: pressed 6s linear infinite; }
+  @keyframes pressed {
+    0%, 61% { outline-color: transparent; background-color: var(--w); color: var(--bk); transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    63% { background-color: var(--red); color: var(--w); transform: scale(.94); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    68% { background-color: var(--red); color: var(--w); transform: scale(1.03); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    76%, 100% { background-color: var(--w); color: var(--bk); transform: scale(1); }
+  }
+  /* rainbow stripe: a travelling sheen across the sleeve band */
+  .rbw { background-image: linear-gradient(100deg, rgba(255,255,255,0) 40%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 60%), linear-gradient(180deg, var(--red) 0 20%, #F28A2E 20% 40%, #F2C94C 40% 60%, #3FAE6B 60% 80%, #2D7FD3 80% 100%);
+    background-size: 300% 100%, 100% 100%; background-repeat: no-repeat; background-position: 100% 0, 0 0; animation: rsheen 6s linear infinite; }
+  @keyframes rsheen { 0%, 70% { outline-color: transparent; background-position: 100% 0, 0 0; animation-timing-function: cubic-bezier(.5,0,.3,1); } 90%, 100% { background-position: 0% 0, 0 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="bars"></div>
+  <div class="osd"><span>▶ PLAY <span class="rec">● REC</span></span><span>SP 00:26:09</span></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="side">
+    <div class="lab">
+      <div class="t"><span class="f">TITLE</span><b>Summer Rewind</b></div>
+      <div class="o">30% off everything!</div>
+      <div class="fields"><div class="f">CODE<span>REWIND30</span></div><div class="f">UNTIL<span>Sunday</span></div><div class="box"><i>✓</i>SP<i></i>LP<i></i>EP</div></div>
+    </div>
+    <div class="rbw"></div>
+    <div class="row"><div class="grade"><div class="e">E-180</div><div class="spec">HI-FI STEREO<br><u>VHS</u></div></div><div class="play">▶ Press play</div></div>
+  </div>
+</div>
+</body>
+</html>

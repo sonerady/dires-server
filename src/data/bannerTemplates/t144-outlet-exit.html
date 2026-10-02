@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&family=Overpass+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Outlet Exit — the sale as motorway signage: a green gantry sign with its white inset rule, EXIT 70, a road arrow and destinations whose distances are markdowns */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0A5E3A; }
+  .banner { --panel: 78vmin; position: fixed; inset: 0; overflow: hidden; background: #0A5E3A; color: #fff; font-family: "Overpass", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+
+  .sign { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); background: linear-gradient(180deg, #0C6640 0%, #0A5E3A 100%); }
+  .sign::before { content: ""; position: absolute; inset: 2.2vmin; border: .7vmin solid #fff; border-radius: 2.6vmin; }
+  .in { position: absolute; inset: 6.4vmin 7vmin 6.4vmin 7vmin; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .tab { font-weight: 800; font-size: 2.6vmin; letter-spacing: .06em; padding: .9vmin 1.8vmin .5vmin; border: .45vmin solid #fff; border-radius: 1vmin; white-space: nowrap; }
+  .top span { font-family: "Overpass Mono", Menlo, monospace; font-weight: 500; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; }
+  .dest { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; margin-top: 3vmin; }
+  h1 { margin: 0; font-weight: 800; font-size: 17vmin; line-height: .8; letter-spacing: -.02em; padding-top: 1.6vmin; }
+  .arrow { flex: none; width: 15vmin; height: 15vmin; }
+  .rule { height: .5vmin; background: #fff; margin: 3.4vmin 0 1.4vmin; }
+  .rows { display: flex; flex-direction: column; }
+  .r { display: flex; justify-content: space-between; align-items: baseline; padding: 1.2vmin 0; font-size: 3.6vmin; font-weight: 600; line-height: 1.1; }
+  .r b { font-weight: 800; font-size: 4.6vmin; letter-spacing: -.01em; }
+  .r + .r { border-top: 1px solid rgba(255,255,255,.35); }
+  .r i { font-style: normal; display: inline-block; width: 2.6vmin; margin-right: 1.4vmin; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .foot p { margin: 0; font-family: "Overpass Mono", Menlo, monospace; font-size: 1.8vmin; line-height: 1.5; letter-spacing: .08em; text-transform: uppercase; }
+  .cta { flex: none; background: #fff; color: #0A5E3A; font-weight: 800; font-size: 2.3vmin; letter-spacing: .06em; text-transform: uppercase; padding: 1.5vmin 2.6vmin 1.1vmin; border-radius: 1vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 66vmin; }
+    .in { inset: 5.6vmin 6.4vmin; }
+    h1 { font-size: 14.6vmin; }
+    .arrow { width: 12.6vmin; height: 12.6vmin; }
+    .dest { margin-top: 2.4vmin; }
+    .rule { margin: 2.6vmin 0 .8vmin; }
+    .r { font-size: 3.2vmin; padding: 1vmin 0; }
+    .r b { font-size: 4vmin; }
+  }
+  /* square — photo left, the sign fills the right half */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .sign { left: 50%; top: 0; height: auto; }
+    .in { inset: 6.4vmin 6vmin; }
+    .top span { display: none; }
+    .dest { margin-top: 4.4vmin; flex-direction: column-reverse; align-items: flex-start; gap: 2.4vmin; }
+    h1 { font-size: 12.4vmin; }
+    .arrow { width: 11vmin; height: 11vmin; margin-left: -1vmin; }
+    .rule { margin: 3.4vmin 0 1vmin; }
+    .r { font-size: 2.8vmin; padding: 1.7vmin 0; }
+    .r b { font-size: 3.6vmin; }
+    .r i { width: 2vmin; margin-right: 1vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .foot p { font-size: 1.6vmin; }
+    .cta { font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 64% 25%; }
+    .sign { left: 46%; }
+    .in { inset: 7vmin 7.4vmin; }
+    .top span { display: inline; }
+    .dest { margin-top: 5vmin; flex-direction: row; align-items: center; }
+    h1 { font-size: 16vmin; }
+    .arrow { width: 13vmin; height: 13vmin; margin-left: 0; }
+    .rule { margin: 4vmin 0 1.4vmin; }
+    .r { font-size: 3.6vmin; padding: 1.6vmin 0; }
+    .r b { font-size: 4.6vmin; }
+    .r i { width: 2.6vmin; margin-right: 1.4vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sign">
+    <div class="in">
+      <div class="top"><div class="tab">EXIT 70</div><span>End of season</span></div>
+      <div class="dest">
+        <h1>Outlet</h1>
+        <svg class="arrow" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path d="M50 4 L88 44 L62 44 L62 96 L38 96 L38 44 L12 44 Z" fill="#fff"/></g></svg>
+      </div>
+      <div class="rule"></div>
+      <div class="rows">
+        <div class="r"><span><i>↑</i>Final reductions</span><b>−70%</b></div>
+        <div class="r"><span><i>↗</i>Last sizes</span><b>−50%</b></div>
+        <div class="r"><span><i>→</i>New markdowns</span><b>−30%</b></div>
+      </div>
+      <div class="foot"><p>Online &amp; in store<br>Ends Sunday</p><div class="cta">Take the exit</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

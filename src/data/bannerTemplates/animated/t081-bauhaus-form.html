@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Bauhaus Form — primary shapes, lowercase geometric sans, a grid of coloured cells beside the photo */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEE7D8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EEE7D8; color: #151412; font-family: "Jost", "Futura", "Century Gothic", "Helvetica Neue", Arial, sans-serif; }
+
+  /* TALL — photo top-right, a column of shape cells on its left, the type panel below */
+  .photo { position: absolute; top: 0; right: 0; width: 76%; height: 58%; object-fit: cover; object-position: 50% 22%; }
+  .cells { position: absolute; top: 0; left: 0; width: 24%; height: 58%; display: grid; grid-template-rows: 1fr 1fr 1fr; grid-template-columns: 1fr; }
+  .c { position: relative; overflow: hidden; }
+  .c1 { background: #F1B51C; }
+  .c1 i { position: absolute; left: 50%; top: 50%; width: 15vmin; height: 15vmin; margin: -7.5vmin 0 0 -7.5vmin; border-radius: 50%; background: #D8321E; }
+  .c2 { background: #1F4E9C; }
+  .c2 i { position: absolute; left: 50%; bottom: 0; width: 17vmin; height: 8.5vmin; margin-left: -8.5vmin; border-radius: 8.5vmin 8.5vmin 0 0; background: #EEE7D8; }
+  .c3 { background: #151412; color: #EEE7D8; display: flex; flex-direction: column; justify-content: space-between; padding: 2.4vmin; }
+  .c3 small { font-size: 1.7vmin; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; }
+  .c3 b { font-size: 9vmin; font-weight: 700; line-height: .8; letter-spacing: -.04em; }
+  .c4 { display: none; background: #EEE7D8; }
+  .c4 i { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; border-radius: 0 100% 0 0; background: #151412; }
+
+  .panel { position: absolute; top: 58%; left: 0; right: 0; bottom: 0; padding: 4.4vmin 6vmin 4.6vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.6vmin; border-bottom: .6vmin solid #151412; font-size: 1.9vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .kick span:last-child { color: #D8321E; }
+  h1 { margin: 3.4vmin 0 0; font-weight: 600; font-size: 12.6vmin; line-height: .86; letter-spacing: -.035em; }
+  h1 em { font-style: normal; color: #1F4E9C; }
+  .lede { margin-top: 2.6vmin; max-width: 52%; font-size: 2.2vmin; line-height: 1.38; color: #3B372F; }
+  .offer { position: absolute; right: 6vmin; top: 13vmin; width: 27vmin; height: 27vmin; border-radius: 50%; background: #D8321E; color: #F6F0E4; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .offer b { font-size: 8.2vmin; font-weight: 600; line-height: .9; letter-spacing: -.04em; }
+  .offer small { margin-top: 1vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+  .offer::after { content: ""; position: absolute; left: -3.6vmin; bottom: -1vmin; width: 7vmin; height: 7vmin; background: #F1B51C; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 2vmin; border-top: .25vmin solid #151412; font-size: 2.2vmin; font-weight: 500; }
+  .foot .code { letter-spacing: .12em; text-transform: uppercase; }
+  .foot .code b { font-weight: 700; }
+  .cta { display: flex; align-items: center; gap: 1.4vmin; font-weight: 700; white-space: nowrap; }
+  .cta::before { content: ""; width: 2.4vmin; height: 2.4vmin; background: #1F4E9C; }
+
+  /* SHORTER PORTRAIT — photo right, full height; cells become a row over the type */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 52%; height: 100%; }
+    .cells { width: 48%; height: 21%; grid-template-rows: 1fr; grid-template-columns: 1fr 1fr 1fr; }
+    .c1 i { width: 10vmin; height: 10vmin; margin: -5vmin 0 0 -5vmin; }
+    .c2 i { width: 12vmin; height: 6vmin; margin-left: -6vmin; border-radius: 6vmin 6vmin 0 0; }
+    .c3 { padding: 1.8vmin; }
+    .c3 b { font-size: 6.4vmin; }
+    .c3 small { font-size: 1.6vmin; letter-spacing: .12em; }
+    .panel { top: 21%; left: 0; right: auto; width: 48%; box-sizing: border-box; padding: 4vmin 4.6vmin 4.4vmin; }
+    .kick { font-size: 1.7vmin; letter-spacing: .14em; }
+    h1 { font-size: 8.8vmin; margin-top: 3vmin; }
+    .lede { max-width: none; font-size: 2vmin; margin-top: 2.2vmin; }
+    .offer { top: auto; bottom: 11vmin; right: 4.6vmin; width: 19vmin; height: 19vmin; }
+    .offer b { font-size: 5.8vmin; }
+    .offer small { font-size: 1.6vmin; letter-spacing: .12em; }
+    .offer::after { width: 5vmin; height: 5vmin; left: -2.6vmin; }
+    .foot { font-size: 1.9vmin; gap: 2vmin; }
+    .foot .code { letter-spacing: .06em; }
+  }
+  /* SQUARE */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .cells { width: 50%; height: 24%; }
+    .panel { top: 24%; width: 50%; padding: 3.2vmin 4.4vmin 4vmin; }
+    h1 { font-size: 8.4vmin; margin-top: 2.6vmin; }
+    .lede { width: 54%; font-size: 1.9vmin; }
+    .offer { bottom: 10vmin; width: 18vmin; height: 18vmin; }
+    .offer b { font-size: 5.4vmin; }
+  }
+  /* WIDE — a four-cell frieze, big type, photo on the right */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .cells { width: 58%; height: 27%; grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .c4 { display: block; }
+    .c1 i { width: 13vmin; height: 13vmin; margin: -6.5vmin 0 0 -6.5vmin; }
+    .c2 i { width: 16vmin; height: 8vmin; margin-left: -8vmin; border-radius: 8vmin 8vmin 0 0; }
+    .c3 b { font-size: 8vmin; }
+    .panel { top: 27%; width: 58%; padding: 3.6vmin 6vmin 4.4vmin; }
+    .kick { font-size: 1.8vmin; }
+    h1 { font-size: 10.4vmin; }
+    .lede { width: 52%; font-size: 2.1vmin; }
+    .offer { bottom: 11vmin; right: 7vmin; width: 23vmin; height: 23vmin; }
+    .offer b { font-size: 7vmin; }
+    .foot { font-size: 2.1vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design — primary shapes in play, crisp mechanical easing ───────── */
+  /* red circle rolls out of its cell and back in from the other side */
+  .c1 i { animation: roll 6s linear infinite; }
+  @keyframes roll {
+    0%, 30% { transform: translateX(0); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    38% { transform: translateX(260%); animation-timing-function: steps(1, end); }
+    39% { transform: translateX(-260%); animation-timing-function: cubic-bezier(.15,.7,.25,1); }
+    47% { transform: translateX(7%); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    51%, 100% { transform: translateX(0); }
+  }
+  /* blue cell: the half-sun sets and rises again */
+  .c2 i { animation: sun 6s linear infinite; }
+  @keyframes sun {
+    0%, 42% { transform: translateY(0); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    50% { transform: translateY(102%); animation-timing-function: steps(1, end); }
+    54% { transform: translateY(102%); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    63% { transform: translateY(-6%); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    67%, 100% { transform: translateY(0); }
+  }
+  /* quarter circle (wide frieze): swings a quarter turn out and back */
+  .c4 i { transform-origin: 0 100%; animation: swing 6s linear infinite; }
+  @keyframes swing {
+    0%, 56% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    62% { transform: rotate(90deg); animation-timing-function: steps(1, end); }
+    63% { transform: rotate(-90deg); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    72%, 100% { transform: rotate(0deg); }
+  }
+  /* the offer disc punches, its yellow square turns a quarter */
+  .offer { animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 68% { transform: scale(1); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    71% { transform: scale(.9); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    75% { transform: scale(1.07); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    79% { transform: scale(.985); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    83%, 100% { transform: scale(1); }
+  }
+  .offer::after { animation: quarter 6s linear infinite; }
+  @keyframes quarter {
+    0%, 71% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    82%, 100% { transform: rotate(90deg); }
+  }
+  /* a red bar runs along the kicker's heavy rule */
+  .kick { position: relative; }
+  .kick::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.6vmin; height: .6vmin; background: #D8321E; clip-path: inset(0 100% 0 0); animation: run 6s linear infinite; }
+  @keyframes run {
+    0%, 6% { clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    18% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    28%, 100% { clip-path: inset(0 0 0 100%); }
+  }
+  /* "season." re-wipes in blue at the end of the phrase */
+  h1 em { display: inline-block; animation: wipe 6s linear infinite; }
+  @keyframes wipe {
+    0%, 84% { clip-path: inset(-10% -6% -20% -2%); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+    88% { clip-path: inset(-10% -6% -20% 102%); animation-timing-function: steps(1, end); }
+    89% { clip-path: inset(-10% 104% -20% -2%); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    97%, 100% { clip-path: inset(-10% -6% -20% -2%); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cells">
+    <div class="c c1"><i></i></div>
+    <div class="c c2"><i></i></div>
+    <div class="c c4"><i></i></div>
+    <div class="c c3"><small>No.</small><b>03</b></div>
+  </div>
+  <div class="panel">
+    <div class="kick"><span>the form edit</span><span>ss 26</span></div>
+    <h1>shape<br>of the<br><em>season.</em></h1>
+    <div class="lede">Pure lines, primary colour and nothing extra. The new collection is here.</div>
+    <div class="offer"><b>−30%</b><small>new in</small></div>
+    <div class="foot"><span class="code">code <b>FORM30</b></span><span class="cta">shop the edit</span></div>
+  </div>
+</div>
+</body>
+</html>

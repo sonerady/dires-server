@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Special+Elite&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Wheatpaste Poster — a fresh paper poster glued over a brick wall: older torn posters peek out behind it,
+     wheat-paste runs down the bricks, a pencilled bill number on the wall.
+     tall / 3:4 → photo on top of the poster, copy printed below · square / wide → photo left, copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #8E4B36; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1D1A17; font-family: "Special Elite", "Courier New", monospace;
+    --m: #C9B8A4;
+    background:
+      radial-gradient(60vmin 40vmin at 20% 30%, rgba(40,16,8,.28), transparent 70%),
+      radial-gradient(70vmin 50vmin at 85% 80%, rgba(255,210,180,.12), transparent 70%),
+      linear-gradient(180deg, var(--m) 0 .45vmin, transparent .45vmin 4.4vmin, var(--m) 4.4vmin 4.85vmin, transparent 4.85vmin) 0 0 / 12vmin 8.8vmin,
+      conic-gradient(at .45vmin 50%, transparent 0 270deg, var(--m) 0) 0 0 / 12vmin 8.8vmin,
+      conic-gradient(at .45vmin 50%, transparent 0 270deg, var(--m) 0) 6vmin 4.4vmin / 12vmin 8.8vmin,
+      repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 12vmin, rgba(255,255,255,.04) 12vmin 24vmin, rgba(0,0,0,.02) 24vmin 36vmin),
+      repeating-linear-gradient(180deg, rgba(0,0,0,.06) 0 8.8vmin, rgba(255,255,255,.03) 8.8vmin 17.6vmin, rgba(0,0,0,.1) 17.6vmin 26.4vmin),
+      #9A5139; }
+
+  /* older posters, torn, underneath */
+  .scrap { position: absolute; overflow: hidden; box-shadow: 0 .3vmin .8vmin rgba(0,0,0,.25); }
+  .scrap::after { position: absolute; font-family: "Anton", Impact, sans-serif; line-height: .85; text-transform: uppercase; }
+  .s1 { top: 1.6vmin; right: 1.4vmin; width: 34vmin; height: 22vmin; transform: rotate(5deg); background: #E9C53B;
+    clip-path: polygon(0 8%, 30% 0, 62% 6%, 100% 0, 97% 44%, 100% 80%, 70% 100%, 38% 92%, 8% 100%, 3% 60%); }
+  .s1::after { content: "LIVE\ALIVE"; white-space: pre; left: 3vmin; top: 1.6vmin; font-size: 10vmin; color: #1D1A17; opacity: .85; }
+  .s2 { left: 1.2vmin; top: 38%; width: 18vmin; height: 30vmin; transform: rotate(-4deg); background: #E77A8A;
+    clip-path: polygon(0 0, 100% 4%, 88% 30%, 100% 55%, 92% 100%, 4% 96%, 10% 62%); }
+  .s2::after { content: "SAT"; left: 1.6vmin; top: 3vmin; font-size: 8vmin; color: #FFF4F0; }
+  .s3 { left: 3vmin; bottom: 9.4vmin; width: 40vmin; height: 14vmin; transform: rotate(-2deg); background: #2F58A8;
+    clip-path: polygon(0 10%, 26% 0, 60% 12%, 100% 0, 96% 100%, 55% 86%, 20% 100%, 4% 80%); }
+  .s3::after { content: "NIGHT"; right: 2vmin; bottom: 1vmin; font-size: 9vmin; color: #F2E6D6; opacity: .9; }
+
+  /* the fresh poster */
+  .poster { position: absolute; left: 5vmin; right: 5vmin; top: 5vmin; bottom: 12vmin;
+    background:
+      linear-gradient(90deg, transparent 49.7%, rgba(60,40,20,.07) 50%, transparent 50.4%),
+      linear-gradient(180deg, transparent 32.8%, rgba(60,40,20,.06) 33%, transparent 33.5%),
+      radial-gradient(30vmin 20vmin at 80% 90%, rgba(190,160,110,.22), transparent 70%),
+      radial-gradient(40vmin 30vmin at 10% 20%, rgba(200,170,120,.16), transparent 70%),
+      #F1EBDD;
+    box-shadow: 0 .4vmin 1.4vmin rgba(30,10,0,.35);
+    clip-path: polygon(0 .6vmin, 22% 0, 48% .5vmin, 76% 0, 100% .4vmin, 100% calc(100% - .8vmin), 88% 100%, 71% calc(100% - .6vmin), 52% 100%, 30% calc(100% - .7vmin), 12% 100%, 0 calc(100% - .5vmin)); }
+  .photo { position: absolute; left: 2.6vmin; top: 2.6vmin; width: calc(100% - 5.2vmin); height: calc(100% - 51vmin); object-fit: cover; object-position: 50% 25%; display: block; }
+  .copy { position: absolute; left: 3.4vmin; right: 3.4vmin; bottom: 3.2vmin; height: 44vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.9vmin; letter-spacing: .06em; color: #5A4A3A; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 14.6vmin; line-height: .9; text-transform: uppercase; letter-spacing: -.005em; color: #1D1A17; }
+  h1 em { font-style: normal; color: #C23A22; }
+  .row { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .sub { font-size: 2vmin; line-height: 1.35; color: #3A3129; }
+  .buy { display: flex; flex-direction: column; align-items: flex-end; gap: .8vmin; flex: none; }
+  .price { font-family: "Anton", Impact, sans-serif; font-size: 7.4vmin; line-height: .9; color: #1D1A17; }
+  .cta { background: #1D1A17; color: #F1EBDD; font-size: 1.8vmin; padding: 1vmin 1.8vmin; white-space: nowrap; }
+
+  /* paste running down the bricks */
+  .glue { position: absolute; bottom: 12vmin; width: .9vmin; border-radius: 0 0 99vmin 99vmin; transform: translateY(100%);
+    background: linear-gradient(180deg, rgba(244,236,214,.55), rgba(244,236,214,.2)); }
+  .g1 { left: 22%; height: 5vmin; } .g2 { left: 23.6%; height: 2.6vmin; width: .6vmin; } .g3 { left: 61%; height: 4vmin; } .g4 { left: 78%; height: 6vmin; width: .7vmin; }
+  .wall { position: absolute; left: 5vmin; right: 5vmin; bottom: 3.4vmin; display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; color: #F4E6D6; letter-spacing: .04em; }
+  .wall b { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 2.6vmin; letter-spacing: .06em; }
+
+  /* 3:4 — shorter copy block */
+  @media (min-aspect-ratio: 7/10) {
+    .poster { top: 4vmin; bottom: 10vmin; left: 4.5vmin; right: 4.5vmin; }
+    .photo { height: calc(100% - 40vmin); left: 2.2vmin; top: 2.2vmin; width: calc(100% - 4.4vmin); }
+    .copy { height: 34vmin; bottom: 2.6vmin; left: 3vmin; right: 3vmin; }
+    h1 { font-size: 11vmin; margin-top: 1vmin; }
+    .price { font-size: 6vmin; }
+    .glue { bottom: 10vmin; }
+    .wall { bottom: 2.8vmin; left: 4.5vmin; right: 4.5vmin; }
+    .s3 { bottom: 7.6vmin; }
+  }
+  /* square-ish — photo left, print right */
+  @media (min-aspect-ratio: 9/10) {
+    .poster { top: 4.5vmin; bottom: 10vmin; left: 4.5vmin; right: 4.5vmin; }
+    .photo { left: 2.4vmin; top: 2.4vmin; width: 52%; height: calc(100% - 4.8vmin); }
+    .copy { left: calc(52% + 5.4vmin); right: 3vmin; top: 3.4vmin; bottom: 3vmin; height: auto; }
+    h1 { font-size: 10vmin; margin-top: 2vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .buy { flex-direction: row; align-items: center; gap: 2vmin; }
+    .price { font-size: 6.4vmin; }
+    .sub { font-size: 1.9vmin; }
+    .kick { font-size: 1.7vmin; white-space: normal; }
+    .s1 { width: 30vmin; }
+    .s2 { top: 30%; }
+    .glue { bottom: 10vmin; }
+    .wall { bottom: 3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .poster { left: 6vmin; right: 6vmin; top: 5vmin; }
+    .photo { width: 50%; }
+    .copy { left: calc(50% + 6vmin); right: 4vmin; top: 4.4vmin; bottom: 4vmin; }
+    h1 { font-size: 12.6vmin; }
+    .kick { font-size: 1.9vmin; white-space: nowrap; }
+    .sub { font-size: 2.1vmin; }
+    .price { font-size: 7.6vmin; }
+    .wall { left: 6vmin; right: 6vmin; }
+    .s3 { width: 50vmin; bottom: 7.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="scrap s1"></div><div class="scrap s2"></div><div class="scrap s3"></div>
+  <div class="poster">
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="copy">
+      <div class="kick">Maison Vrac — Wall edition Nº 07</div>
+      <h1>Fresh off<br><em>the wall.</em></h1>
+      <div class="row">
+        <div class="sub">Pasted up overnight.<br>Gone when it rains.</div>
+        <div class="buy"><div class="price">€89</div><div class="cta">Shop the drop →</div></div>
+      </div>
+    </div>
+  </div>
+  <i class="glue g1"></i><i class="glue g2"></i><i class="glue g3"></i><i class="glue g4"></i>
+  <div class="wall"><span>Post no bills — except this one.</span><b>07 / 50</b></div>
+</div>
+</body>
+</html>

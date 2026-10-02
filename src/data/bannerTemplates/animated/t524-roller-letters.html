@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Work+Sans:wght@400;500;600;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Roller Letters — giant block letters rolled onto a whitewashed wall, streaky and thinning out at the stroke ends,
+     the paint roller still parked beside them.
+     tall / 3:4 → letters stacked on top, photo below · square / wide → letters + copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1ECE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #221C18; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.0) 0 .9vmin, rgba(160,140,110,.035) .9vmin 1.2vmin, rgba(255,255,255,.0) 1.2vmin 2.3vmin),
+      linear-gradient(90deg, transparent 0 17.6vmin, rgba(150,130,100,.12) 18vmin, transparent 18.6vmin 41vmin, rgba(150,130,100,.1) 41.4vmin, transparent 42vmin 66vmin, rgba(150,130,100,.12) 66.4vmin, transparent 67vmin),
+      linear-gradient(90deg, #F3EEE4 0 18vmin, #EDE6D9 18vmin 41.4vmin, #F4EFE6 41.4vmin 66.4vmin, #EEE8DB 66.4vmin),
+      #F1ECE2; }
+  .kick { position: absolute; left: 6vmin; top: 5.4vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #6A5F55; white-space: nowrap; }
+  h1 { position: absolute; left: 5vmin; top: 9.4vmin; margin: 0; font-family: "Dela Gothic One", "Arial Black", sans-serif; font-weight: 400; font-size: 27vmin; line-height: .98; letter-spacing: -.02em;
+    background:
+      linear-gradient(90deg, rgba(241,236,226,0) 0 72%, rgba(241,236,226,.45) 92%, rgba(241,236,226,.6) 100%),
+      linear-gradient(180deg, rgba(255,255,255,.18) 0 6%, rgba(255,255,255,0) 18% 84%, rgba(120,20,0,.18) 100%),
+      repeating-linear-gradient(90deg, #E5432A 0 .5vmin, #EF553B .5vmin .9vmin, #D83B23 .9vmin 1.5vmin, #EA4B31 1.5vmin 2.1vmin, #DE3F27 2.1vmin 2.6vmin);
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h1 span { display: block; }
+
+  /* the roller, parked */
+  .roller { position: absolute; left: 62vmin; top: 12vmin; width: 6.4vmin; height: 17vmin; border-radius: 1.4vmin; transform: rotate(-8deg);
+    background:
+      linear-gradient(90deg, rgba(0,0,0,.25), rgba(255,255,255,.18) 35%, rgba(0,0,0,.05) 60%, rgba(0,0,0,.3)),
+      repeating-linear-gradient(180deg, #E5432A 0 .4vmin, #C73520 .4vmin .7vmin);
+    box-shadow: .8vmin 1vmin 1.4vmin rgba(60,40,20,.2); }
+  .roller::before { content: ""; position: absolute; left: 50%; bottom: 100%; width: 11vmin; height: 5vmin; border: .8vmin solid #3C3833; border-left: 0; border-bottom: 0; border-radius: 0 2.4vmin 0 0; margin-left: -.4vmin; }
+  .roller::after { content: ""; position: absolute; left: calc(50% + 9.4vmin); bottom: calc(100% - 17vmin); width: 2.8vmin; height: 16vmin; border-radius: 1.4vmin;
+    background: linear-gradient(90deg, #1E1C1A, #4A4640 45%, #1E1C1A); }
+  .spots { position: absolute; left: 57vmin; top: 33vmin; width: 18vmin; height: 5vmin;
+    background: radial-gradient(circle at 20% 40%, #E5432A 0 .5vmin, transparent .6vmin), radial-gradient(circle at 46% 70%, #E5432A 0 .3vmin, transparent .4vmin), radial-gradient(circle at 70% 30%, #E5432A 0 .35vmin, transparent .45vmin); }
+
+  .photo { position: absolute; left: 6vmin; top: 70vmin; width: calc(100% - 12vmin); height: calc(100% - 92vmin); object-fit: cover; object-position: 50% 25%; display: block; box-shadow: 0 1vmin 2.4vmin rgba(60,40,20,.12); }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .sub { font-size: 2.1vmin; line-height: 1.4; color: #4A4038; }
+  .sub b { color: #221C18; font-weight: 700; }
+  .buy { display: flex; align-items: baseline; gap: 2.4vmin; flex: none; }
+  .price { font-family: "Dela Gothic One", "Arial Black", sans-serif; font-size: 5.6vmin; color: #221C18; }
+  .cta { font-size: 2vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #D83B23; border-bottom: .5vmin solid #E5432A; padding-bottom: .4vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .kick { top: 4.6vmin; }
+    h1 { top: 8vmin; font-size: 21vmin; }
+    .roller { left: 52vmin; top: 9vmin; height: 14vmin; width: 5.4vmin; }
+    .roller::after { bottom: calc(100% - 14vmin); height: 13vmin; }
+    .spots { left: 46vmin; top: 26vmin; }
+    .photo { top: 54vmin; height: calc(100% - 74vmin); }
+    .foot { bottom: 4.4vmin; }
+    .price { font-size: 4.8vmin; }
+  }
+  /* square / wide — letters and copy left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .kick { left: 6vmin; top: 6vmin; font-size: 1.6vmin; }
+    h1 { left: 5vmin; top: 11vmin; font-size: 16vmin; }
+    .roller { left: 37vmin; top: 16vmin; width: 4.4vmin; height: 11vmin; border-radius: 1vmin; }
+    .roller::before { width: 7vmin; height: 3.4vmin; border-width: .6vmin; }
+    .roller::after { left: calc(50% + 5.8vmin); bottom: calc(100% - 11vmin); width: 2vmin; height: 10.4vmin; }
+    .spots { left: 33vmin; top: 29vmin; width: 12vmin; }
+    .photo { left: auto; right: 6vmin; top: 6vmin; width: 42%; height: calc(100% - 12vmin); }
+    .foot { right: auto; width: calc(58% - 16vmin); bottom: 6vmin; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .sub { font-size: 1.9vmin; }
+    .price { font-size: 4.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    h1 { font-size: 20vmin; top: 11.4vmin; }
+    .roller { left: 44vmin; top: 17vmin; width: 5vmin; height: 13vmin; }
+    .roller::after { bottom: calc(100% - 13vmin); height: 12vmin; }
+    .spots { left: 40vmin; top: 33vmin; }
+    .photo { width: 44%; }
+    .foot { width: calc(56% - 16vmin); flex-direction: row; align-items: flex-end; }
+    .sub { font-size: 2vmin; }
+    .price { font-size: 5.4vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     beats: 0.9s the letters are whitewashed out, then the parked roller rolls down (stripes turning) while "Go big." is rolled
+            back on top→bottom behind it; roller returns to its park · 2.9s the red spatter flicks · 4.9s the CTA underline is re-drawn */
+  h1 { animation: reroll 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes reroll {
+    0%, 14% { opacity: 1; clip-path: inset(-10% -5% -10% -5%); }
+    19% { opacity: 0; clip-path: inset(-10% -5% -10% -5%); }
+    19.5% { opacity: 1; clip-path: inset(-10% -5% 110% -5%); }
+    42%, 100% { opacity: 1; clip-path: inset(-10% -5% -10% -5%); } }
+  .roller { animation: roll 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes roll {
+    0%, 19% { transform: rotate(-8deg) translateY(0); background-position: 0 0, 0 0; }
+    42% { transform: rotate(-8deg) translateY(5vmin); background-position: 0 0, 0 5.6vmin; }
+    47% { transform: rotate(-8deg) translateY(5.3vmin); background-position: 0 0, 0 5.6vmin; }
+    64%, 100% { transform: rotate(-8deg) translateY(0); background-position: 0 0, 0 0; } }
+  .spots { transform-origin: 30% 50%; animation: flick 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes flick { 0%, 46%, 60%, 100% { transform: none; opacity: 1; } 48% { transform: scale(.6); opacity: .3; } 52% { transform: scale(1.18); opacity: 1; } 56% { transform: scale(.97); } }
+  .cta { border-bottom: 0; padding-bottom: .9vmin; background: linear-gradient(#E5432A, #E5432A) 0 100% / 100% .5vmin no-repeat; animation: underline 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes underline {
+    0%, 78% { background-size: 100% .5vmin; background-position: 100% 100%; }
+    84% { background-size: 0% .5vmin; background-position: 100% 100%; }
+    84.1% { background-size: 0% .5vmin; background-position: 0 100%; }
+    94%, 100% { background-size: 100% .5vmin; background-position: 0 100%; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="kick">Studio Kalk · Rooftop series</div>
+  <h1><span>Go</span><span>big.</span></h1>
+  <i class="spots"></i>
+  <i class="roller"></i>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="foot">
+    <div class="sub">New season, <b>rolled out large.</b><br>Free delivery over £80.</div>
+    <div class="buy"><div class="price">£120</div><div class="cta">Shop the wall</div></div>
+  </div>
+</div>
+</body>
+</html>

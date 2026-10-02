@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Weekend Only — the week as a seven-cell strip across the top: Monday to Friday struck through in grey,
+     Saturday and Sunday blocked in cobalt. The sale lives in those two cells and nowhere else.
+     tall → week strip, photo, then text; square / wide → strip across the top, photo left, text right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F5F1; }
+  .banner { --panel: 72vmin; --wk: 15vmin; position: fixed; inset: 0; overflow: hidden; background: #F6F5F1; color: #121212; font-family: "Syne", "Helvetica Neue", Arial, sans-serif; }
+  .week { position: absolute; left: 0; right: 0; top: 0; height: var(--wk); display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid #121212; }
+  .week div { position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 1.8vmin 1.6vmin 1.4vmin; border-right: 1px solid rgba(18,18,18,.14); }
+  .week div:last-child { border-right: 0; }
+  .week b { font-weight: 800; font-size: 6vmin; line-height: .9; letter-spacing: -.02em; }
+  .week small { font-weight: 600; font-size: 1.7vmin; letter-spacing: .1em; }
+  .week .off { color: #BAB8B1; background: linear-gradient(to top right, transparent calc(50% - .5px), #C9C7C0 calc(50% - .5px), #C9C7C0 calc(50% + .5px), transparent calc(50% + .5px)); }
+  .week .on { background: #1C3FD0; color: #F6F5F1; border-right-color: rgba(246,245,241,.25); }
+  .week .on small { color: #C9D3FF; }
+  .photo { position: absolute; left: 0; top: var(--wk); width: 100%; height: calc(100% - var(--wk) - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Instrument Serif", Didot, Georgia, serif; font-weight: 400; font-size: 27vmin; line-height: .8; letter-spacing: -.025em; }
+  h1 em { display: inline-block; margin-top: 2vmin; font-family: "Syne", Arial, sans-serif; font-style: normal; font-weight: 800; font-size: 6vmin; line-height: 1; letter-spacing: .02em; text-transform: uppercase; background: #1C3FD0; color: #F6F5F1; padding: 1.2vmin 2vmin 1.3vmin; }
+  .dates { display: none; margin: 2.4vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 3.4vmin; line-height: 1.2; color: #55544F; }
+  .offer { margin-top: auto; display: flex; align-items: baseline; gap: 2.4vmin; padding-top: 2.4vmin; border-top: 1px solid #121212; }
+  .offer b { font-weight: 800; font-size: 8vmin; line-height: 1; letter-spacing: -.03em; }
+  .offer span { font-family: "Instrument Serif", Georgia, serif; font-size: 3.4vmin; line-height: 1.1; }
+  .foot { margin-top: 2.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-weight: 600; font-size: 1.9vmin; line-height: 1.45; letter-spacing: .06em; text-transform: uppercase; color: #55544F; }
+  .cta { flex: none; background: #1C3FD0; color: #F6F5F1; padding: 2vmin 3.2vmin; font-weight: 700; font-size: 2vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 64vmin; --wk: 13vmin; }
+    .copy { bottom: 4.4vmin; height: calc(var(--panel) - 8.4vmin); }
+    .week b { font-size: 5.2vmin; }
+    h1 { font-size: 23vmin; }
+    h1 em { font-size: 5vmin; }
+    .offer b { font-size: 7vmin; }
+    .offer span { font-size: 3vmin; }
+    .foot { margin-top: 2vmin; }
+    .cta { padding: 1.7vmin 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --wk: 13vmin; }
+    .week b { font-size: 5vmin; }
+    .photo { width: 50%; height: calc(100% - var(--wk)); }
+    .copy { left: calc(50% + 5vmin); right: 5vmin; top: calc(var(--wk) + 5vmin); bottom: 5vmin; height: auto; }
+    h1 { font-size: 13.5vmin; }
+    .dates { display: block; }
+    h1 em { font-size: 4.4vmin; margin-top: 1.6vmin; }
+    .offer { flex-direction: column; gap: 1vmin; }
+    .offer b { font-size: 8.4vmin; }
+    .offer span { font-size: 3vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --wk: 14vmin; }
+    .week div { padding: 2vmin 2.4vmin 1.6vmin; }
+    .week b { font-size: 6vmin; }
+    .photo { width: 46%; object-position: 65% 25%; }
+    .copy { left: calc(46% + 7vmin); right: 7vmin; top: calc(var(--wk) + 6vmin); bottom: 6vmin; }
+    h1 { font-size: 23vmin; }
+    h1 em { font-size: 5.4vmin; margin-top: 2vmin; }
+    .offer { flex-direction: row; gap: 2.4vmin; }
+    .offer b { font-size: 8vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="week">
+    <div class="off"><b>M</b><small>22</small></div>
+    <div class="off"><b>T</b><small>23</small></div>
+    <div class="off"><b>W</b><small>24</small></div>
+    <div class="off"><b>T</b><small>25</small></div>
+    <div class="off"><b>F</b><small>26</small></div>
+    <div class="on"><b>S</b><small>27</small></div>
+    <div class="on"><b>S</b><small>28</small></div>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <h1>Weekend<br><em>Only</em></h1>
+    <p class="dates">Saturday 27 & Sunday 28 September.<br>Weekdays need not apply.</p>
+    <div class="offer"><b>−30%</b><span>on everything,<br>Saturday to Sunday.</span></div>
+    <div class="foot"><p>Ends Sunday 23:59<br>Full price Monday</p><span class="cta">Shop the weekend</span></div>
+  </div>
+</div>
+</body>
+</html>

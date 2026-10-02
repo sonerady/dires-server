@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@400;500;600&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Zodiac Wheel — an engraved astrological wheel on warm ivory: tick ring, twelve houses divided by hairlines,
+     the sign glyphs set radially, a faint sunburst hub holding the copy. The wheel slides out from behind the photo.
+     tall → photo band on top, wheel below · 3:4 / square → photo left, wheel right · wide → wheel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE7D8; }
+  .banner { --ink: #3A1A1F; --line: rgba(58,26,31,.55); --cx: 50%; --cy: calc(100% - 42vmin); --D: 84vmin; --hw: 48vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(ellipse 80% 60% at var(--cx) var(--cy), #F6F0E4 0%, #EFE7D8 60%, #E6DCC9 100%); }
+  .sky { position: absolute; inset: 0; overflow: hidden; }
+  .wheel, .halo { position: absolute; left: calc(var(--cx) - var(--D) / 2); top: calc(var(--cy) - var(--D) / 2); width: var(--D); height: var(--D); border-radius: 50%; box-sizing: border-box; }
+  .halo { transform: scale(1.14); border: 1px dashed rgba(58,26,31,.3); }
+  .wheel { border: 1px solid var(--line);
+    background:
+      radial-gradient(closest-side, transparent 89.5%, var(--line) 89.8% 90.2%, transparent 90.5%),
+      radial-gradient(closest-side, transparent 71.5%, var(--line) 71.8% 72.2%, transparent 72.5%),
+      radial-gradient(closest-side, transparent 68.5%, rgba(58,26,31,.3) 68.8% 69.1%, transparent 69.4%),
+      repeating-conic-gradient(from -.1deg, rgba(58,26,31,.07) 0 .2deg, transparent .2deg 7.5deg),
+      radial-gradient(closest-side, #F7F1E6 0 68.8%, transparent 69%); }
+  .wheel::before, .wheel::after { content: ""; position: absolute; inset: 0; border-radius: 50%; }
+  .wheel::before { background: repeating-conic-gradient(from -.15deg, var(--line) 0 .3deg, transparent .3deg 30deg);
+    -webkit-mask-image: radial-gradient(closest-side, transparent 72%, #000 72.2% 89.8%, transparent 90%); mask-image: radial-gradient(closest-side, transparent 72%, #000 72.2% 89.8%, transparent 90%); }
+  .wheel::after { background: repeating-conic-gradient(from -.2deg, var(--line) 0 .4deg, transparent .4deg 2.5deg);
+    -webkit-mask-image: radial-gradient(closest-side, transparent 90.2%, #000 90.4% 96%, transparent 96.2%); mask-image: radial-gradient(closest-side, transparent 90.2%, #000 90.4% 96%, transparent 96.2%); }
+  .sg { position: absolute; left: 50%; top: 50%; font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols", "DejaVu Sans", serif;
+    font-size: calc(var(--D) * .052); line-height: 1; color: var(--ink);
+    transform: translate(-50%, -50%) rotate(calc(var(--k) * 30deg + 15deg)) translateY(calc(var(--D) * -.405)); }
+
+  .sg:nth-child(1) { --k: 0; } .sg:nth-child(2) { --k: 1; } .sg:nth-child(3) { --k: 2; } .sg:nth-child(4) { --k: 3; } .sg:nth-child(5) { --k: 4; } .sg:nth-child(6) { --k: 5; } .sg:nth-child(7) { --k: 6; } .sg:nth-child(8) { --k: 7; } .sg:nth-child(9) { --k: 8; } .sg:nth-child(10) { --k: 9; } .sg:nth-child(11) { --k: 10; } .sg:nth-child(12) { --k: 11; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 28%; display: block; z-index: 1; }
+  .hub { position: absolute; z-index: 2; left: calc(var(--cx) - var(--hw) / 2); width: var(--hw); top: var(--cy); transform: translateY(-50%);
+    display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .kick { font-size: 1.6vmin; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; white-space: nowrap; color: #7A4A3E; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Marcellus", "Didot", serif; font-weight: 400; font-size: 6.2vmin; line-height: 1.02; letter-spacing: -.01em; }
+  h1 i { font-style: normal; color: #9A3B2E; }
+  .sub { margin-top: 1.4vmin; font-size: 1.9vmin; line-height: 1.35; color: #5A3A36; }
+  .offer { margin-top: 2vmin; padding-top: 1.6vmin; border-top: 1px solid var(--line); font-size: 1.7vmin; letter-spacing: .08em; white-space: nowrap; }
+  .offer b { font-family: "Marcellus", serif; font-weight: 400; font-size: 3.4vmin; letter-spacing: 0; margin-right: 1vmin; }
+  .cta { margin-top: 1.8vmin; padding: 1.4vmin 3vmin; background: var(--ink); color: #F6F0E4; border-radius: 99vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --cx: 73vmin; --cy: 50%; --D: 84vmin; --hw: 42vmin; }
+    .photo { width: 46vmin; height: 100%; object-position: 50% 30%; }
+    h1 { font-size: 5.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --cx: calc(100% - 27vmin); --cy: 50%; --D: 90vmin; --hw: 42vmin; }
+    .photo { width: 50%; }
+    h1 { font-size: 5.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --cx: 27%; --cy: 50%; --D: 96vmin; --hw: 50vmin; }
+    .photo { left: auto; right: 0; width: 46%; object-position: 60% 30%; }
+    h1 { font-size: 6.6vmin; }
+    .sub { font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sky">
+    <div class="halo"></div>
+    <div class="wheel">
+      <span class="sg">&#9800;&#xFE0E;</span><span class="sg">&#9801;&#xFE0E;</span><span class="sg">&#9802;&#xFE0E;</span>
+      <span class="sg">&#9803;&#xFE0E;</span><span class="sg">&#9804;&#xFE0E;</span><span class="sg">&#9805;&#xFE0E;</span>
+      <span class="sg">&#9806;&#xFE0E;</span><span class="sg">&#9807;&#xFE0E;</span><span class="sg">&#9808;&#xFE0E;</span>
+      <span class="sg">&#9809;&#xFE0E;</span><span class="sg">&#9810;&#xFE0E;</span><span class="sg">&#9811;&#xFE0E;</span>
+    </div>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="hub">
+    <div class="kick">Atelier Solstice · AW26</div>
+    <h1>Written<br><i>in the stars.</i></h1>
+    <div class="sub">Twelve signs, one autumn wardrobe.</div>
+    <div class="offer"><b>−15%</b>all Libra season</div>
+    <div class="cta">Find your sign</div>
+  </div>
+</div>
+</body>
+</html>

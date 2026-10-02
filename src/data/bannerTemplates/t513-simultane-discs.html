@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Simultané — Sonia Delaunay's rhythm discs: concentric rings cut into quadrants of clashing colour,
+     rolling in from the edge of a cream page. tall & 3:4: photo above, disc rolls in bottom-right beside the copy ·
+     square & wide: photo right, disc rises from the top-left corner above the copy */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE6D3; }
+  .banner { --red: #DE4128; --yel: #F1B42F; --blu: #2B55A6; --ink: #1A1714; --grn: #3C8A68; --pnk: #EBA3B2; --crm: #EFE6D3;
+    position: fixed; inset: 0; overflow: hidden; background: var(--crm); color: var(--ink); font-family: "Josefin Sans", "Futura", "Helvetica Neue", Arial, sans-serif; }
+  .disc { position: absolute; left: 100%; top: calc(100% - 32vmin); width: 86vmin; height: 86vmin; transform: translate(-50%, -50%); }
+  .disc i { position: absolute; left: 50%; top: 50%; border-radius: 50%; transform: translate(-50%, -50%); }
+  .disc i:nth-child(1) { width: 100%; height: 100%; background: conic-gradient(from 0deg, var(--red) 0 25%, var(--yel) 0 50%, var(--blu) 0 75%, var(--ink) 0); }
+  .disc i:nth-child(2) { width: 81%; height: 81%; background: conic-gradient(from 0deg, var(--pnk) 0 25%, var(--grn) 0 50%, var(--yel) 0 75%, var(--red) 0); }
+  .disc i:nth-child(3) { width: 62%; height: 62%; background: conic-gradient(from 0deg, var(--blu) 0 25%, var(--crm) 0 50%, var(--ink) 0 75%, var(--yel) 0); }
+  .disc i:nth-child(4) { width: 43%; height: 43%; background: conic-gradient(from 0deg, var(--yel) 0 25%, var(--red) 0 50%, var(--pnk) 0 75%, var(--blu) 0); }
+  .disc i:nth-child(5) { width: 22%; height: 22%; background: conic-gradient(from 0deg, var(--ink) 0 25%, var(--blu) 0 50%, var(--red) 0 75%, var(--crm) 0); }
+  .mini { position: absolute; left: 6vmin; top: 3vmin; width: 6vmin; height: 6vmin; border-radius: 50%;
+    background: radial-gradient(circle, transparent 0 34%, var(--crm) 34% 38%, transparent 38%), conic-gradient(var(--red) 0 25%, var(--yel) 0 50%, var(--blu) 0 75%, var(--ink) 0); }
+  .top { position: absolute; left: 14.6vmin; right: 6vmin; top: 3vmin; height: 6vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin;
+    font-size: 1.7vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; }
+  .top span:last-child { color: var(--red); }
+  .photo { position: absolute; left: 0; top: 12vmin; width: 100%; height: calc(100% - 12vmin - 66vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .copy { position: absolute; left: 6vmin; top: calc(100% - 66vmin + 5vmin); bottom: 5.4vmin; width: 50vmin; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Poiret One", "Josefin Sans", sans-serif; font-weight: 400; font-size: 11vmin; line-height: .92; letter-spacing: -.01em; }
+  .sub { margin-top: 2.4vmin; font-size: 2.1vmin; line-height: 1.42; max-width: 44vmin; color: #3E3830; }
+  .buy { margin-top: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+  .offer { display: flex; align-items: baseline; gap: 1.4vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .offer b { font-family: "Poiret One", sans-serif; font-size: 7.4vmin; letter-spacing: -.02em; color: var(--red); }
+  .cta { padding: 1.7vmin 3vmin 1.4vmin; border-radius: 99vmin; background: var(--ink); color: var(--crm); font-size: 2vmin; font-weight: 600; letter-spacing: .08em; white-space: nowrap; }
+  .fine { font-size: 1.6vmin; letter-spacing: .08em; color: #5E554A; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .disc { width: 72vmin; height: 72vmin; top: calc(100% - 27vmin); }
+    .photo { height: calc(100% - 12vmin - 54vmin); }
+    .copy { top: calc(100% - 54vmin + 4vmin); bottom: 4.4vmin; width: 58vmin; }
+    h1 { font-size: 9vmin; }
+    .sub { margin-top: 1.6vmin; font-size: 1.9vmin; max-width: 50vmin; }
+    .buy { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 1.2vmin 2.4vmin; }
+    .offer b { font-size: 6vmin; }
+    .fine { width: 100%; }
+  }
+  /* square & wide: photo right, the disc rises from the top-left corner */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; top: 0; width: 52%; height: 100%; }
+    .disc { left: 0; top: 0; width: 54vmin; height: 54vmin; }
+    .mini { display: none; }
+    .top { left: auto; right: calc(52% + 4vmin); top: 3.4vmin; height: auto; flex-direction: column; align-items: flex-end; gap: .8vmin; }
+    .copy { left: 5vmin; top: 34vmin; bottom: 5vmin; width: calc(48% - 10vmin); }
+    h1 { font-size: 8.4vmin; }
+    .sub { margin-top: 1.8vmin; font-size: 1.9vmin; max-width: 40vmin; }
+    .buy { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .offer b { font-size: 6.4vmin; }
+    .fine { width: auto; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; object-position: 60% 30%; }
+    .disc { width: 72vmin; height: 72vmin; }
+    .top { right: calc(50% + 5vmin); top: 4vmin; }
+    .copy { left: 6vmin; top: 40vmin; bottom: 5.4vmin; width: calc(50% - 12vmin); }
+    h1 { font-size: 9.6vmin; }
+    .sub { font-size: 2vmin; max-width: 50vmin; }
+    .buy { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 1.4vmin 2.6vmin; }
+    .offer b { font-size: 7vmin; }
+    .fine { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="disc"><i></i><i></i><i></i><i></i><i></i></div>
+  <i class="mini"></i>
+  <div class="top"><span>Maison Simul</span><span>Rythme N°3</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <h1>Colour<br>in motion.</h1>
+    <div class="sub">Pieces that clash on purpose. The autumn edit, cut for bright days.</div>
+    <div class="buy">
+      <div class="offer"><b>−20%</b>New season</div>
+      <div class="cta">Shop the rhythm →</div>
+      <div class="fine">Code RYTHME · ends Sunday</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

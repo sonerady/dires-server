@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;900&family=Oxanium:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Karaoke Lyrics — a Seoul noraebang / Tokyo karaoke-box screen: song-info bar, the photo as the music video
+     melting into the night-blue screen, two lines of lyrics with the classic two-colour wipe, and the score screen
+     where the score is the offer.
+     tall → info / video / lyrics / score stacked · square & wide → video left, screen UI right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0B0B2A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #fff; font-family: "Zen Maru Gothic", "Arial Rounded MT Bold", sans-serif; --navy: #0B0B2A; --cyan: #3EF2FF; --pink: #FF3DBB;
+    background: radial-gradient(120% 60% at 50% 100%, #1B1650 0%, #0B0B2A 70%); }
+  .banner::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px .6vmin); }
+
+  .video { position: absolute; left: 0; right: 0; top: 11vmin; height: calc(100% - 78vmin); overflow: hidden; }
+  .video img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .video::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 14vmin; background: linear-gradient(0deg, rgba(11,11,42,1) 0%, rgba(11,11,42,.985) 7.7%, rgba(11,11,42,.943) 15.4%, rgba(11,11,42,.874) 23.1%, rgba(11,11,42,.784) 30.8%, rgba(11,11,42,.677) 38.5%, rgba(11,11,42,.56) 46.2%, rgba(11,11,42,.44) 53.8%, rgba(11,11,42,.323) 61.5%, rgba(11,11,42,.216) 69.2%, rgba(11,11,42,.126) 76.9%, rgba(11,11,42,.057) 84.6%, rgba(11,11,42,.015) 92.3%, rgba(11,11,42,0) 100%); }
+  .video::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 7vmin; z-index: 1; background: linear-gradient(180deg, rgba(11,11,42,1) 0%, rgba(11,11,42,.985) 7.7%, rgba(11,11,42,.943) 15.4%, rgba(11,11,42,.874) 23.1%, rgba(11,11,42,.784) 30.8%, rgba(11,11,42,.677) 38.5%, rgba(11,11,42,.56) 46.2%, rgba(11,11,42,.44) 53.8%, rgba(11,11,42,.323) 61.5%, rgba(11,11,42,.216) 69.2%, rgba(11,11,42,.126) 76.9%, rgba(11,11,42,.057) 84.6%, rgba(11,11,42,.015) 92.3%, rgba(11,11,42,0) 100%); }
+
+  /* song info bar */
+  .info { position: absolute; left: 5vmin; right: 5vmin; top: 3.6vmin; display: flex; align-items: center; gap: 2vmin; font-family: "Oxanium", "Courier New", monospace; font-weight: 500; font-size: 1.9vmin; letter-spacing: .06em; white-space: nowrap; z-index: 2; }
+  .info .no { background: var(--pink); color: #fff; font-weight: 700; padding: .6vmin 1.2vmin; }
+  .info .song { font-family: "Zen Maru Gothic", sans-serif; font-weight: 900; font-size: 2.6vmin; letter-spacing: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .info .song small { font-weight: 500; font-size: 1.8vmin; color: #B9B6E8; margin-left: 1vmin; }
+  .info .meta { margin-left: auto; color: var(--cyan); }
+
+  /* lyrics with a two-colour wipe */
+  .lyrics { position: absolute; left: 5vmin; right: 5vmin; top: calc(100% - 66vmin); height: 30vmin; display: flex; flex-direction: column; justify-content: center; gap: 1.6vmin; }
+  .cue { display: flex; gap: 1vmin; margin-bottom: .6vmin; }
+  .cue i { width: 1.8vmin; height: 1.8vmin; border-radius: 50%; background: var(--pink); box-shadow: 0 0 1vmin rgba(255,61,187,.8); }
+  .cue i:nth-child(n+3) { background: rgba(255,255,255,.2); box-shadow: none; }
+  .line { font-weight: 900; font-size: 7.4vmin; line-height: 1.12; letter-spacing: .01em; white-space: nowrap; }
+  .line span { display: inline-block; color: transparent; -webkit-background-clip: text; background-clip: text; filter: drop-shadow(0 .35vmin 0 #2A1F7A) drop-shadow(0 0 1.4vmin rgba(62,242,255,.25)); }
+  .l1 span { background-image: linear-gradient(90deg, var(--cyan) 0 62%, #fff 62% 100%); }
+  .l2 { padding-left: 6vmin; }
+  .l2 span { background-image: linear-gradient(90deg, #fff 0 100%); }
+  .ruby { font-size: 1.8vmin; font-weight: 500; letter-spacing: .12em; color: #B9B6E8; margin-top: .4vmin; }
+
+  /* score screen */
+  .score { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 27vmin; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); border: .35vmin solid var(--cyan); box-shadow: 0 0 2.4vmin rgba(62,242,255,.35), inset 0 0 2.4vmin rgba(62,242,255,.15); background: rgba(11,11,42,.7); }
+  .pts { display: flex; flex-direction: column; justify-content: center; padding: 0 3vmin; border-right: 1px solid rgba(62,242,255,.4); }
+  .pts small { font-family: "Oxanium", monospace; font-weight: 700; font-size: 1.9vmin; letter-spacing: .2em; color: var(--cyan); }
+  .pts b { font-family: "Oxanium", monospace; font-weight: 700; font-size: 11vmin; line-height: 1; color: #FFE45C; text-shadow: 0 0 2vmin rgba(255,228,92,.6); letter-spacing: -.02em; }
+  .pts b sub { font-size: 4.4vmin; vertical-align: baseline; }
+  .stars { font-size: 2.6vmin; letter-spacing: .3em; color: var(--pink); text-shadow: 0 0 1vmin rgba(255,61,187,.8); }
+  .prize { display: flex; flex-direction: column; justify-content: center; padding: 0 3vmin; gap: 1.2vmin; }
+  .prize .k { font-weight: 500; font-size: 2vmin; color: #D8D5FF; }
+  .prize .off { font-weight: 900; font-size: 6.4vmin; line-height: 1; }
+  .prize .code { align-self: flex-start; font-family: "Oxanium", monospace; font-weight: 700; font-size: 2vmin; letter-spacing: .12em; background: var(--pink); padding: .8vmin 1.4vmin; }
+  .prize .next { font-family: "Oxanium", monospace; font-size: 1.7vmin; letter-spacing: .08em; color: #B9B6E8; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .video { top: 10vmin; height: calc(100% - 68vmin); }
+    .lyrics { top: calc(100% - 60vmin); height: 27vmin; }
+    .line { font-size: 6.8vmin; }
+    .score { height: 24vmin; bottom: 4.4vmin; }
+    .pts b { font-size: 9.4vmin; }
+    .prize .off { font-size: 5.6vmin; }
+  }
+  /* SQUARE — video left melting right, screen UI right */
+  @media (min-aspect-ratio: 9/10) {
+    .video { top: 0; bottom: 0; right: auto; width: 52%; height: 100%; }
+    .video::before { display: none; }
+    .video::after { left: auto; top: 0; bottom: 0; width: 12vmin; height: auto; background: linear-gradient(270deg, rgba(11,11,42,1) 0%, rgba(11,11,42,.985) 7.7%, rgba(11,11,42,.943) 15.4%, rgba(11,11,42,.874) 23.1%, rgba(11,11,42,.784) 30.8%, rgba(11,11,42,.677) 38.5%, rgba(11,11,42,.56) 46.2%, rgba(11,11,42,.44) 53.8%, rgba(11,11,42,.323) 61.5%, rgba(11,11,42,.216) 69.2%, rgba(11,11,42,.126) 76.9%, rgba(11,11,42,.057) 84.6%, rgba(11,11,42,.015) 92.3%, rgba(11,11,42,0) 100%); }
+    .info { left: calc(52% + 3vmin); right: 5vmin; top: 5vmin; flex-wrap: wrap; row-gap: 1.2vmin; }
+    .info .song { order: 3; width: 100%; font-size: 2.6vmin; }
+    .info .meta { margin-left: auto; }
+    .lyrics { left: calc(52% + 3vmin); right: 5vmin; top: 20vmin; height: 34vmin; gap: 1.2vmin; }
+    .line { font-size: 6.4vmin; white-space: normal; }
+    .l2 { padding-left: 4vmin; }
+    .score { left: calc(52% + 3vmin); right: 5vmin; bottom: 5vmin; height: 36vmin; grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .pts { border-right: 0; border-bottom: 1px solid rgba(62,242,255,.4); padding: 1.8vmin 2.6vmin; flex-direction: row; align-items: baseline; gap: 2vmin; flex-wrap: wrap; }
+    .pts b { font-size: 7.4vmin; }
+    .stars { font-size: 2vmin; }
+    .prize { padding: 0 2.6vmin; gap: 1vmin; }
+    .prize .off { font-size: 5vmin; }
+    .prize .k, .prize .next { display: none; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .video { width: 50%; }
+    .info { left: calc(50% + 4vmin); right: 6vmin; top: 6vmin; }
+    .lyrics { left: calc(50% + 4vmin); right: 6vmin; top: 20vmin; height: 36vmin; }
+    .line { font-size: 6.2vmin; white-space: nowrap; }
+    .score { left: calc(50% + 4vmin); right: 6vmin; bottom: 6vmin; height: 30vmin; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); grid-template-rows: 1fr; }
+    .pts { border-bottom: 0; border-right: 1px solid rgba(62,242,255,.4); flex-direction: column; align-items: flex-start; justify-content: center; gap: .4vmin; }
+    .pts b { font-size: 9vmin; }
+    .prize .k { display: block; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     the lyric wipe sings along: 0–1.1s line 1 finishes its cyan wipe → 1.2–4.0s line 2 wipes word by word →
+     4.3s the page resets and line 1 re-wipes back to its rest point by 6s · cue dots count in (0.5s/0.9s) ·
+     constant: the score screen pulses on the beat (1s), the music video slowly pushes in · 4.4s score pops, stars flare ·
+     5.2s code pill sheen */
+  .l1 span { background-image: linear-gradient(90deg, var(--cyan) 0 50%, #fff 50% 100%); background-size: 200% 100%; background-repeat: no-repeat; background-position: 38% 0; animation: wipe1 6s linear infinite; }
+  @keyframes wipe1 {
+    0% { background-position: 38% 0; animation-timing-function: linear; }
+    18%, 71% { background-position: 0% 0; animation-timing-function: steps(1, end); }
+    72% { background-position: 100% 0; animation-timing-function: linear; }
+    76% { background-position: 100% 0; animation-timing-function: linear; }
+    100% { background-position: 38% 0; }
+  }
+  .l2 span { background-image: linear-gradient(90deg, var(--cyan) 0 50%, #fff 50% 100%); background-size: 200% 100%; background-repeat: no-repeat; background-position: 100% 0; animation: wipe2 6s linear infinite; }
+  @keyframes wipe2 {
+    0%, 20% { background-position: 100% 0; }
+    67%, 71% { background-position: 0% 0; animation-timing-function: steps(1, end); }
+    72%, 100% { background-position: 100% 0; }
+  }
+  .lyrics .line { animation: page 6s linear infinite; }
+  @keyframes page { 0%, 70% { opacity: 1; transform: translateY(0); } 71.5% { opacity: 0; transform: translateY(-.8vmin); animation-timing-function: steps(1, end); } 72% { opacity: 0; transform: translateY(.8vmin); animation-timing-function: cubic-bezier(.2,.8,.3,1); } 75%, 100% { opacity: 1; transform: translateY(0); } }
+  .cue i:nth-child(3) { animation: cue3 6s steps(1, end) infinite; }
+  .cue i:nth-child(4) { animation: cue4 6s steps(1, end) infinite; }
+  @keyframes cue3 { 0%, 7.9% { background: rgba(255,255,255,.2); box-shadow: none; } 8%, 71.9% { background: var(--pink); box-shadow: 0 0 1vmin rgba(255,61,187,.8); } 72%, 100% { background: rgba(255,255,255,.2); box-shadow: none; } }
+  @keyframes cue4 { 0%, 14.9% { background: rgba(255,255,255,.2); box-shadow: none; } 15%, 71.9% { background: var(--pink); box-shadow: 0 0 1vmin rgba(255,61,187,.8); } 72%, 100% { background: rgba(255,255,255,.2); box-shadow: none; } }
+
+  .video img { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  .score { animation: beat 1s linear infinite; }
+  @keyframes beat {
+    0% { box-shadow: 0 0 3.6vmin rgba(62,242,255,.6), inset 0 0 3vmin rgba(62,242,255,.28); animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+    60%, 100% { box-shadow: 0 0 2.4vmin rgba(62,242,255,.35), inset 0 0 2.4vmin rgba(62,242,255,.15); }
+  }
+  .pts b { transform-origin: 0% 70%; animation: pop 6s linear infinite; }
+  @keyframes pop {
+    0%, 72% { transform: scale(1); text-shadow: 0 0 2vmin rgba(255,228,92,.6); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    76% { transform: scale(1.12); text-shadow: 0 0 4vmin rgba(255,228,92,.95); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    82%, 100% { transform: scale(1); text-shadow: 0 0 2vmin rgba(255,228,92,.6); }
+  }
+  .stars { animation: stars 6s linear infinite; }
+  @keyframes stars { 0%, 74% { text-shadow: 0 0 1vmin rgba(255,61,187,.8); color: var(--pink); } 77% { text-shadow: 0 0 2.4vmin rgba(255,61,187,1), 0 0 .6vmin #fff; color: #FF8AD6; } 84%, 100% { text-shadow: 0 0 1vmin rgba(255,61,187,.8); color: var(--pink); } }
+  .prize .code { position: relative; overflow: hidden; }
+  .prize .code::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.6) 50%, rgba(255,255,255,0));
+    transform: translateX(-150%) skewX(-20deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen { 0%, 85% { transform: translateX(-150%) skewX(-20deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 97%, 100% { transform: translateX(330%) skewX(-20deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="video"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="info"><span class="no">♪ 0426</span><span class="song">New Season<small>Studio Oro</small></span><span class="meta">ROOM 07 · 노래방</span></div>
+  <div class="lyrics">
+    <div class="cue"><i></i><i></i><i></i><i></i></div>
+    <div class="line l1"><span>Sing it loud,</span></div>
+    <div class="line l2"><span>the new drop is on.</span></div>
+    <div class="ruby">KEY ±0 · TEMPO 118 · VERSE 2</div>
+  </div>
+  <div class="score">
+    <div class="pts"><small>YOUR SCORE</small><b>98<sub>.6</sub></b><span class="stars">★★★★★</span></div>
+    <div class="prize"><span class="k">Encore unlocked</span><span class="off">30% off</span><span class="code">KARAOKE30</span><span class="next">NEXT ▶ The Sale Mix · 48H</span></div>
+  </div>
+</div>
+</body>
+</html>

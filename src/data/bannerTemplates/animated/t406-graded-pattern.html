@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Graded Pattern — a dressmaker's tissue pattern sheet: one piece printed in eight nested, graded cutting lines,
+     XS inside to 4XL outside, each in its own line style with a printed size key, plus grainline, notches and
+     the pattern stamp. The point is made by the object: every size is drafted, not stretched.
+     tall → photo above the tissue sheet · square / wide → photo left, tissue sheet right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E9DDC3; }
+  .banner { --panel: max(84vmin, 50%); position: fixed; inset: 0; overflow: hidden; color: #1F2A4A; font-family: "IBM Plex Mono", Menlo, monospace;
+    background: #E9DDC3 linear-gradient(rgba(43,58,99,.07) 1px, transparent 1px) 0 0 / 5vmin 5vmin, #E9DDC3 linear-gradient(90deg, rgba(43,58,99,.07) 1px, transparent 1px) 0 0 / 5vmin 5vmin; }
+  .banner::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .35; mix-blend-mode: multiply;
+    background: radial-gradient(ellipse at 20% 30%, rgba(160,120,60,.18), transparent 60%), radial-gradient(ellipse at 80% 90%, rgba(160,120,60,.16), transparent 55%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+  .piece { position: absolute; right: 5vmin; top: calc(100% - var(--panel) - 3vmin); z-index: 2; background: #1F2A4A; color: #E9DDC3; padding: 1.2vmin 2vmin; font-weight: 600; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; }
+
+  .nest { position: absolute; right: 1vmin; bottom: 17vmin; width: 60vmin; height: 60vmin; overflow: visible; }
+  .nest text { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 4.6px; text-anchor: middle; paint-order: stroke; stroke: #E9DDC3; stroke-width: 2.4px; stroke-dasharray: none; }
+  .nest .grain { text-anchor: start; font-size: 4px; letter-spacing: .12em; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .kick { font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; line-height: 1.5; }
+  .kick b { font-weight: 600; color: #B2473A; }
+  h1 { margin: 2.2vmin 0 0; max-width: 46vmin; font-family: "Libre Caslon Display", "Bodoni 72", Georgia, serif; font-weight: 400; font-size: 10.4vmin; line-height: .95; letter-spacing: -.01em; }
+  h1 em { color: #B2473A; }
+  .key { margin-top: 3vmin; }
+  .key small { display: inline-block; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #5A6385; }
+  .key ul { list-style: none; margin: 1.2vmin 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, 13vmin); column-gap: 3vmin; row-gap: .9vmin; }
+  .key li { display: flex; align-items: center; gap: 1.2vmin; }
+  .key li svg { width: 6vmin; height: 1vmin; stroke-width: 1.6; stroke-linecap: round; overflow: visible; }
+  .key li b { font-weight: 600; font-size: 2vmin; }
+  .foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; padding-top: 2vmin; border-top: 1px dashed rgba(31,42,74,.5); position: relative; z-index: 1; }
+  .foot p { margin: 0; font-size: 1.9vmin; line-height: 1.45; }
+  .foot p i { color: #B2473A; }
+  .cta { flex: none; background: #B2473A; color: #FBF4E6; padding: 1.9vmin 2.8vmin; font-weight: 600; font-size: 2.1vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 76vmin; }
+    .panel { bottom: 4vmin; height: calc(var(--panel) - 8vmin); }
+    .nest { width: 54vmin; height: 54vmin; bottom: 14vmin; }
+    h1 { font-size: 9.4vmin; margin-top: 1.8vmin; }
+    .key { margin-top: 2.4vmin; }
+  }
+  /* square → photo left, tissue right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; }
+    .piece { right: auto; left: calc(46% - 3vmin); top: 5vmin; }
+    .panel { left: calc(46% + 5vmin); right: 4.6vmin; top: 12vmin; bottom: 4.6vmin; height: auto; }
+    .nest { right: -1vmin; bottom: 19vmin; width: 34vmin; height: 34vmin; }
+    h1 { font-size: 8.4vmin; max-width: none; }
+    .key ul { grid-template-columns: repeat(2, 11vmin); column-gap: 2vmin; }
+    .key li svg { width: 5vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .foot p { font-size: 1.7vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 50% 28%; }
+    .piece { left: calc(42% - 3vmin); }
+    .panel { left: calc(42% + 6vmin); right: 6vmin; top: 12vmin; bottom: 6vmin; }
+    .nest { right: 2vmin; bottom: 17vmin; width: 56vmin; height: 56vmin; }
+    h1 { font-size: 9.6vmin; max-width: 44vmin; }
+    .key { margin-top: 3.4vmin; }
+    .key ul { grid-template-columns: repeat(2, 12vmin); }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .foot p br { display: none; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static pattern sheet) ─────────
+     1.0s → 2.6s grading wave: the cutting lines swell one after another from XS (inside) out to 4XL,
+     each with its printed label and its row in the size key lifting in step — every size drafted in turn ·
+     2.6s "every" warms as the wave lands on 4XL · constant: the grainline arrow breathes (3s) ·
+     4.1s the PIECE tag is nudged like a pinned tissue label · 5.1s light sweep across the CTA */
+  .nest > path { animation: grade 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .nest > text:not(.grain) { animation: tag 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .key li { animation: row 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .nest > path:nth-of-type(1), .nest > text:nth-of-type(1), .key li:nth-child(1) { animation-delay: -1.4s; }
+  .nest > path:nth-of-type(2), .nest > text:nth-of-type(2), .key li:nth-child(2) { animation-delay: -1.2s; }
+  .nest > path:nth-of-type(3), .nest > text:nth-of-type(3), .key li:nth-child(3) { animation-delay: -1.0s; }
+  .nest > path:nth-of-type(4), .nest > text:nth-of-type(4), .key li:nth-child(4) { animation-delay: -0.8s; }
+  .nest > path:nth-of-type(5), .nest > text:nth-of-type(5), .key li:nth-child(5) { animation-delay: -0.6s; }
+  .nest > path:nth-of-type(6), .nest > text:nth-of-type(6), .key li:nth-child(6) { animation-delay: -0.4s; }
+  .nest > path:nth-of-type(7), .nest > text:nth-of-type(7), .key li:nth-child(7) { animation-delay: -0.2s; }
+  .nest > path:nth-of-type(8), .nest > text:nth-of-type(8), .key li:nth-child(8) { animation-delay: 0s; }
+  @keyframes grade { 0%, 36%, 50%, 100% { stroke-width: .7; } 41% { stroke-width: 1.9; } }
+  @keyframes tag { 0%, 36%, 50%, 100% { font-size: 4.6px; } 41% { font-size: 6px; } }
+  @keyframes row { 0%, 36%, 50%, 100% { transform: translateX(0); opacity: 1; } 41% { transform: translateX(1vmin); opacity: 1; } }
+  .key li b { display: inline-block; }
+
+  h1 em { animation: warm 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes warm { 0%, 38%, 58%, 100% { color: #B2473A; text-shadow: 0 0 0 rgba(178,71,58,0); } 46% { color: #D0503E; text-shadow: 0 0 2vmin rgba(178,71,58,.35); } }
+
+  .nest > g:first-of-type { animation: grain 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes grain { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+  .piece { transform-origin: 50% 0; animation: pin 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pin { 0%, 66% { transform: rotate(0); } 69% { transform: rotate(-3deg); } 72.5% { transform: rotate(1.6deg); } 76% { transform: rotate(-.7deg); } 80%, 100% { transform: rotate(0); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(251,244,230,.45) 50%, transparent 65%) no-repeat;
+    background-size: 250% 100%; background-position: 120% 0; animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 84% { background-position: 120% 0; } 97%, 100% { background-position: -20% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="piece">Piece 04 · Cut 1 on fold</div>
+  <svg class="nest" viewBox="0 0 200 200" preserveAspectRatio="xMidYMax meet" fill="none" stroke-width=".7" stroke-linecap="round"><path d="M 43.0 190.0 C 51.6 146.6 70.2 89.6 100.0 85.8 C 129.8 89.6 148.4 146.6 157.0 190.0" stroke="#2B3A63"/><text x="100" y="84.6" fill="#2B3A63">XS</text><path d="M 37.9 190.0 C 47.3 142.8 67.6 80.6 100.0 76.6 C 132.4 80.6 152.7 142.8 162.1 190.0" stroke="#B2473A" stroke-dasharray="0.1 2"/><text x="100" y="75.4" fill="#B2473A">S</text><path d="M 32.8 190.0 C 43.1 138.9 65.0 71.7 100.0 67.4 C 135.0 71.7 156.9 138.9 167.2 190.0" stroke="#2B3A63" stroke-dasharray="5 2.5"/><text x="100" y="66.2" fill="#2B3A63">M</text><path d="M 27.8 190.0 C 38.8 135.1 62.3 62.8 100.0 58.1 C 137.7 62.8 161.2 135.1 172.2 190.0" stroke="#B2473A" stroke-dasharray="6 2 0.1 2"/><text x="100" y="56.9" fill="#B2473A">L</text><path d="M 22.7 190.0 C 34.5 131.2 59.7 53.9 100.0 48.9 C 140.3 53.9 165.5 131.2 177.3 190.0" stroke="#2B3A63" stroke-dasharray="0.1 2"/><text x="100" y="47.7" fill="#2B3A63">XL</text><path d="M 17.7 190.0 C 30.2 127.3 57.0 45.0 100.0 39.6 C 143.0 45.0 169.8 127.3 182.3 190.0" stroke="#B2473A"/><text x="100" y="38.4" fill="#B2473A">2XL</text><path d="M 12.6 190.0 C 25.9 123.5 54.4 36.1 100.0 30.4 C 145.6 36.1 174.1 123.5 187.4 190.0" stroke="#2B3A63" stroke-dasharray="6 2 0.1 2"/><text x="100" y="29.2" fill="#2B3A63">3XL</text><path d="M 7.5 190.0 C 21.6 119.7 51.8 27.2 100.0 21.2 C 148.2 27.2 178.4 119.7 192.5 190.0" stroke="#B2473A" stroke-dasharray="5 2.5"/><text x="100" y="20.0" fill="#B2473A">4XL</text><g stroke="#2B3A63" stroke-width=".6"><line x1="100" y1="104" x2="100" y2="176"/><path d="M96 110 L100 102 L104 110 M96 170 L100 178 L104 170"/></g><text x="103" y="146" fill="#2B3A63" class="grain">GRAIN</text><g fill="#B2473A" stroke="none"><path d="M31 118 l3 5 l-6 0 z"/><path d="M169 118 l3 5 l-6 0 z"/><path d="M26 131 l3 5 l-6 0 z"/></g></svg>
+  <div class="panel">
+    <div class="kick"><b>Studio Oro</b> · Pattern Nº 26-114</div>
+    <h1>Graded for <em>every</em> body.</h1>
+    <div class="key"><small>Size key</small><ul>
+<li><svg viewBox="0 0 40 4" preserveAspectRatio="none"><line x1="0" y1="2" x2="40" y2="2" stroke="#2B3A63"/></svg><b>XS</b></li>
+<li><svg viewBox="0 0 40 4" preserveAspectRatio="none"><line x1="0" y1="2" x2="40" y2="2" stroke="#B2473A" stroke-dasharray="0.1 2"/></svg><b>S</b></li>
+<li><svg viewBox="0 0 40 4" preserveAspectRatio="none"><line x1="0" y1="2" x2="40" y2="2" stroke="#2B3A63" stroke-dasharray="5 2.5"/></svg><b>M</b></li>
+<li><svg viewBox="0 0 40 4" preserveAspectRatio="none"><line x1="0" y1="2" x2="40" y2="2" stroke="#B2473A" stroke-dasharray="6 2 0.1 2"/></svg><b>L</b></li>
+<li><svg viewBox="0 0 40 4" preserveAspectRatio="none"><line x1="0" y1="2" x2="40" y2="2" stroke="#2B3A63" stroke-dasharray="0.1 2"/></svg><b>XL</b></li>
+<li><svg viewBox="0 0 40 4" preserveAspectRatio="none"><line x1="0" y1="2" x2="40" y2="2" stroke="#B2473A"/></svg><b>2XL</b></li>
+<li><svg viewBox="0 0 40 4" preserveAspectRatio="none"><line x1="0" y1="2" x2="40" y2="2" stroke="#2B3A63" stroke-dasharray="6 2 0.1 2"/></svg><b>3XL</b></li>
+<li><svg viewBox="0 0 40 4" preserveAspectRatio="none"><line x1="0" y1="2" x2="40" y2="2" stroke="#B2473A" stroke-dasharray="5 2.5"/></svg><b>4XL</b></li>
+    </ul></div>
+    <div class="foot"><p>Drafted in eight sizes, <br><i>never just scaled up.</i></p><span class="cta">Shop the edit</span></div>
+  </div>
+</div>
+</body>
+</html>

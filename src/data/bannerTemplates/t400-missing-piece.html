@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Missing Piece — complete-the-look as a jigsaw: hairline puzzle cuts run over the photo, one piece is
+     traced in signal orange, and that piece — a close crop of the same photo cut to a jigsaw shape —
+     lies lifted beside it with a soft shadow. tall / 3:4 → photo above, piece + copy below;
+     square → photo left, piece over the copy on the right; wide → photo left, piece beside the copy */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EFE9; }
+  .banner { --p: 30vmin; position: fixed; inset: 0; overflow: hidden; background: #F2EFE9; color: #141414; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+    display: flex; flex-direction: column; }
+  .ph { flex: 1 1 auto; min-height: 0; position: relative; overflow: hidden; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .ph svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+
+  .copy { flex: none; display: flex; align-items: center; gap: 5vmin; padding: 5vmin 5vmin 0; }
+  .pw { flex: none; position: relative; width: var(--p); height: var(--p); filter: drop-shadow(0 1.2vmin 1.4vmin rgba(20,20,20,.28)); transform: rotate(-8deg); }
+  .pc { position: absolute; inset: 0; clip-path: url(#jig); overflow: hidden; }
+  .pc img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%; transform: scale(2.2); transform-origin: 50% 42%; display: block; }
+  .pw svg.o { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .txt { flex: 1 1 auto; min-width: 0; }
+  .k { font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #FF5A1F; }
+  h1 { margin: 1.8vmin 0 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 700; font-size: 6.6vmin; line-height: 1.02; letter-spacing: -.035em; }
+  .sub { margin: 2vmin 0 0; font-size: 2.1vmin; line-height: 1.4; color: #4A4742; }
+
+  .foot { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; margin: 4vmin 5vmin 5vmin; padding-top: 2.4vmin; border-top: 1px solid #141414; }
+  .foot p { margin: 0; font-size: 2vmin; font-weight: 500; }
+  .foot p b { font-weight: 700; }
+  .cta { flex: none; background: #FF5A1F; color: #141414; padding: 1.8vmin 3vmin; font-family: "Unbounded", sans-serif; font-weight: 700; font-size: 1.9vmin; letter-spacing: .02em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --p: 24vmin; }
+    .copy { padding-top: 4vmin; }
+    h1 { font-size: 5.6vmin; }
+    .sub { font-size: 1.9vmin; margin-top: 1.4vmin; }
+    .foot { margin: 3vmin 5vmin 4.4vmin; padding-top: 2vmin; }
+  }
+  /* square — photo left, piece above the copy on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --p: 30vmin; display: grid; grid-template-columns: 52% minmax(0, 1fr); grid-template-rows: 1fr auto; }
+    .ph { grid-column: 1; grid-row: 1 / -1; }
+    .copy { grid-column: 2; grid-row: 1; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4vmin; padding: 5vmin 5vmin 0; }
+    .pw { margin-left: 2vmin; }
+    h1 { font-size: 5vmin; }
+    .foot { grid-column: 2; grid-row: 2; flex-direction: column; align-items: flex-start; gap: 2vmin; margin: 3vmin 5vmin 5vmin; }
+    .foot p { font-size: 1.8vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.6vmin 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --p: 28vmin; grid-template-columns: 42% minmax(0, 1fr); }
+    .copy { flex-direction: row; align-items: center; gap: 5vmin; padding: 6vmin 6vmin 0; }
+    h1 { font-size: 6vmin; }
+    .sub { font-size: 2vmin; }
+    .foot { flex-direction: row; align-items: center; margin: 3vmin 6vmin 6vmin; }
+    .foot p { font-size: 1.9vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.8vmin 2.8vmin; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="jig" clipPathUnits="objectBoundingBox"><path d="M.2 .2L.428 .2C.404 .1 .38 0 .5 0C.62 0 .596 .1 .572 .2L.8 .2L.8 .428C.9 .404 1 .38 1 .5C1 .62 .9 .596 .8 .572L.8 .8L.572 .8C.596 .7 .62 .6 .5 .6C.38 .6 .404 .7 .428 .8L.2 .8L.2 .572C.3 .596 .4 .62 .4 .5C.4 .38 .3 .404 .2 .428Z"/></clipPath></defs></svg>
+<div class="banner">
+  <div class="ph">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 16.67L9.5 16.67C8.5 18.67 7.5 20.67 12.5 20.67C17.5 20.67 16.5 18.67 15.5 16.67L25 16.67L34.5 16.67C33.5 14.67 32.5 12.67 37.5 12.67C42.5 12.67 41.5 14.67 40.5 16.67L50 16.67L59.5 16.67C58.5 18.67 57.5 20.67 62.5 20.67C67.5 20.67 66.5 18.67 65.5 16.67L75 16.67L84.5 16.67C83.5 14.67 82.5 12.67 87.5 12.67C92.5 12.67 91.5 14.67 90.5 16.67L100 16.67M0 33.33L9.5 33.33C8.5 31.33 7.5 29.33 12.5 29.33C17.5 29.33 16.5 31.33 15.5 33.33L25 33.33L34.5 33.33C33.5 35.33 32.5 37.33 37.5 37.33C42.5 37.33 41.5 35.33 40.5 33.33L50 33.33L59.5 33.33C58.5 31.33 57.5 29.33 62.5 29.33C67.5 29.33 66.5 31.33 65.5 33.33L75 33.33L84.5 33.33C83.5 35.33 82.5 37.33 87.5 37.33C92.5 37.33 91.5 35.33 90.5 33.33L100 33.33M0 50L9.5 50C8.5 52 7.5 54 12.5 54C17.5 54 16.5 52 15.5 50L25 50L34.5 50C33.5 48 32.5 46 37.5 46C42.5 46 41.5 48 40.5 50L50 50L59.5 50C58.5 52 57.5 54 62.5 54C67.5 54 66.5 52 65.5 50L75 50L84.5 50C83.5 48 82.5 46 87.5 46C92.5 46 91.5 48 90.5 50L100 50M0 66.67L9.5 66.67C8.5 64.67 7.5 62.67 12.5 62.67C17.5 62.67 16.5 64.67 15.5 66.67L25 66.67L34.5 66.67C33.5 68.67 32.5 70.67 37.5 70.67C42.5 70.67 41.5 68.67 40.5 66.67L50 66.67L59.5 66.67C58.5 64.67 57.5 62.67 62.5 62.67C67.5 62.67 66.5 64.67 65.5 66.67L75 66.67L84.5 66.67C83.5 68.67 82.5 70.67 87.5 70.67C92.5 70.67 91.5 68.67 90.5 66.67L100 66.67M0 83.33L9.5 83.33C8.5 85.33 7.5 87.33 12.5 87.33C17.5 87.33 16.5 85.33 15.5 83.33L25 83.33L34.5 83.33C33.5 81.33 32.5 79.33 37.5 79.33C42.5 79.33 41.5 81.33 40.5 83.33L50 83.33L59.5 83.33C58.5 85.33 57.5 87.33 62.5 87.33C67.5 87.33 66.5 85.33 65.5 83.33L75 83.33L84.5 83.33C83.5 81.33 82.5 79.33 87.5 79.33C92.5 79.33 91.5 81.33 90.5 83.33L100 83.33M25 0L25 6.33C28 5.67 31 5 31 8.33C31 11.67 28 11 25 10.33L25 16.67L25 23C22 22.33 19 21.67 19 25C19 28.33 22 27.67 25 27L25 33.33L25 39.67C28 39 31 38.33 31 41.67C31 45 28 44.33 25 43.67L25 50L25 56.33C22 55.67 19 55 19 58.33C19 61.67 22 61 25 60.33L25 66.67L25 73C28 72.33 31 71.67 31 75C31 78.33 28 77.67 25 77L25 83.33L25 89.67C22 89 19 88.33 19 91.67C19 95 22 94.33 25 93.67L25 100M50 0L50 6.33C47 5.67 44 5 44 8.33C44 11.67 47 11 50 10.33L50 16.67L50 23C53 22.33 56 21.67 56 25C56 28.33 53 27.67 50 27L50 33.33L50 39.67C47 39 44 38.33 44 41.67C44 45 47 44.33 50 43.67L50 50L50 56.33C53 55.67 56 55 56 58.33C56 61.67 53 61 50 60.33L50 66.67L50 73C47 72.33 44 71.67 44 75C44 78.33 47 77.67 50 77L50 83.33L50 89.67C53 89 56 88.33 56 91.67C56 95 53 94.33 50 93.67L50 100M75 0L75 6.33C78 5.67 81 5 81 8.33C81 11.67 78 11 75 10.33L75 16.67L75 23C72 22.33 69 21.67 69 25C69 28.33 72 27.67 75 27L75 33.33L75 39.67C78 39 81 38.33 81 41.67C81 45 78 44.33 75 43.67L75 50L75 56.33C72 55.67 69 55 69 58.33C69 61.67 72 61 75 60.33L75 66.67L75 73C78 72.33 81 71.67 81 75C81 78.33 78 77.67 75 77L75 83.33L75 89.67C72 89 69 88.33 69 91.67C69 95 72 94.33 75 93.67L75 100" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1" vector-effect="non-scaling-stroke"/>
+      <path d="M50 33.33L59.5 33.33C58.5 31.33 57.5 29.33 62.5 29.33C67.5 29.33 66.5 31.33 65.5 33.33L75 33.33L75 39.67C78 39 81 38.33 81 41.67C81 45 78 44.33 75 43.67L75 50L65.5 50C66.5 52 67.5 54 62.5 54C57.5 54 58.5 52 59.5 50L50 50L50 43.67C47 44.33 44 45 44 41.67C44 38.33 47 39 50 39.67L50 33.33Z" fill="#FF5A1F" fill-opacity=".12" stroke="#FF5A1F" stroke-width="3" stroke-dasharray="7 5" vector-effect="non-scaling-stroke"/>
+    </svg>
+  </div>
+  <div class="copy">
+    <div class="pw">
+      <div class="pc"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <svg class="o" viewBox="0 0 1 1" aria-hidden="true"><path d="M.2 .2L.428 .2C.404 .1 .38 0 .5 0C.62 0 .596 .1 .572 .2L.8 .2L.8 .428C.9 .404 1 .38 1 .5C1 .62 .9 .596 .8 .572L.8 .8L.572 .8C.596 .7 .62 .6 .5 .6C.38 .6 .404 .7 .428 .8L.2 .8L.2 .572C.3 .596 .4 .62 .4 .5C.4 .38 .3 .404 .2 .428Z" fill="none" stroke="#FF5A1F" stroke-width="3" vector-effect="non-scaling-stroke"/></svg>
+    </div>
+    <div class="txt">
+      <div class="k">Complete the look</div>
+      <h1>The missing piece.</h1>
+      <div class="sub">Every look is one piece away from done. Find yours in the new edit.</div>
+    </div>
+  </div>
+  <div class="foot">
+    <p><b>15% off</b> the last piece · code LASTPIECE</p>
+    <div class="cta">Find yours →</div>
+  </div>
+</div>
+</body>
+</html>

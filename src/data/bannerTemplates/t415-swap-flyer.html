@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Swap Flyer — a two-colour riso notice for a clothes swap, taped to the board: giant SWAP, a
+     misregistered pink plate behind the photo, 1 ⇄ 1 rule and a fringe of tear-off tabs (one already taken).
+     tall → stacked flyer; square / wide → photo left, notice right, tabs across the bottom */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F2EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6F2EA; color: #0E7A4C; font-family: "Bricolage Grotesque", "Arial Narrow", Arial, sans-serif; }
+  .tape { position: absolute; top: -2vmin; width: 18vmin; height: 6.4vmin; background: rgba(255,92,168,.5); z-index: 3; }
+  .tape.l { left: -3vmin; transform: rotate(-24deg); }
+  .tape.r { right: -3vmin; transform: rotate(22deg); }
+
+  .sheet { position: absolute; left: 0; right: 0; top: 0; bottom: 24vmin; box-sizing: border-box; padding: 6vmin 6vmin 3vmin; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 700; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .top span + span { color: #F0449A; }
+  .word { margin: 1.4vmin 0 0 -.8vmin; font-weight: 800; font-stretch: 75%; font-size: 46vmin; line-height: .78; letter-spacing: -.03em; text-transform: uppercase; }
+  .word em { font-style: normal; color: #F0449A; }
+
+  .pic { position: relative; flex: 1; min-height: 0; margin-top: 3vmin; }
+  .pic::before { content: ""; position: absolute; left: 2vmin; top: 2vmin; right: -1.4vmin; bottom: -1.4vmin; background: #FF5CA8; opacity: .85; }
+  .photo { position: absolute; left: 0; top: 0; width: calc(100% - .6vmin); height: calc(100% - .6vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .info { flex: none; margin-top: 4vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .rule { font-weight: 800; font-stretch: 80%; font-size: 7.4vmin; line-height: .92; letter-spacing: -.02em; }
+  .rule span { color: #F0449A; }
+  .when { flex: none; text-align: right; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 500; font-size: 1.9vmin; line-height: 1.55; letter-spacing: .02em; color: #10352A; white-space: nowrap; }
+  .when b { display: block; font-family: "Bricolage Grotesque", Arial, sans-serif; font-weight: 800; font-size: 4.4vmin; line-height: 1; margin-bottom: .8vmin; color: #0E7A4C; }
+
+  /* tear-off fringe */
+  .tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 24vmin; display: flex; border-top: .35vmin dashed #0E7A4C; }
+  .tabs span { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; border-left: .3vmin dashed rgba(14,122,76,.55);
+               font-family: "JetBrains Mono", Menlo, monospace; font-weight: 500; font-size: 1.7vmin; letter-spacing: .04em; white-space: nowrap; color: #10352A; }
+  .tabs span:first-child { border-left: 0; }
+  .tabs span i { font-style: normal; writing-mode: vertical-rl; transform: rotate(180deg); }
+  .tabs span b { color: #F0449A; font-weight: 700; }
+  .tabs .gone { background: #C9A882; color: transparent; border-left-color: transparent; box-shadow: inset 0 1.2vmin 1.2vmin -1vmin rgba(60,40,20,.35); }
+  .tabs .gone + span { border-left-color: transparent; }
+  .tabs .x { display: none; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .sheet { bottom: 20vmin; padding-top: 5vmin; }
+    .word { font-size: 34vmin; }
+    .pic { margin-top: 2.4vmin; }
+    .info { margin-top: 3vmin; }
+    .rule { font-size: 6.4vmin; }
+    .tabs { height: 20vmin; }
+  }
+  /* square → photo left, notice right */
+  @media (min-aspect-ratio: 9/10) {
+    .sheet { bottom: 22vmin; padding: 5vmin 5vmin 3vmin; display: grid; grid-template-columns: 46% 1fr; grid-template-rows: auto 1fr auto; column-gap: 5vmin; }
+    .top { grid-column: 1 / 3; }
+    .pic { grid-column: 1; grid-row: 2 / 4; margin-top: 3vmin; }
+    .word { grid-column: 2; grid-row: 2; align-self: end; margin: 0 0 0 -.6vmin; font-size: 25vmin; }
+    .info { grid-column: 2; grid-row: 3; flex-direction: column; align-items: flex-start; margin-top: 3vmin; gap: 3vmin; }
+    .rule { font-size: 6.4vmin; }
+    .when { text-align: left; }
+    .when b { font-size: 3.8vmin; }
+    .tabs { height: 22vmin; }
+    .tabs .x { display: flex; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .sheet { grid-template-columns: 44% 1fr; padding: 5vmin 6vmin 3.4vmin; }
+    .word { font-size: 33vmin; }
+    .info { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    .when { text-align: right; }
+    .rule { font-size: 6.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <i class="tape l"></i><i class="tape r"></i>
+  <div class="sheet">
+    <div class="top"><span>Studio Oro · Swap Nº 07</span><span>Free entry</span></div>
+    <div class="word">Sw<em>a</em>p</div>
+    <div class="pic"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="info">
+      <div class="rule">Bring one.<br><span>Take one.</span></div>
+      <div class="when"><b>Sat 12 Oct</b>11:00 – 16:00<br>14 Canal Street</div>
+    </div>
+  </div>
+  <div class="tabs" aria-hidden="true">
+    <span><i>Swap <b>12.10</b> 11–16h</i></span><span><i>Swap <b>12.10</b> 11–16h</i></span><span class="gone">·</span><span><i>Swap <b>12.10</b> 11–16h</i></span><span><i>Swap <b>12.10</b> 11–16h</i></span><span><i>Swap <b>12.10</b> 11–16h</i></span><span><i>Swap <b>12.10</b> 11–16h</i></span><span><i>Swap <b>12.10</b> 11–16h</i></span><span class="x"><i>Swap <b>12.10</b> 11–16h</i></span><span class="x"><i>Swap <b>12.10</b> 11–16h</i></span><span class="x"><i>Swap <b>12.10</b> 11–16h</i></span><span class="x"><i>Swap <b>12.10</b> 11–16h</i></span>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,100,500;0,100,700;0,125,800;1,125,800;1,125,900&display=swap" rel="stylesheet">
+<style>
+  /* Performance Drop — slanted photo cut with a volt edge, expanded black italic, speed lines, stat strip.
+     tall → photo above, slant at its foot; 7/10+ → photo right, slant on its left edge */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0D0E11; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0D0E11; color: #F4F4EF; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; font-stretch: 100%; }
+  .grid { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 3.2vmin, rgba(255,255,255,.035) 3.2vmin calc(3.2vmin + 1px)); }
+  .edge, .photo { position: absolute; left: 0; top: 0; width: 100%; }
+  .photo { height: calc(100% - 58vmin); object-fit: cover; object-position: 50% 20%; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10vmin), 0 100%); }
+  .edge { height: calc(100% - 58vmin + 1.6vmin); background: #D9FF3F; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 11.6vmin), 0 100%); }
+  .tag { position: absolute; left: 5vmin; top: 5vmin; display: flex; align-items: center; gap: 1.4vmin; padding: 1.2vmin 2vmin; background: #0D0E11; color: #D9FF3F; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .tag i { display: block; width: 1.2vmin; height: 1.2vmin; background: #D9FF3F; transform: skewX(-18deg); }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 46vmin; display: flex; flex-direction: column; }
+  h1 { position: relative; margin: 0; font-style: italic; font-weight: 900; font-stretch: 125%; font-size: 12.4vmin; line-height: .86; letter-spacing: -.03em; text-transform: uppercase; color: #D9FF3F; }
+  h1 span { display: block; }
+  h1 .w { color: #F4F4EF; }
+  /* speed lines trailing off the shorter first line */
+  .speed { position: absolute; right: 0; top: 1.4vmin; width: 42%; height: 8vmin; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; }
+  .speed i { display: block; height: .45vmin; background: linear-gradient(90deg, rgba(244,244,239,0), #F4F4EF); transform: skewX(-20deg); }
+  .speed i:nth-child(1) { width: 60%; } .speed i:nth-child(2) { width: 100%; } .speed i:nth-child(3) { width: 45%; } .speed i:nth-child(4) { width: 80%; }
+
+  .big { display: none; margin-top: auto; font-style: italic; font-weight: 900; font-stretch: 125%; font-size: 24vmin; line-height: .78; letter-spacing: -.04em; color: transparent; -webkit-text-stroke: .28vmin #D9FF3F; }
+  .big small { font-size: 2vmin; font-weight: 700; font-stretch: 100%; letter-spacing: .24em; -webkit-text-stroke: 0; color: #A9AAA3; margin-left: 1.6vmin; vertical-align: top; }
+  .stats { display: flex; margin-top: auto; border-top: .3vmin solid #F4F4EF; }
+  .stats div { flex: 1; padding: 1.8vmin 0 0; }
+  .stats div + div { padding-left: 2.6vmin; border-left: 1px solid rgba(244,244,239,.3); }
+  .stats b { display: block; font-style: italic; font-weight: 800; font-stretch: 125%; font-size: 5.2vmin; line-height: 1; letter-spacing: -.02em; }
+  .stats span { display: block; margin-top: .8vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #A9AAA3; }
+  .foot { display: flex; align-items: stretch; justify-content: space-between; gap: 3vmin; margin-top: 3.4vmin; }
+  .code { display: flex; flex-direction: column; justify-content: center; font-size: 1.7vmin; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: #A9AAA3; }
+  .code b { margin-top: .5vmin; font-size: 2.6vmin; font-weight: 800; letter-spacing: .12em; color: #F4F4EF; }
+  .cta { display: flex; align-items: center; gap: 2vmin; padding: 0 3.4vmin; background: #D9FF3F; color: #0D0E11; font-size: 2.3vmin; font-weight: 800; font-stretch: 125%; font-style: italic; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; clip-path: polygon(1.6vmin 0, 100% 0, calc(100% - 1.6vmin) 100%, 0 100%); min-height: 7vmin; }
+  .cta i { font-style: normal; }
+
+  /* ── 7/10+ : photo on the right, slanted left edge, copy column on the left ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo, .edge { left: auto; right: 0; height: 100%; }
+    .photo { width: 58%; object-position: 50% 25%; clip-path: polygon(10vmin 0, 100% 0, 100% 100%, 0 100%); }
+    .edge { width: calc(58% + 1.6vmin); clip-path: polygon(11.6vmin 0, 100% 0, 100% 100%, 0 100%); }
+    .tag { left: auto; right: 4vmin; top: 4vmin; }
+    .panel { left: 5.5vmin; right: auto; top: 7vmin; bottom: 5.5vmin; width: calc(42% - 9vmin); height: auto; }
+    h1 { font-size: 8.6vmin; }
+    .big { display: block; }
+    .stats { margin-top: 4vmin; }
+    .speed { position: relative; top: auto; right: auto; width: 100%; height: 6vmin; margin: 3vmin 0 0; align-items: flex-start; }
+    .speed i { background: linear-gradient(90deg, #F4F4EF, rgba(244,244,239,0)); }
+    .stats { flex-direction: column; border-top: 0; }
+    .stats div { padding: 1.6vmin 0; border-top: 1px solid rgba(244,244,239,.3); }
+    .stats div + div { padding-left: 0; border-left: 0; }
+    .stats b { font-size: 4.6vmin; }
+    .foot { flex-direction: column; gap: 2.6vmin; margin-top: 2vmin; }
+    .cta { justify-content: space-between; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .panel { top: 6vmin; bottom: 5vmin; width: calc(42% - 8vmin); }
+    h1 { font-size: 7.6vmin; }
+    .big { font-size: 17vmin; }
+    .stats { margin-top: 2.4vmin; }
+    .speed { height: 4.6vmin; margin-top: 2.4vmin; }
+    .stats div { padding: 1.1vmin 0; }
+    .stats b { font-size: 3.6vmin; }
+    .stats span { margin-top: .5vmin; font-size: 1.6vmin; }
+    .foot { gap: 2vmin; }
+    .cta { min-height: 6.4vmin; font-size: 2.1vmin; }
+  }
+  /* ── wide: roomier copy column, stats go back to one row ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; }
+    .edge { width: calc(50% + 1.6vmin); }
+    .panel { left: 6vmin; top: 8vmin; bottom: 6vmin; width: calc(50% - 10vmin); }
+    h1 { font-size: 11.4vmin; }
+    .big { font-size: 20vmin; }
+    .stats { margin-top: 3vmin; }
+    .speed { height: 5vmin; margin-top: 3vmin; width: 80%; }
+    .stats { flex-direction: row; border-top: .3vmin solid #F4F4EF; }
+    .stats div { padding: 1.8vmin 0 0; border-top: 0; }
+    .stats div + div { padding-left: 2.4vmin; border-left: 1px solid rgba(244,244,239,.3); }
+    .stats b { font-size: 4.4vmin; }
+    .foot { flex-direction: row; margin-top: 3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="grid"></div>
+  <div class="edge"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tag"><i></i>Drop 03 — Performance</div>
+  <div class="panel">
+    <h1><span>Keep</span><span class="w">moving.</span></h1>
+    <div class="speed"><i></i><i></i><i></i><i></i></div>
+    <div class="big">03<small>Drop</small></div>
+    <div class="stats">
+      <div><b>12</b><span>New styles</span></div>
+      <div><b>48H</b><span>Delivery</span></div>
+      <div><b>−20%</b><span>Launch week</span></div>
+    </div>
+    <div class="foot">
+      <div class="code">Use code<b>MOVE20</b></div>
+      <div class="cta">Shop the drop <i>→</i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,300;1,9..144,400&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Tide Table — a harbour almanac page: the day's tide curve with the low-water mark flagged as the discount,
+     and a three-day tide table where the lowest tide carries the deepest price. Paper, navy ink, one coral mark.
+     tall → almanac above, photo below (the sea level) · square/wide → almanac left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EEE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EEE2; color: #1B2B44; font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - 94vmin); object-fit: cover; object-position: 50% 18%; }
+  .seam { position: absolute; left: 0; right: 0; top: 94vmin; height: .6vmin; background: #1B2B44; }
+  .page { position: absolute; left: 0; right: 0; top: 0; height: 94vmin; }
+  .kick { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; justify-content: space-between; font-size: 2vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; padding-bottom: 1.3vmin; border-bottom: 1px solid #1B2B44; }
+  h1 { position: absolute; left: 6vmin; right: 6vmin; top: 10.5vmin; margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 300; font-style: italic; font-size: 10vmin; line-height: .95; letter-spacing: -.02em; }
+  h1 b { font-weight: 400; font-style: normal; }
+  .chart { position: absolute; left: 7vmin; right: 7vmin; top: 32vmin; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .chart .ax { font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif; letter-spacing: .4px; }
+  table { position: absolute; left: 6vmin; right: 6vmin; top: 65vmin; width: calc(100% - 12vmin); border-collapse: collapse; font-size: 2.5vmin; }
+  th { font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; text-align: left; padding: 0 0 .9vmin; border-bottom: 1px solid #1B2B44; }
+  td { padding: 1vmin 0; border-bottom: 1px solid rgba(27,43,68,.3); font-variant-numeric: tabular-nums; }
+  th:last-child, td:last-child { text-align: right; }
+  td:last-child { font-family: "Fraunces", Georgia, serif; font-size: 3.2vmin; }
+  tr.low td { color: #E4572E; font-weight: 600; }
+  tr.low td:last-child { font-weight: 400; }
+  .cta { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.4vmin; display: flex; justify-content: space-between; align-items: baseline; font-size: 2.2vmin; letter-spacing: .1em; text-transform: uppercase; font-weight: 500; }
+  .cta b { font-weight: 600; border-bottom: .35vmin solid #E4572E; padding-bottom: .3vmin; }
+
+  .side { display: none; position: absolute; right: 5vmin; top: 58vmin; width: 22vmin; }
+  .side .moon { width: 9vmin; height: 9vmin; border-radius: 50%; background: radial-gradient(circle at 70% 50%, #F3EEE2 0 46%, transparent 47%), #1B2B44; box-shadow: inset 0 0 0 1px #1B2B44; }
+  .side p { margin: 1.6vmin 0 0; font-size: 1.8vmin; line-height: 1.45; letter-spacing: .04em; }
+  .side p b { display: block; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 400; font-size: 3.4vmin; letter-spacing: 0; margin-bottom: .6vmin; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 88vmin); }
+    .seam { top: 88vmin; } .page { height: 88vmin; }
+    h1 { top: 10vmin; font-size: 9.2vmin; }
+    .chart { top: 29vmin; left: 12vmin; right: 12vmin; }
+    table { top: 58vmin; font-size: 2.2vmin; }
+    td { padding: .8vmin 0; }
+    .cta { bottom: 3.6vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 74vmin); }
+    .seam { top: 74vmin; } .page { height: 74vmin; }
+    .kick { top: 4vmin; }
+    h1 { top: 9vmin; font-size: 8vmin; }
+    h1 br { display: none; }
+    .chart { top: 20vmin; left: 12vmin; right: 12vmin; }
+    table { top: 49vmin; font-size: 2.1vmin; }
+    th { font-size: 1.6vmin; padding-bottom: .6vmin; }
+    td { padding: .6vmin 0; }
+    td:last-child { font-size: 2.7vmin; }
+    .cta { bottom: 3vmin; font-size: 2vmin; }
+  }
+  /* square / wide → almanac left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; top: 0; width: 48%; height: 100%; object-position: 50% 25%; }
+    .seam { top: 0; bottom: 0; left: 52%; right: auto; width: .5vmin; height: auto; }
+    .page { right: 48%; height: 100%; }
+    .kick { left: 5vmin; right: 5vmin; top: 5vmin; font-size: 1.7vmin; }
+    .kick span:last-child { display: none; }
+    h1 { left: 5vmin; right: 4vmin; top: 10vmin; font-size: 8.2vmin; }
+    h1 br { display: inline; }
+    .chart { left: 3vmin; right: 4vmin; top: 33vmin; }
+    table { left: 5vmin; right: 4vmin; width: calc(100% - 9vmin); top: 60vmin; font-size: 2.1vmin; }
+    th { font-size: 1.6vmin; }
+    td { padding: .7vmin 0; }
+    td:last-child { font-size: 2.5vmin; }
+    .cta { left: 5vmin; right: 4vmin; bottom: 4.6vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .seam { left: 54%; }
+    .page { right: 46%; }
+    .kick { left: 6vmin; right: 5vmin; font-size: 1.8vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { left: 6vmin; top: 10.5vmin; font-size: 7.6vmin; }
+    h1 br { display: none; }
+    .chart { left: 4vmin; right: 5vmin; top: 23vmin; }
+    table { left: 6vmin; right: auto; width: 42vmin; top: 58vmin; font-size: 2vmin; }
+    .side { display: block; }
+    .cta { left: 6vmin; right: 5vmin; bottom: 5vmin; font-size: 1.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="page">
+    <div class="kick"><span>Tide table · Oro Bay</span><span>Week 26</span></div>
+    <h1>Low tide,<br> <b>low prices.</b></h1>
+    <div class="chart">
+      <svg viewBox="0 0 300 100" aria-hidden="true">
+          <g stroke="#1B2B44" stroke-width=".4" opacity=".35"><path d="M20 18.4 H290 M20 50.2 H290"/></g>
+          <g stroke="#1B2B44" stroke-width=".4" opacity=".25" stroke-dasharray="1.5 1.5"><path d="M87.5 10 V82 M155.0 10 V82 M222.5 10 V82"/></g>
+          <path d="M20.0 71.5 L21.1 71.0 L22.2 70.6 L23.4 70.0 L24.5 69.5 L25.6 68.8 L26.8 68.1 L27.9 67.3 L29.0 66.5 L30.1 65.6 L31.2 64.7 L32.4 63.7 L33.5 62.6 L34.6 61.6 L35.8 60.4 L36.9 59.3 L38.0 58.1 L39.1 56.9 L40.2 55.6 L41.4 54.3 L42.5 53.0 L43.6 51.7 L44.8 50.4 L45.9 49.0 L47.0 47.7 L48.1 46.3 L49.2 44.9 L50.4 43.6 L51.5 42.2 L52.6 40.8 L53.8 39.5 L54.9 38.2 L56.0 36.9 L57.1 35.6 L58.2 34.3 L59.4 33.1 L60.5 31.9 L61.6 30.7 L62.8 29.6 L63.9 28.5 L65.0 27.5 L66.1 26.5 L67.2 25.5 L68.4 24.6 L69.5 23.8 L70.6 23.0 L71.8 22.2 L72.9 21.6 L74.0 20.9 L75.1 20.4 L76.2 19.9 L77.4 19.5 L78.5 19.1 L79.6 18.8 L80.8 18.6 L81.9 18.5 L83.0 18.4 L84.1 18.4 L85.2 18.4 L86.4 18.5 L87.5 18.7 L88.6 19.0 L89.8 19.3 L90.9 19.7 L92.0 20.2 L93.1 20.7 L94.2 21.3 L95.4 22.0 L96.5 22.7 L97.6 23.4 L98.8 24.3 L99.9 25.1 L101.0 26.1 L102.1 27.0 L103.2 28.1 L104.4 29.1 L105.5 30.3 L106.6 31.4 L107.8 32.6 L108.9 33.8 L110.0 35.1 L111.1 36.4 L112.2 37.7 L113.4 39.0 L114.5 40.3 L115.6 41.7 L116.8 43.0 L117.9 44.4 L119.0 45.8 L120.1 47.1 L121.2 48.5 L122.4 49.8 L123.5 51.2 L124.6 52.5 L125.8 53.8 L126.9 55.1 L128.0 56.4 L129.1 57.6 L130.2 58.8 L131.4 60.0 L132.5 61.1 L133.6 62.2 L134.8 63.3 L135.9 64.3 L137.0 65.2 L138.1 66.1 L139.2 67.0 L140.4 67.8 L141.5 68.5 L142.6 69.2 L143.8 69.8 L144.9 70.4 L146.0 70.9 L147.1 71.3 L148.2 71.7 L149.4 72.0 L150.5 72.2 L151.6 72.3 L152.8 72.4 L153.9 72.5 L155.0 72.4 L156.1 72.3 L157.2 72.1 L158.4 71.8 L159.5 71.5 L160.6 71.1 L161.8 70.7 L162.9 70.2 L164.0 69.6 L165.1 68.9 L166.2 68.2 L167.4 67.5 L168.5 66.6 L169.6 65.8 L170.8 64.8 L171.9 63.9 L173.0 62.8 L174.1 61.8 L175.2 60.7 L176.4 59.5 L177.5 58.3 L178.6 57.1 L179.8 55.9 L180.9 54.6 L182.0 53.3 L183.1 52.0 L184.2 50.6 L185.4 49.3 L186.5 47.9 L187.6 46.6 L188.8 45.2 L189.9 43.8 L191.0 42.5 L192.1 41.1 L193.2 39.8 L194.4 38.4 L195.5 37.1 L196.6 35.8 L197.8 34.6 L198.9 33.3 L200.0 32.1 L201.1 30.9 L202.2 29.8 L203.4 28.7 L204.5 27.7 L205.6 26.7 L206.8 25.7 L207.9 24.8 L209.0 23.9 L210.1 23.1 L211.2 22.4 L212.4 21.7 L213.5 21.1 L214.6 20.5 L215.8 20.0 L216.9 19.6 L218.0 19.2 L219.1 18.9 L220.2 18.7 L221.4 18.5 L222.5 18.4 L223.6 18.4 L224.8 18.4 L225.9 18.5 L227.0 18.7 L228.1 18.9 L229.2 19.3 L230.4 19.6 L231.5 20.1 L232.6 20.6 L233.8 21.2 L234.9 21.8 L236.0 22.5 L237.1 23.3 L238.2 24.1 L239.4 25.0 L240.5 25.9 L241.6 26.8 L242.8 27.9 L243.9 28.9 L245.0 30.0 L246.1 31.2 L247.2 32.4 L248.4 33.6 L249.5 34.8 L250.6 36.1 L251.8 37.4 L252.9 38.7 L254.0 40.0 L255.1 41.4 L256.2 42.7 L257.4 44.1 L258.5 45.5 L259.6 46.8 L260.8 48.2 L261.9 49.6 L263.0 50.9 L264.1 52.2 L265.2 53.6 L266.4 54.9 L267.5 56.1 L268.6 57.4 L269.8 58.6 L270.9 59.8 L272.0 60.9 L273.1 62.0 L274.2 63.1 L275.4 64.1 L276.5 65.0 L277.6 66.0 L278.8 66.8 L279.9 67.6 L281.0 68.4 L282.1 69.1 L283.2 69.7 L284.4 70.3 L285.5 70.8 L286.6 71.2 L287.8 71.6 L288.9 71.9 L290.0 72.1 L290.0 82 L20.0 82Z" fill="#9CC3D5" opacity=".55"/>
+          <path d="M20.0 71.5 L21.1 71.0 L22.2 70.6 L23.4 70.0 L24.5 69.5 L25.6 68.8 L26.8 68.1 L27.9 67.3 L29.0 66.5 L30.1 65.6 L31.2 64.7 L32.4 63.7 L33.5 62.6 L34.6 61.6 L35.8 60.4 L36.9 59.3 L38.0 58.1 L39.1 56.9 L40.2 55.6 L41.4 54.3 L42.5 53.0 L43.6 51.7 L44.8 50.4 L45.9 49.0 L47.0 47.7 L48.1 46.3 L49.2 44.9 L50.4 43.6 L51.5 42.2 L52.6 40.8 L53.8 39.5 L54.9 38.2 L56.0 36.9 L57.1 35.6 L58.2 34.3 L59.4 33.1 L60.5 31.9 L61.6 30.7 L62.8 29.6 L63.9 28.5 L65.0 27.5 L66.1 26.5 L67.2 25.5 L68.4 24.6 L69.5 23.8 L70.6 23.0 L71.8 22.2 L72.9 21.6 L74.0 20.9 L75.1 20.4 L76.2 19.9 L77.4 19.5 L78.5 19.1 L79.6 18.8 L80.8 18.6 L81.9 18.5 L83.0 18.4 L84.1 18.4 L85.2 18.4 L86.4 18.5 L87.5 18.7 L88.6 19.0 L89.8 19.3 L90.9 19.7 L92.0 20.2 L93.1 20.7 L94.2 21.3 L95.4 22.0 L96.5 22.7 L97.6 23.4 L98.8 24.3 L99.9 25.1 L101.0 26.1 L102.1 27.0 L103.2 28.1 L104.4 29.1 L105.5 30.3 L106.6 31.4 L107.8 32.6 L108.9 33.8 L110.0 35.1 L111.1 36.4 L112.2 37.7 L113.4 39.0 L114.5 40.3 L115.6 41.7 L116.8 43.0 L117.9 44.4 L119.0 45.8 L120.1 47.1 L121.2 48.5 L122.4 49.8 L123.5 51.2 L124.6 52.5 L125.8 53.8 L126.9 55.1 L128.0 56.4 L129.1 57.6 L130.2 58.8 L131.4 60.0 L132.5 61.1 L133.6 62.2 L134.8 63.3 L135.9 64.3 L137.0 65.2 L138.1 66.1 L139.2 67.0 L140.4 67.8 L141.5 68.5 L142.6 69.2 L143.8 69.8 L144.9 70.4 L146.0 70.9 L147.1 71.3 L148.2 71.7 L149.4 72.0 L150.5 72.2 L151.6 72.3 L152.8 72.4 L153.9 72.5 L155.0 72.4 L156.1 72.3 L157.2 72.1 L158.4 71.8 L159.5 71.5 L160.6 71.1 L161.8 70.7 L162.9 70.2 L164.0 69.6 L165.1 68.9 L166.2 68.2 L167.4 67.5 L168.5 66.6 L169.6 65.8 L170.8 64.8 L171.9 63.9 L173.0 62.8 L174.1 61.8 L175.2 60.7 L176.4 59.5 L177.5 58.3 L178.6 57.1 L179.8 55.9 L180.9 54.6 L182.0 53.3 L183.1 52.0 L184.2 50.6 L185.4 49.3 L186.5 47.9 L187.6 46.6 L188.8 45.2 L189.9 43.8 L191.0 42.5 L192.1 41.1 L193.2 39.8 L194.4 38.4 L195.5 37.1 L196.6 35.8 L197.8 34.6 L198.9 33.3 L200.0 32.1 L201.1 30.9 L202.2 29.8 L203.4 28.7 L204.5 27.7 L205.6 26.7 L206.8 25.7 L207.9 24.8 L209.0 23.9 L210.1 23.1 L211.2 22.4 L212.4 21.7 L213.5 21.1 L214.6 20.5 L215.8 20.0 L216.9 19.6 L218.0 19.2 L219.1 18.9 L220.2 18.7 L221.4 18.5 L222.5 18.4 L223.6 18.4 L224.8 18.4 L225.9 18.5 L227.0 18.7 L228.1 18.9 L229.2 19.3 L230.4 19.6 L231.5 20.1 L232.6 20.6 L233.8 21.2 L234.9 21.8 L236.0 22.5 L237.1 23.3 L238.2 24.1 L239.4 25.0 L240.5 25.9 L241.6 26.8 L242.8 27.9 L243.9 28.9 L245.0 30.0 L246.1 31.2 L247.2 32.4 L248.4 33.6 L249.5 34.8 L250.6 36.1 L251.8 37.4 L252.9 38.7 L254.0 40.0 L255.1 41.4 L256.2 42.7 L257.4 44.1 L258.5 45.5 L259.6 46.8 L260.8 48.2 L261.9 49.6 L263.0 50.9 L264.1 52.2 L265.2 53.6 L266.4 54.9 L267.5 56.1 L268.6 57.4 L269.8 58.6 L270.9 59.8 L272.0 60.9 L273.1 62.0 L274.2 63.1 L275.4 64.1 L276.5 65.0 L277.6 66.0 L278.8 66.8 L279.9 67.6 L281.0 68.4 L282.1 69.1 L283.2 69.7 L284.4 70.3 L285.5 70.8 L286.6 71.2 L287.8 71.6 L288.9 71.9 L290.0 72.1" fill="none" stroke="#1B2B44" stroke-width="1.6"/>
+          <path d="M20 82 H290" stroke="#1B2B44" stroke-width="1"/>
+          <g class="ax" font-size="7" fill="#1B2B44"><text x="20" y="93">00</text><text x="83.5" y="93">06</text><text x="151.0" y="93">12</text><text x="218.5" y="93">18</text><text x="282" y="93">24</text>
+          <text x="0" y="20.9">2m</text><text x="0" y="52.7">1m</text></g>
+          <circle cx="83.8" cy="18.4" r="2.6" fill="#1B2B44"/><text class="ax" x="88.8" y="15.4" font-size="7" fill="#1B2B44">H 05:40 · 2.0m</text>
+          <circle cx="223.5" cy="18.4" r="2.6" fill="#1B2B44"/><text class="ax" x="228.5" y="15.4" font-size="7" fill="#1B2B44">H 18:05</text>
+          <circle cx="153.7" cy="72.5" r="4" fill="#E4572E"/><circle cx="153.7" cy="72.5" r="7.5" fill="none" stroke="#E4572E" stroke-width=".8"/>
+          <path d="M153.7 64.5 V32.7" stroke="#E4572E" stroke-width=".8"/>
+          <rect x="127.7" y="19.7" width="52" height="14" fill="#E4572E"/>
+          <text class="ax" x="153.7" y="29.3" font-size="8" fill="#F3EEE2" text-anchor="middle" font-weight="600">LOW · −40%</text>
+        </svg>
+    </div>
+    <div class="side"><div class="moon"></div><p><b>Spring tide</b>Deepest markdowns of the summer, three days only.</p></div>
+    <table>
+      <tr><th>Day</th><th>High</th><th>Low</th><th>Offer</th></tr>
+      <tr><td>Fri 12</td><td>04:55</td><td>11:10</td><td>−30%</td></tr>
+      <tr class="low"><td>Sat 13</td><td>05:40</td><td>11:52</td><td>−40%</td></tr>
+      <tr><td>Sun 14</td><td>06:25</td><td>12:38</td><td>−35%</td></tr>
+    </table>
+    <div class="cta"><span>Code LOWTIDE</span><b>Shop the sale →</b></div>
+  </div>
+  <div class="seam"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+</div>
+</body>
+</html>

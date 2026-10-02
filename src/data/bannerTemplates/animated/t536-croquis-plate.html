@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Italiana&family=Karla:wght@400;500;600&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Croquis Plate — a fashion-illustration plate: a loose terracotta gouache field dragged in behind the
+     photo, graphite construction lines and crop ticks around it, a flowing script title and plate numbering.
+     tall → script top, photo mid, copy below · square / wide → copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E7DF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3A2C28; font-family: "Karla", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(ellipse at 30% 20%, #F7EEE8 0%, #F2E5DC 60%, #EADACF 100%); }
+  .defs { position: absolute; width: 0; height: 0; }
+
+  .stage { position: absolute; left: 12vmin; right: 16vmin; top: 39vmin; bottom: 46vmin; }
+  .field { position: absolute; left: 9vmin; right: -10vmin; top: 6vmin; bottom: -7vmin; width: calc(100% + 1vmin); height: calc(100% + 1vmin); overflow: visible; }
+  .lines { position: absolute; left: -3vmin; top: -3vmin; width: calc(100% + 6vmin); height: calc(100% + 6vmin); overflow: visible; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+
+  .plate { position: absolute; left: 12vmin; right: 12vmin; top: 6vmin; display: flex; justify-content: space-between; font-family: "Italiana", Georgia, serif; font-size: 2.2vmin; letter-spacing: .24em; text-transform: uppercase; color: #8A5A48; white-space: nowrap; }
+  .script { position: absolute; left: 9vmin; top: 11.5vmin; margin: 0; font-family: "Pinyon Script", cursive; font-weight: 400; font-size: 20vmin; line-height: 1.1; color: #3A2C28; white-space: nowrap; }
+
+  .copy { position: absolute; left: 12vmin; right: 12vmin; bottom: 6vmin; height: 32vmin; display: flex; flex-direction: column; }
+  h2 { margin: 0; font-family: "Italiana", Georgia, serif; font-weight: 400; font-size: 5.6vmin; line-height: 1.05; letter-spacing: .08em; text-transform: uppercase; }
+  .sub { margin-top: 1.8vmin; max-width: 62vmin; font-size: 2.1vmin; line-height: 1.5; color: #5E4A43; }
+  .buy { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .price { font-family: "Italiana", Georgia, serif; font-size: 4.6vmin; white-space: nowrap; }
+  .price small { font-family: "Karla", sans-serif; font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #8A5A48; margin-right: 1.2vmin; }
+  .cta { padding: 1.6vmin 3vmin; border: 1px solid #3A2C28; font-size: 1.8vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .fine { margin-top: 2vmin; font-size: 1.6vmin; color: #8B766D; letter-spacing: .04em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .script { font-size: 16vmin; top: 10.5vmin; }
+    .stage { top: 35vmin; bottom: 41vmin; left: 18vmin; right: 22vmin; }
+    .copy { height: 29vmin; bottom: 5vmin; }
+    h2 { font-size: 5vmin; }
+  }
+  /* ── square-ish: copy left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .plate { left: 7vmin; right: auto; width: 38vmin; top: 7vmin; flex-direction: column; gap: .6vmin; font-size: 1.9vmin; }
+    .script { left: 5vmin; top: 15.5vmin; font-size: 10.6vmin; }
+    .stage { left: 52vmin; right: 12vmin; top: 7vmin; bottom: 14vmin; }
+    .field { left: 6vmin; top: 5vmin; }
+    .copy { left: 7vmin; right: auto; width: 38vmin; top: 34vmin; bottom: 7vmin; height: auto; }
+    h2 { font-size: 4.2vmin; }
+    .sub { font-size: 1.9vmin; }
+    .buy { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .plate { left: 9vmin; width: 58vmin; top: 8vmin; flex-direction: row; font-size: 2vmin; }
+    .script { left: 7vmin; top: 13vmin; font-size: 15vmin; }
+    .stage { left: 82vmin; right: 16vmin; top: 7vmin; bottom: 14vmin; }
+    .copy { left: 9vmin; width: 58vmin; top: 40vmin; bottom: 8vmin; }
+    h2 { font-size: 5vmin; }
+    .sub { font-size: 2vmin; max-width: 54vmin; }
+    .buy { flex-direction: row; align-items: center; justify-content: flex-start; gap: 5vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) — the illustrator's hand ─────────
+     constant: the photo pushes in very slightly (≤1.03, clipped to its own box)
+     beats: 0.8s the "Aquarelle" script is re-written left to right · 2.3s the terracotta gouache field is dragged in again ·
+            3.3s the graphite construction lines and crop ticks are re-drawn one by one · 4.8s a light pass crosses the CTA */
+  .photo { transform-origin: 50% 30%; animation: grow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes grow { 0%, 100% { transform: scale(1); clip-path: inset(0 0 0 0); } 50% { transform: scale(1.03); clip-path: inset(.874% 1.456% 2.039% 1.456%); } }
+
+  .script { animation: write 6s cubic-bezier(.5,0,.3,1) infinite; animation-delay: -5.2s; }
+  @keyframes write {
+    0%, 100% { opacity: 1; clip-path: inset(-4vmin -4vmin -4vmin -4vmin); }
+    3% { opacity: 0; clip-path: inset(-4vmin -4vmin -4vmin -4vmin); }
+    3.01% { opacity: 1; clip-path: inset(-4vmin calc(100% + 4vmin) -4vmin -4vmin); }
+    5% { opacity: 1; clip-path: inset(-4vmin calc(100% + 4vmin) -4vmin -4vmin); }
+    24% { opacity: 1; clip-path: inset(-4vmin -4vmin -4vmin -4vmin); }
+  }
+
+  .field { animation: drag 6s cubic-bezier(.55,0,.2,1) infinite; animation-delay: -3.7s; }
+  @keyframes drag {
+    0%, 100% { opacity: 1; clip-path: inset(-2vmin -2vmin -2vmin -2vmin); }
+    3% { opacity: 0; clip-path: inset(-2vmin -2vmin -2vmin -2vmin); }
+    3.01% { opacity: 1; clip-path: inset(-2vmin calc(100% + 2vmin) -2vmin -2vmin); }
+    5% { opacity: 1; clip-path: inset(-2vmin calc(100% + 2vmin) -2vmin -2vmin); }
+    15% { opacity: 1; clip-path: inset(-2vmin -2vmin -2vmin -2vmin); }
+  }
+
+  .lines .pen { stroke-dasharray: 1 1; stroke-dashoffset: 0; animation: pen 6s cubic-bezier(.55,0,.35,1) infinite; }
+  .lines .pen:nth-child(1) { animation-delay: -2.7s; }
+  .lines .pen:nth-child(2) { animation-delay: -2.55s; }
+  .lines .pen:nth-child(3) { animation-delay: -2.4s; }
+  .lines .pen:nth-child(4) { animation-delay: -2.25s; }
+  .lines .pen:nth-child(5) { animation-delay: -2.1s; }
+  .lines .pen:nth-child(6) { animation-delay: -1.95s; }
+  .lines .pen:nth-child(7) { animation-delay: -1.8s; }
+  @keyframes pen { 0%, 100% { stroke-dashoffset: 0; } 3% { stroke-dashoffset: -1; } 3.01% { stroke-dashoffset: 1; } 5% { stroke-dashoffset: 1; } 14% { stroke-dashoffset: 0; } }
+
+  .cta { background: linear-gradient(105deg, transparent 40%, rgba(213,132,90,.28) 50%, transparent 60%) no-repeat; background-size: 300% 100%; background-position: 120% 0;
+    animation: sheen 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 80% { background-position: 120% 0; } 95%, 100% { background-position: -20% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <filter id="gouache" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03 0.012" numOctaves="3" seed="21" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.3 0.008" numOctaves="2" seed="5" result="s"/>
+      <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.8 0 0 0 1.95" result="sm"/>
+      <feComposite in="d" in2="sm" operator="in"/>
+    </filter>
+    <filter id="graphite" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="1" seed="4" result="p"/>
+      <feDisplacementMap in="SourceGraphic" in2="p" scale=".8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs></svg>
+
+  <div class="plate"><span>Maison Croquis</span><span>Plate Nº 7 · Spring 27</span></div>
+  <h1 class="script">Aquarelle</h1>
+
+  <div class="stage">
+    <svg class="field" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="2" y="2" width="96" height="96" fill="#D5845A" fill-opacity=".85" filter="url(#gouache)"/></svg>
+    <svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" fill="none" stroke="#5E4A43" stroke-width=".22" stroke-linecap="round" filter="url(#graphite)">
+      <path class="pen" pathLength="1" d="M-4,1.2 L104,0.4"/><path class="pen" pathLength="1" d="M-3,99 L103,99.8"/><path class="pen" pathLength="1" d="M0.6,-4 L1.4,104"/><path class="pen" pathLength="1" d="M99.2,-3 L98.6,103"/>
+      <path class="pen" pathLength="1" d="M-6,3.4 L22,3"/><path class="pen" pathLength="1" d="M97,-7 L96.6,14"/><path class="pen" pathLength="1" d="M-5,97 L10,96.6"/>
+    </svg>
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  </div>
+
+  <div class="copy">
+    <h2>Drawn for the season</h2>
+    <div class="sub">Loose lines, soft colour — a collection that looks hand-painted, because it started out that way.</div>
+    <div class="buy">
+      <div class="price"><small>From</small>$89</div>
+      <div class="cta">View the collection</div>
+    </div>
+    <div class="fine">An illustrated lookbook arrives with every order.</div>
+  </div>
+</div>
+</body>
+</html>

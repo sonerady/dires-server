@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Bundle Builder — 3 for 2: the hero look, then three slots that add up, the third one stamped free */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE7DE; }
+  .banner { --t: 25vmin; position: fixed; inset: 0; overflow: hidden; background: #ECE7DE; color: #1C1A17; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .hero { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 79vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+  .meta span:last-child { color: #B5532C; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; margin-top: 2vmin; }
+  h1 { margin: 0; font-weight: 900; font-stretch: 62%; font-variation-settings: "wdth" 62; font-size: 19vmin; line-height: .8; letter-spacing: -.01em; text-transform: uppercase; white-space: nowrap; }
+  .head p { margin: 0 0 .6vmin; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 5vmin; line-height: 1; text-align: right; }
+  .row { display: flex; align-items: flex-start; justify-content: space-between; margin-top: 4.4vmin; }
+  .op { flex: none; width: 5vmin; height: var(--t); display: flex; align-items: center; justify-content: center; font-size: 5vmin; font-weight: 300; font-stretch: 100%; }
+  .slot { flex: none; width: var(--t); }
+  .crop { position: relative; width: var(--t); height: var(--t); overflow: hidden; background: #DDD5C8; }
+  .crop img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+  .s1 img { object-position: 50% 18%; transform: scale(1.9); transform-origin: 50% 22%; }
+  .s2 img { object-position: 50% 50%; transform: scale(2.6); transform-origin: 50% 52%; }
+  .s3 img { object-position: 50% 80%; transform: scale(1.9); transform-origin: 50% 82%; }
+  .lab { display: flex; justify-content: space-between; align-items: baseline; margin-top: 1.4vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .12em; }
+  .lab b { font-weight: 800; font-size: 2.4vmin; letter-spacing: 0; }
+  .s3 + .lab b, .lab .free { color: #B5532C; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; font-size: 3vmin; }
+  .stamp { position: absolute; right: -2.4vmin; top: -2.4vmin; width: 11vmin; height: 11vmin; transform: rotate(-14deg); }
+  .slot { position: relative; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; border-top: .3vmin solid #1C1A17; padding-top: 2vmin; }
+  .foot p { margin: 0; font-size: 2.2vmin; font-weight: 500; }
+  .foot p s { color: #8C857A; }
+  .foot p b { font-weight: 800; }
+  .cta { background: #1C1A17; color: #ECE7DE; padding: 1.8vmin 3.4vmin; font-size: 2.2vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --t: 20vmin; }
+    .hero { height: calc(100% - 70vmin); }
+    .panel { height: 64vmin; bottom: 4vmin; }
+    h1 { font-size: 14vmin; }
+    .head p { font-size: 4.2vmin; }
+    .row { margin-top: 3.2vmin; }
+    .row { justify-content: flex-start; gap: 3vmin; }
+    .stamp { width: 9.5vmin; height: 9.5vmin; }
+  }
+  /* square — hero left, the slots become a vertical list */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --t: 16vmin; }
+    .hero { width: 48%; height: 100%; }
+    .panel { left: calc(48% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .meta { font-size: 1.6vmin; }
+    .head { flex-direction: column; align-items: flex-start; gap: 1.2vmin; margin-top: 2.4vmin; }
+    h1 { font-size: 13vmin; }
+    .head p { text-align: left; font-size: 3.8vmin; }
+    .row { flex-direction: column; gap: 1.4vmin; margin-top: 3vmin; }
+    .op { display: none; }
+    .slot { width: 100%; display: flex; align-items: center; gap: 2.6vmin; }
+    .lab { flex: 1; flex-direction: column; align-items: flex-start; gap: .4vmin; margin: 0; }
+    .stamp { left: calc(var(--t) - 6vmin); right: auto; top: -1.4vmin; width: 8.5vmin; height: 8.5vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.6vmin; padding-top: 1.6vmin; }
+    .foot p { font-size: 1.9vmin; }
+    .cta { padding: 1.5vmin 2.6vmin; font-size: 1.9vmin; }
+  }
+  /* wide — hero left, the three slots sit in a row */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --t: 21vmin; }
+    .hero { width: 44%; }
+    .panel { left: calc(44% + 7vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; }
+    .head { flex-direction: row; align-items: flex-end; margin-top: 2.4vmin; }
+    h1 { font-size: 16vmin; }
+    .head p { text-align: right; font-size: 4.4vmin; }
+    .row { flex-direction: row; justify-content: space-between; margin-top: 5vmin; gap: 0; }
+    .op { display: flex; }
+    .slot { width: var(--t); display: block; }
+    .lab { flex-direction: row; align-items: baseline; margin-top: 1.4vmin; }
+    .stamp { left: auto; right: -2.4vmin; top: -2.4vmin; width: 10vmin; height: 10vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .foot p { font-size: 2.1vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     (each @keyframes carries an invisible outline-color so no effect is compositor-only: the frame-stepped
+      video renderer parallel tabs otherwise freeze transform/opacity-only animations) */
+  /* the sum builds itself: slot 1 → + → slot 2 → + → slot 3, then the "on us" stamp is slammed on and the total settles */
+  .hero { transform-origin: 50% 100%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { outline-color: transparent; transform: scale(1); } 50% { transform: scale(1.03); } }
+  .crop { animation: 6s linear infinite; }
+  .s1 .crop { animation-name: pick1; } .s2 .crop { animation-name: pick2; } .s3 .crop { animation-name: pick3; }
+  @keyframes pick1 {
+    0%, 8% { outline-color: transparent; transform: scale(1); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    11% { transform: scale(1.07); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    16%, 100% { transform: scale(1); }
+  }
+  @keyframes pick2 {
+    0%, 20% { outline-color: transparent; transform: scale(1); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    23% { transform: scale(1.07); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    28%, 100% { transform: scale(1); }
+  }
+  @keyframes pick3 {
+    0%, 32% { outline-color: transparent; transform: scale(1); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    35% { transform: scale(1.07); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    40%, 100% { transform: scale(1); }
+  }
+  .op { animation: 6s linear infinite; }
+  .row .op:nth-child(2) { animation-name: plus1; } .row .op:nth-child(4) { animation-name: plus2; }
+  @keyframes plus1 {
+    0%, 14% { outline-color: transparent; transform: rotate(0) scale(1); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    19%, 100% { transform: rotate(90deg) scale(1); }
+  }
+  @keyframes plus2 {
+    0%, 26% { outline-color: transparent; transform: rotate(0) scale(1); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    31%, 100% { transform: rotate(90deg) scale(1); }
+  }
+  /* the stamp lifts off after a beat and is slammed back on over slot 3 */
+  .stamp { animation: slam 6s linear infinite; }
+  @keyframes slam {
+    0%, 30% { outline-color: transparent; transform: rotate(-14deg) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    34% { transform: rotate(-4deg) scale(1.25); opacity: 0; animation-timing-function: steps(1, end); }
+    40% { transform: rotate(-4deg) scale(1.6); opacity: 0; animation-timing-function: cubic-bezier(.7,0,.95,.5); }
+    44% { transform: rotate(-16deg) scale(.92); opacity: 1; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    49%, 100% { transform: rotate(-14deg) scale(1); opacity: 1; }
+  }
+  .s3 .lab .free { display: inline-block; animation: free 6s linear infinite; transform-origin: 100% 70%; }
+  @keyframes free {
+    0%, 44% { outline-color: transparent; transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    47% { transform: scale(1.22); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    53%, 100% { transform: scale(1); }
+  }
+  /* the total: the new price drops in after the stamp */
+  .foot p b { display: inline-block; animation: total 6s linear infinite; }
+  @keyframes total {
+    0%, 50% { outline-color: transparent; transform: translateY(0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    53% { transform: translateY(-1.2vmin); opacity: 0; animation-timing-function: steps(1, end); }
+    54% { transform: translateY(1.4vmin); opacity: 0; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    61%, 100% { transform: translateY(0); opacity: 1; }
+  }
+  /* CTA: a sheen passes once the bundle is built */
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 35%;
+    background: linear-gradient(90deg, rgba(236,231,222,0), rgba(236,231,222,.28) 50%, rgba(236,231,222,0)); transform: translateX(-150%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen { 0%, 64% { outline-color: transparent; transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 80%, 100% { transform: translateX(330%) skewX(-18deg); } }
+  @media (min-aspect-ratio: 9/10) { .hero { transform-origin: 100% 50%; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="hero" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="meta"><span>Build your bundle</span><span>Mix &amp; match</span></div>
+    <div class="head"><h1>3 for 2</h1><p>Pick any three,<br>pay for two.</p></div>
+    <div class="row">
+      <div class="slot s1"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="lab"><span>01</span><b>€89</b></div></div>
+      <div class="op">+</div>
+      <div class="slot s2"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="lab"><span>02</span><b>€89</b></div></div>
+      <div class="op">+</div>
+      <div class="slot s3"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="lab"><span>03</span><b class="free">free</b></div>
+        <svg class="stamp" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#B5532C"/><circle cx="50" cy="50" r="41" fill="none" stroke="#ECE7DE" stroke-width="1.2" stroke-dasharray="2 3"/><text x="50" y="47" text-anchor="middle" font-family="Instrument Serif, Georgia, serif" font-style="italic" font-size="30" fill="#ECE7DE">on us</text><text x="50" y="66" text-anchor="middle" font-family="Archivo, Arial, sans-serif" font-weight="800" font-size="10" letter-spacing="2.4" fill="#ECE7DE">Nº 3</text></svg>
+      </div>
+    </div>
+    <div class="foot"><p>Total <s>€267</s> <b>€178</b></p><div class="cta">Build yours</div></div>
+  </div>
+</div>
+</body>
+</html>

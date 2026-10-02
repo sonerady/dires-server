@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Flip Open — the whole banner is an opened champagne-pearl clamshell phone: the look fills the colour screen
+     (status bar with signal and battery above, soft-key bar below), the offer is being typed as a T9 text message,
+     and the keypad under the hinge backlights the keys 3 and 0.
+     tall → lid on top, hinge, keypad below · square & wide → phone turned sideways: screen left, keypad right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E9E2D6; }
+  .banner { --base: 45vmin; --hinge: 5vmin; --navy: #16255F; --lit: #3A63FF;
+    position: fixed; inset: 0; overflow: hidden; color: var(--navy); font-family: "Chakra Petch", "Arial Narrow", Arial, sans-serif;
+    background: linear-gradient(90deg, #CDC3B3 0%, #E9E2D6 18%, #F8F4EC 46%, #EFE8DC 70%, #CFC5B5 100%); }
+
+  /* lid + screen */
+  .ear { position: absolute; left: 50%; top: 2.6vmin; width: 14vmin; height: 1.3vmin; margin-left: -7vmin; border-radius: 99vmin; background: repeating-linear-gradient(90deg, #2A2621 0 .5vmin, #6B6358 .5vmin .9vmin); box-shadow: inset 0 .2vmin .3vmin rgba(0,0,0,.5); }
+  .brand { position: absolute; left: 6vmin; right: 6vmin; top: 2vmin; display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .32em; color: #8A7F6E; text-transform: uppercase; white-space: nowrap; }
+  .bezel { position: absolute; left: 4vmin; right: 4vmin; top: 5.4vmin; bottom: calc(var(--base) + var(--hinge) + 2.4vmin); background: #0E1014; border-radius: 1.2vmin; box-shadow: 0 0 0 .4vmin #BDB2A1, inset 0 0 0 .5vmin #1D2027; }
+  .status { position: absolute; left: 5.4vmin; right: 5.4vmin; top: 6.8vmin; height: 4.4vmin; display: flex; align-items: center; justify-content: space-between; padding: 0 1.6vmin; box-sizing: border-box;
+    background: linear-gradient(180deg, #3353C4, #1B2F7A); color: #fff; font-family: "Pixelify Sans", monospace; font-size: 2vmin; white-space: nowrap; }
+  .sig { display: inline-flex; align-items: flex-end; gap: .35vmin; height: 2vmin; }
+  .sig i { width: .6vmin; background: #fff; } .sig i:nth-child(1) { height: 25%; } .sig i:nth-child(2) { height: 50%; } .sig i:nth-child(3) { height: 75%; } .sig i:nth-child(4) { height: 100%; }
+  .bat { display: inline-flex; align-items: center; gap: 1vmin; }
+  .bat i { position: relative; width: 3.6vmin; height: 1.7vmin; box-sizing: border-box; border: .3vmin solid #fff; background: linear-gradient(90deg, #fff 70%, transparent 70%) .3vmin 50% / calc(100% - .6vmin) calc(100% - .6vmin) no-repeat; }
+  .bat i::after { content: ""; position: absolute; right: -.7vmin; top: 25%; width: .4vmin; height: 50%; background: #fff; }
+  .photo { position: absolute; left: 5.4vmin; right: 5.4vmin; top: 11.2vmin; height: calc(100% - 11.2vmin - var(--base) - var(--hinge) - 3.8vmin - 4.4vmin - 19vmin); overflow: hidden; background: #000; }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .photo .tag { position: absolute; right: 0; top: 0; background: rgba(14,16,20,.82); color: #fff; font-family: "Pixelify Sans", monospace; font-size: 1.7vmin; padding: .6vmin 1.2vmin; white-space: nowrap; }
+  .sms { position: absolute; left: 5.4vmin; right: 5.4vmin; bottom: calc(var(--base) + var(--hinge) + 3.8vmin + 4.4vmin); height: 19vmin; box-sizing: border-box; padding: 1.6vmin 2.2vmin 1.4vmin;
+    background: #EEF2FF; color: var(--navy); font-family: "Pixelify Sans", monospace; display: flex; flex-direction: column; }
+  .sms .to { display: flex; justify-content: space-between; font-size: 1.8vmin; padding-bottom: .9vmin; border-bottom: 1px dashed rgba(22,37,95,.4); white-space: nowrap; }
+  .sms .msg { margin-top: 1.2vmin; font-weight: 700; font-size: 5.2vmin; line-height: .98; text-transform: uppercase; white-space: nowrap; }
+  .sms .msg u { text-decoration: none; background: var(--navy); color: #EEF2FF; padding: 0 .6vmin; }
+  .sms .msg i { display: inline-block; width: .6vmin; height: 4.4vmin; margin-left: .5vmin; vertical-align: -.5vmin; background: var(--lit); }
+  .soft { position: absolute; left: 5.4vmin; right: 5.4vmin; bottom: calc(var(--base) + var(--hinge) + 3.8vmin); height: 4.4vmin; display: flex; align-items: center; justify-content: space-between; padding: 0 1.8vmin; box-sizing: border-box;
+    background: linear-gradient(180deg, #D6DDF2, #B9C4E6); color: var(--navy); font-family: "Pixelify Sans", monospace; font-weight: 600; font-size: 2vmin; white-space: nowrap; }
+
+  /* hinge */
+  .hinge { position: absolute; left: 0; right: 0; bottom: var(--base); height: var(--hinge);
+    background: linear-gradient(180deg, #8F8473 0%, #D9D0C1 22%, #FFFDF8 45%, #CFC4B2 72%, #7D7262 100%); box-shadow: 0 .4vmin .8vmin rgba(60,50,35,.35); }
+  .hinge::before, .hinge::after { content: ""; position: absolute; top: -.6vmin; bottom: -.6vmin; width: 18%; border-radius: 1vmin;
+    background: linear-gradient(180deg, #7D7262 0%, #CBC0AE 24%, #FAF6EE 46%, #BFB39F 74%, #6C6252 100%); }
+  .hinge::before { left: 4%; } .hinge::after { right: 4%; }
+
+  /* base: nav row + keypad */
+  .nav { position: absolute; left: 6vmin; right: 6vmin; bottom: calc(3.6vmin + 26vmin + 2.2vmin); height: 8.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .sk { flex: 1; height: 3.4vmin; border-radius: 99vmin; background: linear-gradient(180deg, #FFFDF8, #D8CFBF); box-shadow: 0 .3vmin .5vmin rgba(60,50,35,.35), inset 0 -.3vmin 0 rgba(0,0,0,.08); }
+  .call { flex: none; width: 8vmin; height: 4.4vmin; border-radius: 99vmin; display: flex; align-items: center; justify-content: center; font-size: 1.6vmin; font-weight: 700; letter-spacing: .1em; color: #fff; box-shadow: 0 .3vmin .5vmin rgba(60,50,35,.35); }
+  .call.go { background: linear-gradient(180deg, #4CC37A, #1E8A4A); } .call.end { background: linear-gradient(180deg, #E85B4E, #A8261C); }
+  .pad { flex: none; position: relative; width: 8.6vmin; height: 8.6vmin; border-radius: 50%; background: radial-gradient(circle, #fff 0 34%, #E1D8C9 35% 100%); box-shadow: 0 .4vmin .8vmin rgba(60,50,35,.35), inset 0 0 0 .3vmin #fff; }
+  .pad::after { content: "OK"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.7vmin; font-weight: 700; color: var(--navy); }
+  .pad i { position: absolute; width: 0; height: 0; border: .7vmin solid transparent; }
+  .pad i:nth-child(1) { left: 50%; top: .5vmin; margin-left: -.7vmin; border-bottom-color: #8A7F6E; border-top-width: 0; }
+  .pad i:nth-child(2) { left: 50%; bottom: .5vmin; margin-left: -.7vmin; border-top-color: #8A7F6E; border-bottom-width: 0; }
+  .pad i:nth-child(3) { top: 50%; left: .5vmin; margin-top: -.7vmin; border-right-color: #8A7F6E; border-left-width: 0; }
+  .pad i:nth-child(4) { top: 50%; right: .5vmin; margin-top: -.7vmin; border-left-color: #8A7F6E; border-right-width: 0; }
+  .keys { position: absolute; left: 6vmin; right: 6vmin; bottom: 3.6vmin; height: 26vmin; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); gap: 1.2vmin 2vmin; }
+  .keys div { display: flex; align-items: center; justify-content: center; gap: 1.2vmin; border-radius: 45% / 70%; background: linear-gradient(180deg, #FFFEFA, #E4DCCD);
+    box-shadow: 0 .3vmin .5vmin rgba(60,50,35,.32), inset 0 -.3vmin 0 rgba(0,0,0,.07); white-space: nowrap; }
+  .keys b { font-size: 3vmin; font-weight: 600; line-height: 1; }
+  .keys small { font-size: 1.6vmin; font-weight: 500; letter-spacing: .08em; color: #7A6F5E; }
+  .keys .on { background: linear-gradient(180deg, #7C98FF, var(--lit)); color: #fff; box-shadow: 0 0 2.2vmin rgba(58,99,255,.55), 0 .3vmin .5vmin rgba(22,37,95,.4); }
+  .keys .on small { color: rgba(255,255,255,.85); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --base: 42vmin; }
+    .bezel { left: 8vmin; right: 8vmin; }
+    .status, .photo, .sms, .soft { left: 9.4vmin; right: 9.4vmin; }
+    .brand { left: 10vmin; right: 10vmin; }
+    .sms { height: 17vmin; padding-top: 1.2vmin; }
+    .sms .msg { font-size: 4.6vmin; }
+    .photo { height: calc(100% - 11.2vmin - var(--base) - var(--hinge) - 3.8vmin - 4.4vmin - 17vmin); }
+    .nav { left: 12vmin; right: 12vmin; bottom: calc(3vmin + 24vmin + 2vmin); height: 7.6vmin; }
+    .pad { width: 7.6vmin; height: 7.6vmin; }
+    .keys { left: 12vmin; right: 12vmin; bottom: 3vmin; height: 24vmin; }
+  }
+
+  /* square & wide: the phone lies sideways — screen on the left, hinge upright, keypad on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --lid: 57%; background: linear-gradient(180deg, #CDC3B3 0%, #E9E2D6 16%, #F8F4EC 46%, #EFE8DC 72%, #CFC5B5 100%); }
+    .ear { left: 1.8vmin; top: 50%; width: 1.3vmin; height: 14vmin; margin: -7vmin 0 0; background: repeating-linear-gradient(180deg, #2A2621 0 .5vmin, #6B6358 .5vmin .9vmin); }
+    .brand { display: none; }
+    .bezel { left: 5vmin; right: calc(100% - var(--lid) + 2.4vmin); top: 4vmin; bottom: 4vmin; }
+    .status, .photo, .soft { left: 6.4vmin; right: calc(100% - var(--lid) + 3.8vmin); }
+    .status { top: 5.4vmin; }
+    .photo { top: 9.8vmin; height: calc(100% - 9.8vmin - 5.4vmin - 4.4vmin); }
+    .soft { bottom: 5.4vmin; }
+    .hinge { left: var(--lid); right: auto; top: 0; bottom: 0; width: var(--hinge); height: auto;
+      background: linear-gradient(90deg, #8F8473 0%, #D9D0C1 22%, #FFFDF8 45%, #CFC4B2 72%, #7D7262 100%); }
+    .hinge::before, .hinge::after { top: auto; bottom: auto; left: -.6vmin; right: -.6vmin; width: auto; height: 18%;
+      background: linear-gradient(90deg, #7D7262 0%, #CBC0AE 24%, #FAF6EE 46%, #BFB39F 74%, #6C6252 100%); }
+    .hinge::before { top: 4%; left: -.6vmin; } .hinge::after { bottom: 4%; right: -.6vmin; }
+    .sms { left: calc(var(--lid) + var(--hinge) + 4vmin); right: 4vmin; top: 4vmin; bottom: auto; height: 23vmin; padding: 1.6vmin 2vmin; box-shadow: 0 0 0 .7vmin #0E1014, 0 0 0 1.1vmin #BDB2A1; }
+    .sms .msg { font-size: 3.8vmin; line-height: 1.05; white-space: normal; }
+    .nav { left: calc(var(--lid) + var(--hinge) + 4vmin); right: 4vmin; top: 31.5vmin; bottom: auto; height: 8vmin; gap: 1.2vmin; }
+    .call { width: 6.4vmin; font-size: 1.6vmin; letter-spacing: .04em; }
+    .pad { width: 8vmin; height: 8vmin; }
+    .sk { display: none; }
+    .keys { left: calc(var(--lid) + var(--hinge) + 4vmin); right: 4vmin; top: 43vmin; bottom: 4vmin; height: auto; gap: 1.3vmin 1.4vmin; }
+    .keys div { flex-direction: column; gap: .3vmin; }
+    .keys b { font-size: 3vmin; }
+    .keys small { font-size: 1.6vmin; letter-spacing: .02em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --lid: 60%; }
+    .sms { height: 22vmin; }
+    .sms .msg { font-size: 4.6vmin; }
+    .sk { display: block; }
+    .call { width: 8vmin; letter-spacing: .1em; }
+    .keys div { flex-direction: row; gap: 1.2vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     constant: the SMS caret blinks, the signal bars cycle, the backlit keys breathe, the look on the screen drifts (≤1.03)
+     beats: 1.2 s key 3 is pressed, 1.6 s key 0 is pressed → 1.8 s "FLIP30" is re-typed T9-style in stepped keystrokes ·
+            3.6 s the "pic msg" tag blinks · 4.4 s the screen backlight dims and snaps back on like a keypress wake */
+  .photo img { transform-origin: 50% 35%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .sms .msg i { animation: caret 1s steps(1, end) infinite, away 6s steps(1, end) infinite; }
+  @keyframes away { 0%, 29.5% { visibility: visible; } 30%, 44% { visibility: hidden; } 44.5%, 100% { visibility: visible; } }
+  @keyframes caret { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+  .sig i:nth-child(4) { animation: bar4 3s steps(1, end) infinite; }
+  .sig i:nth-child(3) { animation: bar3 3s steps(1, end) infinite; }
+  @keyframes bar4 { 0%, 40%, 70%, 100% { opacity: 1; } 41%, 69% { opacity: .25; } }
+  @keyframes bar3 { 0%, 50%, 60%, 100% { opacity: 1; } 51%, 59% { opacity: .25; } }
+
+  .keys .on { animation: backlit 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes backlit { 0%, 100% { box-shadow: 0 0 2.2vmin rgba(58,99,255,.55), 0 .3vmin .5vmin rgba(22,37,95,.4); } 50% { box-shadow: 0 0 3.4vmin rgba(58,99,255,.75), 0 .3vmin .5vmin rgba(22,37,95,.4); } }
+  .keys .on b { display: inline-block; animation: press 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .keys div:nth-child(11).on b { animation-delay: -5.6s; }
+  @keyframes press { 0%, 19%, 25%, 100% { transform: translateY(0) scale(1); } 20.5% { transform: translateY(.3vmin) scale(.9); } }
+  .keys .on { position: relative; }
+  .keys .on::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: rgba(255,255,255,.3); opacity: 0; animation: flash 6s steps(1, end) infinite; }
+  .keys div:nth-child(11).on::after { animation-delay: -5.6s; }
+  @keyframes flash { 0%, 20%, 23%, 100% { opacity: 0; } 20.1%, 22.9% { opacity: 1; } }
+
+  .sms .msg u { display: inline-block; animation: t9 6s steps(6, end) infinite; }
+  @keyframes t9 {
+    0%, 29% { clip-path: inset(-10% -2% -10% 0); }
+    30% { clip-path: inset(-10% 100% -10% 0); animation-timing-function: steps(6, end); }
+    44%, 100% { clip-path: inset(-10% -2% -10% 0); }
+  }
+  .photo .tag { animation: tag 6s steps(1, end) infinite; }
+  @keyframes tag { 0%, 60%, 63%, 66%, 100% { opacity: 1; } 61.5%, 64.5% { opacity: 0; } }
+  .photo::after { content: ""; position: absolute; inset: 0; background: #0E1014; opacity: 0; pointer-events: none; animation: wake 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes wake { 0%, 72% { opacity: 0; } 78%, 80% { opacity: .45; } 80.5%, 100% { opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ear"></div>
+  <div class="brand"><span>Studio Oro</span><span>SS26</span></div>
+  <div class="bezel"></div>
+  <div class="status"><span class="sig"><i></i><i></i><i></i><i></i></span><span>STUDIO ORO</span><span class="bat">10:42<i></i></span></div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="tag">✉ pic msg 1/1</div></div>
+  <div class="sms">
+    <div class="to"><span>To: you</span><span>Abc · 118</span></div>
+    <div class="msg">30% off the<br>new edit. <u>FLIP30</u><i></i></div>
+  </div>
+  <div class="soft"><span>Reply</span><span>✉ Send</span><span>Shop</span></div>
+  <div class="hinge"></div>
+  <div class="nav"><div class="sk"></div><div class="call go">SEND</div><div class="pad"><i></i><i></i><i></i><i></i></div><div class="call end">END</div><div class="sk"></div></div>
+  <div class="keys">
+    <div><b>1</b><small>oo</small></div><div><b>2</b><small>ABC</small></div><div class="on"><b>3</b><small>DEF</small></div>
+    <div><b>4</b><small>GHI</small></div><div><b>5</b><small>JKL</small></div><div><b>6</b><small>MNO</small></div>
+    <div><b>7</b><small>PQRS</small></div><div><b>8</b><small>TUV</small></div><div><b>9</b><small>WXYZ</small></div>
+    <div><b>*</b><small>+</small></div><div class="on"><b>0</b><small>␣</small></div><div><b>#</b><small>⇧</small></div>
+  </div>
+</div>
+</body>
+</html>

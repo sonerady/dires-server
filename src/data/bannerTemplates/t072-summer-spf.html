@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Summer SPF — a sunscreen back-label parody: "Sale Protection Factor 50", sun sticker, wave rules, barcode.
+     tall → photo above the label; square/wide → photo left, label right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFF6E8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FFF6E8; color: #163B94; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 57%; object-fit: cover; object-position: 50% 16%; }
+  .sun { position: absolute; right: 3.5vmin; top: 3.5vmin; width: 23vmin; height: 23vmin; }
+  .sun svg { position: absolute; inset: 0; width: 100%; height: 100%; animation: none; }
+  .sun div { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #FFF6E8; text-align: center; transform: rotate(-10deg); }
+  .sun b { font-weight: 900; font-stretch: 62%; font-size: 7.6vmin; line-height: .82; letter-spacing: -.01em; }
+  .sun span { font-size: 1.7vmin; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+  .label { position: absolute; left: 0; right: 0; top: 57%; bottom: 0; padding: 0 6vmin; }
+  .waves { position: absolute; left: 0; right: 0; top: 1.6vmin; width: 100%; height: 3vmin; }
+  .brand { position: absolute; left: 6vmin; right: 6vmin; top: 6.4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; }
+  .lock { position: absolute; left: 5.2vmin; top: max(9.6vmin, 14%); display: flex; align-items: flex-end; gap: 2.4vmin; }
+  .spf { font-weight: 900; font-stretch: 62%; font-size: 27vmin; line-height: .74; letter-spacing: -.02em; color: #FF5A2C; }
+  .spf sup { font-size: .36em; vertical-align: top; position: relative; top: .06em; margin-left: .04em; }
+  .fact { padding-bottom: .6vmin; font-size: 2.4vmin; font-weight: 800; line-height: 1.12; text-transform: uppercase; letter-spacing: .04em; }
+  .fact em { display: block; margin-top: 1.2vmin; font-style: normal; font-weight: 500; font-size: 2.1vmin; text-transform: none; letter-spacing: 0; color: #1E2F5C; }
+  .band { position: absolute; left: 6vmin; right: 6vmin; top: max(33.5vmin, 44%); display: flex; justify-content: space-between; align-items: center; padding: 1.1vmin 2vmin; background: #163B94; color: #FFF6E8; font-size: 1.9vmin; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+  .band i { font-style: normal; display: flex; gap: .7vmin; }
+  .band i s { display: block; width: 2.4vmin; height: 2.4vmin; border-radius: 50%; border: .3vmin solid #FFF6E8; }
+  .band i s.on { background: #FFF6E8; }
+  .dir { position: absolute; left: 6vmin; right: 6vmin; top: max(40.5vmin, calc(44% + 7vmin)); font-family: "Space Mono", "Courier New", monospace; font-size: 1.9vmin; line-height: 1.5; color: #1E2F5C; }
+  .dir b { color: #163B94; }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.5vmin; display: flex; justify-content: space-between; align-items: flex-end; }
+  .bar { display: flex; flex-direction: column; gap: .5vmin; font-family: "Space Mono", monospace; font-size: 1.6vmin; letter-spacing: .1em; color: #1E2F5C; }
+  .bar i { display: block; width: 22vmin; height: 5.6vmin; background: repeating-linear-gradient(90deg, #163B94 0 .35vmin, transparent .35vmin .7vmin, #163B94 .7vmin 1.3vmin, transparent 1.3vmin 1.6vmin, #163B94 1.6vmin 1.8vmin, transparent 1.8vmin 2.3vmin); }
+  .cta { white-space: nowrap; padding: 1.7vmin 3vmin; background: #FF5A2C; color: #FFF6E8; font-size: 2.2vmin; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 52%; }
+    .label { top: 52%; }
+    .spf { font-size: 23vmin; }
+    .band { top: 30vmin; }
+    .dir { top: 36.5vmin; }
+    .dir .x { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 30%; }
+    .sun { right: 4vmin; top: 69vmin; width: 17vmin; height: 17vmin; }
+    .sun b { font-size: 5.6vmin; }
+    .sun span { font-size: 1.6vmin; letter-spacing: .12em; }
+    .label { top: 0; left: 50%; padding: 0; }
+    .waves { top: 4vmin; }
+    .brand { left: 5vmin; right: 5vmin; top: 9.5vmin; }
+    .brand span:last-child { display: none; }
+    .lock { left: 4.4vmin; top: 14vmin; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .spf { font-size: 17vmin; }
+    .fact em { display: none; }
+    .band { left: 5vmin; right: 5vmin; top: 52vmin; font-size: 1.7vmin; padding: 1vmin 1.6vmin; }
+    .dir { left: 5vmin; right: 5vmin; top: 59vmin; font-size: 1.75vmin; }
+    .dir .x { display: none; }
+    .foot { left: 5vmin; right: 5vmin; bottom: 5vmin; }
+    .bar i { width: 13vmin; }
+    .cta { padding: 1.4vmin 1.8vmin; font-size: 1.7vmin; letter-spacing: .1em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 55% 30%; }
+    .label { left: 48%; }
+    .sun { right: auto; left: 3.5vmin; top: 3.5vmin; width: 22vmin; height: 22vmin; }
+    .sun b { font-size: 7.2vmin; }
+    .brand { left: 6vmin; right: 6vmin; }
+    .brand span:last-child { display: inline; }
+    .lock { left: 5.2vmin; top: 14vmin; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .spf { font-size: 25vmin; }
+    .fact { padding-left: .8vmin; }
+    .fact br { display: none; }
+    .fact em { display: none; }
+    .band { left: 6vmin; right: 6vmin; top: 46vmin; font-size: 1.9vmin; }
+    .dir { left: 6vmin; right: 6vmin; top: 54vmin; font-size: 1.9vmin; }
+    .dir .x { display: inline; }
+    .foot { left: 6vmin; right: 6vmin; bottom: 6vmin; }
+    .bar i { width: 22vmin; }
+    .cta { padding: 1.7vmin 3vmin; font-size: 2.2vmin; letter-spacing: .16em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sun">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <g stroke="#FF5A2C" stroke-width="3.2" stroke-linecap="round">
+        <path d="M50 2v9M50 89v9M2 50h9M89 50h9M16 16l6.4 6.4M77.6 77.6L84 84M84 16l-6.4 6.4M22.4 77.6L16 84"/>
+        <path d="M31.6 5.6l3.4 8.3M65 86.1l3.4 8.3M5.6 68.4l8.3-3.4M86.1 35l8.3-3.4M68.4 5.6L65 13.9M35 86.1l-3.4 8.3M94.4 68.4l-8.3-3.4M13.9 35L5.6 31.6"/>
+      </g>
+      <circle cx="50" cy="50" r="33" fill="#FF5A2C"/>
+    </svg>
+    <div><span>Up to</span><b>50%</b><span>off</span></div>
+  </div>
+  <div class="label">
+    <svg class="waves" viewBox="0 0 200 6" preserveAspectRatio="none" aria-hidden="true"><path d="M0 3 Q 5 0 10 3 T 20 3 T 30 3 T 40 3 T 50 3 T 60 3 T 70 3 T 80 3 T 90 3 T 100 3 T 110 3 T 120 3 T 130 3 T 140 3 T 150 3 T 160 3 T 170 3 T 180 3 T 190 3 T 200 3" fill="none" stroke="#163B94" stroke-width="1.1" vector-effect="non-scaling-stroke"/></svg>
+    <div class="brand"><span>Studio Oro — Sun Care</span><span>Summer 26</span></div>
+    <div class="lock">
+      <div class="spf">SPF50<sup>%</sup></div>
+      <div class="fact">Sale <br>Protection <br>Factor<em>Swim, linen &amp; the whole summer edit.</em></div>
+    </div>
+    <div class="band"><span>Very high savings</span><i><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s></i></div>
+    <div class="dir"><b>Directions:</b> apply generously to your summer wardrobe. <span class="x">Reapply every weekend.</span> Code <b>SUN50</b> · until 31 Aug.</div>
+    <div class="foot">
+      <div class="bar"><i></i>50 SUN 2026 08</div>
+      <div class="cta">Shop summer →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,430 @@
+{
+  "af": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "am": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ar": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "az": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "be": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "bg": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "bn": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ca": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "cs": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "da": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "de": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "el": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "en": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": true,
+    "pending": []
+  },
+  "es": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "et": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "eu": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "fa": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "fi": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "fil": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "fr": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "gl": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "gu": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "he": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "hi": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "hr": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "hu": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "hy": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "id": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "is": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "it": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ja": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ka": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "kk": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "km": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "kn": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ko": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ky": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "lo": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "lt": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "lv": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "mk": {
+    "complete": 609,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": [
+      "results-grid"
+    ]
+  },
+  "ml": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "mn": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "mr": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ms": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ne": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "nl": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "no": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "pa": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "pl": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "pt": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "rm": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ro": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ru": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "si": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "sk": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "sl": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "sr": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "sv": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "sw": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ta": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "te": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "th": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "tr": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "uk": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "ur": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "uz": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "vi": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "zh-Hant": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "zh": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  },
+  "zu": {
+    "complete": 610,
+    "total": 610,
+    "sourceLanguage": false,
+    "pending": []
+  }
+}

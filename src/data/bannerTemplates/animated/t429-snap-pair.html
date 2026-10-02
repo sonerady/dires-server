@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="4">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bowlby+One+SC&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Snap Pair — matching outfits as the card game Snap: two identical playing cards (the same product photo) dealt
+     side by side on a cobalt card-back table, indexed "Big ♥" and "Mini ♥", with a yellow SNAP! burst.
+     tall → headline on top, the pair below; square/wide → the pair left, copy column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2143B0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #2143B0; color: #FBFAF6; font-family: "Space Mono", Menlo, monospace; }
+  .table { position: absolute; inset: 0; background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 1px, transparent 1px 3vmin),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.06) 0 1px, transparent 1px 3vmin); }
+
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; }
+  .k span:last-child { display: none; }
+  .k { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  h1 { width: fit-content; margin: 2vmin 0 0; font-family: "Bowlby One SC", Impact, sans-serif; font-weight: 400; font-size: 16vmin; line-height: .82; letter-spacing: -.01em; color: #FFD23F; text-shadow: .9vmin .9vmin 0 #111A3F; }
+  .sub { margin-top: 2.2vmin; max-width: 60vmin; font-size: 2.6vmin; line-height: 1.35; }
+
+  .pair { position: absolute; left: 5vmin; right: 5vmin; top: 45vmin; bottom: 26vmin; display: flex; gap: 5vmin; }
+  .card { position: relative; flex: 1; min-width: 0; box-sizing: border-box; padding: 7vmin 2.4vmin; background: #FBFAF6; color: #D8332A; box-shadow: 0 1.2vmin 2.4vmin rgba(10,16,48,.4); }
+  .card:first-child { transform: rotate(-3.5deg); }
+  .card:last-child { transform: rotate(3deg) translateY(2vmin); }
+  .card img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .idx { position: absolute; display: flex; align-items: center; gap: 1vmin; font-family: "Bowlby One SC", Impact, sans-serif; font-size: 3.4vmin; line-height: 1; white-space: nowrap; }
+  .idx svg { width: 3vmin; height: 3vmin; }
+  .idx.tl { left: 2.4vmin; top: 1.9vmin; }
+  .idx.br { right: 2.4vmin; bottom: 1.9vmin; transform: rotate(180deg); }
+
+  .burst { position: absolute; right: 4vmin; top: 9vmin; width: 24vmin; height: 24vmin; z-index: 3; transform: rotate(-8deg); }
+  .burst svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .burst span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; font-family: "Bowlby One SC", Impact, sans-serif; font-size: 3.2vmin; line-height: .95; color: #111A3F; }
+
+  .foot { position: absolute; left: 7vmin; right: 7vmin; bottom: 6vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 2.2vmin; line-height: 1.45; }
+  .offer b { color: #FFD23F; }
+  .cta { flex: none; background: #FFD23F; color: #111A3F; padding: 2vmin 3.2vmin; font-family: "Bowlby One SC", Impact, sans-serif; font-size: 2.8vmin; white-space: nowrap; box-shadow: .7vmin .7vmin 0 #111A3F; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    h1 { font-size: 15vmin; }
+    .sub { font-size: 2.4vmin; margin-top: 1.6vmin; }
+    .pair { top: 42vmin; bottom: 22vmin; left: 9vmin; right: 9vmin; }
+    .burst { top: 8vmin; width: 22vmin; height: 22vmin; }
+    .foot { bottom: 5vmin; }
+  }
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .head { top: 5vmin; }
+    h1 { font-size: 14vmin; }
+    .sub { display: none; }
+    .pair { top: 33vmin; bottom: 19vmin; left: 12vmin; right: 12vmin; gap: 4vmin; }
+    .card { padding: 6vmin 2vmin; }
+    .idx { font-size: 2.8vmin; }
+    .idx svg { width: 2.6vmin; height: 2.6vmin; }
+    .idx.tl { left: 2vmin; top: 1.7vmin; } .idx.br { right: 2vmin; bottom: 1.7vmin; }
+    .burst { top: 4vmin; right: 5vmin; width: 20vmin; height: 20vmin; }
+    .burst span { font-size: 2.8vmin; }
+    .foot { bottom: 4.4vmin; }
+  }
+  /* square / wide: pair left, copy right */
+  @media (min-aspect-ratio: 9/10) {
+    .pair { left: 6vmin; right: auto; width: 52vmin; top: 8vmin; bottom: 8vmin; gap: 4vmin; }
+    .head { left: 63vmin; right: 5vmin; top: 7vmin; }
+    .k { flex-direction: column; gap: .6vmin; font-size: 1.6vmin; }
+    .k span:last-child { display: inline; }
+    h1 { font-size: 9vmin; margin-top: 3vmin; text-shadow: .7vmin .7vmin 0 #111A3F; }
+    .sub { display: block; font-size: 2.1vmin; margin-top: 2vmin; }
+    .burst { right: auto; left: 69vmin; top: 46vmin; width: 21vmin; height: 21vmin; }
+    .foot { left: 63vmin; right: 5vmin; bottom: 6vmin; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .offer { font-size: 2vmin; }
+    .cta { font-size: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .pair { left: 8vmin; width: 74vmin; top: 7vmin; bottom: 9vmin; gap: 5vmin; }
+    .card { padding: 6.4vmin 2.2vmin; }
+    .head { left: 92vmin; right: 7vmin; top: 8vmin; }
+    .k { font-size: 1.8vmin; }
+    h1 { font-size: 12vmin; }
+    .sub { font-size: 2.4vmin; }
+    .burst { left: 100vmin; top: 42vmin; width: 22vmin; height: 22vmin; }
+    .foot { left: 92vmin; right: 7vmin; bottom: 8vmin; }
+    .offer { font-size: 2.2vmin; }
+  }
+
+  /* ───────── motion (4 s loop · t=0 = static design) — a quick game of Snap ─────────
+     0.9 s the two cards lift and slap together (1.2 s SNAP!) and bounce back to their dealt positions;
+     on the slap the "Snap!" headline punches, its shadow kicks out, and the burst pops and spins a notch ·
+     the burst keeps a small idle wobble · 2.9 s the CTA gets "pressed" into its shadow */
+  .card:first-child { animation: dealL 4s cubic-bezier(.4,0,.2,1) infinite; }
+  .card:last-child { animation: dealR 4s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes dealL {
+    0%, 22%, 100% { transform: rotate(-3.5deg) translate(0, 0); box-shadow: 0 1.2vmin 2.4vmin rgba(10,16,48,.4); }
+    27% { transform: rotate(-6deg) translate(-.8vmin, -1.6vmin); box-shadow: 0 2.6vmin 3.6vmin rgba(10,16,48,.45); }
+    30% { transform: rotate(-.5deg) translate(1.8vmin, 0); box-shadow: 0 .6vmin 1.2vmin rgba(10,16,48,.4); }
+    36% { transform: rotate(-4.4deg) translate(-.4vmin, 0); box-shadow: 0 1.2vmin 2.4vmin rgba(10,16,48,.4); }
+    42% { transform: rotate(-3.2deg) translate(.1vmin, 0); }
+    47% { transform: rotate(-3.5deg) translate(0, 0); }
+  }
+  @keyframes dealR {
+    0%, 22%, 100% { transform: rotate(3deg) translate(0, 2vmin); box-shadow: 0 1.2vmin 2.4vmin rgba(10,16,48,.4); }
+    27% { transform: rotate(6deg) translate(.8vmin, .4vmin); box-shadow: 0 2.6vmin 3.6vmin rgba(10,16,48,.45); }
+    30% { transform: rotate(.8deg) translate(-1.8vmin, 1.6vmin); box-shadow: 0 .6vmin 1.2vmin rgba(10,16,48,.4); }
+    36% { transform: rotate(4deg) translate(.4vmin, 2vmin); box-shadow: 0 1.2vmin 2.4vmin rgba(10,16,48,.4); }
+    42% { transform: rotate(2.8deg) translate(-.1vmin, 2vmin); }
+    47% { transform: rotate(3deg) translate(0, 2vmin); }
+  }
+
+  h1 { transform-origin: 0% 90%; animation: punch 4s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes punch {
+    0%, 29%, 100% { transform: scale(1) rotate(0); text-shadow: .9vmin .9vmin 0 #111A3F; }
+    32% { transform: scale(1.12) rotate(-3deg); text-shadow: 1.6vmin 1.6vmin 0 #111A3F; }
+    37% { transform: scale(.97) rotate(.5deg); text-shadow: .7vmin .7vmin 0 #111A3F; }
+    42% { transform: scale(1.02) rotate(0); text-shadow: .9vmin .9vmin 0 #111A3F; }
+    46% { transform: scale(1) rotate(0); text-shadow: .9vmin .9vmin 0 #111A3F; }
+  }
+
+  .burst { animation: burst 4s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes burst {
+    0%, 100% { transform: rotate(-8deg) scale(1); }
+    15% { transform: rotate(-6deg) scale(1.02); }
+    29% { transform: rotate(-8deg) scale(1); }
+    33% { transform: rotate(-20deg) scale(1.2); }
+    39% { transform: rotate(-4deg) scale(.95); }
+    45% { transform: rotate(-9deg) scale(1.02); }
+    50% { transform: rotate(-8deg) scale(1); }
+    70% { transform: rotate(-10deg) scale(1.02); }
+  }
+
+  .cta { animation: press 4s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes press {
+    0%, 70%, 86%, 100% { transform: translate(0, 0); box-shadow: .7vmin .7vmin 0 #111A3F; }
+    74%, 77% { transform: translate(.7vmin, .7vmin); box-shadow: 0 0 0 #111A3F; }
+    81% { transform: translate(-.15vmin, -.15vmin); box-shadow: .85vmin .85vmin 0 #111A3F; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="table"></div>
+  <div class="head">
+    <div class="k"><span>Family matching</span><span>Game on</span></div>
+    <h1>Snap!</h1>
+    <div class="sub">Big one, little one — same card. Call it first.</div>
+  </div>
+  <div class="pair">
+    <div class="card">
+      <div class="idx tl">Big<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 35C8 26 3 19 3 12.5 3 7.5 7 4 11.5 4c3.6 0 6.4 2.2 8.5 5.4C22.1 6.2 24.9 4 28.5 4 33 4 37 7.5 37 12.5 37 19 32 26 20 35z" fill="#D8332A"/></svg></div>
+      <img src="{{PRODUCT_IMAGE}}" alt="">
+      <div class="idx br">Big<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 35C8 26 3 19 3 12.5 3 7.5 7 4 11.5 4c3.6 0 6.4 2.2 8.5 5.4C22.1 6.2 24.9 4 28.5 4 33 4 37 7.5 37 12.5 37 19 32 26 20 35z" fill="#D8332A"/></svg></div>
+    </div>
+    <div class="card">
+      <div class="idx tl">Mini<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 35C8 26 3 19 3 12.5 3 7.5 7 4 11.5 4c3.6 0 6.4 2.2 8.5 5.4C22.1 6.2 24.9 4 28.5 4 33 4 37 7.5 37 12.5 37 19 32 26 20 35z" fill="#D8332A"/></svg></div>
+      <img src="{{PRODUCT_IMAGE}}" alt="">
+      <div class="idx br">Mini<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 35C8 26 3 19 3 12.5 3 7.5 7 4 11.5 4c3.6 0 6.4 2.2 8.5 5.4C22.1 6.2 24.9 4 28.5 4 33 4 37 7.5 37 12.5 37 19 32 26 20 35z" fill="#D8332A"/></svg></div>
+    </div>
+  </div>
+  <div class="burst">
+    <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 2 58 20 76 8 74 29 96 28 82 44 98 58 77 62 86 82 65 76 60 98 48 81 34 96 32 74 10 80 22 61 3 50 22 40 10 20 32 25 34 4 46 20z" fill="#FFD23F" stroke="#111A3F" stroke-width="2.4" stroke-linejoin="round"/></svg>
+    <span>Pairs<br>−20%</span>
+  </div>
+  <div class="foot">
+    <div class="offer">Matching pairs from <b>€59</b><br>Code <b>SNAP20</b> · this week</div>
+    <div class="cta">Snap them up</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Escort Cards — a garden-wedding escort display: a length of jute twine sags across a sage wall, little wooden pegs
+     hold the guests' cards, and the big card in the middle is yours — "Table Twenty", 20% off the guest edit.
+     tall → photo above the wall; square/wide → photo left, wall right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #A9B59D; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1F2A1C; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; background: #A9B59D; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 82vmin); object-fit: cover; object-position: 50% 22%; }
+  .wall { position: absolute; left: 0; right: 0; bottom: 0; height: 82vmin;
+    background: radial-gradient(90% 70% at 50% 30%, rgba(255,255,255,.18), transparent 70%), repeating-linear-gradient(0deg, rgba(40,60,35,.04) 0 1px, transparent 1px .6vmin), #A9B59D; }
+
+  /* the twine: 14vmin tall, y in vmin == y in viewBox units */
+  .line { position: absolute; left: 0; right: 0; top: 3vmin; height: 14vmin; }
+  .line svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .card { position: absolute; transform-origin: 50% 0; background: #FFFDF7; box-sizing: border-box; text-align: center;
+    box-shadow: 0 .2vmin .3vmin rgba(30,45,25,.2), 0 1.8vmin 2.4vmin -1vmin rgba(30,45,25,.4); }
+  .card::before { content: ""; position: absolute; left: 50%; top: -3.4vmin; width: 1.7vmin; height: 5.4vmin; transform: translateX(-50%); z-index: 2;
+    background: linear-gradient(180deg, transparent 38%, #9A9A96 38% 44%, transparent 44%), linear-gradient(90deg, #B98D62, #D6B48C 45%, #B98D62); box-shadow: 0 .3vmin .4vmin rgba(30,45,25,.35); }
+  .guest { width: 21vmin; padding: 3vmin 1.2vmin 2.2vmin; }
+  .guest b { display: block; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 2.5vmin; line-height: 1.15; white-space: nowrap; }
+  .guest span { display: block; margin-top: 1.5vmin; font-size: 1.6vmin; letter-spacing: .24em; margin-right: -.24em; text-transform: uppercase; color: #5E6A57; }
+  .g1 { left: 5vmin; top: 7.4vmin; transform: rotate(-5deg); }
+  .g2 { right: 5vmin; top: 7.4vmin; transform: rotate(4deg); }
+  .you { left: 50%; top: 11.6vmin; width: 40vmin; margin-left: -20vmin; padding: 4vmin 2vmin 3.2vmin; transform: rotate(-1.5deg); }
+  .you::after { content: ""; position: absolute; inset: 1.1vmin; border: 1px solid #B99A5B; pointer-events: none; }
+  .you small { display: block; font-size: 1.7vmin; letter-spacing: .32em; margin-right: -.32em; text-transform: uppercase; color: #5E6A57; }
+  .you b { display: block; margin-top: .6vmin; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 7.6vmin; line-height: 1.05; }
+  .you i { display: block; width: 8vmin; height: 1px; margin: 1.4vmin auto; background: #B99A5B; }
+  .you span { display: block; font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 3.8vmin; color: #7A2E2A; }
+  .you em { display: block; margin-top: .4vmin; font-style: normal; font-size: 1.7vmin; letter-spacing: .2em; margin-right: -.2em; text-transform: uppercase; }
+
+  .copy { position: absolute; left: 7vmin; right: 7vmin; bottom: 7vmin; text-align: center; }
+  .copy h1 { margin: 0; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 11vmin; line-height: 1; letter-spacing: -.01em; }
+  .copy p { margin: 2vmin 0 0; font-size: 2.6vmin; line-height: 1.45; }
+  .copy .cta { margin-top: 2.6vmin; display: inline-flex; align-items: center; gap: 1.6vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .26em; text-transform: uppercase; white-space: nowrap; }
+  .copy .cta i { width: 6vmin; height: 1px; background: #1F2A1C; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 72vmin); }
+    .wall { height: 72vmin; }
+    .line { top: 2vmin; }
+    .you { top: 11vmin; width: 32vmin; margin-left: -16vmin; padding: 3vmin 1.6vmin 2.2vmin; }
+    .you b { font-size: 5.6vmin; }
+    .you span { font-size: 3vmin; }
+    .you { padding: 3vmin 1.6vmin 2.2vmin; }
+    .copy { bottom: 4.6vmin; }
+    .copy h1 { font-size: 8.6vmin; }
+    .copy p { font-size: 2.2vmin; margin-top: 1.2vmin; }
+    .copy .cta { margin-top: 1.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 25%; }
+    .wall { left: 46%; top: 0; height: auto; }
+    .line { top: 3vmin; }
+    .g1 { display: none; }
+    .g2 { right: 3vmin; top: 6.6vmin; width: 17vmin; }
+    .g2 b { font-size: 2.1vmin; }
+    .you { left: 38%; top: 10vmin; width: 30vmin; margin-left: -15vmin; }
+    .you b { font-size: 5.4vmin; }
+    .copy { left: 5vmin; right: 5vmin; bottom: 7vmin; text-align: left; }
+    .copy h1 { font-size: 7.4vmin; }
+    .copy p { font-size: 2vmin; }
+    .copy .cta { margin-top: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .wall { left: 44%; }
+    .g1 { display: block; left: 5vmin; top: 7.2vmin; width: 19vmin; }
+    .g2 { right: 5vmin; top: 7.2vmin; width: 19vmin; }
+    .g1 b, .g2 b { font-size: 2.3vmin; }
+    .you { left: 50%; top: 11vmin; width: 32vmin; margin-left: -16vmin; }
+    .you b { font-size: 5.8vmin; }
+    .copy { left: 8vmin; right: 8vmin; bottom: 6vmin; text-align: center; }
+    .copy h1 { font-size: 7.4vmin; }
+    .copy p { margin-top: 1.2vmin; }
+    .copy .cta { margin-top: 1.4vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the pegged cards sway on the twine like in a garden breeze (each its own phase, 3s / 6s pendulums).
+     beats: 1.8s "Twenty" card's gold hairline redraws from the centre and "20% off" lifts · 3.3s the headline is
+     re-written left→right · 4.6s the CTA rule draws out again. */
+  .g1 { animation: sw1 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sw1 { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(-3.4deg); } }
+  .g2 { animation: sw2 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sw2 { 0%, 100% { transform: rotate(4deg); } 30% { transform: rotate(2.6deg); } 65% { transform: rotate(5.4deg); } }
+  .you { animation: sw3 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sw3 { 0%, 100% { transform: rotate(-1.5deg); } 25% { transform: rotate(-.5deg); } 75% { transform: rotate(-2.4deg); } }
+  .you i { animation: rule 6s linear infinite; }
+  @keyframes rule {
+    0%, 28% { clip-path: inset(0 0 0 0); }
+    30% { clip-path: inset(0 50% 0 50%); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    38%, 100% { clip-path: inset(0 0 0 0); }
+  }
+  .you span { transform-origin: 50% 60%; animation: lift 6s linear infinite; }
+  @keyframes lift {
+    0%, 32% { transform: scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    37% { transform: scale(1.1); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+    43%, 100% { transform: scale(1); }
+  }
+  .copy h1 { animation: rewrite 6s linear infinite; }
+  @keyframes rewrite {
+    0%, 52% { opacity: 1; clip-path: inset(-20% -4% -30% -4%); }
+    54.5% { opacity: 0; clip-path: inset(-20% -4% -30% -4%); }
+    54.6% { opacity: 0; clip-path: inset(-20% 104% -30% -4%); }
+    55% { opacity: 1; clip-path: inset(-20% 104% -30% -4%); animation-timing-function: cubic-bezier(.45,.05,.4,1); }
+    70%, 100% { opacity: 1; clip-path: inset(-20% -4% -30% -4%); }
+  }
+  .copy .cta i { animation: ctarule 6s linear infinite; }
+  @keyframes ctarule {
+    0%, 76% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    80% { clip-path: inset(0 0 0 100%); animation-timing-function: steps(1, end); }
+    80.5% { clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    88%, 100% { clip-path: inset(0 0 0 0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="wall">
+    <div class="line">
+      <svg viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M-2 2.4 Q 50 18.6 102 2.4" fill="none" stroke="#8C6E4C" stroke-width=".7"/>
+        <path d="M-2 2.4 Q 50 18.6 102 2.4" fill="none" stroke="#D8BF95" stroke-width=".35" stroke-dasharray=".9 .7"/>
+      </svg>
+      <div class="card guest g1"><b>Ms. Ida Marlowe</b><span>Table 4</span></div>
+      <div class="card you"><small>Your table</small><b>Twenty</b><i></i><span>20% off</span><em>The Guest Edit</em></div>
+      <div class="card guest g2"><b>Mr. Leo Okafor</b><span>Table 9</span></div>
+    </div>
+    <div class="copy">
+      <h1>Find your seat.</h1>
+      <p>Looks for every wedding on this year’s list.<br>Code TABLE20 · this weekend only</p>
+      <div class="cta">Shop the edit <i></i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

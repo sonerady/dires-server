@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Newsletter Sign-up — an email header: a letter masthead, the look, "10% off" with a postmark and a drawn sign-up field.
+     tall → masthead / photo / sign-up stacked; square / wide → photo left, the letter right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F3EC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6F3EC; color: #1B2340; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; }
+
+  .mast { position: absolute; left: 6vmin; right: 6vmin; top: 4.4vmin; text-align: center; }
+  .mast h2 { margin: 0; font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 300; font-size: 9vmin; line-height: .95; letter-spacing: -.02em; }
+  .mast .rule { display: flex; justify-content: space-between; margin-top: 1.6vmin; padding: 1vmin 0; border-top: 1px solid #1B2340; border-bottom: 1px solid #1B2340; font-size: 1.7vmin; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; }
+
+  .shot { position: absolute; left: 6vmin; right: 6vmin; top: 21.5vmin; bottom: 50vmin; overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .body { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 42vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #C4412E; }
+  .hl { position: relative; margin-top: 1.4vmin; }
+  h1 { width: fit-content; margin: 0; font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 5.6vmin; line-height: 1; letter-spacing: -.015em; }
+  h1 b { display: block; font-weight: 500; font-size: 13vmin; line-height: .9; letter-spacing: -.04em; }
+  h1 b i { font-style: italic; font-weight: 300; }
+
+  .pm { position: absolute; right: 0; top: -1vmin; width: 19vmin; height: 19vmin; color: #C4412E; transform: rotate(-9deg); }
+  .pm svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .pm text { font-family: "Hanken Grotesk", sans-serif; font-weight: 700; fill: #C4412E; text-transform: uppercase; }
+  .pm b { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: "Newsreader", Georgia, serif; font-size: 3.6vmin; font-weight: 400; line-height: 1; }
+  .pm b small { font-family: "Hanken Grotesk", sans-serif; font-size: 1.5vmin; font-weight: 700; letter-spacing: .14em; margin-top: .6vmin; }
+
+  .perks { margin-top: 2.6vmin; display: flex; flex-wrap: wrap; gap: .8vmin 2.6vmin; font-size: 2.1vmin; color: #3C4462; }
+  .perks span::before { content: "✓"; color: #C4412E; font-weight: 700; margin-right: .9vmin; }
+  .field { margin-top: auto; display: flex; height: 7.6vmin; border: 1px solid #1B2340; }
+  .field .in { flex: 1; display: flex; align-items: center; padding: 0 2.4vmin; font-size: 2.2vmin; color: #8A8FA3; }
+  .field .go { flex: none; display: flex; align-items: center; padding: 0 3.2vmin; background: #1B2340; color: #F6F3EC; font-size: 2vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .fine { margin-top: 1.4vmin; font-size: 1.6vmin; color: #6A7088; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .mast { top: 3.6vmin; }
+    .mast h2 { font-size: 7.4vmin; }
+    .mast .rule { margin-top: 1.2vmin; padding: .8vmin 0; }
+    .shot { top: 17.6vmin; bottom: 43vmin; }
+    .body { bottom: 4vmin; height: 36vmin; }
+    h1 { font-size: 4.6vmin; }
+    h1 b { font-size: 10.6vmin; }
+    .pm { width: 17vmin; height: 17vmin; }
+    .pm b { font-size: 3vmin; }
+    .perks { margin-top: 1.8vmin; font-size: 1.9vmin; }
+    .field { height: 6.6vmin; }
+    .fine { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .shot { left: 0; top: 0; bottom: 0; right: auto; width: 46%; }
+    .mast { left: calc(46% + 6vmin); right: 5.5vmin; top: 5.5vmin; text-align: left; }
+    .mast h2 { font-size: 8vmin; }
+    .body { left: calc(46% + 6vmin); right: 5.5vmin; top: 25vmin; bottom: 5.5vmin; height: auto; }
+    h1 { font-size: 4.2vmin; }
+    h1 b { font-size: 11vmin; }
+    .pm { width: 15vmin; height: 15vmin; top: calc(100% + 2vmin); right: 1vmin; }
+    .pm b { font-size: 2.8vmin; }
+    .perks { display: block; font-size: 1.9vmin; line-height: 1.7; }
+    .perks span { display: block; width: fit-content; }
+    .field { height: 6.4vmin; }
+    .field .in { padding: 0 1.8vmin; font-size: 1.9vmin; }
+    .field .go { padding: 0 2.2vmin; font-size: 1.7vmin; }
+    .fine { display: block; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 48%; }
+    .mast { left: calc(48% + 8vmin); right: 7vmin; top: 7vmin; }
+    .mast h2 { font-size: 9.4vmin; }
+    .body { left: calc(48% + 8vmin); right: 7vmin; top: 29vmin; bottom: 7vmin; }
+    h1 { font-size: 4.8vmin; }
+    h1 b { font-size: 13vmin; }
+    .pm { width: 18vmin; height: 18vmin; top: -1vmin; right: 0; }
+    .pm b { font-size: 3.4vmin; }
+    .perks { font-size: 2vmin; }
+    .field { height: 7.2vmin; }
+    .field .in { font-size: 2.1vmin; }
+    .field .go { padding: 0 3vmin; font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  /* an inbox moment: the postmark thumps down, the email is backspaced and re-typed with a caret,
+     Subscribe is pressed, the perks tick themselves */
+  .shot img { animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  /* postmark: once subscribed, it lifts off and stamps back with a thud */
+  .pm { animation: stamp 8s linear infinite; }
+  @keyframes stamp {
+    0%, 84% { transform: rotate(-9deg) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    88% { transform: rotate(-16deg) scale(1.35); opacity: 0; animation-timing-function: steps(1, end); }
+    90% { transform: rotate(-4deg) scale(1.3); opacity: 0; animation-timing-function: cubic-bezier(.7,0,.9,.5); }
+    93.5% { transform: rotate(-9deg) scale(.94); opacity: 1; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    98%, 100% { transform: rotate(-9deg) scale(1); opacity: 1; }
+  }
+  /* email: backspaced then typed back, caret blinks only while typing */
+  .field .in .t { display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: bottom; max-width: 30em; animation: type 8s linear infinite; }
+  @keyframes type {
+    0%, 40% { max-width: 30em; animation-timing-function: steps(1, end); }
+    40.01% { max-width: 7.2em; animation-timing-function: steps(14, end); }
+    47% { max-width: 0; animation-timing-function: steps(1, end); }
+    50% { max-width: 0; animation-timing-function: steps(14, end); }
+    66% { max-width: 7.2em; animation-timing-function: steps(1, end); }
+    66.5%, 100% { max-width: 30em; }
+  }
+  .field .in::after { content: ""; flex: none; width: .22vmin; height: 2.8vmin; margin-left: .3vmin; background: #1B2340; opacity: 0; animation: caret 8s linear infinite; }
+  @keyframes caret {
+    0%, 39% { opacity: 0; animation-timing-function: steps(1, end); }
+    40% { opacity: 1; animation-timing-function: steps(1, end); } 47.5% { opacity: 1; animation-timing-function: steps(1, end); }
+    48.5% { opacity: 0; animation-timing-function: steps(1, end); } 50% { opacity: 1; animation-timing-function: steps(1, end); }
+    66% { opacity: 1; animation-timing-function: steps(1, end); } 69% { opacity: 0; animation-timing-function: steps(1, end); }
+    72% { opacity: 1; animation-timing-function: steps(1, end); } 75% { opacity: 0; animation-timing-function: steps(1, end); }
+    100% { opacity: 0; }
+  }
+  .field .in .t { color: #8A8FA3; }
+  /* Subscribe: pressed, with a sheen */
+  .field .go { position: relative; overflow: hidden; animation: press 8s linear infinite; }
+  @keyframes press {
+    0%, 74% { transform: scale(1); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    76% { transform: scale(.93); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    80%, 100% { transform: scale(1); }
+  }
+  .field .go::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,.3) 50%, rgba(255,255,255,.08) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 8s linear infinite; }
+  @keyframes sheen { 0%, 76% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 86%, 100% { transform: translateX(300%) skewX(-18deg); } }
+  /* perks: the ticks pop one after another once subscribed */
+  .perks span::before { display: inline-block; animation: tick 8s linear infinite; }
+  .perks span:nth-child(2)::before { animation-delay: -7.84s; } .perks span:nth-child(3)::before { animation-delay: -7.68s; }
+  @keyframes tick {
+    0%, 78% { transform: scale(1) rotate(0); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    81% { transform: scale(1.6) rotate(-12deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    86%, 100% { transform: scale(1) rotate(0); }
+  }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="mast">
+    <h2>The Letter</h2>
+    <div class="rule"><span>Atelier Nord</span><span>Issue 27</span><span>Weekly</span></div>
+  </div>
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="body">
+    <div class="kick">Join the list</div>
+    <div class="hl">
+      <h1>Sign up for<b>10% <i>off</i></b></h1>
+      <div class="pm">
+        <svg viewBox="0 0 100 100"><defs><path id="pmring" d="M50,50 m-40,0 a40,40 0 1,1 80,0 a40,40 0 1,1 -80,0"/></defs>
+          <circle cx="50" cy="50" r="48" fill="none" stroke="#C4412E" stroke-width="1.6"/>
+          <circle cx="50" cy="50" r="31" fill="none" stroke="#C4412E" stroke-width="1"/>
+          <text font-size="7.4" letter-spacing="1"><textPath href="#pmring" textLength="246" lengthAdjust="spacing">Welcome · first order · welcome · first order ·</textPath></text></svg>
+        <b><i>Hello</i><small>Sundays</small></b>
+      </div>
+    </div>
+    <div class="perks"><span>Early access to drops</span><span>Private sales</span><span>No spam, ever</span></div>
+    <div class="field"><div class="in"><span class="t">your@email.com</span></div><div class="go">Subscribe</div></div>
+    <div class="fine">Unsubscribe anytime. Code arrives in your inbox.</div>
+  </div>
+</div>
+</body>
+</html>

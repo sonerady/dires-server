@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,700;0,800;1,800&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Size Run — the restock told as a stock chart: one cobalt bar per size (EU 36–46), pairs on hand
+     printed on top, the bell curve of a full size run; thin sizes are outlined and flagged "low".
+     tall → photo above the chart panel; 3:4 and wider → chart panel on the left, photo on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6E5E0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E6E5E0; color: #101114; font-family: "Martian Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 88vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .flag { position: absolute; right: 0; top: 5vmin; background: #2537F5; color: #fff; padding: 1.3vmin 2.4vmin 1.3vmin 2vmin; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 800; font-size: 3vmin; letter-spacing: .06em; text-transform: uppercase; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 88vmin; box-sizing: border-box; padding: 4.4vmin 5vmin 5vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .kick b { font-weight: 600; color: #2537F5; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 800; font-size: 13vmin; line-height: .84; letter-spacing: -.005em; text-transform: uppercase; }
+  h1 em { font-style: italic; color: #2537F5; }
+  .chart { position: relative; flex: 1; min-height: 0; margin-top: 3.6vmin; display: flex; flex-direction: column; }
+  .axis { display: flex; justify-content: space-between; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; color: #5C5E66; }
+  .plot { position: relative; flex: 1; min-height: 0; margin-top: 1.4vmin; padding-top: 3.6vmin; display: flex; align-items: flex-end; gap: 1.2vmin; border-bottom: .45vmin solid #101114;
+    background: repeating-linear-gradient(0deg, transparent 0 calc(25% - 1px), rgba(16,17,20,.16) calc(25% - 1px) 25%); }
+  .plot div { position: relative; flex: 1; height: var(--h); background: #2537F5; }
+  .plot div b { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); margin-bottom: .6vmin; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 2.6vmin; line-height: 1; }
+  .plot .low { background: repeating-linear-gradient(135deg, #E6E5E0 0 .5vmin, #2537F5 .5vmin .8vmin); box-shadow: inset 0 0 0 .35vmin #2537F5; }
+  .plot .low b { color: #2537F5; }
+  .plot .you { background: #101114; }
+  .plot .you i { position: absolute; left: 50%; top: 1.2vmin; transform: translateX(-50%); writing-mode: vertical-rl; rotate: 180deg; font-style: normal; font-size: 1.6vmin; letter-spacing: .12em; color: #fff; text-transform: uppercase; white-space: nowrap; }
+  .sizes { display: flex; gap: 1.2vmin; margin-top: 1.1vmin; }
+  .sizes span { flex: 1; text-align: center; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 2.6vmin; }
+  .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; margin-top: 3.4vmin; padding-top: 2.6vmin; border-top: 1px solid rgba(16,17,20,.35); }
+  .price { font-size: 1.7vmin; letter-spacing: .06em; text-transform: uppercase; line-height: 1.5; white-space: nowrap; }
+  .price strong { display: block; font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 6.4vmin; line-height: .9; letter-spacing: 0; text-transform: none; }
+  .price s { color: #5C5E66; }
+  .cta { display: flex; align-items: center; gap: 1.6vmin; background: #101114; color: #fff; padding: 2vmin 2.8vmin; font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 3.2vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .cta i { font-style: normal; color: #8C97FF; }
+
+  /* 3:4 / 4:5 → chart panel left, photo right */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .flag { right: auto; left: 50%; top: 4vmin; font-size: 2.6vmin; padding: 1.1vmin 2vmin; }
+    .panel { right: 50%; top: 0; height: auto; padding: 5vmin 3.6vmin 4vmin; }
+    .kick { flex-direction: column; gap: .8vmin; font-size: 1.6vmin; }
+    h1 { margin-top: 2.4vmin; font-size: 11vmin; }
+    .plot, .sizes { gap: .6vmin; }
+    .plot div b { font-size: 2.2vmin; }
+    .sizes span { font-size: 2.2vmin; }
+    .plot .you i { display: none; }
+    .foot { flex-direction: column; align-items: stretch; gap: 2.4vmin; }
+    .cta { justify-content: space-between; font-size: 2.8vmin; padding: 1.8vmin 2.4vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .panel { padding: 4.4vmin 3.8vmin 4vmin; }
+    h1 { margin-top: 2vmin; font-size: 9.4vmin; }
+    .chart { margin-top: 3vmin; }
+    .foot { margin-top: 2.4vmin; padding-top: 2vmin; gap: 2vmin; }
+    .price strong { font-size: 5.2vmin; }
+  }
+  /* wide → photo 46% right, chart gets the width */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 50% 30%; }
+    .flag { left: 54%; }
+    .panel { right: 46%; padding: 4.6vmin 5vmin 4.6vmin; }
+    .kick { flex-direction: row; font-size: 1.7vmin; }
+    h1 { margin-top: 1.8vmin; font-size: 10.6vmin; }
+    .plot, .sizes { gap: 1.2vmin; }
+    .plot div b, .sizes span { font-size: 2.6vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .cta { font-size: 3vmin; }
+    .plot .you i { display: block; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="flag">Restocked</div>
+  <div class="panel">
+    <div class="kick"><span>Size run · <b>EU 36–46</b></span><span>Stock at 25.09 · 09:00</span></div>
+    <h1>Every size.<br><em>Back in.</em></h1>
+    <div class="chart">
+      <div class="axis"><span>Pairs on hand</span><span>▨ Low stock</span></div>
+      <div class="plot">
+        <div class="low" style="--h:12%"><b>4</b></div>
+        <div style="--h:26%"><b>9</b></div>
+        <div style="--h:40%"><b>14</b></div>
+        <div style="--h:62%"><b>22</b></div>
+        <div style="--h:80%"><b>31</b></div>
+        <div class="you" style="--h:100%"><b>36</b><i>Most wanted</i></div>
+        <div style="--h:88%"><b>33</b></div>
+        <div style="--h:67%"><b>24</b></div>
+        <div style="--h:42%"><b>15</b></div>
+        <div style="--h:20%"><b>7</b></div>
+        <div class="low" style="--h:9%"><b>3</b></div>
+      </div>
+      <div class="sizes"><span>36</span><span>37</span><span>38</span><span>39</span><span>40</span><span>41</span><span>42</span><span>43</span><span>44</span><span>45</span><span>46</span></div>
+    </div>
+    <div class="foot">
+      <div class="price">New season<strong>€129</strong>Free size exchanges</div>
+      <div class="cta">Find your size <i>→</i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

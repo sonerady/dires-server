@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;1,6..96,400;1,6..96,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Black Tie — black & ivory evening edit; two giant Didone words hold the photo between them.
+     tall → "Black" above, "Tie." below; square/wide → the words turn vertical on either side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0A0A0A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0A0A0A; color: #F2EDE3; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 32vmin; width: 100%; height: calc(100% - 64vmin); object-fit: cover; object-position: 50% 20%; }
+  .w { position: absolute; font-family: "Bodoni Moda", Didot, "Times New Roman", serif; font-style: italic; font-weight: 400; font-size: 27vmin; line-height: .8; letter-spacing: -.03em; white-space: nowrap; }
+  .w1 { right: 4.5vmin; top: 8vmin; }
+  .w2 { left: 4.5vmin; bottom: 4.5vmin; font-style: normal; }
+  .m { position: absolute; font-size: 1.9vmin; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; line-height: 1.6; white-space: nowrap; }
+  .m1 { left: 5vmin; top: 5vmin; }
+  .m1 span { display: block; color: #9A9387; font-weight: 400; }
+  .m2 { right: 5vmin; bottom: 5vmin; text-align: right; }
+  .m2 b { display: block; margin-bottom: 1.4vmin; font-family: "Bodoni Moda", Didot, serif; font-style: italic; font-weight: 400; font-size: 4.6vmin; letter-spacing: 0; text-transform: none; line-height: 1.1; }
+  .m2 u { text-decoration: none; padding-bottom: .5vmin; border-bottom: .25vmin solid #F2EDE3; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { top: 29vmin; height: calc(100% - 58vmin); }
+    .w { font-size: 24vmin; }
+    .w1 { top: 6.5vmin; }
+    .w2 { bottom: 4vmin; }
+    .m2 b { font-size: 4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 27%; top: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .w { font-size: 19vmin; }
+    .w1 { right: auto; left: 13.5%; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); }
+    .w2 { left: 86.5%; bottom: auto; top: 50%; transform: translate(-50%, -50%) rotate(90deg); }
+    .m { font-size: 1.7vmin; letter-spacing: .26em; }
+    .m1 { left: 13.5%; top: 5vmin; transform: translateX(-50%); text-align: center; }
+    .m2 { right: auto; left: 86.5%; bottom: 5vmin; transform: translateX(-50%); text-align: center; }
+    .m2 b { font-size: 3.2vmin; margin-bottom: 1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 28%; width: 44%; }
+    .w { font-size: 25vmin; }
+    .w1 { left: 14%; }
+    .w2 { left: 86%; }
+    .m { font-size: 1.9vmin; letter-spacing: .32em; }
+    .m1 { left: 14%; }
+    .m2 { left: 86%; }
+    .m2 b { font-size: 3.8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  .photo { transform-origin: 50% 50%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push {
+    0%, 100% { transform: scale(1); clip-path: inset(0); }
+    50% { transform: scale(1.03); clip-path: inset(1.456%); }
+  }
+  /* the two words draw like a curtain, one after the other */
+  .w1 { animation: cw1 6s linear infinite; }
+  .w2 { animation: cw2 6s linear infinite; }
+  @keyframes cw1 {
+    0%, 14% { clip-path: inset(-30% -8% -30% -8%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    24% { clip-path: inset(-30% -8% -30% 110%); animation-timing-function: steps(1, end); }
+    24.2% { clip-path: inset(-30% 110% -30% -8%); animation-timing-function: cubic-bezier(.22,.7,.2,1); }
+    42%, 100% { clip-path: inset(-30% -8% -30% -8%); }
+  }
+  @keyframes cw2 {
+    0%, 30% { clip-path: inset(-30% -8% -30% -8%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    40% { clip-path: inset(-30% -8% -30% 110%); animation-timing-function: steps(1, end); }
+    40.2% { clip-path: inset(-30% 110% -30% -8%); animation-timing-function: cubic-bezier(.22,.7,.2,1); }
+    58%, 100% { clip-path: inset(-30% -8% -30% -8%); }
+  }
+  /* the price rises in after them */
+  .m2 b { animation: price 6s linear infinite; }
+  @keyframes price {
+    0%, 60% { opacity: 1; transform: translateY(0); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    64% { opacity: 0; transform: translateY(0); animation-timing-function: steps(1, end); }
+    64.2% { opacity: 0; transform: translateY(1.2vmin); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    76%, 100% { opacity: 1; transform: translateY(0); }
+  }
+  /* and the underline is drawn under Shop now */
+  .m2 u { border-bottom-color: transparent; background: linear-gradient(#F2EDE3, #F2EDE3) 0 100% / 100% .25vmin no-repeat; background-origin: border-box; animation: uline 6s linear infinite; }
+  @keyframes uline {
+    0%, 74% { background-size: 100% .25vmin; background-position: 100% 100%; animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    80% { background-size: 0% .25vmin; background-position: 100% 100%; animation-timing-function: steps(1, end); }
+    80.2% { background-size: 0% .25vmin; background-position: 0 100%; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    92%, 100% { background-size: 100% .25vmin; background-position: 0 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="w w1">Black</div>
+  <div class="w w2">Tie.</div>
+  <div class="m m1">Dress code<span>The Evening Edit</span></div>
+  <div class="m m2"><b>from €290</b><u>Shop now</u></div>
+</div>
+</body>
+</html>

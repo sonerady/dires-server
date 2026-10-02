@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Tool Check — the tool-crib check system of an old works: brass checks, each die-stamped with one character,
+     hang on steel hook bars and spell the offer, 3·0·%·O·F·F — round, hex and square checks, each with its
+     worker number. "Check out." as the headline, on a painted-steel crib wall.
+     tall / 3:4 → photo above the wall, one row of checks; square → two hook bars of three; wide → photo left, one row */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2E3A42; }
+  .banner { --P: 80vmin; --c: 13vmin; position: fixed; inset: 0; overflow: hidden; color: #EDEAE2; font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 .3vmin, rgba(0,0,0,.02) .3vmin .7vmin),
+      radial-gradient(120% 80% at 70% 30%, #37454E 0%, #2E3A42 55%, #242E35 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--P)); object-fit: cover; object-position: 50% 22%; display: block; }
+  .lip { position: absolute; left: 0; right: 0; top: calc(100% - var(--P)); height: 1.6vmin; z-index: 2; background: linear-gradient(180deg, #D4A843, #9C7424); box-shadow: 0 .5vmin 1.2vmin rgba(0,0,0,.4); }
+
+  .wall { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--P) - 1.6vmin); box-sizing: border-box; padding: 4.6vmin 6vmin 4.6vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; font-family: "Space Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #A9B4BA; white-space: nowrap; }
+  .meta b { color: #D4A843; font-weight: 700; }
+  h1 { margin: 2vmin 0 0; font-weight: 900; font-size: 14vmin; line-height: .88; letter-spacing: -.045em; }
+  h1 em { font-style: normal; color: #D4A843; }
+
+  .rack { flex: 1; min-height: 0; display: flex; justify-content: center; align-items: center; gap: 2vmin; }
+  .rail { position: relative; display: flex; gap: calc(var(--c) * .16); padding-top: calc(var(--c) * .52); }
+  .rail::before { content: ""; position: absolute; left: calc(var(--c) * -.3); right: calc(var(--c) * -.3); top: 0; height: calc(var(--c) * .14); border-radius: calc(var(--c) * .07);
+    background: linear-gradient(180deg, #D8DDE0 0%, #9AA3A8 50%, #5F686E 100%); box-shadow: 0 calc(var(--c) * .05) calc(var(--c) * .08) rgba(0,0,0,.5); }
+  .ck { position: relative; width: var(--c); height: var(--c); filter: drop-shadow(0 calc(var(--c) * .05) calc(var(--c) * .06) rgba(0,0,0,.55)); transform-origin: 50% calc(var(--c) * -.4); }
+  /* hook: a steel S-hook from the bar into the check's hole */
+  .ck::before { content: ""; position: absolute; left: 50%; top: calc(var(--c) * -.46); width: calc(var(--c) * .18); height: calc(var(--c) * .62); margin-left: calc(var(--c) * -.09); box-sizing: border-box;
+    border: calc(var(--c) * .035) solid #B9C1C5; border-radius: calc(var(--c) * .09); z-index: 2; }
+  .face { position: absolute; inset: 0; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 34% 28%, #FBE9AE 0%, #D8AE52 38%, #A67C2A 72%, #6F4F14 100%); }
+  .face::before { content: ""; position: absolute; left: 50%; top: 9%; width: 14%; height: 14%; margin-left: -7%; border-radius: 50%; background: #242E35; box-shadow: inset 0 calc(var(--c) * .02) calc(var(--c) * .03) rgba(0,0,0,.7), 0 1px 0 rgba(255,240,200,.5); }
+  .face::after { content: ""; position: absolute; inset: 5%; border-radius: inherit; border: 1px solid rgba(90,60,10,.35); }
+  .hex .face { border-radius: 0; clip-path: polygon(25% 3%, 75% 3%, 99% 50%, 75% 97%, 25% 97%, 1% 50%); }
+  .sq .face { border-radius: 14%; }
+  .face b { margin-top: 8%; font-family: "Space Mono", Menlo, monospace; font-weight: 700; font-size: calc(var(--c) * .5); line-height: 1; color: #5A3E0C; text-shadow: 0 calc(var(--c) * .012) 0 rgba(255,238,190,.75), 0 calc(var(--c) * -.01) 0 rgba(60,40,5,.5); }
+  .face small { margin-top: 3%; font-family: "Space Mono", Menlo, monospace; font-size: max(1.6vmin, calc(var(--c) * .12)); letter-spacing: .06em; color: #5A3E0C; text-shadow: 0 1px 0 rgba(255,238,190,.6); }
+  .r1 { transform: rotate(-4deg); } .r2 { transform: rotate(3deg); } .r3 { transform: rotate(-1.5deg); } .r4 { transform: rotate(5deg); } .r5 { transform: rotate(-3deg); } .r6 { transform: rotate(2deg); }
+
+  .low { display: flex; justify-content: space-between; align-items: flex-end; gap: 4vmin; }
+  .lede { margin: 0; max-width: 50vmin; font-weight: 500; font-size: 2.5vmin; line-height: 1.4; color: #C9D0D3; }
+  .lede b { color: #EDEAE2; font-weight: 700; }
+  .act { display: flex; flex-direction: column; align-items: flex-end; gap: 1.4vmin; white-space: nowrap; }
+  .cta { font-weight: 700; font-size: 2.6vmin; background: #D4A843; color: #20282D; padding: 1.4vmin 2.4vmin; letter-spacing: .01em; }
+  .code { font-family: "Space Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; color: #A9B4BA; }
+  .code b { color: #EDEAE2; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --P: 68vmin; --c: 11.6vmin; }
+    .wall { padding: 3.8vmin 6vmin 4vmin; }
+    h1 { font-size: 11.5vmin; margin-top: 1.6vmin; }
+    .lede { font-size: 2.2vmin; }
+    .cta { font-size: 2.3vmin; padding: 1.2vmin 2vmin; }
+  }
+  /* square → photo left, two hook bars of three */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --c: 11.6vmin; }
+    .photo { width: 46%; height: 100%; object-position: 50% 24%; }
+    .lip { top: 0; bottom: 0; left: 46%; right: auto; width: 1.6vmin; height: auto; background: linear-gradient(90deg, #D4A843, #9C7424); }
+    .wall { left: calc(46% + 1.6vmin); top: 0; height: auto; padding: 5vmin 4.6vmin 4.6vmin 5vmin; }
+    .meta span:last-child { display: none; }
+    h1 { font-size: 10.4vmin; }
+    .rack { flex-direction: column; gap: 3.6vmin; }
+    .low { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .lede { font-size: 2vmin; max-width: 40vmin; }
+    .act { flex-direction: row; align-items: center; gap: 2.2vmin; }
+    .cta { font-size: 2.1vmin; }
+    .code { font-size: 1.7vmin; }
+  }
+  /* wide → one row again */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --c: 10.2vmin; }
+    .photo { width: 44%; object-position: 50% 30%; }
+    .lip { left: 44%; }
+    .wall { left: calc(44% + 1.6vmin); padding: 5.6vmin 6vmin 5.4vmin; }
+    .meta span:last-child { display: inline; }
+    h1 { font-size: 12vmin; margin-top: 3.6vmin; }
+    .rack { flex-direction: row; gap: 1.8vmin; }
+    .low { flex-direction: row; align-items: flex-end; }
+    .lede { font-size: 2.2vmin; max-width: 38vmin; }
+    .act { flex-direction: column; align-items: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="lip"></div>
+  <div class="wall">
+    <div class="meta"><span>Tool crib · <b>Window 3</b></span><span>Atelier Nord Works</span></div>
+    <h1>Check <em>out.</em></h1>
+    <div class="rack">
+      <div class="rail">
+        <div class="ck r1"><div class="face"><b>3</b><small>Nº 431</small></div></div>
+        <div class="ck hex r2"><div class="face"><b>0</b><small>Nº 432</small></div></div>
+        <div class="ck sq r3"><div class="face"><b>%</b><small>Nº 433</small></div></div>
+      </div>
+      <div class="rail">
+        <div class="ck r4"><div class="face"><b>O</b><small>Nº 434</small></div></div>
+        <div class="ck hex r5"><div class="face"><b>F</b><small>Nº 435</small></div></div>
+        <div class="ck r6"><div class="face"><b>F</b><small>Nº 436</small></div></div>
+      </div>
+    </div>
+    <div class="low">
+      <p class="lede">Take a check, take the piece. <b>30% off the work edit</b> until Sunday.</p>
+      <div class="act"><span class="code">Code <b>CRIB30</b></span><span class="cta">Check it out →</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

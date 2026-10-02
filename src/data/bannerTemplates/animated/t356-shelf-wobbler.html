@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Shelf Wobbler — a calm Seoul beauty-store bay: the look sits lit above a white acrylic shelf edge with a
+     snap-in price label, and a round pastel wobbler on a clear stem swings out from the shelf ("2nd item −50%"),
+     with two tiny motion ticks. Store fixture as layout.
+     tall → photo bay, shelf, copy + wobbler below · square & wide → photo left over a full-width shelf */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEF2EF; }
+  .banner { --sh: 60%; position: fixed; inset: 0; overflow: hidden; color: #25302C; font-family: "Sora", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #F4F7F5 0%, #E8EEEA 100%); }
+
+  .ph { position: absolute; left: 0; top: 0; width: 100%; height: var(--sh); overflow: hidden; }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+
+  /* shelf edge + the shadow it throws on the wall */
+  .shelf { position: absolute; left: 0; right: 0; top: var(--sh); height: 6.4vmin;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F6F8F7 55%, #E4EAE7 100%);
+    box-shadow: 0 -1px 0 rgba(255,255,255,.9), 0 .4vmin 0 rgba(160,178,170,.35); }
+  .shelf::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 7vmin;
+    background: linear-gradient(180deg, rgba(90,110,100,.16) 0%, rgba(90,110,100,.1576) 7%, rgba(90,110,100,.1509) 14%, rgba(90,110,100,.1398) 21%, rgba(90,110,100,.1254) 29%, rgba(90,110,100,.1083) 36%, rgba(90,110,100,.0896) 43%, rgba(90,110,100,.0704) 50%, rgba(90,110,100,.0517) 57%, rgba(90,110,100,.0346) 64%, rgba(90,110,100,.0202) 71%, rgba(90,110,100,.0091) 79%, rgba(90,110,100,.0024) 86%, rgba(90,110,100,0) 100%); }
+  .label { position: absolute; left: 5vmin; top: calc(var(--sh) + 1vmin); height: 4.4vmin; display: flex; align-items: center; gap: 1.6vmin; background: #fff; border-radius: .8vmin; padding: 0 1.8vmin 0 .6vmin; box-shadow: inset 0 0 0 1px #DCE3E0, 0 .3vmin .6vmin rgba(60,80,70,.08); white-space: nowrap; font-size: 1.7vmin; }
+  .label b { background: #25302C; color: #fff; font-weight: 600; letter-spacing: .12em; border-radius: .5vmin; padding: .5vmin 1vmin; }
+  .label strong { font-weight: 700; font-size: 2vmin; }
+
+  .copy { position: absolute; left: 6vmin; width: 56vmin; top: calc(var(--sh) + 12vmin); bottom: 6vmin; display: flex; flex-direction: column; align-items: flex-start; }
+  .copy p { margin-top: auto !important; }
+  .kick { font-size: 1.8vmin; letter-spacing: .18em; text-transform: uppercase; color: #5E6E67; white-space: nowrap; }
+  .kick span { letter-spacing: .04em; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 11.4vmin; line-height: .95; letter-spacing: -.01em; }
+  h1 i { color: #D0587E; }
+  .copy p { margin: 2.4vmin 0 0; font-weight: 300; font-size: 2.2vmin; line-height: 1.45; }
+  .chip { display: inline-block; margin-top: 2.4vmin; font-weight: 600; font-size: 1.8vmin; letter-spacing: .12em; background: #fff; border-radius: 3vmin; padding: 1vmin 2vmin; box-shadow: inset 0 0 0 1px #DCE3E0; white-space: nowrap; }
+
+  /* the wobbler */
+  .wob { position: absolute; right: 6vmin; top: calc(var(--sh) + 6.4vmin); width: 29vmin; height: 36vmin; transform-origin: 50% 0; transform: rotate(7deg); }
+  .wob .stem { position: absolute; left: 50%; top: 0; width: 1.4vmin; height: 8vmin; margin-left: -.7vmin; border-radius: .4vmin;
+    background: linear-gradient(90deg, rgba(255,255,255,.4), rgba(255,255,255,.95) 40%, rgba(200,215,210,.6)); box-shadow: inset 0 0 0 1px rgba(160,180,172,.5); }
+  .wob .disc { position: absolute; left: 0; top: 7vmin; width: 29vmin; height: 29vmin; border-radius: 50%; box-sizing: border-box;
+    background: radial-gradient(circle at 35% 30%, #FFD3DF 0%, #FFA9C0 70%, #F990AE 100%);
+    box-shadow: inset 0 0 0 1.1vmin rgba(255,255,255,.55), 0 1.6vmin 2.6vmin rgba(210,90,130,.25);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #6C1837; }
+  .disc small { font-size: 1.8vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  .disc b { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 10.5vmin; line-height: .9; margin: .6vmin 0 .4vmin; letter-spacing: -.02em; }
+  .disc span { font-size: 1.7vmin; font-weight: 400; letter-spacing: .04em; }
+  .ticks { position: absolute; right: 2.4vmin; top: calc(var(--sh) + 20vmin); width: 5vmin; height: 12vmin; fill: none; stroke: #D0587E; stroke-width: 1.6; stroke-linecap: round; opacity: .7; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --sh: 56%; }
+    .copy { top: calc(var(--sh) + 10vmin); bottom: 4.6vmin; }
+    h1 { font-size: 8.4vmin; }
+    .copy p { margin-top: 1.8vmin; }
+    .wob { transform: rotate(7deg) scale(.86); }
+  }
+  /* SQUARE — photo left above a full-width shelf */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --sh: 70%; }
+    .ph { width: 52%; }
+    .copy { left: calc(52% + 5vmin); right: 5vmin; width: auto; top: 7vmin; bottom: auto; }
+    .copy p { margin-top: 2.4vmin !important; }
+    h1 { font-size: 7.6vmin; }
+    .copy p { font-size: 2vmin; }
+    .wob { right: 6vmin; transform: rotate(-6deg) scale(.6); }
+    .ticks { left: calc(52% + 12vmin); right: auto; top: calc(var(--sh) + 12vmin); transform: scaleX(-1); }
+    .label { top: calc(var(--sh) + 1vmin); }
+    .sub { position: absolute; left: 5vmin; top: calc(var(--sh) + 11vmin); font-size: 1.8vmin; color: #5E6E67; letter-spacing: .06em; white-space: nowrap; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --sh: 78%; }
+    .ph { width: 44%; }
+    .copy { left: calc(44% + 7vmin); right: 38vmin; top: 8vmin; bottom: auto; }
+    h1 { font-size: 8.4vmin; }
+    .wob { right: 7vmin; top: calc(var(--sh) - 36vmin); transform: rotate(-5deg) scale(.95); transform-origin: 50% 100%; }
+    .wob .stem { top: auto; bottom: 0; }
+    .wob .disc { top: 0; }
+    .ticks { left: auto; right: 38vmin; top: calc(var(--sh) - 24vmin); transform: none; }
+  }
+  .sub { display: none; }
+  @media (min-aspect-ratio: 9/10) { .sub { display: block; } }
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     the wobbler does what wobblers do: flicked once per loop, it swings out and settles (damped),
+     the motion ticks flash with each swing, the shelf label gleams, "shelf." catches the light */
+  .ph img { transform-origin: 50% 30%; animation: sw-push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sw-push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .wob .swing { position: absolute; inset: 0; transform-origin: 50% 0; animation: sw-swing 6s linear infinite; }
+  @media (min-aspect-ratio: 6/5) { .wob .swing { transform-origin: 50% 100%; } }
+  @keyframes sw-swing {
+    0%, 4% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    12% { transform: rotate(9deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    24% { transform: rotate(-6.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    36% { transform: rotate(4.2deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    48% { transform: rotate(-2.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    60% { transform: rotate(1.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    72% { transform: rotate(-.7deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    84% { transform: rotate(.25deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    94%, 100% { transform: rotate(0deg); }
+  }
+  .ticks path { animation: sw-tick 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .ticks path { stroke-dasharray: 60; stroke-dashoffset: 0; }
+  @keyframes sw-tick {
+    0%, 4%, 60%, 100% { opacity: 1; stroke-dashoffset: 0; }
+    8% { opacity: 0; stroke-dashoffset: 60; }
+    13% { opacity: 1; stroke-dashoffset: 0; }
+    20% { opacity: .2; }
+    25% { opacity: 1; }
+    32% { opacity: .3; }
+    37% { opacity: 1; }
+  }
+
+  .label { background-image: linear-gradient(105deg, rgba(255,255,255,0) 40%, rgba(212,228,221,.9) 50%, rgba(255,255,255,0) 60%);
+    background-color: #fff; background-size: 300% 100%; background-repeat: no-repeat; background-position: 100% 0;
+    animation: sw-gleam 6s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes sw-gleam { 0%, 50% { background-position: 100% 0; } 70%, 100% { background-position: 0% 0; } }
+
+  h1 i { display: inline-block; animation: sw-shelf 6s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes sw-shelf {
+    0%, 58%, 90%, 100% { transform: translateY(0); opacity: 1; filter: blur(0); }
+    68%, 72% { transform: translateY(-1vmin); opacity: 0; filter: blur(.8vmin); }
+    73% { transform: translateY(1vmin); opacity: 0; filter: blur(.8vmin); }
+  }
+  .chip { animation: sw-chip 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sw-chip { 0%, 100% { box-shadow: inset 0 0 0 1px #DCE3E0, 0 0 0 0 rgba(208,88,126,0); } 50% { box-shadow: inset 0 0 0 1px #DCE3E0, 0 0 0 .5vmin rgba(208,88,126,.12); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="shelf"></div>
+  <div class="label"><b>BEST 01</b><span>The Soft Edit</span><strong>€49</strong></div>
+  <div class="sub">Aisle 3 · New-season bay</div>
+  <div class="copy">
+    <div class="kick">Shelf picks <span>· 이번 주</span></div>
+    <h1>This week's<br><i>shelf.</i></h1>
+    <p>Mix any two pieces from the new edit.</p>
+    <span class="chip">CODE SHELF2</span>
+  </div>
+  <div class="wob"><div class="swing"><span class="stem"></span><div class="disc"><small>2nd item</small><b>−50%</b><span>this week only</span></div></div></div>
+  <svg class="ticks" viewBox="0 0 20 48"><path d="M4 6c6 4 9 10 9 18M8 2c8 6 11 14 10 24"/></svg>
+</div>
+</body>
+</html>

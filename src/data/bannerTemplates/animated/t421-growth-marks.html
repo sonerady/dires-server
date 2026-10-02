@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Growth Marks — the family edit told by the painted kitchen door frame where everyone's height is pencilled in:
+     a white-painted jamb with pencil ticks, names and ages running the full height. tall → photo top-left, jamb right,
+     copy on the plaster wall below; square/wide → photo left, copy centre, jamb on the right edge */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E8DFD0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E8DFD0; color: #2B2621; font-family: "Fraunces", Georgia, "Times New Roman", serif; }
+  .wall { position: absolute; inset: 0; background:
+    radial-gradient(ellipse at 20% 110%, rgba(255,255,255,.35), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(43,38,33,.018) 0 1px, transparent 1px .9vmin); }
+
+  .photo { position: absolute; left: 0; top: 0; width: calc(100% - 21vmin); height: calc(100% - 70vmin); object-fit: cover; object-position: 50% 22%; }
+
+  /* the door jamb */
+  .jamb { position: absolute; right: 0; top: 0; bottom: 0; width: 21vmin; background:
+    linear-gradient(90deg, rgba(0,0,0,.14), rgba(0,0,0,.03) .9vmin, transparent 1.6vmin, transparent 3.2vmin, rgba(0,0,0,.06) 3.4vmin, rgba(255,255,255,.7) 3.7vmin, transparent 4.4vmin, transparent calc(100% - 2vmin), rgba(0,0,0,.08)),
+    repeating-linear-gradient(0deg, rgba(120,100,70,.035) 0 .25vmin, transparent .25vmin 1.9vmin),
+    #F6F2EA; box-shadow: -.6vmin 0 1.6vmin rgba(43,38,33,.18); }
+  .jamb .tag { position: absolute; left: 1.2vmin; top: 3.6vmin; writing-mode: vertical-rl; font-size: 1.6vmin; letter-spacing: .28em; text-transform: uppercase; color: #7A6F63; white-space: nowrap; }
+  .mk { position: absolute; left: 5.4vmin; right: 1.6vmin; top: var(--y); font-family: "Kalam", "Bradley Hand", cursive; color: #3A3733; }
+  .mk::before { content: ""; display: block; height: .42vmin; width: var(--w, 88%); background: #4B4A4E; opacity: .85; transform: rotate(var(--r, -1.2deg)); border-radius: .2vmin; }
+  .mk b { display: block; margin-top: .5vmin; font-weight: 700; font-size: 3vmin; line-height: 1; }
+  .mk span { display: block; font-size: 1.9vmin; line-height: 1.1; color: #6A645C; }
+  .mk.red::before { background: #B8412E; }
+  .mk.red b { color: #B8412E; }
+
+  /* copy */
+  .copy { position: absolute; left: 6vmin; right: 27vmin; bottom: 5.4vmin; height: 59vmin; display: flex; flex-direction: column; }
+  .k { font-size: 1.8vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(43,38,33,.35); display: flex; justify-content: space-between; gap: 2vmin; white-space: nowrap; }
+  h1 { margin: 3.4vmin 0 0; font-weight: 400; font-size: 13vmin; line-height: .9; letter-spacing: -.035em; }
+  h1 i { display: block; font-style: italic; color: #B8412E; }
+  .p { margin-top: 3vmin; font-size: 3vmin; line-height: 1.35; max-width: 52vmin; }
+  .foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .code { font-family: "Kalam", cursive; font-size: 2.6vmin; line-height: 1.15; color: #3A3733; }
+  .code b { display: block; font-family: "Fraunces", serif; font-size: 4.6vmin; font-weight: 600; letter-spacing: -.02em; color: #2B2621; }
+  .cta { flex: none; font-size: 2vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; padding-bottom: .7vmin; border-bottom: .3vmin solid #2B2621; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 56vmin); width: calc(100% - 19vmin); }
+    .jamb { width: 19vmin; }
+    .mk { left: 5vmin; }
+    .copy { height: 47vmin; bottom: 4.6vmin; right: 25vmin; }
+    h1 { margin-top: 2.2vmin; font-size: 9.4vmin; }
+    h1 i { display: inline; }
+    .p { margin-top: 2vmin; font-size: 2.5vmin; max-width: none; }
+  }
+  /* square: photo left, copy centre, jamb right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 28%; }
+    .copy { left: calc(46% + 5vmin); right: 23vmin; top: 6vmin; bottom: 6vmin; height: auto; }
+    .jamb { width: 17vmin; }
+    .mk { left: 4.8vmin; }
+    .k span:last-child { display: none; }
+    h1 { margin-top: 3.4vmin; font-size: 8.6vmin; }
+    h1 i { display: block; }
+    .p { font-size: 2.4vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .code { font-size: 2.3vmin; }
+    .code b { font-size: 4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .copy { left: calc(44% + 7vmin); right: 29vmin; top: 8vmin; bottom: 8vmin; }
+    .jamb { width: 20vmin; }
+    .mk { left: 5.4vmin; }
+    .k span:last-child { display: inline; }
+    h1 { font-size: 10.6vmin; margin-top: 4vmin; }
+    .p { font-size: 2.7vmin; max-width: 50vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .code b { font-size: 4.4vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: slow push on the photo (≤1.03)
+     beat: 1.2s → 2.6s the pencil marks rub out in a wave from Mia (bottom) up to Dad, then 1.6s → 3.0s are pencilled back in the same
+           order — the family "growing" up the door frame · 4.1s the GROWUP code pops · CTA underline wipes and redraws at the end */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: none; } 50% { transform: scale(1.03); } }
+
+  .mk { animation-delay: 0s; }
+  .mk:nth-child(7) { animation-delay: -1.4s; }
+  .mk:nth-child(6) { animation-delay: -1.12s; }
+  .mk:nth-child(5) { animation-delay: -.84s; }
+  .mk:nth-child(4) { animation-delay: -.56s; }
+  .mk:nth-child(3) { animation-delay: -.28s; }
+  .mk::before { animation: pencil 6s linear infinite; animation-delay: inherit; }
+  .mk b, .mk span { animation: label 6s cubic-bezier(.45,0,.55,1) infinite; animation-delay: inherit; }
+  @keyframes pencil {
+    0%, 40% { clip-path: inset(-1vmin 0 -1vmin 0); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    43.3% { clip-path: inset(-1vmin 0 -1vmin 100%); }
+    43.4%, 50% { clip-path: inset(-1vmin 100% -1vmin 0); animation-timing-function: cubic-bezier(.4,.1,.5,.9); }
+    55%, 100% { clip-path: inset(-1vmin 0 -1vmin 0); }
+  }
+  @keyframes label { 0%, 41% { opacity: 1; } 44%, 52% { opacity: 0; } 57%, 100% { opacity: 1; } }
+
+  .code b { width: max-content; transform-origin: 0 70%; animation: pop 6s cubic-bezier(.3,.7,.3,1) infinite; }
+  @keyframes pop { 0%, 67% { transform: none; } 70% { transform: scale(1.1) rotate(-2deg); } 74% { transform: scale(.98); } 78%, 100% { transform: none; } }
+  .cta { background: linear-gradient(#2B2621, #2B2621) no-repeat 0 100% / 100% .3vmin; background-origin: border-box; border-bottom-color: transparent; animation: under 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes under {
+    0%, 80% { background-size: 100% .3vmin; background-position: 100% 100%; }
+    86% { background-size: 0 .3vmin; background-position: 100% 100%; }
+    86.1% { background-size: 0 .3vmin; background-position: 0 100%; }
+    94%, 100% { background-size: 100% .3vmin; background-position: 0 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="wall"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="jamb">
+    <div class="tag">Kitchen door · since 2019</div>
+    <div class="mk red" style="--y:9%;--w:92%;--r:-.6deg"><b>Dad</b><span>too tall</span></div>
+    <div class="mk" style="--y:22%;--w:84%;--r:1deg"><b>Mum</b><span>'19</span></div>
+    <div class="mk" style="--y:38%;--w:78%;--r:-1.8deg"><b>Ada 11</b><span>Sept '26</span></div>
+    <div class="mk" style="--y:52%;--w:70%;--r:.8deg"><b>Leo 8</b><span>Easter</span></div>
+    <div class="mk" style="--y:66%;--w:64%;--r:-1.4deg"><b>Leo 6</b><span>'24</span></div>
+    <div class="mk" style="--y:79%;--w:58%;--r:1.6deg"><b>Mia 3</b><span>on tiptoe</span></div>
+  </div>
+  <div class="copy">
+    <div class="k"><span>The Family Edit</span><span>2Y — XL</span></div>
+    <h1>Grown <i>into it.</i></h1>
+    <div class="p">Matching pieces for every mark on the door — from first steps to full height.</div>
+    <div class="foot">
+      <div class="code">20% off family sets<b>GROWUP</b></div>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

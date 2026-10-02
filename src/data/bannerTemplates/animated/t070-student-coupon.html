@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* Student Coupon — a cut-out coupon on graph paper: dashed scissor line, a big first-order discount, a handwritten aside */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5F3EC; }
+  .banner { --panel: 76vmin; position: fixed; inset: 0; overflow: hidden; color: #161616; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(rgba(52,86,160,.13) 1px, transparent 1px) 0 0 / 4vmin 4vmin, #F5F3EC; }
+  .banner::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(52,86,160,.13) 1px, transparent 1px) 0 0 / 4vmin 4vmin; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 11vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .kick span:last-child { font-weight: 500; letter-spacing: .12em; color: #6A6A66; }
+  .cut { position: relative; margin-top: 4vmin; padding: 2vmin; border: .35vmin dashed #161616; }
+  .sc { position: absolute; left: 5vmin; top: -2.9vmin; width: 5.4vmin; height: 5.4vmin; background: #F5F3EC; }
+  .cp { background: #F4C5CE; display: flex; align-items: stretch; transform: rotate(-1.2deg); }
+  .pct { flex: none; display: flex; align-items: center; padding: 2.4vmin 3vmin; font-weight: 700; font-size: 19vmin; line-height: .8; letter-spacing: -.06em; color: #C9262B; border-right: .3vmin dashed rgba(201,38,43,.55); }
+  .pct small { font-size: .45em; letter-spacing: -.02em; align-self: flex-start; margin-top: .25em; }
+  .inf { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 1.4vmin; padding: 2.4vmin 3vmin; }
+  .inf .l { font-size: 1.7vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #C9262B; }
+  .inf h2 { margin: 0; font-weight: 500; font-size: 4vmin; line-height: 1.05; letter-spacing: -.02em; }
+  .code { align-self: flex-start; background: #161616; color: #F4C5CE; font-weight: 700; font-size: 2.4vmin; letter-spacing: .16em; padding: 1vmin 1.6vmin; }
+  .note { position: relative; margin-top: 3vmin; padding-left: 12vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 600; font-size: 5vmin; line-height: 1; color: #2C4FA8; transform: rotate(-2deg); }
+  .note svg { position: absolute; left: 1vmin; top: -4vmin; width: 10vmin; height: 7vmin; overflow: visible; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 1.9vmin; line-height: 1.4; color: #4A4A46; }
+  .cta { flex: none; background: #161616; color: #F5F3EC; padding: 1.9vmin 3.2vmin; font-size: 2.1vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 64vmin; }
+    .panel { bottom: 4vmin; height: calc(var(--panel) - 9vmin); }
+    .cut { margin-top: 3vmin; padding: 1.6vmin; }
+    .pct { font-size: 16vmin; }
+    .inf h2 { font-size: 3.4vmin; }
+    .note { margin-top: 2.4vmin; font-size: 4.4vmin; }
+  }
+  /* square — photo left, a portrait coupon on the paper */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; }
+    .panel { left: calc(50% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .kick { flex-direction: column; gap: .8vmin; }
+    .cut { margin-top: 3.4vmin; padding: 1.6vmin; }
+    .cp { flex-direction: column; transform: rotate(-1.6deg); }
+    .pct { font-size: 15vmin; padding: 2.4vmin 2.6vmin 2vmin; border-right: none; border-bottom: .3vmin dashed rgba(201,38,43,.55); }
+    .inf { padding: 2vmin 2.6vmin 2.4vmin; gap: 1.1vmin; }
+    .inf h2 { font-size: 3vmin; }
+    .code { font-size: 2vmin; }
+    .note { margin-top: 3vmin; padding-left: 9vmin; font-size: 3.8vmin; }
+    .note svg { width: 8vmin; height: 6vmin; top: -3.6vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .foot p { font-size: 1.7vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.6vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .panel { left: calc(48% + 7vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; }
+    .kick { flex-direction: row; }
+    .cp { flex-direction: row; transform: rotate(-1.2deg); }
+    .pct { font-size: 16vmin; border-right: .3vmin dashed rgba(201,38,43,.55); border-bottom: none; padding: 2.4vmin 3vmin; }
+    .inf h2 { font-size: 3.4vmin; }
+    .note { font-size: 4.4vmin; padding-left: 11vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* scissors snip their way along the dashed line, fade, and come back to the start */
+  .banner { --travel: 58vmin; }
+  @media (min-aspect-ratio: 9/10) { .banner { --travel: 22vmin; } }
+  @media (min-aspect-ratio: 6/5) { .banner { --travel: 34vmin; } }
+  .sc { transform-origin: 30% 50%; animation: scissor 6s linear infinite, snip 6s linear infinite; }
+  @keyframes scissor {
+    0%, 6% { translate: 0 0; opacity: 1; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    40% { translate: var(--travel) 0; opacity: 1; animation-timing-function: linear; }
+    44% { translate: calc(var(--travel) + 1vmin) 0; opacity: 0; animation-timing-function: steps(1, end); }
+    46% { translate: -3vmin 0; opacity: 0; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    54%, 100% { translate: 0 0; opacity: 1; }
+  }
+  @keyframes snip {
+    0%, 8% { rotate: 0deg; } 12% { rotate: -12deg; } 16% { rotate: 0deg; } 20% { rotate: -12deg; } 24% { rotate: 0deg; }
+    28% { rotate: -12deg; } 32% { rotate: 0deg; } 36% { rotate: -12deg; } 40%, 100% { rotate: 0deg; }
+  }
+  /* the coupon, freed: a little tilt and settle */
+  .cp { animation: freed 6s linear infinite; }
+  @keyframes freed {
+    0%, 42% { rotate: 0deg; translate: 0 0; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    47% { rotate: 1.6deg; translate: 0 -.6vmin; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    53% { rotate: -.5deg; translate: 0 .15vmin; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    58%, 100% { rotate: 0deg; translate: 0 0; }
+  }
+  /* the biro arrow is redrawn */
+  .note svg path { stroke-dasharray: 100 100; animation: biro 6s linear infinite; }
+  @keyframes biro {
+    0%, 58% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: linear; }
+    61% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    62% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.4,.1,.4,1); }
+    74%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+  /* CTA sheen */
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.3), rgba(255,255,255,0));
+    transform: translateX(-150%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    93%, 100% { transform: translateX(340%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><span>Students &amp; newcomers</span><span>Cut along the line</span></div>
+    <div class="cut">
+      <svg class="sc" viewBox="0 0 24 24" fill="none" stroke="#161616" stroke-width="1.5" stroke-linecap="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.6 7.6 20 17M8.6 16.4 20 7M13.5 12h.01"/></svg>
+      <div class="cp">
+        <div class="pct">15<small>%</small></div>
+        <div class="inf">
+          <div class="l">Student discount</div>
+          <h2>Off your first order, on us.</h2>
+          <div class="code">HELLO15</div>
+        </div>
+      </div>
+    </div>
+    <div class="note"><svg viewBox="0 0 100 70"><path pathLength="100" d="M8 62 C 10 34, 30 12, 70 8 M58 0 L72 8 L60 18" fill="none" stroke="#2C4FA8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>yes, even on new-in</div>
+    <div class="foot"><p>Student ID or new account.<br>One use per customer.</p><div class="cta">Claim it</div></div>
+  </div>
+</div>
+</body>
+</html>

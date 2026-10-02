@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Detail Spec — accessories spotlight: the full photo with a hairline target "A", the same photo cropped
+     tight (×3) around that exact point, and a catalogue-style spec sheet. tall → stacked; square/wide → columns */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3F1EC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3F1EC; color: #141414; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+
+  .full { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 64vmin); overflow: hidden; }
+  .full img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; }
+  /* the target sits at 50% / 35% of the frame = the same point the detail crop magnifies */
+  .ring { position: absolute; left: 50%; top: 35%; width: 9vmin; height: 9vmin; margin: -4.5vmin 0 0 -4.5vmin; border-radius: 50%; box-shadow: 0 0 0 .22vmin rgba(255,255,255,.95), 0 0 0 .5vmin rgba(0,0,0,.18); }
+  .ring::before, .ring::after { content: ""; position: absolute; background: rgba(255,255,255,.95); }
+  .ring::before { left: 50%; top: -2.4vmin; width: .22vmin; height: 2.4vmin; margin-left: -.11vmin; }
+  .ring::after { top: 50%; left: 100%; width: 2.4vmin; height: .22vmin; margin-top: -.11vmin; }
+  .ring b { position: absolute; left: calc(100% + 2.8vmin); top: 50%; transform: translateY(-50%); width: 3.4vmin; height: 3.4vmin; border-radius: 50%; background: #D6452B; color: #fff; font-size: 1.8vmin; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+  .folio { position: absolute; left: 4vmin; bottom: 3.4vmin; padding: .8vmin 1.4vmin; background: #F3F1EC; font-size: 1.6vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+
+  /* the detail crop — same photo, same object-position, scaled from the target point */
+  .det { position: absolute; left: 6vmin; bottom: 18vmin; width: 40vmin; height: 40vmin; overflow: hidden; }
+  .det img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; transform: scale(3); transform-origin: 50% 35%; }
+  .det i { position: absolute; width: 2.4vmin; height: 2.4vmin; border: 0 solid #fff; }
+  .det .m1 { left: 1.6vmin; top: 1.6vmin; border-left-width: .3vmin; border-top-width: .3vmin; }
+  .det .m2 { right: 1.6vmin; top: 1.6vmin; border-right-width: .3vmin; border-top-width: .3vmin; }
+  .det .m3 { left: 1.6vmin; bottom: 1.6vmin; border-left-width: .3vmin; border-bottom-width: .3vmin; }
+  .det .m4 { right: 1.6vmin; bottom: 1.6vmin; border-right-width: .3vmin; border-bottom-width: .3vmin; }
+  .cap { position: absolute; left: 6vmin; bottom: 12vmin; width: 40vmin; display: flex; justify-content: space-between; align-items: center; font-size: 1.8vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #555; }
+  .cap b { display: inline-flex; align-items: center; justify-content: center; width: 3vmin; height: 3vmin; margin-right: 1vmin; border-radius: 50%; background: #D6452B; color: #fff; font-size: 1.6vmin; font-weight: 600; letter-spacing: 0; }
+
+  .k { position: absolute; left: 52vmin; right: 6vmin; top: calc(100% - 58vmin); font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #6B6B6B; }
+  h1 { position: absolute; left: 52vmin; right: 6vmin; top: calc(100% - 54vmin); margin: 0; font-family: "Instrument Serif", "Times New Roman", serif; font-weight: 400; font-size: 8.6vmin; line-height: .92; letter-spacing: -.01em; }
+  h1 i { color: #D6452B; }
+  .specs { position: absolute; left: 52vmin; right: 6vmin; bottom: 16vmin; margin: 0; padding: 0; list-style: none; border-top: .25vmin solid #141414; }
+  .specs li { display: flex; justify-content: space-between; gap: 2vmin; padding: 1.1vmin 0; border-bottom: 1px solid rgba(20,20,20,.2); font-size: 2vmin; }
+  .specs li span { color: #6B6B6B; }
+  .specs li b { font-weight: 600; white-space: nowrap; }
+  .specs li.p b { font-family: "Instrument Serif", serif; font-weight: 400; font-size: 3.6vmin; line-height: 1; }
+  .desc { display: none; position: absolute; margin: 0; font-size: 2.1vmin; line-height: 1.5; color: #444; }
+  .cta { position: absolute; left: 52vmin; right: 6vmin; bottom: 6vmin; display: flex; justify-content: space-between; align-items: center; padding: 2vmin 2.4vmin; background: #141414; color: #F3F1EC; font-size: 2vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  /* ── 3:4 / 4:5 ── */
+  @media (min-aspect-ratio: 7/10) {
+    .full { height: calc(100% - 58vmin); }
+    .det { bottom: 15vmin; width: 36vmin; height: 36vmin; }
+    .cap { bottom: 9.5vmin; width: 36vmin; }
+    .k, h1, .specs, .cta { left: 48vmin; }
+    .k { top: calc(100% - 52vmin); }
+    h1 { top: calc(100% - 48vmin); font-size: 7.6vmin; }
+    .specs { bottom: 14vmin; }
+    .specs li { padding: .9vmin 0; }
+    .cta { bottom: 5vmin; padding: 1.8vmin 2.2vmin; }
+  }
+  /* ── square: full photo left; detail + spec sheet right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .full { width: 46%; height: 100%; }
+    .folio { left: 3vmin; bottom: 3vmin; }
+    .k, h1, .specs, .cta { left: calc(46% + 5vmin); right: 5vmin; }
+    .k { top: 6vmin; }
+    h1 { top: 10vmin; font-size: 7vmin; }
+    .det { left: calc(46% + 5vmin); top: 28vmin; bottom: auto; width: 25vmin; height: 25vmin; }
+    .cap { left: calc(46% + 33vmin); right: 5vmin; top: 28vmin; bottom: auto; width: auto; flex-direction: column; align-items: flex-start; gap: 1.2vmin; line-height: 1.4; }
+    .cap span + span { font-size: 1.7vmin; letter-spacing: .06em; text-transform: none; color: #6B6B6B; }
+    .specs { top: 58vmin; bottom: auto; }
+    .specs li { padding: .75vmin 0; font-size: 1.8vmin; }
+    .specs li.p b { font-size: 3vmin; }
+    .cta { bottom: 5vmin; padding: 1.7vmin 2.2vmin; font-size: 1.9vmin; }
+  }
+  /* ── wide: photo | detail + headline | spec sheet ── */
+  @media (min-aspect-ratio: 6/5) {
+    .full { width: 36%; }
+    .det { left: calc(36% + 6vmin); top: 7vmin; width: 40vmin; height: 40vmin; }
+    .cap { left: calc(36% + 6vmin); right: auto; top: 49.5vmin; width: 40vmin; flex-direction: row; align-items: center; }
+    .cap span + span { font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; color: #555; }
+    h1 { left: calc(36% + 6vmin); right: auto; top: auto; bottom: 7vmin; width: 42vmin; font-size: 9vmin; }
+    .k, .specs, .cta { left: calc(36% + 52vmin); right: 6vmin; }
+    .k { top: 7vmin; }
+    .specs { top: 13vmin; }
+    .specs li { padding: 1.2vmin 0; font-size: 2vmin; }
+    .specs li.p b { font-size: 3.6vmin; }
+    .cta { bottom: 7vmin; padding: 2vmin 2.4vmin; font-size: 2vmin; }
+    .desc { display: block; left: calc(36% + 52vmin); right: 6vmin; top: 46vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="full"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="ring"><b>A</b></div><div class="folio">Fig. 1 — Full view</div></div>
+  <div class="det"><img src="{{PRODUCT_IMAGE}}" alt=""><i class="m1"></i><i class="m2"></i><i class="m3"></i><i class="m4"></i></div>
+  <div class="cap"><span><b>A</b>Detail</span><span>×3.0</span></div>
+  <div class="k">Accessories — Spotlight</div>
+  <h1>In the<br><i>details.</i></h1>
+  <ul class="specs">
+    <li><span>Ref.</span><b>0419</b></li>
+    <li><span>Finish</span><b>Hand-finished</b></li>
+    <li><span>Edition</span><b>200 pieces</b></li>
+    <li class="p"><span>Price</span><b>$145</b></li>
+  </ul>
+  <p class="desc">Finished by hand in small runs. Shown at three times scale: every edge, seam and stitch.</p>
+  <div class="cta"><span>Add to bag</span><span>→</span></div>
+</div>
+</body>
+</html>

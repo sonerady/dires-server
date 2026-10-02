@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Manrope:wght@500;700;800&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Brush Band — two loaded dry-brush strokes (vermilion, then ink black) dragged across raw paper,
+     each carrying one word of the headline; bristle streaks and ragged ends come from an SVG filter.
+     tall → photo on top, strokes below · square / wide → strokes left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1ECE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1D1A18; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(ellipse at 20% 80%, #F4EFE6 0%, #EFE9DE 60%, #E7DFD1 100%); }
+  .defs { position: absolute; width: 0; height: 0; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 28%; display: block; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; box-sizing: border-box; padding: 6vmin 8vmin 5vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 800; letter-spacing: .24em; text-transform: uppercase; color: #6C625A; white-space: nowrap; }
+  h1 { margin: 3.4vmin 0 0; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 15vmin; line-height: 1; text-transform: uppercase; letter-spacing: .01em; display: flex; flex-direction: column; align-items: flex-start; }
+  .st { position: relative; padding: 0 4vmin; white-space: nowrap; }
+  .st svg { position: absolute; left: -3vmin; top: -1.6vmin; width: calc(100% + 6vmin); height: calc(100% + 3.2vmin); overflow: visible; }
+  .st b { position: relative; font-weight: 900; }
+  .s1 { color: #FFF4EA; transform: rotate(-2.5deg); margin-left: -2vmin; }
+  .s2 { color: #F6EFE6; transform: rotate(1.5deg); margin: 2.4vmin 0 0 10vmin; }
+  .sub { margin-top: 5vmin; max-width: 60vmin; font-size: 2.4vmin; line-height: 1.45; font-weight: 500; color: #3E3833; }
+  .buy { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .price { position: relative; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 800; font-size: 7vmin; line-height: 1; white-space: nowrap; }
+  .price small { display: block; font-family: "Manrope", sans-serif; font-size: 1.7vmin; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #C2381F; margin-bottom: .8vmin; }
+  .cta { position: relative; padding: 2vmin 4vmin; color: #FFF4EA; font-size: 2vmin; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .cta svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+  .cta span { position: relative; }
+  .fine { margin-top: 2.4vmin; font-size: 1.6vmin; letter-spacing: .06em; color: #7A7068; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 70vmin); }
+    .panel { height: 70vmin; padding: 5vmin 8vmin 4.4vmin; }
+    h1 { font-size: 13.6vmin; margin-top: 3vmin; }
+    .sub { margin-top: 3.4vmin; font-size: 2.1vmin; }
+  }
+  /* ── square-ish: strokes left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 30%; }
+    .panel { right: 50%; top: 0; height: 100%; padding: 7vmin 6vmin 6vmin; }
+    .kick { flex-direction: column; gap: .8vmin; }
+    h1 { font-size: 9vmin; margin-top: 6vmin; }
+    .s1 { margin-left: 0; }
+    .s2 { margin-left: .6vmin; margin-top: 3vmin; }
+    .sub { margin-top: 6vmin; }
+    .sub { font-size: 1.9vmin; max-width: 36vmin; }
+    .buy { flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+    .price { font-size: 6vmin; }
+    .fine { white-space: normal; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .panel { right: 48%; padding: 8vmin 8vmin 7vmin; }
+    .kick { flex-direction: row; }
+    h1 { font-size: 13vmin; margin-top: 5vmin; }
+    .s1 { margin-left: 0; }
+    .s2 { margin-left: 8vmin; }
+    .sub { font-size: 2.1vmin; max-width: 50vmin; }
+    .buy { flex-direction: row; align-items: center; justify-content: flex-start; gap: 6vmin; }
+    .price { font-size: 7vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     constant: the photo pushes in very slightly (≤1.03, clipped to its own box)
+     beats: 1.9s the vermilion "Bold" stroke is lifted and dragged back on left→right ·
+            2.3s the ink "strokes" stroke follows · 4.2s the CTA stroke is re-laid · 5.0s the price gets a small nudge */
+  .photo { transform-origin: 50% 28%; animation: grow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes grow { 0%, 100% { transform: scale(1); clip-path: inset(0 0 0 0); } 50% { transform: scale(1.03); clip-path: inset(.815% 1.456% 2.097% 1.456%); } }
+
+  .st, .cta { --m: -3.4vmin; clip-path: inset(var(--m) var(--m) var(--m) var(--m)); animation: drag 6s cubic-bezier(.55,0,.2,1) infinite; }
+  .s1 { animation-delay: -4.1s; }
+  .s2 { animation-delay: -3.7s; }
+  .cta { animation-delay: -1.8s; }
+  @keyframes drag {
+    0%, 1%, 100% { clip-path: inset(-3.4vmin -3.4vmin -3.4vmin -3.4vmin); }
+    5% { clip-path: inset(-3.4vmin -3.4vmin -3.4vmin calc(100% + 3.4vmin)); }
+    5.01% { clip-path: inset(-3.4vmin calc(100% + 3.4vmin) -3.4vmin -3.4vmin); }
+    7% { clip-path: inset(-3.4vmin calc(100% + 3.4vmin) -3.4vmin -3.4vmin); }
+    15% { clip-path: inset(-3.4vmin -3.4vmin -3.4vmin -3.4vmin); }
+  }
+
+  .price { animation: nudge 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes nudge { 0%, 82%, 92%, 100% { transform: translateX(0) rotate(0); } 85% { transform: translateX(.6vmin) rotate(-2deg); } 88.5% { transform: translateX(-.2vmin) rotate(.6deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <filter id="dry" x="-6%" y="-30%" width="112%" height="160%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.014 0.08" numOctaves="3" seed="5" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="14" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.004 0.2" numOctaves="2" seed="11" result="s"/>
+      <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 0 0 0 3.3" result="sm"/>
+      <feComposite in="d" in2="sm" operator="in"/>
+    </filter>
+    <path id="stroke" d="M4,30 C60,14 190,8 300,10 C340,11 372,14 398,22 L390,50 L398,80 C330,92 210,94 110,92 C60,91 26,88 0,82 L10,54 Z"/>
+  </defs></svg>
+
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><span>Atelier Rosso</span><span>Drop 04 · Hand-finished</span></div>
+    <h1>
+      <span class="st s1"><svg viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true"><use href="#stroke" fill="#D2412A" filter="url(#dry)"/></svg><b>Bold</b></span>
+      <span class="st s2"><svg viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true"><use href="#stroke" fill="#1D1A18" filter="url(#dry)"/></svg><b>strokes</b></span>
+    </h1>
+    <div class="sub">Colour laid on thick, straight from the studio floor. One pass, no second thoughts.</div>
+    <div class="buy">
+      <div class="price"><small>This week −30%</small>$79</div>
+      <div class="cta"><svg viewBox="0 0 400 100" preserveAspectRatio="none" aria-hidden="true"><use href="#stroke" fill="#D2412A" filter="url(#dry)"/></svg><span>Shop the drop →</span></div>
+    </div>
+    <div class="fine">Ends Sunday · Free delivery over $100</div>
+  </div>
+</div>
+</body>
+</html>

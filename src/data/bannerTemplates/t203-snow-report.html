@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;700;800&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Snow Report — the morning conditions bulletin of a ski resort: a red/white snow-depth pole along the photo's edge,
+     the discount read like fresh snowfall, a conditions row and a 5-day "forecast" where the markdowns deepen.
+     tall → photo above; square/wide → photo left, pole down the seam */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5F8FB; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #0E2A47; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; background: linear-gradient(180deg, #F7FAFC, #E9F0F6); }
+  .defs { position: absolute; width: 0; height: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 20%; }
+  .pole { position: absolute; left: 0; right: 0; top: calc(100% - 86vmin); height: 3.2vmin;
+    background: repeating-linear-gradient(90deg, #E03A2F 0 10vmin, #FFFFFF 10vmin 20vmin); box-shadow: 0 .4vmin .8vmin rgba(14,42,71,.18); }
+  .pole::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(14,42,71,.5) 0 1px, transparent 1px 2vmin); clip-path: inset(0 0 55% 0); }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 82.8vmin; padding: 4vmin 6vmin 5vmin; box-sizing: border-box; display: flex; flex-direction: column; }
+  .mono { font-family: "Martian Mono", Menlo, monospace; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-family: "Martian Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .kick b { font-weight: 600; color: #E03A2F; }
+  .hero { display: flex; align-items: flex-end; gap: 3vmin; margin-top: 2.4vmin; }
+  .big { font-weight: 800; font-size: 33vmin; line-height: .74; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+  .big sup { font-size: .36em; letter-spacing: 0; vertical-align: top; position: relative; top: -.05em; margin-left: .06em; color: #E03A2F; }
+  .hero .cap { padding-bottom: .4vmin; }
+  .hero .cap small { display: block; font-family: "Martian Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; color: #5B7189; margin-bottom: 1vmin; }
+  .hero .cap span { display: block; font-weight: 700; font-size: 4.6vmin; line-height: 1; letter-spacing: -.02em; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 4.4vmin; border-top: .35vmin solid #0E2A47; }
+  .stats div { padding: 1.4vmin 1.6vmin 0 0; min-width: 0; }
+  .stats div + div { padding-left: 1.8vmin; border-left: 1px solid rgba(14,42,71,.25); }
+  .stats small { display: block; font-family: "Martian Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; color: #5B7189; white-space: nowrap; }
+  .stats b { display: block; margin-top: .6vmin; font-weight: 700; font-size: 3.8vmin; letter-spacing: -.02em; white-space: nowrap; }
+  .fc { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2vmin; margin-top: auto; }
+  .fc div { display: flex; flex-direction: column; align-items: center; gap: .9vmin; padding: 1.4vmin 0 1.5vmin; background: #FFFFFF; box-shadow: 0 .2vmin .5vmin rgba(14,42,71,.08); min-width: 0; }
+  .fc small { font-family: "Martian Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #5B7189; }
+  .fc svg { width: 5.4vmin; height: 5.4vmin; }
+  .fc b { font-weight: 800; font-size: 2.9vmin; letter-spacing: -.02em; }
+  .fc .hot { background: #0E2A47; color: #fff; }
+  .fc .hot small { color: #BFD6EA; }
+  .cta { display: flex; justify-content: space-between; align-items: center; margin-top: 2.4vmin; padding: 1.8vmin 2.6vmin; background: #E03A2F; color: #fff; font-weight: 700; font-size: 2.4vmin; letter-spacing: .1em; text-transform: uppercase; }
+  .cta span:first-child { font-family: "Martian Mono", Menlo, monospace; font-weight: 400; font-size: 1.8vmin; letter-spacing: .08em; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 80vmin); }
+    .pole { top: calc(100% - 80vmin); }
+    .panel { height: 76.8vmin; padding-top: 3.4vmin; padding-bottom: 4vmin; }
+    .big { font-size: 30vmin; }
+    .stats { margin-top: 3.6vmin; }
+    .stats b { font-size: 3.4vmin; }
+    .fc svg { width: 4.6vmin; height: 4.6vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 68vmin); }
+    .pole { top: calc(100% - 68vmin); height: 2.8vmin; }
+    .panel { height: 65.2vmin; padding: 3vmin 6vmin 3.6vmin; }
+    .hero { margin-top: 1.8vmin; }
+    .big { font-size: 25vmin; }
+    .hero .cap span { font-size: 4vmin; }
+    .stats { display: none; }
+    .fc div { padding: 1.1vmin 0 1.2vmin; gap: .6vmin; }
+    .fc svg { width: 4.2vmin; height: 4.2vmin; }
+    .fc b { font-size: 2.6vmin; }
+    .cta { padding: 1.4vmin 2.4vmin; font-size: 2.1vmin; margin-top: 2vmin; }
+  }
+  /* square / wide → photo left, pole down the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 47%; height: 100%; object-position: 50% 25%; }
+    .pole { top: 0; bottom: 0; left: 47%; right: auto; width: 3vmin; height: auto; background: repeating-linear-gradient(180deg, #E03A2F 0 10vmin, #FFFFFF 10vmin 20vmin); }
+    .pole::after { background: repeating-linear-gradient(180deg, rgba(14,42,71,.5) 0 1px, transparent 1px 2vmin); clip-path: inset(0 55% 0 0); }
+    .panel { left: calc(47% + 3vmin); top: 0; height: auto; padding: 5vmin 4.6vmin 4.6vmin; }
+    .kick { flex-direction: column; gap: .6vmin; }
+    .hero { flex-direction: column; align-items: flex-start; gap: 1.6vmin; margin-top: 3vmin; }
+    .big { font-size: 28vmin; }
+    .hero .cap { padding: 0; }
+    .hero .cap small { margin-bottom: .6vmin; }
+    .hero .cap span { font-size: 3.6vmin; }
+    .stats { display: grid; margin-top: 5vmin; }
+    .stats div { padding-right: 1vmin; }
+    .stats div + div { padding-left: 1.2vmin; }
+    .stats small { font-size: 1.6vmin; letter-spacing: .02em; }
+    .stats b { font-size: 2.7vmin; }
+    .fc { gap: .8vmin; }
+    .fc div { padding: 1vmin 0; gap: .5vmin; }
+    .fc svg { width: 3.8vmin; height: 3.8vmin; }
+    .fc b { font-size: 2.2vmin; }
+    .cta { font-size: 2vmin; padding: 1.4vmin 2vmin; }
+    .cta span:first-child { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; }
+    .pole { left: 45%; width: 3.4vmin; }
+    .panel { left: calc(45% + 3.4vmin); padding: 6vmin 6vmin 6vmin; }
+    .kick { flex-direction: row; }
+    .hero { flex-direction: row; align-items: flex-end; gap: 3vmin; margin-top: 4vmin; }
+    .big { font-size: 27vmin; }
+    .hero .cap span { font-size: 4.2vmin; }
+    .stats { display: grid; margin-top: 4vmin; }
+    .stats b { font-size: 3.4vmin; }
+    .stats div + div { padding-left: 1.8vmin; }
+    .stats small { letter-spacing: .08em; }
+    .fc { gap: 1.2vmin; }
+    .fc div { padding: 1.2vmin 0 1.3vmin; gap: .7vmin; }
+    .fc svg { width: 4.4vmin; height: 4.4vmin; }
+    .fc b { font-size: 2.6vmin; }
+    .cta span:first-child { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <symbol id="flake" viewBox="0 0 40 40"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 5v30M7 12.5l26 15M7 27.5l26-15"/><path d="M16 8l4 4 4-4M16 32l4-4 4 4M8.5 18l5.5-1.5-1.5-5.5M31.5 22l-5.5 1.5 1.5 5.5M8.5 22l5.5 1.5-1.5 5.5M31.5 18l-5.5-1.5 1.5-5.5"/></g></symbol>
+    <symbol id="cloud" viewBox="0 0 40 40"><path d="M11 25a7 7 0 0 1 1-13.9A9 9 0 0 1 29 13a6 6 0 0 1 0 12z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><g fill="currentColor"><circle cx="14" cy="31" r="1.6"/><circle cx="20" cy="34" r="1.6"/><circle cx="26" cy="31" r="1.6"/></g></symbol>
+    <symbol id="sun" viewBox="0 0 40 40"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="20" cy="20" r="7"/><path d="M20 4v5M20 31v5M4 20h5M31 20h5M8.7 8.7l3.5 3.5M27.8 27.8l3.5 3.5M8.7 31.3l3.5-3.5M27.8 12.2l3.5-3.5"/></g></symbol>
+  </defs></svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="pole"></div>
+  <div class="panel">
+    <div class="kick"><span>Snow report · <b>Studio Oro</b></span><span>Week 51 · 07:30</span></div>
+    <div class="hero">
+      <div class="big">40<sup>%</sup></div>
+      <div class="cap"><small>Up to · this week</small><span>off the<br>winter edit</span></div>
+    </div>
+    <div class="stats">
+      <div><small>Temp</small><b>−8 °C</b></div>
+      <div><small>Styles</small><b>320 new</b></div>
+      <div><small>Delivery</small><b>Free</b></div>
+    </div>
+    <div class="fc">
+      <div><small>Mon</small><svg><use href="#sun"/></svg><b>−20%</b></div>
+      <div><small>Tue</small><svg><use href="#cloud"/></svg><b>−25%</b></div>
+      <div><small>Wed</small><svg><use href="#cloud"/></svg><b>−30%</b></div>
+      <div><small>Thu</small><svg><use href="#flake"/></svg><b>−35%</b></div>
+      <div class="hot"><small>Fri</small><svg><use href="#flake"/></svg><b>−40%</b></div>
+    </div>
+    <div class="cta"><span>Code POWDER</span><span>Shop the drop →</span></div>
+  </div>
+</div>
+</body>
+</html>

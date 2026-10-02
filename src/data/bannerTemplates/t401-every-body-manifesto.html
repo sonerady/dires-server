@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,500&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Every Body Manifesto — a brand's four promises set as a signed manifesto on warm terracotta:
+     giant outlined numerals hang in the margin like hymn numbers, each promise one confident line,
+     "every" underlined by a hand-drawn stroke, signed off by the studio.
+     tall → photo melts into the manifesto panel below · 3:4 → shorter panel · square / wide → photo left, manifesto right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #B24F2C; }
+  .banner { --panel: max(76vmin, 46%); position: fixed; inset: 0; overflow: hidden; background: #B24F2C; color: #FCEFE2; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .banner::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .22; mix-blend-mode: multiply;
+    background-image: radial-gradient(rgba(60,20,8,.55) .08vmin, transparent .1vmin); background-size: .6vmin .6vmin; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel) + 10vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .melt { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel) - 4vmin); height: 14vmin;
+    background: linear-gradient(to top, rgba(178,79,44,1) 0%, rgba(178,79,44,.985) 7.7%, rgba(178,79,44,.943) 15.4%, rgba(178,79,44,.874) 23.1%, rgba(178,79,44,.784) 30.8%, rgba(178,79,44,.677) 38.5%, rgba(178,79,44,.56) 46.2%, rgba(178,79,44,.44) 53.8%, rgba(178,79,44,.323) 61.5%, rgba(178,79,44,.216) 69.2%, rgba(178,79,44,.126) 76.9%, rgba(178,79,44,.057) 84.6%, rgba(178,79,44,.015) 92.3%, rgba(178,79,44,0) 100%); }
+  .stamp { position: absolute; right: 5vmin; top: 5vmin; width: 17vmin; height: 17vmin; border-radius: 50%; background: #FCEFE2; color: #B24F2C; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: rotate(-9deg); box-shadow: 0 .8vmin 2vmin rgba(60,20,8,.25); }
+  .stamp b { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 4.6vmin; line-height: .9; letter-spacing: -.02em; }
+  .stamp small { margin-top: .7vmin; font-weight: 800; font-size: 1.6vmin; letter-spacing: .16em; text-transform: uppercase; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5.5vmin; height: calc(var(--panel) - 9vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.6vmin; border-bottom: 1px solid rgba(252,239,226,.45); font-weight: 700; font-size: 1.9vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .kick span:last-child { color: #F7C9A6; }
+  h1 { margin: 3vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 12.4vmin; line-height: .92; letter-spacing: -.035em; }
+  h1 em { position: relative; font-style: italic; font-weight: 500; color: #FFE1C8; white-space: nowrap; }
+  h1 em svg { position: absolute; left: -2%; bottom: -.9vmin; width: 104%; height: 2.6vmin; overflow: visible; }
+  ol { list-style: none; margin: 3.6vmin 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 4vmin; row-gap: 2.4vmin; }
+  li { display: flex; align-items: flex-start; gap: 1.8vmin; padding-top: 1.6vmin; border-top: 1px solid rgba(252,239,226,.3); }
+  li b { flex: none; font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 6.6vmin; line-height: .8; color: transparent; -webkit-text-stroke: .16vmin #F7C9A6; }
+  li span { font-family: "Fraunces", Georgia, serif; font-size: 2.9vmin; line-height: 1.18; }
+  .foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .sign { font-family: "Fraunces", Georgia, serif; font-style: italic; font-size: 3.2vmin; line-height: 1.15; color: #FFE1C8; }
+  .sign small { display: block; margin-top: .6vmin; font-family: "Manrope", sans-serif; font-style: normal; font-weight: 700; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: #F7C9A6; }
+  .cta { flex: none; display: flex; align-items: center; gap: 1.6vmin; background: #FCEFE2; color: #8E3A1D; padding: 2vmin 3vmin; font-weight: 800; font-size: 2.2vmin; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 80vmin; }
+    .panel { bottom: 4.6vmin; height: calc(var(--panel) - 8vmin); }
+    h1 { margin-top: 2.4vmin; font-size: 10.6vmin; }
+    ol { margin-top: 2.8vmin; row-gap: 1.8vmin; }
+    li b { font-size: 5.6vmin; }
+    li span { font-size: 2.6vmin; }
+    .stamp { width: 15vmin; height: 15vmin; }
+    .stamp b { font-size: 4vmin; }
+  }
+  /* square → photo left, manifesto right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 47%; height: 100%; object-position: 50% 22%; }
+    .melt { top: 0; bottom: 0; left: calc(47% - 12vmin); right: auto; width: 12.2vmin; height: auto;
+      background: linear-gradient(to left, rgba(178,79,44,1) 0%, rgba(178,79,44,.985) 7.7%, rgba(178,79,44,.943) 15.4%, rgba(178,79,44,.874) 23.1%, rgba(178,79,44,.784) 30.8%, rgba(178,79,44,.677) 38.5%, rgba(178,79,44,.56) 46.2%, rgba(178,79,44,.44) 53.8%, rgba(178,79,44,.323) 61.5%, rgba(178,79,44,.216) 69.2%, rgba(178,79,44,.126) 76.9%, rgba(178,79,44,.057) 84.6%, rgba(178,79,44,.015) 92.3%, rgba(178,79,44,0) 100%); }
+    .stamp { right: auto; left: calc(47% - 16vmin); top: auto; bottom: 5vmin; width: 14vmin; height: 14vmin; }
+    .stamp b { font-size: 3.8vmin; }
+    .stamp small { font-size: 1.5vmin; }
+    .panel { left: calc(47% + 4vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .kick { font-size: 1.7vmin; letter-spacing: .16em; }
+    h1 { margin-top: 4vmin; font-size: 10.6vmin; }
+    ol { grid-template-columns: 1fr; row-gap: 2vmin; margin-top: 4.4vmin; }
+    li { padding-top: 1.8vmin; align-items: center; }
+    li b { font-size: 5.4vmin; }
+    li span { font-size: 2.9vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .sign { font-size: 2.8vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 50% 30%; }
+    .melt { left: calc(42% - 12vmin); }
+    .stamp { left: calc(42% - 17vmin); width: 15vmin; height: 15vmin; }
+    .panel { left: calc(42% + 5vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .kick { font-size: 1.9vmin; letter-spacing: .2em; }
+    h1 { margin-top: 4vmin; font-size: 12vmin; }
+    ol { grid-template-columns: 1fr 1fr; row-gap: 2.6vmin; margin-top: 4.4vmin; }
+    li b { font-size: 5.8vmin; }
+    li span { font-size: 2.9vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .sign { font-size: 3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="melt"></div>
+  <div class="stamp"><b>XS–<br>4XL</b><small>One price</small></div>
+  <div class="panel">
+    <div class="kick"><span>Studio Oro</span><span>Manifesto Nº 04</span></div>
+    <h1>Made for <em>every<svg viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M1 6 C 20 1, 45 9, 62 4 S 90 3, 99 6" fill="none" stroke="#F7C9A6" stroke-width="2.2" stroke-linecap="round" vector-effect="non-scaling-stroke" style="stroke-width:.5vmin"/></svg></em> body.</h1>
+    <ol>
+      <li><b>1</b><span>Every piece cut from XS to 4XL.</span></li>
+      <li><b>2</b><span>One price, whatever your size.</span></li>
+      <li><b>3</b><span>Fit-tested on real people.</span></li>
+      <li><b>4</b><span>Free size swaps, always.</span></li>
+    </ol>
+    <div class="foot">
+      <div class="sign">With love, the studio.<small>New collection · out now</small></div>
+      <span class="cta">Shop the collection →</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

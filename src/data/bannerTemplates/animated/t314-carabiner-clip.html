@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Barlow+Semi+Condensed:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Carabiner Clip — an anodised violet D-carabiner hangs from a lime sling off the photo's edge; its strength
+     markings are laser-etched up the spine, and the same three ratings (major axis, minor axis, gate open)
+     become the offer, the code and the deadline in a spec table beside it. Graphite, violet, acid lime.
+     tall → photo above, gear below · square/wide → photo left, gear right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #17181B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #17181B; color: #EDEBE6; font-family: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif; --v: #8F6BFF; --lime: #D6FF3A; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 88vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 88vmin; overflow: hidden;
+    background: radial-gradient(90% 60% at 20% 30%, #232429, #17181B 70%); }
+  .panel::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3vmin), repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3vmin); }
+  .biner { position: absolute; left: 5vmin; top: 0; width: 34vmin; height: 79vmin; z-index: 1; }
+  .biner svg { width: 100%; height: 100%; display: block; overflow: visible; filter: drop-shadow(1.2vmin 1.8vmin 1.4vmin rgba(0,0,0,.55)); }
+
+  .copy { position: absolute; left: 43vmin; right: 6vmin; top: 5vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+  .kick { font-family: "Chakra Petch", monospace; font-weight: 500; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #9C9AA3; white-space: nowrap; }
+  .kick b { color: var(--lime); font-weight: 700; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Chakra Petch", sans-serif; font-weight: 700; font-size: 8.4vmin; line-height: .92; letter-spacing: -.02em; text-transform: uppercase; }
+  .big { font-family: "Chakra Petch", sans-serif; font-weight: 700; font-size: 15vmin; line-height: .9; letter-spacing: -.04em; color: var(--lime); margin-top: 1.2vmin; white-space: nowrap; }
+  .spec { margin-top: auto; border-top: 1px solid #4A4A52; }
+  .row { display: flex; align-items: center; gap: 2vmin; padding: 1.6vmin 0; border-bottom: 1px solid #4A4A52; }
+  .ic { flex: none; width: 4.4vmin; height: 4.4vmin; display: flex; align-items: center; justify-content: center; border: 1px solid var(--v); color: var(--v); font-family: "Chakra Petch", sans-serif; font-weight: 700; font-size: 2.4vmin; }
+  .kn { flex: none; width: 9vmin; font-family: "Chakra Petch", sans-serif; font-weight: 700; font-size: 2.6vmin; white-space: nowrap; }
+  .kn small { font-size: 1.6vmin; color: #9C9AA3; margin-left: .3vmin; }
+  .val { flex: 1; min-width: 0; font-weight: 600; font-size: 2.6vmin; text-align: right; white-space: nowrap; }
+  .val.hi { color: var(--lime); }
+  .go { margin-top: 3vmin; display: flex; justify-content: space-between; align-items: center; padding: 1.8vmin 2.4vmin; background: var(--v); color: #fff; font-family: "Chakra Petch", sans-serif; font-weight: 700; font-size: 2.4vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 80vmin); }
+    .panel { height: 80vmin; }
+    .biner { height: 72vmin; width: 31vmin; }
+    .copy { top: 4.4vmin; bottom: 4.4vmin; left: 41vmin; }
+    h1 { font-size: 7.6vmin; }
+    .big { font-size: 13.4vmin; }
+    .row { padding: 1.3vmin 0; }
+    .go { margin-top: 2.6vmin; padding: 1.5vmin 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .panel { height: 64vmin; }
+    .biner { height: 58vmin; width: 25vmin; left: 7vmin; }
+    .copy { top: 3.6vmin; bottom: 3.6vmin; left: 40vmin; }
+    h1 { font-size: 6.2vmin; margin-top: 1.6vmin; }
+    .big { font-size: 10.4vmin; margin-top: .6vmin; }
+    .row { padding: 1vmin 0; }
+    .ic { width: 3.6vmin; height: 3.6vmin; font-size: 2vmin; }
+    .kn, .val { font-size: 2.3vmin; }
+    .go { margin-top: 2vmin; padding: 1.3vmin 2vmin; font-size: 2.1vmin; }
+  }
+  /* square / wide → photo left, gear right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 50%; top: 0; height: auto; }
+    .biner { left: 1vmin; width: 19vmin; height: 60vmin; }
+    .copy { left: 20vmin; right: 4vmin; top: 5vmin; bottom: 4.6vmin; }
+    .kick { font-size: 1.6vmin; letter-spacing: .08em; white-space: normal; line-height: 1.4; }
+    h1 { font-size: 5.6vmin; margin-top: 3vmin; }
+    .big { font-size: 9.8vmin; margin-top: 2.4vmin; }
+    .spec { position: absolute; left: -17vmin; right: 0; bottom: 11vmin; }
+    .row { padding: 1.1vmin 0; gap: 1.4vmin; }
+    .ic { width: 3.4vmin; height: 3.4vmin; font-size: 1.9vmin; }
+    .kn { width: 8vmin; font-size: 2.2vmin; }
+    .val { font-size: 2.2vmin; }
+    .go { position: absolute; left: -17vmin; right: 0; bottom: 0; margin: 0; padding: 1.5vmin 2vmin; font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { left: 46%; }
+    .biner { left: 5vmin; width: 29vmin; height: 70vmin; }
+    .copy { left: 40vmin; right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .kick { font-size: 1.8vmin; letter-spacing: .14em; white-space: nowrap; }
+    h1 { font-size: 7.4vmin; margin-top: 2.4vmin; }
+    .big { font-size: 13vmin; }
+    .spec { position: static; margin-top: auto; }
+    .row { padding: 1.4vmin 0; gap: 2vmin; }
+    .ic { width: 4vmin; height: 4vmin; font-size: 2.2vmin; }
+    .kn, .val { font-size: 2.5vmin; }
+    .go { position: static; margin-top: 3vmin; padding: 1.7vmin 2.4vmin; font-size: 2.3vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the gear at rest) ─────────
+     constant: the carabiner sways gently on its sling (3s pendulum)
+     beats: 0.9s the gate springs open and snaps shut · 2.2s −30% punches · 3.2s the three rating icons light up lime in turn ·
+            4.7s a sheen crosses the violet CTA and the arrow nudges */
+  .biner { transform-origin: 47% 0; animation: sway 3s linear infinite; }
+  @keyframes sway {
+    0% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.33,.66,.66,1); }
+    25% { transform: rotate(1.4deg); animation-timing-function: cubic-bezier(.37,0,.63,1); }
+    75% { transform: rotate(-1.4deg); animation-timing-function: cubic-bezier(.33,0,.66,.34); }
+    100% { transform: rotate(0deg); }
+  }
+  .biner .gate { transform-box: view-box; transform-origin: 53.8px 114px; animation: gate 6s linear infinite; }
+  @keyframes gate {
+    0%, 15% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    21%, 24% { transform: rotate(-11deg); animation-timing-function: cubic-bezier(.7,0,.9,.5); }
+    27% { transform: rotate(.8deg); animation-timing-function: cubic-bezier(.3,.6,.4,1); }
+    30%, 100% { transform: rotate(0deg); }
+  }
+  .big { display: inline-block; align-self: flex-start; transform-origin: 0% 80%; animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 36% { transform: scale(1) skewX(0deg); animation-timing-function: cubic-bezier(.2,.8,.3,1.2); }
+    39.5% { transform: scale(1.1) skewX(-6deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    43% { transform: scale(.98) skewX(1deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    47%, 100% { transform: scale(1) skewX(0deg); }
+  }
+  .row .ic { animation: lit 6s linear infinite; }
+  .row:nth-child(2) .ic { animation-delay: -5.7s; } .row:nth-child(3) .ic { animation-delay: -5.4s; }
+  @keyframes lit {
+    0%, 53% { color: #8F6BFF; border-color: #8F6BFF; background-color: rgba(214,255,58,0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    56%, 60% { color: #17181B; border-color: #D6FF3A; background-color: rgba(214,255,58,1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    67%, 100% { color: #8F6BFF; border-color: #8F6BFF; background-color: rgba(214,255,58,0); }
+  }
+  .go { position: relative; overflow: hidden; }
+  @media (min-aspect-ratio: 9/10) { .go { position: absolute; } }
+  @media (min-aspect-ratio: 6/5) { .go { position: relative; left: 0; right: 0; bottom: 0; } }
+  .go::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.4) 50%, rgba(255,255,255,0));
+    transform: translateX(-150%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    90%, 100% { transform: translateX(420%) skewX(-18deg); }
+  }
+  .go span:last-child { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 87% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    90% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    93% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    96% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    99%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="biner">
+      <svg viewBox="0 0 64 150" preserveAspectRatio="xMidYMin meet" aria-hidden="true">
+        <defs>
+          <linearGradient id="ano" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4B2FB8"/><stop offset=".35" stop-color="#9C7DFF"/><stop offset=".55" stop-color="#C9B8FF"/><stop offset=".8" stop-color="#7A56F0"/><stop offset="1" stop-color="#3E2799"/></linearGradient>
+          <linearGradient id="steel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6D7178"/><stop offset=".5" stop-color="#E4E6EA"/><stop offset="1" stop-color="#7E828A"/></linearGradient>
+        </defs>
+        <!-- sling from the photo edge -->
+        <path d="M23 -2 V38 Q23 46 30 46 Q37 46 37 38 V-2" fill="none" stroke="#D6FF3A" stroke-width="5.4"/>
+        <path d="M23 -2 V38 Q23 46 30 46 Q37 46 37 38 V-2" fill="none" stroke="#17181B" stroke-opacity=".35" stroke-width=".5" stroke-dasharray="1.6 1.2"/>
+        <rect x="19.6" y="8" width="20.8" height="7" fill="#B6DA2A"/>
+        <path d="M22 11.5 H38" stroke="#17181B" stroke-opacity=".45" stroke-width=".6" stroke-dasharray="1 .8"/>
+        <!-- body -->
+        <path d="M51 58 C50 46 42 40 30 40 H22 C15 40 12 44 12 50 V124 C12 136 20 144 31 144 C45 144 54 134 54 118" fill="none" stroke="url(#ano)" stroke-width="8" stroke-linecap="round"/>
+        <!-- gate -->
+        <path class="gate" d="M53.6 112 L51.2 63" stroke="url(#steel)" stroke-width="4.4" stroke-linecap="round"/>
+        <circle cx="53.8" cy="114" r="2.6" fill="#8C9098"/>
+        <path d="M49 58 l5 -1 l-.6 5" fill="none" stroke="#3E2799" stroke-width="2.2" stroke-linejoin="round"/>
+        <!-- etched markings up the spine -->
+        <g transform="translate(13.2 118) rotate(-90)" fill="#EDE7FF" fill-opacity=".85" font-family="Chakra Petch, monospace" font-weight="700" font-size="4.1" letter-spacing=".3">
+          <text x="0" y="0">↕ 30kN   ↔ 20kN   ○ 7kN</text>
+        </g>
+        <text x="36" y="136" fill="#EDE7FF" fill-opacity=".8" font-family="Chakra Petch, monospace" font-weight="700" font-size="3.4" transform="rotate(-24 36 136)">SERIES 04</text>
+      </svg>
+    </div>
+    <div class="copy">
+      <span class="kick">Rated gear · <b>Series 04</b></span>
+      <h1>Clip in.<br>Load up.</h1>
+      <span class="big">−30%</span>
+      <div class="spec">
+        <div class="row"><span class="ic">↕</span><span class="kn">30<small>kN</small></span><span class="val hi">Up to 30% off</span></div>
+        <div class="row"><span class="ic">↔</span><span class="kn">20<small>kN</small></span><span class="val">Code CLIP30</span></div>
+        <div class="row"><span class="ic">○</span><span class="kn">7<small>kN</small></span><span class="val">Ends Sunday</span></div>
+      </div>
+      <div class="go"><span>Gear up</span><span>→</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

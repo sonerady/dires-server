@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Pinyon+Script&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Satin Lid — an open jewellery box: the ivory satin lid carries a gold-foil house stamp, a stitched
+     line and a tucked gift card; a navy leather hinge with brass hinges; the photo is what lies inside.
+     tall → lid above, box below; 3:4 / square / wide → lid left, box right (opened like a book) */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1F2B45; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #1F2B45; color: #1F2B45; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; }
+
+  .lid { position: absolute; left: 0; right: 0; top: 0; height: 66vmin; overflow: hidden;
+    background:
+      radial-gradient(55% 48% at 50% 52%, rgba(255,255,255,.6), rgba(255,255,255,0) 72%),
+      linear-gradient(104deg, rgba(255,255,255,0) 6%, rgba(255,255,255,.55) 16%, rgba(150,112,70,.13) 29%, rgba(255,255,255,.38) 43%, rgba(150,112,70,.15) 58%, rgba(255,255,255,.5) 72%, rgba(150,112,70,.1) 86%, rgba(255,255,255,.3) 96%),
+      #EDE3D1; }
+  /* stitched line inside the lid */
+  .lid::before { content: ""; position: absolute; inset: 3.4vmin; border: .25vmin dashed rgba(138,100,48,.55); }
+  .in { position: absolute; inset: 6vmin 8vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .foil { font-family: "Gilda Display", "Didot", Georgia, serif; font-size: 4.2vmin; letter-spacing: .42em; margin-right: -.42em; line-height: 1; white-space: nowrap;
+    color: #9A7430; background: linear-gradient(90deg, #6E4A14 0%, #B98E3E 22%, #7D5719 42%, #C9A052 62%, #7A5418 82%, #B08637 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 .12vmin 0 rgba(255,255,255,.7)); }
+  .since { margin-top: 1.2vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; color: #8A6430; white-space: nowrap; }
+  .orn { margin: 3vmin 0 2.6vmin; width: 14vmin; height: 1px; background: linear-gradient(90deg, rgba(138,100,48,0), #8A6430, rgba(138,100,48,0)); }
+  h1 { margin: 0; font-family: "Gilda Display", Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: .98; letter-spacing: -.01em; }
+  .offer { margin: 2.2vmin 0 0; max-width: 60vmin; font-size: 2.2vmin; line-height: 1.5; color: #3A4560; }
+  .offer b { font-weight: 700; color: #1F2B45; }
+  .cta { margin-top: 3vmin; padding: 1.7vmin 3.4vmin; background: #1F2B45; color: #EDE3D1; font-size: 1.9vmin; font-weight: 700; letter-spacing: .24em; margin-right: 0; text-transform: uppercase; white-space: nowrap; }
+  /* a small gift card tucked into the lid's corner */
+  .card { position: absolute; right: 5.6vmin; top: 5.4vmin; padding: 1.2vmin 2.2vmin 1.4vmin; background: #FBF8F1; transform: rotate(7deg); box-shadow: 0 .6vmin 1.2vmin rgba(60,40,20,.2);
+    font-family: "Pinyon Script", cursive; font-size: 3.6vmin; line-height: 1; color: #7A5418; white-space: nowrap; }
+
+  /* navy leather hinge band with two brass hinges */
+  .hinge { position: absolute; left: 0; right: 0; top: 66vmin; height: 4.4vmin; background: linear-gradient(180deg, #2B3A5C 0%, #1B253C 60%, #141C2E 100%); box-shadow: 0 .8vmin 1.6vmin rgba(0,0,0,.45); z-index: 2; }
+  .hinge i { position: absolute; top: 50%; width: 9vmin; height: 2.2vmin; margin-top: -1.1vmin; background: linear-gradient(180deg, #F3DA9C, #B68A3E 55%, #E3C27A); box-shadow: 0 .2vmin .4vmin rgba(0,0,0,.5); }
+  .hinge i:nth-child(1) { left: 18%; } .hinge i:nth-child(2) { right: 18%; }
+  .box { position: absolute; left: 0; right: 0; top: calc(66vmin + 4.4vmin); bottom: 0; overflow: hidden; }
+  .box img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  /* the open lid casts a soft shadow into the box */
+  .box::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 9vmin;
+    background: linear-gradient(180deg, rgba(20,28,46,0.45) 0.0%, rgba(20,28,46,0.443) 7.7%, rgba(20,28,46,0.424) 15.4%, rgba(20,28,46,0.393) 23.1%, rgba(20,28,46,0.353) 30.8%, rgba(20,28,46,0.305) 38.5%, rgba(20,28,46,0.252) 46.2%, rgba(20,28,46,0.198) 53.8%, rgba(20,28,46,0.145) 61.5%, rgba(20,28,46,0.097) 69.2%, rgba(20,28,46,0.057) 76.9%, rgba(20,28,46,0.026) 84.6%, rgba(20,28,46,0.007) 92.3%, rgba(20,28,46,0.0) 100.0%); }
+
+  /* ── 3:4 / square / wide — lid left, box right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .lid { right: auto; bottom: 0; width: 46%; height: auto; }
+    .in { inset: 7vmin 5.6vmin; }
+    .foil { font-size: 3.4vmin; letter-spacing: .34em; margin-right: -.34em; }
+    .since { font-size: 1.6vmin; letter-spacing: .2em; margin-right: -.2em; }
+    h1 { font-size: 7.6vmin; }
+    .offer { font-size: 1.9vmin; }
+    .cta { font-size: 1.7vmin; letter-spacing: .18em; padding: 1.5vmin 2.6vmin; }
+    .card { right: auto; left: 4.6vmin; top: auto; bottom: 5vmin; transform: rotate(-6deg); font-size: 3vmin; }
+    .hinge { top: 0; bottom: 0; left: 46%; right: auto; width: 4.4vmin; height: auto; background: linear-gradient(90deg, #2B3A5C 0%, #1B253C 60%, #141C2E 100%); box-shadow: .8vmin 0 1.6vmin rgba(0,0,0,.45); }
+    .hinge i { top: auto; left: 50%; width: 2.2vmin; height: 9vmin; margin: 0 0 0 -1.1vmin; background: linear-gradient(90deg, #F3DA9C, #B68A3E 55%, #E3C27A); }
+    .hinge i:nth-child(1) { left: 50%; top: 18%; } .hinge i:nth-child(2) { right: auto; bottom: 18%; }
+    .box { left: calc(46% + 4.4vmin); top: 0; }
+    .box::after { top: 0; bottom: 0; right: auto; width: 9vmin; height: auto;
+      background: linear-gradient(90deg, rgba(20,28,46,0.45) 0.0%, rgba(20,28,46,0.443) 7.7%, rgba(20,28,46,0.424) 15.4%, rgba(20,28,46,0.393) 23.1%, rgba(20,28,46,0.353) 30.8%, rgba(20,28,46,0.305) 38.5%, rgba(20,28,46,0.252) 46.2%, rgba(20,28,46,0.198) 53.8%, rgba(20,28,46,0.145) 61.5%, rgba(20,28,46,0.097) 69.2%, rgba(20,28,46,0.057) 76.9%, rgba(20,28,46,0.026) 84.6%, rgba(20,28,46,0.007) 92.3%, rgba(20,28,46,0.0) 100.0%); }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .lid { width: 48%; }
+    .hinge { left: 48%; }
+    .box { left: calc(48% + 4.4vmin); }
+    .in { inset: 6vmin 5.6vmin; }
+    h1 { font-size: 7vmin; }
+    .orn { margin: 2.4vmin 0 2vmin; }
+    .offer { font-size: 1.8vmin; }
+    .cta { margin-top: 2.4vmin; }
+    .card { font-size: 2.8vmin; bottom: 4.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .lid { width: 50%; }
+    .hinge { left: 50%; }
+    .box { left: calc(50% + 4.4vmin); }
+    .in { inset: 8vmin 9vmin; }
+    .foil { font-size: 4vmin; letter-spacing: .42em; margin-right: -.42em; }
+    .since { letter-spacing: .3em; margin-right: -.3em; }
+    h1 { font-size: 9vmin; }
+    .offer { font-size: 2vmin; }
+    .cta { font-size: 1.8vmin; letter-spacing: .22em; }
+    .card { left: auto; right: 5vmin; top: 5vmin; bottom: auto; transform: rotate(7deg); font-size: 3.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="lid">
+    <div class="card">for you</div>
+    <div class="in">
+      <div class="foil">STUDIO ORO</div>
+      <div class="since">Milano · 1961</div>
+      <div class="orn"></div>
+      <h1>The Gift Edit</h1>
+      <p class="offer"><b>Complimentary gift box</b> and a handwritten card on every order until 20 December.</p>
+      <div class="cta">Give something →</div>
+    </div>
+  </div>
+  <div class="hinge"><i></i><i></i></div>
+  <div class="box"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+</div>
+</body>
+</html>

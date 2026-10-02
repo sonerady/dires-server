@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Rock+Salt&family=Inter+Tight:wght@400;500;600&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Buffed Wall — the city's clean-up crew has rolled mismatched grey patches over old tags; ghost tags still show
+     between the patches. The photo is pasted on the freshest patch, the copy rolled onto the others.
+     tall / 3:4 → headline patch, photo patch, offer patch stacked · square / wide → patches left, photo patch right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #CEC5B4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F2EEE6; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(50vmin 30vmin at 80% 30%, rgba(120,100,70,.18), transparent 70%),
+      radial-gradient(40vmin 40vmin at 10% 80%, rgba(90,70,50,.16), transparent 70%),
+      radial-gradient(circle, rgba(80,70,55,.12) 0 .14vmin, transparent .2vmin) 0 0 / 1.1vmin 1.4vmin,
+      #D1C8B7; }
+  /* ghost tags under the buff (pure decoration) */
+  .g { position: absolute; font-family: "Rock Salt", cursive; line-height: 1; white-space: nowrap; pointer-events: none; }
+  .g::before { content: attr(data-t); }
+  .g1 { right: 3vmin; top: 42vmin; font-size: 9vmin; color: rgba(30,30,40,.28); transform: rotate(-9deg); }
+  .g2 { left: 2vmin; top: 40vmin; font-size: 6vmin; color: rgba(190,40,40,.3); transform: rotate(6deg); }
+  .g3 { right: 4vmin; bottom: 15vmin; font-size: 7vmin; color: rgba(40,60,160,.26); transform: rotate(-4deg); }
+  .g4 { left: 30vmin; top: 1vmin; font-size: 5vmin; color: rgba(30,30,40,.24); transform: rotate(3deg); }
+
+  .patch { position: absolute; box-sizing: border-box;
+    background-image: repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 .8vmin, rgba(0,0,0,.03) .8vmin 1.6vmin, transparent 1.6vmin 2.6vmin), linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.06)); }
+  .pa { left: 4vmin; top: 4vmin; width: 84vmin; height: 38vmin; background-color: #6C6B66; padding: 5vmin 5vmin 0;
+    clip-path: polygon(0 1%, 40% 0, 100% 1.5%, 99.4% 60%, 100% 100%, 55% 99%, 0 100%, .6% 50%); }
+  .pb { left: 10vmin; right: 4vmin; top: 37vmin; height: calc(100% - 66vmin); background-color: #A7A49C;
+    clip-path: polygon(0 .6%, 50% 0, 100% .8%, 99.6% 50%, 100% 100%, 40% 99.5%, 0 100%, .4% 40%); }
+  .pb img { position: absolute; left: 2.6vmin; top: 2.6vmin; width: calc(100% - 5.2vmin); height: calc(100% - 5.2vmin); object-fit: cover; object-position: 50% 25%; display: block; }
+  .pc { left: 4vmin; bottom: 4.4vmin; width: 66vmin; height: 24vmin; background-color: #7F7D77; padding: 3.6vmin 4.4vmin; display: flex; flex-direction: column; justify-content: space-between;
+    clip-path: polygon(0 2%, 60% 0, 100% 2%, 99.3% 55%, 100% 100%, 30% 98%, 0 100%, .8% 45%); }
+
+  .kick { font-size: 1.7vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #D6D2C8; white-space: nowrap; }
+  h1 { margin: 2.2vmin 0 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 11.4vmin; line-height: .98; letter-spacing: -.035em; color: #F4F0E8; }
+  h1 span:first-child { display: block; }
+  .sub { font-size: 2vmin; line-height: 1.4; color: #EEEAE2; }
+  .buy { display: flex; align-items: baseline; gap: 2.4vmin; flex-wrap: nowrap; }
+  .price { font-family: "Unbounded", sans-serif; font-weight: 700; font-size: 5.2vmin; letter-spacing: -.03em; color: #fff; }
+  .cta { font-size: 2vmin; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #1D1D1B; background: #F2EEE6; padding: 1.1vmin 1.8vmin; white-space: nowrap; }
+  .stamp { position: absolute; right: 5vmin; bottom: 5vmin; font-family: "Unbounded", sans-serif; font-weight: 500; font-size: 1.7vmin; letter-spacing: .12em; line-height: 1.5; text-transform: uppercase; color: #4A443A; text-align: right; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .pa { height: 32vmin; padding: 4.4vmin 4.4vmin 0; width: 80vmin; }
+    h1 { font-size: 9.6vmin; margin-top: 1.8vmin; }
+    .pb { top: 31vmin; height: calc(100% - 56vmin); left: 12vmin; }
+    .pc { height: 20vmin; bottom: 3.4vmin; padding: 3vmin 4vmin; width: 64vmin; }
+    .price { font-size: 4.4vmin; }
+    .stamp { bottom: 3.6vmin; }
+    .g1 { top: 30vmin; } .g2 { top: 34vmin; } .g3 { bottom: 11vmin; }
+  }
+  /* square / wide — patches left, photo patch right */
+  @media (min-aspect-ratio: 9/10) {
+    .pa { left: 4vmin; top: 4vmin; width: calc(54% - 6vmin); height: 50vmin; padding: 5vmin 4.4vmin 0; }
+    h1 { font-size: 8.4vmin; }
+    h1 span { display: block; }
+    .pb { left: auto; right: 4vmin; top: 5vmin; width: 46%; height: calc(100% - 10vmin); }
+    .pc { left: 7vmin; bottom: 5vmin; width: calc(54% - 12vmin); height: 34vmin; padding: 3.6vmin 4vmin; }
+    .buy { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .sub { font-size: 1.8vmin; }
+    .price { font-size: 4.6vmin; }
+    .stamp { display: none; }
+    .g1 { right: auto; left: 40%; top: auto; bottom: 36vmin; font-size: 6vmin; }
+    .g2 { left: 1vmin; top: 56vmin; }
+    .g3 { right: auto; left: 2vmin; bottom: 1vmin; font-size: 5vmin; }
+    .g4 { left: 44%; top: 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .pa { width: calc(58% - 6vmin); height: 48vmin; padding: 5.4vmin 5vmin 0; }
+    h1 { font-size: 10.4vmin; }
+    h1 span:first-child { display: block; } h1 span { display: inline; }
+    .pb { width: 42%; }
+    .pc { left: 9vmin; width: calc(58% - 18vmin); height: 32vmin; padding: 4vmin 4.4vmin; }
+    .buy { flex-direction: row; align-items: center; gap: 2.4vmin; }
+    .sub { font-size: 2vmin; }
+    .price { font-size: 5vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: photo breathes inside its patch (≤1.03), the ghost tags fade in and out under the buff at different moments
+     beats: 1.1s a fresh grey roller stroke buffs over "buff." left→right, holds, then peels off to reveal it again ·
+            3.9s the price punches · 4.6s the CTA gives an urgent shake */
+  .pb img { animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.456%); } }
+  .g1, .g3 { animation: ghostA 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .g2, .g4 { animation: ghostB 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ghostA { 0%, 10%, 55%, 100% { opacity: 1; } 32% { opacity: .35; } }
+  @keyframes ghostB { 0%, 45%, 95%, 100% { opacity: 1; } 70% { opacity: .35; } }
+  h1 span:last-child { position: relative; display: inline-block; }
+  h1 span:last-child::after { content: ""; position: absolute; left: -1.6vmin; right: -1.6vmin; top: .4vmin; bottom: -.4vmin;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.04) 0 .8vmin, rgba(0,0,0,.035) .8vmin 1.6vmin, transparent 1.6vmin 2.6vmin), #74736D;
+    clip-path: inset(0 100% 0 0); animation: buff 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes buff { 0%, 18% { clip-path: inset(0 100% 0 0); } 32%, 44% { clip-path: inset(0 0 0 0); } 56%, 100% { clip-path: inset(0 0 0 100%); } }
+  .price { display: inline-block; transform-origin: 0 70%; animation: punch 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes punch { 0%, 64%, 77%, 100% { transform: none; } 67% { transform: scale(1.15) rotate(-2deg); } 70.5% { transform: scale(.97); } 74% { transform: scale(1.02); } }
+  .cta { animation: shake 6s linear infinite; }
+  @keyframes shake { 0%, 76%, 86%, 100% { transform: none; } 77% { transform: translateX(-.5vmin) rotate(-1deg); } 78.5% { transform: translateX(.5vmin) rotate(1deg); } 80% { transform: translateX(-.4vmin); } 81.5% { transform: translateX(.35vmin); } 83% { transform: translateX(-.15vmin); } 84.5% { transform: translateX(.1vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <i class="g g4" data-t="KAZE"></i><i class="g g1" data-t="MOTE 99"></i><i class="g g2" data-t="rifo"></i><i class="g g3" data-t="SOLO"></i>
+  <div class="patch pa">
+    <div class="kick">Dervis Studio · Final run</div>
+    <h1><span>Before</span> <span>the</span> <span>buff.</span></h1>
+  </div>
+  <div class="patch pb"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="patch pc">
+    <div class="sub">The last 40 pieces of the season.<br>When they're gone, they're painted over.</div>
+    <div class="buy"><div class="price">€75</div><div class="cta">Shop before it's gone</div></div>
+  </div>
+  <div class="stamp">Wall 3 · Buffed<br>25.09.26</div>
+</div>
+</body>
+</html>

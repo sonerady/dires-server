@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Day Book — the workshop's bound ledger: an oxblood quarter-leather spine with gold fillets along the seam,
+     a feint-ruled page with red double column rules, and the week's entries written in iron-gall ink —
+     the discount entered in red, the balance double-underlined. A satin ribbon marks the page.
+     tall / 3:4 → photo above the spine; square / wide → photo left, the spine runs down the seam like a book */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EEDB; }
+  .banner { --P: 84vmin; --row: 5.4vmin; position: fixed; inset: 0; overflow: hidden; background: #F2EEDB; color: #1D2748; font-family: "Libre Caslon Text", Georgia, "Times New Roman", serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--P)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .spine { position: absolute; left: 0; right: 0; top: calc(100% - var(--P)); height: 5.6vmin; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 3vmin;
+    background: linear-gradient(180deg, #4A1715 0%, #6E2622 30%, #5A1D1A 70%, #3C1210 100%); box-shadow: 0 .6vmin 1.4vmin rgba(40,10,5,.35);
+    font-size: 1.7vmin; letter-spacing: .32em; text-transform: uppercase; color: #D8B46A; white-space: nowrap; overflow: hidden; }
+  .spine::before, .spine::after { content: ""; position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid #C9A45C; box-shadow: 0 .45vmin 0 -.05vmin #C9A45C; }
+  .spine::before { top: .6vmin; } .spine::after { bottom: 1.1vmin; }
+  .spine i { font-style: normal; font-size: 1.6vmin; }
+
+  .page { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--P) - 5.6vmin); box-sizing: border-box; padding: 4.4vmin 6vmin 0 5vmin; overflow: hidden;
+    background: radial-gradient(120% 70% at 50% 0%, rgba(160,140,90,.10) 0%, rgba(160,140,90,0) 60%), #F2EEDB; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.7vmin; letter-spacing: .24em; text-transform: uppercase; color: #6B6A5E; white-space: nowrap; }
+  .top b { font-weight: 400; color: #B23A2E; letter-spacing: .12em; }
+  h1 { margin: 2.4vmin 0 0; font-weight: 400; font-size: 12.5vmin; line-height: .9; letter-spacing: -.025em; color: #1B1F2E; }
+  h1 em { color: #B23A2E; }
+  .sub { margin-top: 1.6vmin; font-style: italic; font-size: 2.6vmin; color: #4A4B45; }
+
+  .ledger { margin-top: 3vmin; border-top: .4vmin double #1B1F2E; }
+  .r { display: grid; grid-template-columns: 14vmin 1fr 7vmin 13vmin; height: var(--row); border-bottom: 1px solid #A9BDD0; }
+  .r > span { display: flex; align-items: flex-end; padding: 0 1.2vmin .5vmin; box-sizing: border-box; white-space: nowrap; overflow: hidden; }
+  .r > span + span { border-left: .6vmin double #C8574A; }
+  .r.hd { height: 3.6vmin; border-bottom: 1px solid #1B1F2E; }
+  .r.hd > span { align-items: center; padding-bottom: 0; font-size: 1.6vmin; letter-spacing: .2em; text-transform: uppercase; color: #3E3F3A; }
+  .h { font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive; font-weight: 500; font-size: 3.4vmin; line-height: 1; color: #1F2B5A; }
+  .h.red { color: #B23A2E; font-weight: 700; }
+  .h.bal { font-weight: 700; }
+  .h.bal u { text-decoration: none; border-bottom: .5vmin double #1F2B5A; padding-bottom: .1vmin; }
+  .r > .amt { justify-content: flex-end; }
+
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; height: 9vmin; box-sizing: border-box; padding: 0 6vmin 0 5vmin; display: flex; justify-content: space-between; align-items: center;
+    background: #F2EEDB; border-top: 1px solid #1B1F2E; white-space: nowrap; }
+  .cta { font-weight: 700; font-size: 2.5vmin; letter-spacing: .02em; }
+  .cta em { font-weight: 400; }
+  .url { font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: #6B6A5E; }
+  /* satin page marker */
+  .ribbon { position: absolute; right: 2vmin; top: calc(100% - var(--P) + 4vmin); width: 2.4vmin; height: 26vmin; z-index: 1;
+    background: linear-gradient(90deg, #8E2320 0%, #C23B33 45%, #9A2A25 100%); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%); box-shadow: 0 .4vmin .8vmin rgba(0,0,0,.2); }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --P: 70vmin; --row: 4.8vmin; }
+    .page { padding-top: 3.6vmin; }
+    h1 { margin-top: 1.8vmin; font-size: 10vmin; }
+    .sub { margin-top: 1.2vmin; font-size: 2.3vmin; }
+    .ledger { margin-top: 2.4vmin; }
+    .h { font-size: 3.1vmin; }
+    .foot { height: 8vmin; }
+    .ribbon { height: 20vmin; }
+  }
+  /* square → photo left, spine down the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --row: 4.9vmin; }
+    .photo { width: 42%; height: 100%; object-position: 50% 24%; }
+    .spine { top: 0; bottom: 0; left: 42%; right: auto; width: 5.6vmin; height: auto; writing-mode: vertical-rl; background: linear-gradient(90deg, #4A1715 0%, #6E2622 30%, #5A1D1A 70%, #3C1210 100%); }
+    .spine::before, .spine::after { top: 0; bottom: 0; left: auto; right: auto; height: auto; width: 0; border-top: 0; border-left: 1px solid #C9A45C; box-shadow: .45vmin 0 0 -.05vmin #C9A45C; }
+    .spine::before { left: .6vmin; } .spine::after { right: 1.1vmin; }
+    .page { left: calc(42% + 5.6vmin); top: 0; height: auto; padding: 5vmin 5vmin 0 4vmin; }
+    .top span:last-child { display: none; }
+    h1 { font-size: 9.4vmin; }
+    h1 em { display: block; }
+    .sub { font-size: 2.1vmin; }
+    .r { grid-template-columns: 10vmin 1fr 11vmin; }
+    .r > .fo { display: none; }
+    .h { font-size: 2.9vmin; }
+    .r > span { padding: 0 .9vmin .5vmin; }
+    .foot { left: calc(42% + 5.6vmin); padding: 0 5vmin 0 4vmin; }
+    .url { display: none; }
+    .ribbon { top: 0; right: 1.6vmin; height: 18vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --row: 5vmin; }
+    .photo { width: 46%; object-position: 50% 30%; }
+    .spine { left: 46%; }
+    .page { left: calc(46% + 5.6vmin); padding: 5.4vmin 6vmin 0 5vmin; }
+    .top span:last-child { display: inline; }
+    h1 { font-size: 10.6vmin; }
+    .sub { font-size: 2.3vmin; }
+    .r { grid-template-columns: 12vmin 1fr 7vmin 12vmin; }
+    .r > .fo { display: flex; }
+    .h { font-size: 3.1vmin; }
+    .foot { left: calc(46% + 5.6vmin); padding: 0 6vmin 0 5vmin; }
+    .url { display: inline; }
+    .ribbon { right: 2.2vmin; height: 22vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the finished page) ─────────
+     constant: the satin page marker sways gently (6s); photo slow push-in
+     beats: 0.9s the last three entries blot away… then are written back in iron-gall ink, stroke by stroke:
+            1.4s "Discount allowed" → 2.1s −30% → 2.6s the code → 3.2s "Balance: yours" → 3.8s ✓ ·
+            4.4s a gold glint runs down the spine fillets · 5.2s the CTA arrow nudges */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .ribbon { transform-origin: 50% 0; animation: marker 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes marker { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(1.6deg); } 75% { transform: rotate(-1.6deg); } }
+
+  .ledger .w { font-style: normal; display: block; padding-bottom: .9vmin; margin-bottom: -.9vmin; }
+  .ledger .w > u { display: block; }
+  .ledger .r:nth-child(4) > .h:nth-child(2) > .w { animation: w1 6s linear infinite; }
+  @keyframes w1 {
+    0%, 14% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+    19% { opacity: 0; clip-path: inset(-30% -8% -40% -8%); }
+    19.5%, 23.2% { opacity: 0; clip-path: inset(-30% 108% -40% -8%); }
+    23.3% { opacity: 1; clip-path: inset(-30% 108% -40% -8%); animation-timing-function: cubic-bezier(.35,.1,.45,1); }
+    35%, 100% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+  }
+  .ledger .r:nth-child(4) > .amt > .w { animation: w2 6s linear infinite; }
+  @keyframes w2 {
+    0%, 14% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+    19% { opacity: 0; clip-path: inset(-30% -8% -40% -8%); }
+    19.5%, 34.9% { opacity: 0; clip-path: inset(-30% 108% -40% -8%); }
+    35% { opacity: 1; clip-path: inset(-30% 108% -40% -8%); animation-timing-function: cubic-bezier(.35,.1,.45,1); }
+    42%, 100% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+  }
+  .ledger .r:nth-child(5) > .h > .w { animation: w3 6s linear infinite; }
+  @keyframes w3 {
+    0%, 14% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+    19% { opacity: 0; clip-path: inset(-30% -8% -40% -8%); }
+    19.5%, 43.2% { opacity: 0; clip-path: inset(-30% 108% -40% -8%); }
+    43.3% { opacity: 1; clip-path: inset(-30% 108% -40% -8%); animation-timing-function: cubic-bezier(.35,.1,.45,1); }
+    52%, 100% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+  }
+  .ledger .r:nth-child(6) > .h:nth-child(2) > .w { animation: w4 6s linear infinite; }
+  @keyframes w4 {
+    0%, 14% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+    19% { opacity: 0; clip-path: inset(-30% -8% -40% -8%); }
+    19.5%, 53.2% { opacity: 0; clip-path: inset(-30% 108% -40% -8%); }
+    53.3% { opacity: 1; clip-path: inset(-30% 108% -40% -8%); animation-timing-function: cubic-bezier(.35,.1,.45,1); }
+    62%, 100% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+  }
+  .ledger .r:nth-child(6) > .amt > .w { animation: w5 6s linear infinite; }
+  @keyframes w5 {
+    0%, 14% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+    19% { opacity: 0; clip-path: inset(-30% -8% -40% -8%); }
+    19.5%, 63.2% { opacity: 0; clip-path: inset(-30% 108% -40% -8%); }
+    63.3% { opacity: 1; clip-path: inset(-30% 108% -40% -8%); animation-timing-function: cubic-bezier(.35,.1,.45,1); }
+    67%, 100% { opacity: 1; clip-path: inset(-30% -8% -40% -8%); }
+  }
+
+  .spine { background: linear-gradient(100deg, transparent 0 44%, rgba(255,226,150,.45) 50%, transparent 56% 100%) 150% 0 / 300% 100% no-repeat,
+    linear-gradient(180deg, #4A1715 0%, #6E2622 30%, #5A1D1A 70%, #3C1210 100%);
+    animation: gilt 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes gilt { 0%, 72%, 100% { background-position: 150% 0, 0 0; } 90% { background-position: -50% 0, 0 0; } }
+  @media (min-aspect-ratio: 9/10) {
+    .spine { background: linear-gradient(170deg, transparent 0 44%, rgba(255,226,150,.45) 50%, transparent 56% 100%) 0 150% / 100% 300% no-repeat,
+      linear-gradient(90deg, #4A1715 0%, #6E2622 30%, #5A1D1A 70%, #3C1210 100%); animation-name: giltv; }
+    @keyframes giltv { 0%, 72%, 100% { background-position: 0 150%, 0 0; } 90% { background-position: 0 -50%, 0 0; } }
+  }
+
+  .cta em { display: inline-block; animation: nudge 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 84%, 98%, 100% { transform: translateX(0); } 91% { transform: translateX(1.1vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="spine"><span>Day Book</span><i>◆</i><span>Nº 26</span><i>◆</i><span>Atelier Nord</span></div>
+  <div class="page">
+    <div class="top"><span>Folio 26 · Autumn</span><span>Atelier Nord Works</span></div>
+    <h1>Entered <em>in ink.</em></h1>
+    <div class="sub">The new work edit, written into the book.</div>
+    <div class="ledger">
+      <div class="r hd"><span>Date</span><span>Particulars</span><span class="fo">Fo.</span><span class="amt">Amount</span></div>
+      <div class="r"><span class="h">Sep 25</span><span class="h">The work edit, in</span><span class="fo h">26</span><span class="amt h">—</span></div>
+      <div class="r"><span></span><span class="h">New stock, all lines</span><span class="fo"></span><span class="amt"></span></div>
+      <div class="r"><span class="h">Sep 27</span><span class="h red"><i class="w">Discount allowed</i></span><span class="fo"></span><span class="amt h red"><i class="w">−30%</i></span></div>
+      <div class="r"><span></span><span class="h"><i class="w">Code DAYBOOK30</i></span><span class="fo"></span><span class="amt"></span></div>
+      <div class="r"><span></span><span class="h bal"><i class="w"><u>Balance: yours</u></i></span><span class="fo"></span><span class="amt h bal"><i class="w"><u>✓</u></i></span></div>
+      <div class="r"><span></span><span></span><span class="fo"></span><span class="amt"></span></div>
+      <div class="r"><span></span><span></span><span class="fo"></span><span class="amt"></span></div>
+      <div class="r"><span></span><span></span><span class="fo"></span><span class="amt"></span></div>
+    </div>
+  </div>
+  <div class="ribbon" aria-hidden="true"></div>
+  <div class="foot"><span class="cta">Open the book <em>→</em></span><span class="url">Until 5 October</span></div>
+</div>
+</body>
+</html>

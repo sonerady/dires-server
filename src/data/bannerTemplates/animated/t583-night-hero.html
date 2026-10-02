@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&family=Playfair+Display:ital,wght@1,400;1,500&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* Night Hero — a dark-mode storefront homepage hero: transparent nav over the photo (menu, search, bag with count),
+     the photo melting into black, a slide counter with progress bar, a primary + ghost CTA pair and a "next slide" teaser.
+     tall / 3:4 → photo on top, copy below · square / wide → copy left, photo right bleeding off the edge */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #111110; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #111110; color: #F3F0E8; font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 54vmin); object-fit: cover; object-position: 50% 24%; display: block; }
+  .s-top { position: absolute; left: 0; right: 0; top: 0; height: 14vmin;
+    background: linear-gradient(180deg, rgba(17,17,16,1) 0%, rgba(17,17,16,.985) 7.7%, rgba(17,17,16,.943) 15.4%, rgba(17,17,16,.874) 23.1%, rgba(17,17,16,.784) 30.8%, rgba(17,17,16,.677) 38.5%, rgba(17,17,16,.56) 46.2%, rgba(17,17,16,.44) 53.8%, rgba(17,17,16,.323) 61.5%, rgba(17,17,16,.216) 69.2%, rgba(17,17,16,.126) 76.9%, rgba(17,17,16,.057) 84.6%, rgba(17,17,16,.015) 92.3%, rgba(17,17,16,0) 100%); }
+  .s-bot { position: absolute; left: 0; right: 0; bottom: 54vmin; height: 16vmin;
+    background: linear-gradient(0deg, rgba(17,17,16,1) 0%, rgba(17,17,16,.985) 7.7%, rgba(17,17,16,.943) 15.4%, rgba(17,17,16,.874) 23.1%, rgba(17,17,16,.784) 30.8%, rgba(17,17,16,.677) 38.5%, rgba(17,17,16,.56) 46.2%, rgba(17,17,16,.44) 53.8%, rgba(17,17,16,.323) 61.5%, rgba(17,17,16,.216) 69.2%, rgba(17,17,16,.126) 76.9%, rgba(17,17,16,.057) 84.6%, rgba(17,17,16,.015) 92.3%, rgba(17,17,16,0) 100%); }
+  .s-side { display: none; }
+
+  .nav { position: absolute; left: 5vmin; right: 5vmin; top: 3.6vmin; display: flex; align-items: center; gap: 3vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .04em; white-space: nowrap; }
+  .burger { width: 3.6vmin; height: 1.6vmin; border-top: .3vmin solid #F3F0E8; border-bottom: .3vmin solid #F3F0E8; position: relative; }
+  .burger::after { content: ""; position: absolute; left: 0; right: 30%; top: 50%; margin-top: -.15vmin; height: .3vmin; background: #F3F0E8; }
+  .logo { font-weight: 800; font-size: 3.4vmin; letter-spacing: .28em; margin-right: auto; }
+  .links { display: none; gap: 3vmin; }
+  .links span:first-child { border-bottom: 1px solid #F3F0E8; padding-bottom: .4vmin; }
+  .ico { display: flex; align-items: center; gap: 2.4vmin; }
+  .search { width: 2.4vmin; height: 2.4vmin; border: .3vmin solid #F3F0E8; border-radius: 50%; box-sizing: border-box; position: relative; }
+  .search::after { content: ""; position: absolute; right: -.9vmin; bottom: -.7vmin; width: 1vmin; height: .3vmin; background: #F3F0E8; transform: rotate(45deg); }
+  .bag { position: relative; width: 2.6vmin; height: 2.6vmin; border: .3vmin solid #F3F0E8; border-radius: 0 0 .5vmin .5vmin; box-sizing: border-box; }
+  .bag::before { content: ""; position: absolute; left: 50%; top: -1.3vmin; width: 1.3vmin; height: 1.2vmin; margin-left: -.65vmin; border: .3vmin solid #F3F0E8; border-bottom: 0; border-radius: 1vmin 1vmin 0 0; box-sizing: border-box; }
+  .bag b { position: absolute; right: -1.6vmin; top: -1.6vmin; min-width: 2.2vmin; height: 2.2vmin; border-radius: 99vmin; background: #D7F75B; color: #111110; font-size: 1.6vmin; font-weight: 800; line-height: 2.2vmin; text-align: center; }
+
+  .copy { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.6vmin; height: 50vmin; display: flex; flex-direction: column; }
+  .count { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #BDB8AC; }
+  .count b { color: #D7F75B; font-weight: 800; }
+  .bar { flex: 1; max-width: 22vmin; height: .3vmin; background: rgba(243,240,232,.2); position: relative; }
+  .bar::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 25%; background: #D7F75B; }
+  h1 { margin: 2.4vmin 0 0; font-weight: 800; font-size: 10.6vmin; line-height: .9; letter-spacing: -.05em; }
+  h1 i { font-family: "Playfair Display", Georgia, serif; font-weight: 400; letter-spacing: -.03em; white-space: nowrap; }
+  .sub { margin: 2.2vmin 0 0; font-size: 2.2vmin; line-height: 1.45; color: #BDB8AC; max-width: 62vmin; }
+  .btns { margin-top: auto; display: flex; align-items: center; gap: 2vmin; }
+  .cta { padding: 2vmin 3.6vmin; border-radius: 99vmin; background: #D7F75B; color: #111110; font-size: 2vmin; font-weight: 800; white-space: nowrap; }
+  .ghost { padding: 2vmin 3.2vmin; border-radius: 99vmin; border: 1px solid rgba(243,240,232,.55); font-size: 2vmin; font-weight: 500; white-space: nowrap; }
+  .next { margin-left: auto; text-align: right; font-size: 1.6vmin; line-height: 1.4; color: #8F8A80; white-space: nowrap; }
+  .next b { display: block; color: #F3F0E8; font-weight: 500; font-size: 1.9vmin; }
+  .perks { display: none; margin-top: auto; padding-top: 2vmin; border-top: 1px solid rgba(243,240,232,.18); gap: 2.6vmin; font-size: 1.6vmin; color: #8F8A80; white-space: nowrap; }
+  .perks span::before { content: "✓ "; color: #D7F75B; }
+
+  /* ── 3:4 ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 46vmin); }
+    .s-bot { bottom: 46vmin; }
+    .copy { height: 42vmin; bottom: 4vmin; }
+    h1 { font-size: 8.8vmin; }
+    .sub { font-size: 2vmin; }
+  }
+  /* ── square — copy left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 54%; height: 100%; object-position: 50% 26%; }
+    .s-bot { display: none; }
+    .s-side { display: block; position: absolute; top: 0; bottom: 0; right: calc(54% - 12vmin); width: 12vmin;
+      background: linear-gradient(90deg, rgba(17,17,16,1) 0%, rgba(17,17,16,.985) 7.7%, rgba(17,17,16,.943) 15.4%, rgba(17,17,16,.874) 23.1%, rgba(17,17,16,.784) 30.8%, rgba(17,17,16,.677) 38.5%, rgba(17,17,16,.56) 46.2%, rgba(17,17,16,.44) 53.8%, rgba(17,17,16,.323) 61.5%, rgba(17,17,16,.216) 69.2%, rgba(17,17,16,.126) 76.9%, rgba(17,17,16,.057) 84.6%, rgba(17,17,16,.015) 92.3%, rgba(17,17,16,0) 100%); }
+    .s-top { left: 46%; height: 16vmin; }
+    .nav { top: 4vmin; }
+    .copy { left: 5vmin; right: auto; width: calc(46% - 5vmin); top: 16vmin; bottom: 5vmin; height: auto; }
+    h1 { font-size: 6.6vmin; }
+    .sub { font-size: 1.9vmin; }
+    .btns { flex-wrap: wrap; gap: 1.6vmin; }
+    .cta, .ghost { padding: 1.7vmin 2.8vmin; font-size: 1.8vmin; }
+    .next { margin: 2vmin 0 0; text-align: left; width: 100%; }
+    .btns { margin-top: 4vmin; }
+    .perks { display: flex; flex-direction: column; gap: 1vmin; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 56%; }
+    .s-side { right: calc(56% - 12vmin); }
+    .s-top { left: 44%; }
+    .links { display: flex; }
+    .copy { width: calc(44% - 8vmin); left: 6vmin; top: 18vmin; bottom: 6vmin; }
+    .nav { left: 6vmin; right: 5vmin; }
+    h1 { font-size: 8.6vmin; }
+    .sub { font-size: 2.1vmin; }
+    .next { margin: 0 0 0 auto; width: auto; text-align: right; }
+    .btns { flex-wrap: nowrap; }
+    .perks { flex-direction: row; }
+  }
+
+  /* ── animation loop ── */
+  /* 6s — one carousel slide: the lime progress bar fills from 01 to the end, the photo slowly pushes in,
+     the bag badge pops mid-loop (item added), a sheen crosses the CTA, and at the end the slide "turns":
+     photo dips, headline + sub wipe up and re-enter from below — landing exactly on the still. */
+  .photo { transform-origin: 50% 100%; animation: kb 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes kb { 0% { transform: scale(1); filter: brightness(1); } 84% { transform: scale(1.04); filter: brightness(1); }
+                  90% { transform: scale(1.04); filter: brightness(.55); } 100% { transform: scale(1); filter: brightness(1); } }
+  @media (min-aspect-ratio: 9/10) { .photo { transform-origin: 100% 30%; } }
+
+  .bar::after { width: 100%; clip-path: inset(0 75% 0 0); animation: prog 6s linear infinite; }
+  @keyframes prog { 0% { clip-path: inset(0 75% 0 0); } 86% { clip-path: inset(0 0 0 0); } 90% { clip-path: inset(0 0 0 100%); } 90.01% { clip-path: inset(0 100% 0 0); } 100% { clip-path: inset(0 75% 0 0); } }
+
+  h1 { animation: turn 6s cubic-bezier(.65,0,.35,1) infinite; }
+  .sub { animation: turn 6s cubic-bezier(.65,0,.35,1) infinite; animation-delay: -.12s; }
+  @keyframes turn {
+    0%, 85% { clip-path: inset(-10% -5% -25% -5%); transform: translateY(0); opacity: 1; }
+    89% { clip-path: inset(-10% -5% 110% -5%); transform: translateY(-2.4vmin); opacity: 1; }
+    89.1% { clip-path: inset(110% -5% -25% -5%); transform: translateY(3vmin); opacity: 1; }
+    97%, 100% { clip-path: inset(-10% -5% -25% -5%); transform: translateY(0); opacity: 1; } }
+
+  .bag b { animation: pop 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pop { 0%, 40%, 54%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(215,247,91,0); }
+                   44% { transform: scale(1.45); box-shadow: 0 0 0 .6vmin rgba(215,247,91,.35); }
+                   48% { transform: scale(.92); box-shadow: 0 0 0 1.4vmin rgba(215,247,91,0); } 51% { transform: scale(1.06); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.6) 50%, transparent 65%) no-repeat; background-size: 250% 100%;
+    background-position: 160% 0; animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 56% { background-position: 160% 0; } 70%, 100% { background-position: -60% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="s-top"></div><div class="s-bot"></div><div class="s-side"></div>
+  <div class="nav">
+    <i class="burger"></i>
+    <span class="logo">OSTRA</span>
+    <span class="links"><span>New in</span><span>Clothing</span><span>Objects</span><span>Journal</span></span>
+    <span class="ico"><i class="search"></i><i class="bag"><b>2</b></i></span>
+  </div>
+  <div class="copy">
+    <div class="count"><b>01</b><i class="bar"></i><span>04 · New season</span></div>
+    <h1>Made for the <i>in‑between.</i></h1>
+    <p class="sub">Easy pieces for the weeks when it's not quite cold. In store and online now.</p>
+    <div class="btns">
+      <div class="cta">Shop new in</div>
+      <div class="ghost">▶ Watch the film</div>
+      <div class="next">Next<b>The Layering Shop →</b></div>
+    </div>
+    <div class="perks"><span>Free shipping over $100</span><span>60-day returns</span><span>Carbon-neutral delivery</span></div>
+  </div>
+</div>
+</body>
+</html>

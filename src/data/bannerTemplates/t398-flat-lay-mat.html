@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Flat Lay Mat — the look knolled on a green self-healing cutting mat: printed grid (2 / 10 vmin),
+     a yellow centimetre ruler along the top edge, the full look laid square to the grid and its pieces
+     (crops of the same photo) lined up beside it at right angles, each with a yellow spec label.
+     tall / 3:4 → look above, pieces in a row below; square / wide → look left, pieces + copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2D5A4B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F4F1E6; font-family: "Space Mono", "Courier New", monospace;
+    background-color: #2D5A4B;
+    background-image:
+      linear-gradient(rgba(244,241,230,.26) 1px, transparent 1px), linear-gradient(90deg, rgba(244,241,230,.26) 1px, transparent 1px),
+      linear-gradient(rgba(244,241,230,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(244,241,230,.09) 1px, transparent 1px);
+    background-size: 10vmin 10vmin, 10vmin 10vmin, 2vmin 2vmin, 2vmin 2vmin;
+    display: flex; flex-direction: column; padding: 0 5vmin 5vmin; box-sizing: border-box; }
+  .ruler { flex: none; height: 5vmin; margin: 0 -5vmin; display: flex; overflow: hidden; border-bottom: 1px solid rgba(241,216,90,.6);
+    background-image: linear-gradient(90deg, rgba(241,216,90,.7) 1px, transparent 1px); background-size: 2vmin 1.2vmin; background-repeat: repeat-x; background-position: 0 100%; }
+  .ruler span { flex: none; width: 10vmin; box-sizing: border-box; padding: .9vmin 0 0 .6vmin; border-left: 1px solid rgba(241,216,90,.9); color: #F1D85A; font-size: 1.7vmin; font-weight: 700; line-height: 1; }
+
+  .head { flex: none; display: flex; justify-content: space-between; align-items: baseline; margin-top: 3vmin; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .head span:last-child { color: #F1D85A; }
+  .ph { flex: 1 1 auto; min-height: 0; position: relative; margin-top: 2.4vmin; box-shadow: 0 1vmin 2.4vmin rgba(0,0,0,.28); }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .kit { flex: none; margin-top: 4vmin; display: flex; justify-content: space-between; }
+  .it { flex: none; width: 27vmin; }
+  .cr { position: relative; height: 20vmin; overflow: hidden; box-shadow: 0 .8vmin 1.8vmin rgba(0,0,0,.26); }
+  .cr img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .i1 .cr img { object-position: 50% 24%; transform: scale(1.9); transform-origin: 50% 24%; }
+  .i2 .cr img { object-position: 50% 52%; transform: scale(2.6); transform-origin: 50% 52%; }
+  .i3 .cr img { object-position: 50% 86%; transform: scale(1.8); transform-origin: 50% 88%; }
+  .it p { margin: 1.4vmin 0 0; display: flex; justify-content: space-between; gap: 1vmin; font-size: 1.7vmin; line-height: 1.3; color: #F1D85A; }
+  .it p b { color: #F4F1E6; font-weight: 700; }
+
+  h1 { flex: none; margin: 3.6vmin 0 0; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 800; font-size: 11vmin; line-height: .86; letter-spacing: -.005em; text-transform: uppercase; }
+  h1 span { color: #F1D85A; }
+  .foot { flex: none; margin-top: 3vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 1.9vmin; line-height: 1.45; }
+  .foot p b { color: #F1D85A; }
+  .cta { flex: none; background: #F1D85A; color: #1E3D33; padding: 1.6vmin 3vmin; font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 3vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding-bottom: 4.4vmin; }
+    .head { margin-top: 2.4vmin; }
+    .kit { margin-top: 3vmin; }
+    .it { width: 27vmin; }
+    .cr { height: 14vmin; }
+    h1 { font-size: 9vmin; margin-top: 2.8vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  /* square / wide — look on the left of the mat, kit + copy on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: grid; grid-template-columns: 44% minmax(0, 1fr); grid-template-rows: auto auto auto 1fr auto auto; column-gap: 5vmin; }
+    .ruler { grid-column: 1 / -1; grid-row: 1; }
+    .ph { grid-column: 1; grid-row: 2 / -1; margin-top: 5vmin; }
+    .head { grid-column: 2; grid-row: 2; margin-top: 5vmin; flex-direction: column; gap: .8vmin; }
+    h1 { grid-column: 2; grid-row: 3; font-size: 8.6vmin; margin-top: 3vmin; }
+    .kit { grid-column: 2; grid-row: 4; align-self: center; margin: 0; }
+    .it { width: 12.4vmin; }
+    .cr { height: 16vmin; }
+    .it p { flex-direction: column; gap: 0; }
+    .foot { grid-column: 2; grid-row: 6; flex-direction: column; align-items: flex-start; gap: 1.8vmin; margin: 0; }
+    .foot p { font-size: 1.7vmin; }
+    .cta { font-size: 2.6vmin; padding: 1.4vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: 40% minmax(0, 1fr); column-gap: 6vmin; padding: 0 6vmin 6vmin; }
+    .ruler { margin: 0 -6vmin; }
+    .ph { margin-top: 6vmin; }
+    .head { flex-direction: row; margin-top: 6vmin; }
+    h1 { font-size: 10vmin; }
+    .it { width: 21vmin; }
+    .cr { height: 17vmin; }
+    .it p { flex-direction: row; }
+    .foot { flex-direction: row; align-items: center; }
+    .foot p { font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ruler"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span></div>
+  <div class="head"><span>Flat lay · the full kit</span><span>4 pieces, 1 look</span></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="kit">
+    <div class="it i1"><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><p><span>A · top</span><b>€79</b></p></div>
+    <div class="it i2"><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><p><span>B · detail</span><b>€35</b></p></div>
+    <div class="it i3"><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><p><span>C · base</span><b>€95</b></p></div>
+  </div>
+  <h1>Everything <span>in its place.</span></h1>
+  <div class="foot">
+    <p>The full kit <b>−20%</b><br>code KNOLL20</p>
+    <div class="cta">Shop the kit</div>
+  </div>
+</div>
+</body>
+</html>

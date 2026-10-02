@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Colour Study — an art-school study sheet: the photo as the finished piece, then three small
+     monochrome studies of it (indigo, sienna, sap green), each glazed over a loose wash of its own colour
+     that bleeds past the thumbnail, catalogued like exercises.
+     tall → piece on top, studies + copy below · square / wide → piece left, studies + copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1EEE7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #26241F; font-family: "IBM Plex Mono", "Courier New", monospace;
+    background: linear-gradient(180deg, #F4F1EA 0%, #EEEAE1 100%); }
+  .defs { position: absolute; width: 0; height: 0; }
+
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 4.4vmin; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #6D685F; white-space: nowrap; }
+  .hero { position: absolute; left: 7vmin; top: 9.6vmin; width: calc(100% - 14vmin); height: calc(100% - 83vmin); object-fit: cover; object-position: 50% 30%; display: block; }
+
+  .lower { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; height: 68vmin; display: flex; flex-direction: column; }
+  .studies { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 5vmin; padding: 2.4vmin 1.6vmin 0; }
+  .st { position: relative; min-width: 0; }
+  .st > svg { position: absolute; left: -3.4vmin; top: -2.6vmin; width: calc(100% + 7vmin); height: 21.6vmin; overflow: visible; }
+  .th { position: relative; height: 16vmin; isolation: isolate; overflow: hidden; }
+  .th img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; filter: grayscale(1) contrast(1.05) brightness(1.22); }
+  .th i { position: absolute; inset: 0; mix-blend-mode: multiply; }
+  .i1 i { background: #6F8CC8; } .i2 i { background: #D98D5E; } .i3 i { background: #98B26E; }
+  .st p { position: relative; margin: 1.4vmin 0 0; font-size: 1.6vmin; line-height: 1.35; color: #4B473F; white-space: nowrap; }
+  .st p b { font-family: "Libre Bodoni", Georgia, serif; font-style: italic; font-weight: 400; font-size: 2vmin; color: #26241F; }
+
+  h1 { margin: auto 0 0; font-family: "Libre Bodoni", Georgia, serif; font-weight: 400; font-size: 8.4vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 i { color: #8A4A2C; }
+  .buy { margin-top: 3vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .price { font-size: 1.8vmin; color: #4B473F; white-space: nowrap; }
+  .price b { font-family: "Libre Bodoni", Georgia, serif; font-weight: 600; font-size: 4.6vmin; color: #26241F; margin-right: 1.2vmin; }
+  .cta { padding: 1.6vmin 2.8vmin; border: 1px solid #26241F; font-size: 1.8vmin; font-weight: 500; letter-spacing: .06em; white-space: nowrap; }
+  .fine { margin-top: 2vmin; font-size: 1.6vmin; color: #857F75; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .hero { height: calc(100% - 77vmin); }
+    .lower { height: 62vmin; bottom: 4.4vmin; }
+    .th { height: 13vmin; }
+    .st > svg { height: 18.4vmin; }
+    h1 { font-size: 7.4vmin; }
+  }
+  /* ── square-ish: piece left, study column right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .head { left: 55vmin; right: 5vmin; top: 5vmin; flex-direction: column; gap: .6vmin; }
+    .hero { left: 5vmin; top: 5vmin; width: 44vmin; height: calc(100% - 10vmin); }
+    .lower { left: 55vmin; right: 5vmin; top: 13vmin; bottom: 5vmin; height: auto; }
+    h1 { order: -1; margin: 0; font-size: 6.4vmin; }
+    .studies { margin-top: auto; column-gap: 3vmin; padding: 1.6vmin 1vmin 0; }
+    .th { height: 12vmin; }
+    .st > svg { left: -2vmin; top: -2vmin; width: calc(100% + 4.4vmin); height: 16.8vmin; }
+    .st p { white-space: normal; font-size: 1.6vmin; }
+    .st p b { display: block; }
+    .buy { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .price b { font-size: 4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .head { left: 82vmin; right: 7vmin; top: 6vmin; flex-direction: row; }
+    .hero { left: 6vmin; top: 6vmin; width: 68vmin; height: calc(100% - 12vmin); }
+    .lower { left: 82vmin; right: 7vmin; top: 13vmin; bottom: 6vmin; }
+    h1 { font-size: 8vmin; }
+    .studies { column-gap: 4vmin; }
+    .th { height: 14vmin; }
+    .st > svg { left: -2.8vmin; top: -2.4vmin; width: calc(100% + 6vmin); height: 19.4vmin; }
+    .st p { white-space: nowrap; }
+    .st p b { display: inline; }
+    .buy { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <filter id="wc" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="4" seed="41" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feMorphology in="shape" operator="erode" radius="1.2" result="inner"/>
+      <feComposite in="shape" in2="inner" operator="out" result="edge"/>
+      <feGaussianBlur in="edge" stdDeviation=".5" result="edgeSoft"/>
+      <feComponentTransfer in="edgeSoft" result="rim"><feFuncA type="linear" slope=".55"/></feComponentTransfer>
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="2" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .9 0 0 0 -.18" result="ga"/>
+      <feComposite in="shape" in2="ga" operator="in" result="fill"/>
+      <feMerge><feMergeNode in="fill"/><feMergeNode in="rim"/></feMerge>
+    </filter>
+    <path id="blot" d="M10,14 C30,4 80,6 96,12 C108,18 104,50 98,66 C90,80 40,78 16,72 C2,66 2,24 10,14 Z"/>
+  </defs></svg>
+
+  <div class="head"><span>Atelier Tono · Colour studies</span><span>Sheet 04 / 12</span></div>
+  <img class="hero" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="lower">
+    <div class="studies">
+      <div class="st i1"><svg viewBox="0 0 106 80" preserveAspectRatio="none" aria-hidden="true"><use href="#blot" fill="#5C7CC0" filter="url(#wc)"/></svg>
+        <div class="th"><img src="{{PRODUCT_IMAGE}}" alt=""><i></i></div><p>I · <b>Indigo</b></p></div>
+      <div class="st i2"><svg viewBox="0 0 106 80" preserveAspectRatio="none" aria-hidden="true"><use href="#blot" fill="#D08556" filter="url(#wc)" transform="rotate(180 53 40)"/></svg>
+        <div class="th"><img src="{{PRODUCT_IMAGE}}" alt=""><i></i></div><p>II · <b>Sienna</b></p></div>
+      <div class="st i3"><svg viewBox="0 0 106 80" preserveAspectRatio="none" aria-hidden="true"><use href="#blot" fill="#8FAA68" filter="url(#wc)"/></svg>
+        <div class="th"><img src="{{PRODUCT_IMAGE}}" alt=""><i></i></div><p>III · <b>Sap green</b></p></div>
+    </div>
+    <h1>One piece,<br><i>four moods.</i></h1>
+    <div class="buy">
+      <div class="price"><b>$74</b>in four colourways</div>
+      <div class="cta">Pick your mood →</div>
+    </div>
+    <div class="fine">Colour study series · small-batch dyed</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400&family=Caveat:wght@600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Luggage Tag — a saddle-leather tag on a buckled strap, hanging on sand canvas: saddle stitching, a brass eyelet,
+     gold-foil deboss and an address card behind a clear window, filled in by hand.
+     tall & wide → landscape tag, strap from above; square → portrait tag, hole at the top */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6DBC9; }
+  .banner { --sand: #E6DBC9; --lea: #97552A; --lea2: #7A3F1C; --foil: #F0D08F; --ink: #2A2320; --card: #F6F0E4;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "IBM Plex Mono", Menlo, monospace;
+    background: repeating-linear-gradient(45deg, rgba(120,95,60,.05) 0 .3vmin, transparent .3vmin .9vmin), var(--sand); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 66vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .zone { position: absolute; left: 0; right: 0; bottom: 0; height: 66vmin; }
+  .rig { position: absolute; left: 6vmin; top: 0; width: 86vmin; height: 57vmin; transform: rotate(-1.6deg); transform-origin: 12vmin 0; }
+  .strap { position: absolute; left: 6.2vmin; top: 0; width: 6.4vmin; height: 33vmin; background: linear-gradient(90deg, #6C3514, #8E4D24 30%, #8E4D24 70%, #6C3514); }
+  .strap::before { content: ""; position: absolute; top: 0; bottom: 0; left: .9vmin; right: .9vmin; border-left: .3vmin dashed rgba(240,210,160,.55); border-right: .3vmin dashed rgba(240,210,160,.55); }
+  .buckle { position: absolute; left: 4.6vmin; top: 3.2vmin; width: 9.6vmin; height: 5.4vmin; box-sizing: border-box; border: .9vmin solid #C9A45C; border-radius: .9vmin; box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.3), inset 0 0 0 .2vmin rgba(255,240,200,.4); }
+  .buckle::after { content: ""; position: absolute; left: 50%; top: -.9vmin; bottom: -.9vmin; width: .8vmin; margin-left: -.4vmin; background: #B8914A; }
+  .tag { position: absolute; left: 0; top: 9vmin; width: 100%; height: 48vmin; display: flex; border-radius: 3vmin;
+    background: radial-gradient(120% 90% at 30% 20%, #A6612F 0%, var(--lea) 50%, var(--lea2) 100%);
+    -webkit-mask: radial-gradient(circle at 9.4vmin 50%, transparent 3.1vmin, #000 3.2vmin); mask: radial-gradient(circle at 9.4vmin 50%, transparent 3.1vmin, #000 3.2vmin);
+    box-shadow: 0 1.4vmin 2.4vmin rgba(60,30,10,.28); }
+  .tag::before { content: ""; position: absolute; inset: 1.6vmin; border: .3vmin dashed rgba(245,215,165,.62); border-radius: 2vmin; pointer-events: none; }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .22; mix-blend-mode: multiply; border-radius: 3vmin; }
+  .eyelet { position: absolute; left: calc(9.4vmin - 4.3vmin); top: calc(9vmin + 24vmin - 4.3vmin); width: 8.6vmin; height: 8.6vmin; box-sizing: border-box; border-radius: 50%; border: 1.2vmin solid #CFAB63; box-shadow: inset 0 .3vmin .5vmin rgba(0,0,0,.45), 0 .2vmin .3vmin rgba(0,0,0,.35); }
+  .end { flex: none; width: 17vmin; }
+  .body { position: relative; flex: 1; min-width: 0; padding: 4.4vmin 5vmin 4.4vmin 1vmin; display: flex; flex-direction: column; gap: 2.2vmin; color: var(--foil); }
+  .brand { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .26em; text-transform: uppercase; text-shadow: 0 -.12vmin 0 rgba(0,0,0,.35), 0 .12vmin 0 rgba(255,225,170,.18); white-space: nowrap; }
+  .h { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 400; font-size: 8vmin; line-height: .95; letter-spacing: -.015em; text-shadow: 0 -.15vmin 0 rgba(0,0,0,.4), 0 .15vmin 0 rgba(255,225,170,.2); }
+  .win { position: relative; margin-top: auto; background: var(--card); color: var(--ink); padding: 1.8vmin 2.6vmin; border-radius: .6vmin; box-shadow: inset 0 0 0 .5vmin rgba(255,255,255,.35), inset 0 .4vmin .8vmin rgba(0,0,0,.18); }
+  .win::after { content: ""; position: absolute; inset: 0; border-radius: .6vmin; background: linear-gradient(115deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0) 70%, rgba(255,255,255,.25) 100%); pointer-events: none; }
+  .row { display: flex; align-items: baseline; gap: 2vmin; border-bottom: 1px solid rgba(42,35,32,.28); padding: .3vmin 0 .2vmin; }
+  .row:last-child { border-bottom: 0; }
+  .row small { flex: none; width: 13vmin; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; color: #6F6258; }
+  .row span { font-family: "Caveat", "Bradley Hand", cursive; font-weight: 600; font-size: 3.8vmin; line-height: 1.15; color: #1F2E6B; white-space: nowrap; }
+  .row b { color: #B3321F; font-weight: 600; }
+  .foot { position: absolute; right: 6vmin; bottom: 4.4vmin; font-size: 1.9vmin; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .foot b { font-weight: 500; border-bottom: .25vmin solid var(--ink); padding-bottom: .3vmin; margin-left: 2vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 60vmin); }
+    .zone { height: 60vmin; }
+    .rig { left: 8vmin; width: 82vmin; }
+    .tag { top: 8vmin; height: 44vmin; }
+    .eyelet { top: calc(8vmin + 22vmin - 4.3vmin); }
+    .h { font-size: 7.4vmin; }
+    .body { gap: 1.8vmin; padding-top: 4vmin; padding-bottom: 4vmin; }
+    .row span { font-size: 3.5vmin; }
+    .foot { bottom: 3.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 52%; height: 100%; object-position: 50% 24%; }
+    .zone { left: 52%; top: 0; height: 100%; }
+    .rig { left: 6vmin; top: 0; width: 37vmin; height: 86vmin; transform: rotate(1.4deg); transform-origin: 50% 0; }
+    .strap { left: calc(50% - 3.2vmin); top: -2vmin; height: 20vmin; }
+    .buckle { left: calc(50% - 4.8vmin); top: 2vmin; }
+    .tag { top: 7vmin; height: 78vmin; flex-direction: column;
+      -webkit-mask: radial-gradient(circle at 50% 8.6vmin, transparent 3.1vmin, #000 3.2vmin); mask: radial-gradient(circle at 50% 8.6vmin, transparent 3.1vmin, #000 3.2vmin); }
+    .eyelet { left: calc(50% - 4.3vmin); top: calc(7vmin + 8.6vmin - 4.3vmin); }
+    .end { width: auto; height: 14vmin; }
+    .body { padding: 1vmin 4.2vmin 4.2vmin; gap: 2.2vmin; }
+    .brand { flex-direction: column; gap: .8vmin; font-size: 1.7vmin; letter-spacing: .22em; }
+    .h { font-size: 7.2vmin; }
+    .win { padding: 1.4vmin 2vmin; }
+    .row { flex-direction: column; gap: 0; align-items: flex-start; }
+    .row small { width: auto; font-size: 1.6vmin; }
+    .row span { font-size: 3.4vmin; }
+    .foot { right: auto; left: 6vmin; bottom: 3.6vmin; font-size: 1.7vmin; letter-spacing: .12em; }
+    .foot em { display: none; }
+    .foot b { margin-left: 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .zone { left: 46%; }
+    .rig { left: 7vmin; top: 12vmin; width: 68vmin; height: 70vmin; transform: rotate(-1.6deg); transform-origin: 12vmin 0; }
+    .strap { left: 6.2vmin; top: -14vmin; height: 44vmin; }
+    .buckle { left: 4.6vmin; top: -6vmin; }
+    .tag { top: 6vmin; height: 56vmin; flex-direction: row;
+      -webkit-mask: radial-gradient(circle at 9.4vmin 50%, transparent 3.1vmin, #000 3.2vmin); mask: radial-gradient(circle at 9.4vmin 50%, transparent 3.1vmin, #000 3.2vmin); }
+    .eyelet { left: calc(9.4vmin - 4.3vmin); top: calc(6vmin + 28vmin - 4.3vmin); }
+    .end { width: 17vmin; height: auto; }
+    .body { padding: 5vmin 5vmin 5vmin 1vmin; gap: 2.6vmin; }
+    .brand { flex-direction: row; font-size: 1.8vmin; }
+    .h { font-size: 8vmin; }
+    .row { flex-direction: row; align-items: baseline; gap: 2vmin; }
+    .row small { width: 12vmin; }
+    .row span { font-size: 3.6vmin; }
+    .foot { left: auto; right: 6vmin; bottom: 5vmin; font-size: 1.9vmin; }
+    .foot em { display: inline; }
+    .foot b { margin-left: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="zone">
+    <div class="rig">
+      <div class="strap"></div>
+      <div class="buckle"></div>
+      <div class="tag">
+        <svg class="grain" aria-hidden="true"><filter id="lg"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="3" seed="7"/><feColorMatrix values="0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .05  0 0 0 1.4 -.35"/></filter><rect width="100%" height="100%" filter="url(#lg)"/></svg>
+        <div class="end"></div>
+        <div class="body">
+          <div class="brand"><span>Atelier Nord</span><span>Resort 27</span></div>
+          <div class="h">Pack the edit.</div>
+          <div class="win">
+            <div class="row"><small>Name</small><span>You</span></div>
+            <div class="row"><small>Destination</small><span>Somewhere warm</span></div>
+            <div class="row"><small>Code</small><span>TAGGED20 · <b>−20%</b></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="eyelet"></div>
+    </div>
+    <div class="foot"><em>Free returns</em><b>Shop now →</b></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Stardos+Stencil:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  /* Feed Sack — a printed cotton mill sack: loose-weave cloth, a chain-stitched top seam, a two-ink (navy + barn red)
+     stencil label with an arched mill name, the product printed in a double-ruled panel, an EXTRA FANCY ribbon and the grade as the offer.
+     tall → label stacked around the panel · square → panel left, label right · wide → label left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EDE3CF; }
+  .banner { --navy: #1F3160; --red: #B8322A; --cloth: #EDE3CF; --seam: 5vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--navy); font-family: "Special Elite", "Courier New", monospace;
+    background:
+      repeating-linear-gradient(0deg, rgba(120,95,55,.10) 0 1px, transparent 1px .55vmin),
+      repeating-linear-gradient(90deg, rgba(120,95,55,.09) 0 1px, transparent 1px .5vmin),
+      radial-gradient(70% 50% at 50% 40%, rgba(255,255,255,.45), transparent 70%),
+      radial-gradient(120% 80% at 50% 110%, rgba(150,120,70,.25), transparent 70%),
+      var(--cloth); }
+  .weave { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; z-index: 0; }
+
+  /* top seam: folded hem + chain stitch */
+  .seam { position: absolute; left: 0; right: 0; top: 0; height: var(--seam); z-index: 3;
+    background: linear-gradient(180deg, #DCCFB4 0%, #E8DDC6 60%, rgba(150,120,70,.35) 100%); box-shadow: 0 .4vmin .8vmin rgba(120,95,55,.25); }
+  .seam::after { content: ""; position: absolute; left: 0; right: 0; top: 45%; height: 1.2vmin;
+    background: radial-gradient(ellipse .9vmin .45vmin at 50% 50%, transparent 45%, #6B5A40 50% 70%, transparent 75%) 0 0 / 1.6vmin 1.2vmin repeat-x; }
+
+  .label { position: absolute; z-index: 1; left: 8vmin; right: 8vmin; top: calc(var(--seam) + 3.6vmin); bottom: 5vmin; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .ink { mix-blend-mode: multiply; }
+  .arch { display: block; width: 84vmin; height: 22.4vmin; flex: none; overflow: visible; }
+  .arch text { font-family: "Stardos Stencil", Impact, sans-serif; font-weight: 700; font-size: 31px; letter-spacing: 1.5px; fill: var(--red); }
+  .tag { display: flex; align-items: center; gap: 1.6vmin; margin-top: 1vmin; font-size: 2.2vmin; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .tag::before, .tag::after { content: "★"; color: var(--red); font-size: 2vmin; }
+
+  .panel { position: relative; flex: 1; min-height: 0; align-self: stretch; margin-top: 3vmin; border: .7vmin solid var(--navy); padding: 1vmin; box-sizing: border-box; outline: .3vmin solid var(--navy); outline-offset: .8vmin; }
+  .panel img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+
+  .ribbon { position: relative; margin-top: 4.6vmin; padding: 1.2vmin 7vmin 1vmin; background: var(--red); color: var(--cloth); white-space: nowrap;
+    font-family: "Stardos Stencil", Impact, sans-serif; font-weight: 700; font-size: 4.4vmin; line-height: 1; letter-spacing: .14em;
+    clip-path: polygon(0 0, 100% 0, 96% 50%, 100% 100%, 0 100%, 4% 50%); }
+  .grade { margin-top: 1.6vmin; font-family: "Stardos Stencil", Impact, sans-serif; font-weight: 700; font-size: 16vmin; line-height: .9; letter-spacing: .01em; white-space: nowrap; }
+  .grade small { font-size: .42em; letter-spacing: .06em; }
+  .net { margin-top: 1.8vmin; display: flex; align-items: center; justify-content: center; gap: 2.4vmin; font-size: 2.4vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .net b { font-weight: 400; border: .35vmin solid var(--navy); padding: .7vmin 1.4vmin .5vmin; }
+  .foot { margin-top: 1.8vmin; display: flex; align-items: center; justify-content: space-between; align-self: stretch; padding-top: 1.6vmin; border-top: .35vmin solid var(--navy);
+    font-size: 2vmin; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .foot span:last-child { color: var(--red); }
+
+  /* 3:4 – 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --seam: 4.4vmin; }
+    .label { top: calc(var(--seam) + 2.6vmin); bottom: 4vmin; }
+    .arch { width: 72vmin; height: 19.2vmin; }
+    .tag { font-size: 1.9vmin; }
+    .panel { margin-top: 2.4vmin; }
+    .ribbon { margin-top: 3.6vmin; font-size: 3.8vmin; }
+    .grade { font-size: 12.6vmin; margin-top: 1.2vmin; }
+    .net { margin-top: 1.2vmin; font-size: 2.1vmin; }
+    .foot { margin-top: 1.4vmin; padding-top: 1.2vmin; font-size: 1.8vmin; }
+  }
+  /* square: printed panel left, label right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --seam: 4.4vmin; }
+    .label { left: 50%; right: 5vmin; top: calc(var(--seam) + 4vmin); bottom: 5vmin; justify-content: space-between; }
+    .panel { position: fixed; left: 5vmin; top: calc(var(--seam) + 5vmin); width: calc(50% - 10vmin); height: calc(100% - var(--seam) - 10vmin); margin: 0; flex: none; }
+    .arch { width: 44vmin; height: 11.7vmin; }
+    .tag { font-size: 1.7vmin; letter-spacing: .16em; gap: 1vmin; }
+    .tag::before, .tag::after { font-size: 1.6vmin; }
+    .ribbon { margin-top: 0; font-size: 3.2vmin; padding: 1vmin 4.6vmin .8vmin; }
+    .grade { margin-top: 0; font-size: 11.6vmin; }
+    .net { margin-top: 0; flex-direction: column; gap: 1.2vmin; font-size: 1.8vmin; }
+    .foot { margin-top: 0; flex-direction: column; gap: 1vmin; font-size: 1.7vmin; letter-spacing: .14em; padding-top: 1.4vmin; }
+  }
+  /* wide: label left, panel right */
+  @media (min-aspect-ratio: 6/5) {
+    .label { left: 6vmin; right: 48%; top: calc(var(--seam) + 4.4vmin); bottom: 5.4vmin; }
+    .panel { left: auto; right: 6vmin; width: calc(48% - 10vmin); top: calc(var(--seam) + 5vmin); height: calc(100% - var(--seam) - 10vmin); }
+    .arch { width: 60vmin; height: 16vmin; }
+    .tag { font-size: 1.9vmin; letter-spacing: .2em; gap: 1.4vmin; }
+    .ribbon { font-size: 3.8vmin; padding: 1.1vmin 6vmin .9vmin; }
+    .grade { font-size: 13.6vmin; }
+    .net { flex-direction: row; gap: 2vmin; font-size: 2vmin; }
+    .foot { flex-direction: row; gap: 2vmin; font-size: 1.8vmin; letter-spacing: .16em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="seam"></div>
+  <div class="label">
+    <svg class="arch ink" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg">
+      <defs><path id="arc" d="M6 74 Q150 -16 294 74"/></defs>
+      <text text-anchor="middle"><textPath href="#arc" startOffset="50%">PRAIRIE MILLS</textPath></text>
+    </svg>
+    <div class="tag ink">Finest grade · Since 1902</div>
+    <div class="panel"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="ribbon ink">EXTRA FANCY</div>
+    <div class="grade ink">30%<small> OFF</small></div>
+    <div class="net ink"><span>Net wt: the whole new season</span><b>Code MILL30</b></div>
+    <div class="foot ink"><span>Milled for the weekend</span><span>Shop now →</span></div>
+  </div>
+  <svg class="weave" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="w"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="3" seed="9"/><feColorMatrix values="0 0 0 0 .5  0 0 0 0 .4  0 0 0 0 .25  0 0 0 -1.4 .95"/></filter><rect width="100%" height="100%" filter="url(#w)" opacity=".35"/></svg>
+</div>
+</body>
+</html>

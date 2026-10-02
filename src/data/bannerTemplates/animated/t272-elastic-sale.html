@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Elastic Sale — the word is stretched to fill whatever box the frame gives it: squat and wide
+     under a tall photo, skyscraper-tall beside a square one. SVG type with preserveAspectRatio none,
+     so the lettering is always edge-to-edge, never cropped.
+     TALL → photo above, elastic panel below · 7/10+ → photo left, elastic column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0F0F0F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0F0F0F; color: #F2EDE3; font-family: "DM Mono", Menlo, monospace; display: flex; flex-direction: column; }
+
+  .ph { position: relative; flex: 1; min-height: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .panel { flex: none; height: 43%; box-sizing: border-box; padding: 3.2vmin 4.4vmin 4.4vmin; display: flex; flex-direction: column; gap: 2.2vmin; }
+  .top { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; color: rgba(242,237,227,.7); padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(242,237,227,.35); }
+  .top b { color: #FF5B24; font-weight: 500; }
+  .el { display: block; width: 100%; min-height: 0; overflow: hidden; }
+  .el text { font-family: "Anton", "Impact", "Arial Narrow", sans-serif; }
+  .word { flex: 1; }
+  .row { flex: none; height: 17vmin; display: flex; gap: 3.4vmin; align-items: stretch; }
+  .pct { flex: none; width: 46%; height: 100%; }
+  .info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+  .info p { margin: 0; font-size: 1.8vmin; line-height: 1.45; letter-spacing: .04em; text-transform: uppercase; color: rgba(242,237,227,.75); }
+  .info p b { color: #F2EDE3; font-weight: 500; }
+  .cta { display: flex; justify-content: space-between; align-items: center; background: #F2EDE3; color: #0F0F0F; font-size: 2.1vmin; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; padding: 1.7vmin 2.2vmin; white-space: nowrap; }
+
+  /* SHORTER PORTRAIT — photo left, the column of elastic type right */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { flex-direction: row; }
+    .panel { height: 100%; width: 46%; padding: 4.4vmin 4.4vmin 4.4vmin 4vmin; }
+    .row { flex-direction: column; height: auto; flex: none; gap: 2.4vmin; }
+    .pct { width: 100%; height: 15vmin; }
+    .info { gap: 2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .panel { width: 44%; padding: 3.6vmin; gap: 1.8vmin; }
+    .top span:last-child { display: none; }
+    .pct { height: 12vmin; }
+    .info p { font-size: 1.6vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.5vmin 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .panel { width: 52%; padding: 4.4vmin 5vmin; gap: 2.4vmin; }
+    .top span:last-child { display: inline; }
+    .row { flex-direction: row; height: 18vmin; gap: 3.4vmin; }
+    .pct { width: 48%; height: 100%; }
+    .info p { font-size: 1.7vmin; }
+    .cta { font-size: 2vmin; padding: 1.6vmin 2vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static poster) ─────────
+     the lettering is elastic: 1.2s SALE is squashed down onto its baseline and springs back (damped, never past its box)
+     2.6s −40% is pulled in from the right and snaps back · constant: slow photo push-in, "Final week" blinks
+     4.4s the CTA fills with a light sheen, arrow nudges */
+  .ph { overflow: hidden; }
+  .photo { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  .el.word { transform-origin: 50% 100%; animation: squash 6s linear infinite; }
+  @keyframes squash {
+    0%, 18% { transform: scaleY(1); animation-timing-function: cubic-bezier(.7,0,.9,.4); }
+    24% { transform: scaleY(.42); animation-timing-function: cubic-bezier(.15,.7,.3,1); }
+    31% { transform: scaleY(1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    35% { transform: scaleY(.86); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    39% { transform: scaleY(1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    42% { transform: scaleY(.96); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    45%, 100% { transform: scaleY(1); }
+  }
+  .el.pct { transform-origin: 0 50%; animation: pull 6s linear infinite; }
+  @keyframes pull {
+    0%, 42% { transform: scaleX(1); animation-timing-function: cubic-bezier(.7,0,.9,.4); }
+    48% { transform: scaleX(.5); animation-timing-function: cubic-bezier(.15,.7,.3,1); }
+    55% { transform: scaleX(1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    59% { transform: scaleX(.88); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    63% { transform: scaleX(1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    66% { transform: scaleX(.97); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    69%, 100% { transform: scaleX(1); }
+  }
+  .top b { animation: blink 1.5s steps(1, end) infinite; }
+  @keyframes blink { 0%, 60% { opacity: 1; } 61%, 85% { opacity: .3; } 86%, 100% { opacity: 1; } }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%;
+    background: linear-gradient(90deg, rgba(255,91,36,0), rgba(255,91,36,.28) 50%, rgba(255,91,36,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 72% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    86%, 100% { transform: translateX(330%) skewX(-18deg); }
+  }
+  .cta span:last-child { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 76% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    79% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    82% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    85% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="panel">
+    <div class="top"><span>Season sale · <b>Final week</b></span><span>Nº 04</span></div>
+    <svg class="el word" viewBox="0 0 1000 400" preserveAspectRatio="none"><text x="0" y="398" textLength="1000" lengthAdjust="spacingAndGlyphs" font-size="458" fill="#F2EDE3">SALE</text></svg>
+    <div class="row">
+      <svg class="el pct" viewBox="0 0 1000 400" preserveAspectRatio="none"><text x="0" y="398" textLength="1000" lengthAdjust="spacingAndGlyphs" font-size="458" fill="#FF5B24">−40%</text></svg>
+      <div class="info">
+        <p>Code <b>STRETCH40</b><br>Until Sunday, 23:59</p>
+        <div class="cta"><span>Shop sale</span><span>→</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

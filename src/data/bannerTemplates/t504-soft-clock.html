@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,100;1,9..144,300..700,100&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Soft Clock — a Dalí afternoon: a pale desert plain under a milky sky, distant ochre cliffs, the look standing
+     upright like a canvas planted in the sand with a long raking shadow, and a gold pocket watch melting over the
+     edge of a stone block beside it. A 48-hour sale "before the prices melt back".
+     tall → headline in the sky, photo left, block + clock right · 3:4 → one-line headline, copy column right
+     square / wide → photo left, copy column right, block + clock bottom right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D8C49A; }
+  .banner { --hz: 52%; position: fixed; inset: 0; overflow: hidden; color: #3A2616; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #86A8C6 0%, #A9BFCB 26%, #CFD3C5 44%, #EADAB0 var(--hz), #EADAB0 100%); }
+  .cliff { position: absolute; right: 0; width: 64vmin; height: 12vmin; top: calc(var(--hz) - 12vmin);
+    background: linear-gradient(180deg, #B8875A, #9E6E44); clip-path: polygon(0 100%, 8% 70%, 20% 64%, 30% 40%, 44% 30%, 52% 8%, 64% 0, 74% 14%, 84% 20%, 92% 44%, 100% 50%, 100% 100%); }
+  .ground { position: absolute; left: 0; right: 0; top: var(--hz); bottom: 0; background: linear-gradient(180deg, #D9B77E 0%, #CDA56A 30%, #B98D52 70%, #A87A43 100%); }
+  .ground::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(178deg, transparent 0 3.4vmin, rgba(120,80,40,.1) 3.4vmin calc(3.4vmin + 1px)); }
+  .sea { position: absolute; left: 0; width: 34vmin; top: var(--hz); height: 2.4vmin; background: linear-gradient(180deg, #8FB4C6, #C3D2CB); clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%); }
+
+  /* the photo, planted like a canvas, with its raking shadow */
+  .shadow { position: absolute; left: var(--px); width: var(--pw); top: calc(100% - var(--pb)); height: 6vmin; transform-origin: 0 0; transform: skewX(58deg);
+    background: linear-gradient(180deg, rgba(70,40,14,.45), rgba(70,40,14,0)); filter: blur(.4vmin); }
+  .photo { position: absolute; left: var(--px); top: var(--pt); width: var(--pw); height: calc(100% - var(--pt) - var(--pb)); object-fit: cover; object-position: 50% 25%; display: block;
+    box-shadow: 1.2vmin 1.4vmin 2.4vmin rgba(70,40,14,.28); }
+
+  /* stone block + melting watch */
+  .block { position: absolute; right: var(--br); width: var(--bw); bottom: var(--pb); height: var(--bh);
+    background: linear-gradient(90deg, #C9A57A 0%, #D8B98E 55%, #BE976A 100%); box-shadow: 3vmin 1vmin 3vmin rgba(70,40,14,.25); }
+  .block::before { content: ""; position: absolute; left: 0; right: 0; top: -3vmin; height: 3vmin; background: linear-gradient(180deg, #E9D2AE, #DCC096); clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%); }
+  .clock { position: absolute; left: 50%; top: -3.6vmin; width: calc(var(--bw) * .78); height: calc(var(--bh) + 6vmin); transform: translateX(-54%); }
+  .ctop { position: absolute; left: 0; top: 0; width: 100%; height: 6.4vmin; border-radius: 50%; box-sizing: border-box; border: .7vmin solid #C69B42;
+    background: radial-gradient(ellipse at 50% 60%, #FBF4E2, #EFE3C6); box-shadow: 0 .4vmin .8vmin rgba(70,40,14,.2); }
+  .ctop::before { content: ""; position: absolute; left: 50%; top: -1.8vmin; width: 2.4vmin; height: 1.6vmin; transform: translateX(-50%); border-radius: 40% 40% 20% 20%; background: linear-gradient(90deg, #A8812F, #E9C877, #A8812F); }
+  .hang { position: absolute; left: 6%; width: 80%; top: 3.2vmin; height: calc(100% - 9vmin); box-sizing: border-box;
+    border: .7vmin solid #C69B42; border-top: 0; border-radius: 0 0 58% 42% / 0 0 72% 100%;
+    background: linear-gradient(180deg, #F6EDD6 0%, #EFE3C6 60%, #E2D0A8 100%); box-shadow: .8vmin 1vmin 1.4vmin rgba(70,40,14,.25); }
+  .drip { position: absolute; left: 52%; bottom: -5.4vmin; width: 22%; height: 7vmin; box-sizing: border-box; border: .7vmin solid #C69B42; border-top: 0;
+    border-radius: 0 0 50% 50% / 0 0 100% 100%; background: linear-gradient(180deg, #EFE3C6, #E2D0A8); }
+  .drip::before { content: ""; position: absolute; left: -.7vmin; right: -.7vmin; top: -1.2vmin; height: 2vmin; background: #E7D8B4; }
+  .hand { position: absolute; left: 44%; top: 34%; height: .5vmin; background: #2F2014; transform-origin: 0 50%; border-radius: .3vmin; }
+  .h1n { width: 30%; transform: rotate(-150deg) scaleX(.9); }
+  .h2n { width: 44%; transform: rotate(64deg) skewX(10deg); }
+  .hub { position: absolute; left: calc(44% - .8vmin); top: calc(34% - .6vmin); width: 1.6vmin; height: 1.6vmin; border-radius: 50%; background: #2F2014; }
+  .tick { position: absolute; width: .5vmin; height: 1.2vmin; background: #6E5230; border-radius: .2vmin; }
+  .t1 { left: 12%; top: 12%; transform: rotate(-40deg); } .t2 { left: 82%; top: 14%; transform: rotate(38deg); } .t3 { left: 8%; top: 52%; transform: rotate(-80deg); }
+  .t4 { left: 86%; top: 46%; transform: rotate(70deg); } .t5 { left: 30%; top: 78%; transform: rotate(-20deg); } .t6 { left: 68%; top: 80%; transform: rotate(24deg); }
+  .num { position: absolute; left: 50%; top: .6vmin; transform: translateX(-50%) scaleY(.7); font-family: "Fraunces", Georgia, serif; font-size: 2vmin; font-weight: 600; color: #6E5230; line-height: 1; }
+
+  /* type */
+  .mast { position: absolute; left: 7vmin; right: 7vmin; top: 5vmin; display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; white-space: nowrap; color: #24344A; }
+  .mast span + span { font-weight: 400; }
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 10vmin; color: #1F2C40; }
+  h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-variation-settings: "SOFT" 100; font-weight: 400; font-size: 16vmin; line-height: .9; letter-spacing: -.03em; white-space: nowrap; }
+  h1 i { font-weight: 300; color: #8C4F1E; }
+  .sub { margin-top: 2.4vmin; font-size: 2.1vmin; line-height: 1.45; max-width: 60vmin; }
+  .foot { position: absolute; left: 7vmin; right: 7vmin; bottom: 0; height: calc(var(--pb) - 2vmin); display: flex; align-items: center; justify-content: space-between; gap: 3vmin; color: #2B1B0E; }
+  .offer { font-size: 2vmin; line-height: 1.35; font-weight: 500; }
+  .offer b { display: block; font-family: "Fraunces", Georgia, serif; font-variation-settings: "SOFT" 100; font-weight: 600; font-size: 6vmin; line-height: 1; letter-spacing: -.02em; }
+  .offer small { display: block; margin-top: .6vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; opacity: .85; }
+  .cta { flex: none; padding: 1.8vmin 3.4vmin; background: #1F2C40; color: #FFF6E6; border-radius: 99vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .08em; white-space: nowrap; }
+
+  .banner { --pt: 53vmin; --pb: 20vmin; --px: 7vmin; --pw: 56vmin; --br: 5vmin; --bw: 28vmin; --bh: 18vmin; }
+  .banner { --hz: calc(100% - 42vmin); }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pt: 29vmin; --pb: 17vmin; --pw: 54vmin; --px: 6vmin; --bw: 24vmin; --bh: 15vmin; --hz: calc(100% - 38vmin); }
+    .mast { left: 6vmin; right: 6vmin; top: 4.6vmin; }
+    .head { left: 6vmin; top: 10vmin; }
+    h1 { font-size: 11.4vmin; }
+    h1 br { display: none; }
+    .sub { position: absolute; left: 58vmin; top: 19vmin; width: 32vmin; max-width: none; font-size: 1.9vmin; }
+    .foot { left: 6vmin; right: 6vmin; }
+    .offer b { font-size: 5.2vmin; }
+    .cliff { width: 44vmin; }
+  }
+  /* square → photo left, copy right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pt: 6vmin; --pb: 14vmin; --px: 6vmin; --pw: 46%; --br: 5vmin; --bw: 20vmin; --bh: 13vmin; --hz: 62%; }
+    .mast { left: calc(46% + 12vmin); right: 5vmin; top: 6vmin; flex-direction: column; gap: 1vmin; }
+    .head { left: calc(46% + 12vmin); right: 5vmin; top: 14vmin; }
+    h1 { font-size: 9.4vmin; }
+    h1 br { display: inline; }
+    .sub { position: static; width: auto; font-size: 1.8vmin; max-width: 36vmin; }
+    .foot { left: calc(46% + 12vmin); right: 5vmin; top: 46vmin; bottom: auto; height: auto; flex-direction: column; align-items: flex-start; gap: 2vmin; color: #3A2616; }
+    .offer b { font-size: 5vmin; color: #8C4F1E; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2.8vmin; }
+    .cliff { width: 40vmin; }
+    .sea { width: 18vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pt: 7vmin; --pb: 12vmin; --px: 7vmin; --pw: 40%; --br: 7vmin; --bw: 24vmin; --bh: 15vmin; --hz: 62%; }
+    .mast { left: calc(40% + 16vmin); right: 7vmin; top: 7vmin; flex-direction: row; }
+    .head { left: calc(40% + 16vmin); right: 7vmin; top: 13vmin; }
+    h1 { font-size: 11vmin; }
+    .sub { font-size: 2vmin; max-width: 44vmin; }
+    .foot { left: calc(40% + 16vmin); right: 36vmin; top: 49vmin; }
+    .offer b { font-size: 5.4vmin; }
+    .cta { font-size: 1.8vmin; }
+    .cliff { width: 56vmin; }
+    .sea { width: 30vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="cliff"></div>
+  <div class="ground"></div>
+  <div class="sea"></div>
+  <div class="shadow"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="block">
+    <div class="clock">
+      <div class="ctop"><span class="num">XII</span></div>
+      <div class="hang">
+        <i class="tick t1"></i><i class="tick t2"></i><i class="tick t3"></i><i class="tick t4"></i><i class="tick t5"></i><i class="tick t6"></i>
+        <i class="hand h1n"></i><i class="hand h2n"></i><i class="hub"></i>
+        <i class="drip"></i>
+      </div>
+    </div>
+  </div>
+  <div class="mast"><span>Solenne</span><span>48-hour sale</span></div>
+  <div class="head">
+    <h1>Time is <br><i>soft.</i></h1>
+    <div class="sub">For two days only, every price bends — before it all sets again.</div>
+  </div>
+  <div class="foot">
+    <div class="offer"><b>−40%</b>on the whole collection<small>Ends Sunday 23:59</small></div>
+    <span class="cta">Shop before it sets →</span>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Crimson+Pro:ital,wght@0,400;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  /* Sky Bird — after Magritte's "Sky Bird": a storm-grey night over a dark sea, and a huge dove cut out of it that
+     is full of bright daytime sky and clouds. The dove flies out from behind the photo (the photo always sits in
+     front of it). "Carry the sky" — light pieces for heavy weather.
+     tall → photo right, dove upper left, headline + offer on the sea · 3:4 / square → photo right, copy column
+     under the dove · wide → bigger dove, copy column left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #262E39; }
+  .banner { --hz: calc(100% - 40vmin); position: fixed; inset: 0; overflow: hidden; color: #EEF1F4; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #1D242E 0%, #2E3744 45%, #48525F 88%, #6E7580 100%); }
+  .storm { position: absolute; inset: 0; opacity: .5;
+    background: radial-gradient(60% 18% at 20% 18%, rgba(90,100,114,.6), transparent 70%), radial-gradient(50% 14% at 80% 40%, rgba(80,90,104,.55), transparent 70%), radial-gradient(70% 16% at 40% 70%, rgba(96,104,116,.4), transparent 70%); }
+  .sea { position: absolute; left: 0; right: 0; top: var(--hz); bottom: 0; background: linear-gradient(180deg, #2A3542 0%, #1B242F 40%, #121922 100%); }
+  .sea::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: rgba(214,226,238,.45); }
+  .sea::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(180deg, transparent 0 1.8vmin, rgba(190,205,220,.07) 1.8vmin calc(1.8vmin + 1px)); }
+
+  .bird { position: absolute; left: -2vmin; top: 13vmin; width: 56vmin; height: calc(56vmin * .6667); display: block; overflow: visible; filter: drop-shadow(0 0 3vmin rgba(160,200,240,.18)); }
+  .photo { position: absolute; left: 46vmin; right: 6vmin; top: 15vmin; width: calc(100% - 52vmin); height: calc(100% - 15vmin - 40vmin - 4vmin); object-fit: cover; object-position: 50% 25%; display: block;
+    box-shadow: 0 0 0 .8vmin #EEF1F4, 0 3vmin 6vmin rgba(0,0,0,.45); }
+
+  /* type */
+  .mast { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; white-space: nowrap; }
+  .mast span + span { font-weight: 400; color: rgba(238,241,244,.65); }
+  .sub { position: absolute; left: 6vmin; top: 52vmin; width: 32vmin; font-family: "Crimson Pro", Georgia, serif; font-style: italic; font-size: 2.6vmin; line-height: 1.3; color: #C9D8E6; }
+  .head { position: absolute; left: 5.4vmin; right: 6vmin; top: calc(var(--hz) + 4vmin); }
+  h1 { margin: 0; font-weight: 800; font-size: 11vmin; line-height: .92; letter-spacing: -.04em; white-space: nowrap; }
+  h1 i { font-family: "Crimson Pro", Georgia, serif; font-weight: 400; letter-spacing: -.02em; color: #9CC3E8; }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 0; height: 16vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 2vmin; line-height: 1.35; color: rgba(238,241,244,.85); }
+  .offer b { display: block; font-size: 3.8vmin; font-weight: 600; letter-spacing: -.02em; color: #EEF1F4; }
+  .offer small { display: block; margin-top: .4vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #9CC3E8; }
+  .cta { flex: none; padding: 1.8vmin 3.2vmin; background: #9CC3E8; color: #16202B; border-radius: 99vmin; font-size: 1.9vmin; font-weight: 600; white-space: nowrap; }
+
+  /* 3:4 / 4:5 → photo right full height, copy column bottom left */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --hz: 70%; }
+    .bird { left: -4vmin; top: 16vmin; width: 50vmin; height: calc(50vmin * .6667); }
+    .photo { left: 42vmin; top: 6vmin; width: calc(100% - 48vmin); height: calc(100% - 12vmin); }
+    .mast { right: calc(100% - 36vmin); flex-direction: column; gap: 1vmin; }
+    .sub { top: auto; bottom: 30vmin; width: 30vmin; font-size: 2.3vmin; }
+    .head { left: 5.4vmin; right: auto; top: auto; bottom: 36vmin; width: 32vmin; }
+    h1 { font-size: 8.6vmin; white-space: normal; }
+    .foot { left: 6vmin; right: auto; width: 32vmin; bottom: 6vmin; height: auto; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .offer b { font-size: 3.4vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.6vmin 2.8vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --hz: 66%; }
+    .bird { left: -4vmin; top: 8vmin; width: 58vmin; height: calc(58vmin * .6667); }
+    .photo { left: auto; right: 0; top: 0; width: 46%; height: 100%; box-shadow: none; }
+    .mast { right: calc(46% + 5vmin); }
+    .head { bottom: 33vmin; width: calc(54% - 11vmin); }
+    h1 { font-size: 8vmin; }
+    .sub { bottom: 25vmin; width: calc(54% - 12vmin); font-size: 2.2vmin; }
+    .foot { bottom: 6vmin; width: calc(54% - 11vmin); flex-direction: row; align-items: flex-end; justify-content: space-between; }
+  }
+  /* wide → dove across the middle, copy column left */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --hz: 64%; }
+    .photo { width: 40%; }
+    .bird { left: 36vmin; top: 14vmin; width: 48vmin; height: calc(48vmin * .6667); }
+    .mast { left: 7vmin; right: auto; top: 7vmin; flex-direction: column; }
+    .head { left: 6.4vmin; top: 17vmin; bottom: auto; width: 30vmin; }
+    h1 { font-size: 9vmin; }
+    .sub { left: 7vmin; top: 38vmin; bottom: auto; width: 30vmin; }
+    .foot { left: 7vmin; bottom: 7vmin; width: 32vmin; flex-direction: column; align-items: flex-start; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the dove glides on a slow swell while its daytime clouds drift through it; the sea's swell lines roll (2s);
+     the storm banks breathe · beats: 2.2s sheet lightning double-flashes across the night · 3.4s "the sky." wipes away
+     and draws back in · 5.1s a light sweep passes over the CTA */
+  .bird { animation: glide 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glide { 0%, 100% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(1.4vmin, -1.8vmin) rotate(-2deg); } }
+  .bird .sky-in { animation: skyin 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes skyin { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-14px); } }
+  .sea::after { animation: swell 2s linear infinite; }
+  @keyframes swell { from { background-position: 0 0; } to { background-position: 0 calc(1.8vmin + 1px); } }
+  .storm { animation: bank 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bank { 0%, 100% { opacity: .5; } 50% { opacity: .75; } }
+  .storm::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(80% 50% at 45% 20%, rgba(220,232,250,.95), rgba(210,225,245,.25) 60%, transparent 80%);
+    opacity: 0; animation: lightning 6s linear infinite; }
+  @keyframes lightning { 0%, 36%, 37.6%, 38.6%, 41%, 100% { opacity: 0; } 36.4% { opacity: .9; } 37.2% { opacity: .3; } 38.9% { opacity: .7; } }
+  h1 i { display: inline-block; animation: redraw 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes redraw {
+    0%, 52% { clip-path: inset(-15% -4% -25% -4%); }
+    60% { clip-path: inset(-15% -4% -25% 104%); }
+    61% { clip-path: inset(-15% 104% -25% -4%); }
+    73%, 100% { clip-path: inset(-15% -4% -25% -4%); }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: -45%; width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.6), transparent); opacity: 0; animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 82% { transform: translateX(0); opacity: 0; } 83% { opacity: 1; } 96% { transform: translateX(330%); opacity: 1; } 97%, 100% { transform: translateX(330%); opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="storm"></div>
+  <div class="sea"></div>
+  <svg class="bird" viewBox="0 0 240 160" aria-hidden="true">
+    <defs>
+      <clipPath id="dove"><path d="M10,70 L24,64 C28,56 40,54 50,58 C58,60 64,58 72,54 C90,36 116,16 150,4 C140,26 130,44 122,58 C140,46 170,28 204,16 C190,38 172,58 154,72 C168,74 180,76 192,78 L236,66 L232,84 L238,100 L190,94 C170,100 140,104 118,102 C90,100 62,96 44,88 C34,84 28,80 22,76 Z"/></clipPath>
+      <linearGradient id="day" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3E7BC2"/><stop offset=".55" stop-color="#78AADB"/><stop offset="1" stop-color="#CFE2F1"/></linearGradient>
+      <filter id="soft" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="1.6"/></filter>
+      <symbol id="cl" viewBox="0 0 200 100"><g filter="url(#soft)" fill="#FFFFFF"><circle cx="56" cy="60" r="22"/><circle cx="90" cy="44" r="30"/><circle cx="127" cy="50" r="24"/><circle cx="154" cy="63" r="16"/><circle cx="34" cy="71" r="12"/><rect x="30" y="60" width="140" height="22" rx="11" fill="#E4ECF3"/></g></symbol>
+    </defs>
+    <g clip-path="url(#dove)">
+      <rect width="240" height="160" fill="url(#day)"/>
+      <g class="sky-in">
+      <use href="#cl" x="60" y="-6" width="90" height="45"/>
+      <use href="#cl" x="140" y="10" width="70" height="35"/>
+      <use href="#cl" x="10" y="52" width="80" height="40"/>
+      <use href="#cl" x="100" y="62" width="100" height="50"/>
+      </g>
+    </g>
+  </svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="mast"><span>Norrow</span><span>Storm season</span></div>
+  <div class="sub">Light pieces for heavy weather.</div>
+  <div class="head"><h1>Carry <i>the sky.</i></h1></div>
+  <div class="foot">
+    <div class="offer"><b>Free express shipping</b>on every order this weekend<small>Code SKYBIRD</small></div>
+    <span class="cta">Take flight →</span>
+  </div>
+</div>
+</body>
+</html>

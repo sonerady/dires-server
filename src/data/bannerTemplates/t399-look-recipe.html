@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Look Recipe — the outfit written up as a handed-down recipe card: the look is the finished dish,
+     taped to a ruled index card with a red header rule, serves / prep / level, a typewritten
+     ingredients list ("1 hero piece, pictured", "a pinch of gold") and a three-step method.
+     tall → photo above the card; 3:4 / square → photo left, card right; wide → card with two columns */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E9DCC0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E9DCC0; color: #2A2622; font-family: "Courier Prime", "Courier New", monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .card { position: absolute; left: 4vmin; right: 4vmin; bottom: 4vmin; height: 78vmin; box-sizing: border-box; background: #FFFDF6; padding: 4vmin 5vmin 4.4vmin;
+    box-shadow: 0 .6vmin 2vmin rgba(70,50,20,.18); display: flex; flex-direction: column; }
+  .tape { position: absolute; top: -3vmin; width: 15vmin; height: 5vmin; background: rgba(236,226,196,.82); box-shadow: 0 .2vmin .6vmin rgba(0,0,0,.08);
+    clip-path: polygon(2% 8%, 8% 0, 16% 10%, 26% 2%, 36% 9%, 48% 1%, 60% 9%, 72% 0, 84% 8%, 94% 1%, 100% 10%, 98% 90%, 92% 100%, 82% 92%, 70% 100%, 58% 91%, 46% 100%, 34% 92%, 22% 100%, 12% 91%, 3% 100%, 0 88%); }
+  .t1 { left: 5vmin; transform: rotate(-4deg); }
+  .t2 { right: 5vmin; transform: rotate(3deg); }
+
+  .from { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; letter-spacing: .04em; }
+  .from b { color: #C0392B; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-style: italic; font-size: 9.6vmin; line-height: .92; letter-spacing: -.015em; }
+  .meta { display: flex; flex-wrap: wrap; gap: .6vmin 3vmin; margin-top: 2.4vmin; padding-bottom: 1.6vmin; border-bottom: .45vmin solid #C0392B; font-size: 1.8vmin; }
+  .meta span b { font-weight: 700; }
+  .body { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 4vmin; margin-top: 1.4vmin; }
+  .body h2 { margin: 0; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 3.4vmin; line-height: 4.4vmin; }
+  .body ul, .body ol { list-style: none; margin: 0; padding: 0; font-size: 1.9vmin; line-height: 4.4vmin;
+    background-image: linear-gradient(transparent calc(4.4vmin - 1px), #B9CBE0 calc(4.4vmin - 1px)); background-size: 100% 4.4vmin; }
+  .body li { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .body li i { color: #7A6F63; }
+  .body ol li b { color: #C0392B; margin-right: .8vmin; }
+  .foot { flex: none; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; margin-top: 2.4vmin; }
+  .stamp { white-space: nowrap; display: flex; align-items: center; gap: 1.4vmin; border: .3vmin solid #C0392B; color: #C0392B; padding: 1vmin 1.6vmin; transform: rotate(-2deg); font-size: 1.8vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .stamp b { font-family: "Cormorant Garamond", Georgia, serif; font-size: 3.6vmin; line-height: 1; letter-spacing: 0; }
+  .cta { flex: none; background: #2A2622; color: #FFFDF6; padding: 1.7vmin 2.8vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / square — photo left, card right, lists stacked */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 46%; height: 100%; }
+    .card { left: calc(46% - 3vmin); right: 4vmin; top: 5vmin; bottom: 5vmin; height: auto; padding: 4vmin 4vmin 4vmin; }
+    .t1 { left: -2vmin; top: -2.4vmin; transform: rotate(-38deg); width: 12vmin; height: 4.4vmin; }
+    .t2 { right: -2vmin; top: -2vmin; transform: rotate(32deg); width: 12vmin; height: 4.4vmin; }
+    .from { flex-direction: column; gap: .6vmin; }
+    h1 { font-size: 7.4vmin; margin-top: 2vmin; }
+    .meta { flex-direction: column; margin-top: 1.8vmin; }
+    .body { grid-template-columns: 1fr; margin-top: 1vmin; align-content: start; }
+    .body ol { margin-top: .4vmin; }
+    .body h2 { font-size: 3vmin; line-height: 4.2vmin; }
+    .body ul, .body ol { line-height: 4.2vmin; background-size: 100% 4.2vmin; background-image: linear-gradient(transparent calc(4.2vmin - 1px), #B9CBE0 calc(4.2vmin - 1px)); }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 44%; }
+    .card { left: calc(44% - 3vmin); top: 4vmin; bottom: 4vmin; padding: 3.4vmin 4vmin 3.4vmin; }
+    .from { flex-direction: row; }
+    .from span:last-child { display: none; }
+    h1 { font-size: 6.4vmin; margin-top: 1.6vmin; }
+    .meta { flex-direction: row; margin-top: 1.4vmin; padding-bottom: 1.2vmin; font-size: 1.7vmin; }
+    .body { grid-template-columns: 1fr 1fr; column-gap: 3vmin; }
+    .body ul, .body ol { font-size: 1.7vmin; line-height: 3.8vmin; background-size: 100% 3.8vmin; background-image: linear-gradient(transparent calc(3.8vmin - 1px), #B9CBE0 calc(3.8vmin - 1px)); }
+    .body h2 { font-size: 2.8vmin; line-height: 3.8vmin; }
+    .body ol { margin-top: 0; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; margin-top: 1.6vmin; }
+    .stamp { font-size: 1.6vmin; padding: .8vmin 1.2vmin; }
+    .stamp b { font-size: 3vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .card { left: calc(42% - 4vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; padding: 4vmin 5vmin 4vmin; }
+    .from span:last-child { display: inline; }
+    h1 { font-size: 8vmin; margin-top: 2vmin; }
+    .meta { font-size: 1.8vmin; margin-top: 2vmin; }
+    .body { column-gap: 5vmin; }
+    .body ul, .body ol { font-size: 1.9vmin; line-height: 4.2vmin; background-size: 100% 4.2vmin; background-image: linear-gradient(transparent calc(4.2vmin - 1px), #B9CBE0 calc(4.2vmin - 1px)); }
+    .body h2 { font-size: 3.2vmin; line-height: 4.2vmin; }
+    .stamp { font-size: 1.8vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .cta { font-size: 1.9vmin; padding: 1.6vmin 2.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="card">
+    <div class="tape t1"></div><div class="tape t2"></div>
+    <div class="from"><span>From the atelier of <b>Studio Oro</b></span><span>Recipe Nº 07</span></div>
+    <h1>The easy<br>weekend look</h1>
+    <div class="meta"><span><b>Serves:</b> all weekend</span><span><b>Prep:</b> 5 min</span><span><b>Level:</b> easy</span></div>
+    <div class="body">
+      <ul><li><h2>Ingredients</h2></li><li>1 hero piece <i>(pictured)</i></li><li>2 quiet basics</li><li>a pinch of gold</li><li>a dash of red</li></ul>
+      <ol><li><h2>Method</h2></li><li><b>1.</b>Start with the hero.</li><li><b>2.</b>Keep the rest quiet.</li><li><b>3.</b>Finish with one accent.</li></ol>
+    </div>
+    <div class="foot">
+      <div class="stamp"><b>15%</b>off · code RECIPE15</div>
+      <div class="cta">Get the ingredients</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

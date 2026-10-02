@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+  /* Fogged Window — a steamed-up shop window on a wet afternoon: condensation beads on frosted glass, the
+     sale written with a fingertip (clear strokes with running drips), gilded window lettering arched above,
+     and a small printed card with the code. tall → photo above the glass · square/wide → glass left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #BFCBD2; }
+  .banner { --panel: 86vmin; position: fixed; inset: 0; overflow: hidden; background: #BFCBD2; color: #2F3C45; font-family: "Cormorant Garamond", Georgia, serif; }
+  .hand { font-family: "Caveat", "Bradley Hand", cursive; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .glass { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.4) 0 .16vmin, rgba(255,255,255,0) .32vmin) 0 0 / 1.9vmin 1.7vmin,
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.45) 0 .28vmin, rgba(90,110,122,.16) .38vmin, rgba(255,255,255,0) .5vmin) .7vmin .9vmin / 3.3vmin 2.9vmin,
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,.4) 0 .42vmin, rgba(90,110,122,.15) .56vmin, rgba(255,255,255,0) .72vmin) 1.6vmin .3vmin / 5.3vmin 4.7vmin,
+      radial-gradient(120% 90% at 30% 20%, #E3EAEE 0%, #CBD6DC 55%, #B5C3CB 100%); }
+  .glass::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.6vmin; background: linear-gradient(180deg, #7D8E98, rgba(125,142,152,0)); }
+
+  .gild { position: absolute; left: 50%; top: 3.2vmin; width: 64vmin; height: 17vmin; margin-left: -32vmin; }
+  .note { position: absolute; left: 7vmin; right: 7vmin; top: 24.5vmin; }
+  .note .l1 { font-weight: 500; font-size: 10vmin; line-height: .9; color: #465661; text-shadow: 0 0 .5vmin rgba(70,86,97,.55); transform: rotate(-3deg); transform-origin: 0 50%; }
+  .note .l2 { position: relative; display: inline-block; margin-top: .4vmin; font-weight: 700; font-size: 25vmin; line-height: .9; color: #3A4952; text-shadow: 0 0 .7vmin rgba(58,73,82,.55); transform: rotate(-4deg); transform-origin: 0 50%; }
+  .drip { position: absolute; width: .8vmin; border-radius: .4vmin; background: linear-gradient(180deg, rgba(58,73,82,.85), rgba(58,73,82,.55)); box-shadow: 0 0 .3vmin rgba(58,73,82,.4); }
+  .drip::after { content: ""; position: absolute; left: 50%; bottom: -.7vmin; width: 1.5vmin; height: 1.8vmin; margin-left: -.75vmin; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: rgba(58,73,82,.75); }
+
+  .card { position: absolute; left: 7vmin; right: 7vmin; bottom: 5.4vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding: 2.2vmin 2.6vmin; background: #F7F4EC; color: #2F3C45; box-shadow: 0 .6vmin 1.4vmin rgba(40,55,65,.25); transform: rotate(-.8deg); }
+  .card::before { content: ""; position: absolute; left: 50%; top: -1.4vmin; width: 9vmin; height: 2.8vmin; margin-left: -4.5vmin; background: rgba(240,232,208,.8); transform: rotate(2deg); }
+  .card p { margin: 0; font-size: 2.3vmin; line-height: 1.3; }
+  .card p b { font-weight: 700; letter-spacing: .12em; }
+  .card p small { display: block; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; color: #6B7881; margin-bottom: .4vmin; }
+  .cta { flex: none; padding: 1.6vmin 2.6vmin; background: #2F3C45; color: #F7F4EC; font-weight: 700; font-size: 2vmin; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --panel: 78vmin; }
+    .gild { top: 2.6vmin; }
+    .note { top: 22vmin; }
+    .note .l2 { font-size: 22vmin; }
+    .card { bottom: 4.6vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 64vmin; }
+    .gild { width: 52vmin; height: 14vmin; margin-left: -26vmin; top: 2vmin; }
+    .note { top: 17vmin; }
+    .note .l1 { font-size: 8vmin; }
+    .note .l2 { font-size: 17vmin; }
+    .card { bottom: 3.6vmin; padding: 1.6vmin 2.2vmin; }
+    .card p small { display: none; }
+  }
+  /* square / wide → glass left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 24%; }
+    .glass { top: 0; right: 50%; height: auto; }
+    .glass::after { left: auto; top: 0; bottom: 0; right: 0; width: 1.6vmin; height: auto; background: linear-gradient(270deg, #7D8E98, rgba(125,142,152,0)); }
+    .gild { width: 44vmin; height: 12vmin; margin-left: -23vmin; top: 4vmin; }
+    .note { left: 5vmin; right: 5vmin; top: 20vmin; }
+    .note .l1 { font-size: 7.6vmin; }
+    .note .l2 { font-size: 16vmin; }
+    .card { left: 5vmin; right: 5vmin; bottom: 5vmin; flex-direction: column; align-items: stretch; gap: 1.8vmin; padding: 2.2vmin 2.2vmin; }
+    .card p small { display: block; }
+    .card p { font-size: 2.1vmin; }
+    .cta { text-align: center; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .glass { right: 46%; }
+    .gild { width: 54vmin; height: 15vmin; margin-left: -28vmin; top: 4vmin; }
+    .note { left: 7vmin; right: 7vmin; top: 23vmin; }
+    .note .l1 { font-size: 9vmin; }
+    .note .l2 { font-size: 21vmin; }
+    .card { left: 7vmin; right: 7vmin; bottom: 6vmin; flex-direction: row; align-items: center; padding: 2vmin 2.6vmin; }
+    .card p { font-size: 2.2vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+     constant: the gilt window lettering catches the light (3s); beads at the end of the finger-drawn drips slip down,
+               vanish and re-form one after another
+     beat: 1.8s a breath of steam fogs the glass over the writing, then slowly clears again (off by 4.4s) · 5s CTA sheen */
+  .glass::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0;
+    background: radial-gradient(60% 45% at 45% 45%, rgba(236,241,244,.85), rgba(226,233,237,.55) 55%, rgba(226,233,237,0) 100%);
+    animation: breath 6s linear infinite; }
+  @keyframes breath {
+    0%, 28% { opacity: 0; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    38% { opacity: .75; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    74%, 100% { opacity: 0; }
+  }
+  .card { z-index: 2; }
+  .gild { animation: gilt 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes gilt { 0%, 100% { filter: brightness(1) saturate(1); } 50% { filter: brightness(1.18) saturate(1.15); } }
+  .drip::after { animation: bead 6s linear infinite; }
+  .drip:nth-of-type(2)::after { animation-delay: -1.2s; } .drip:nth-of-type(3)::after { animation-delay: -.6s; }
+  @keyframes bead {
+    0%, 30% { transform: none; opacity: 1; animation-timing-function: cubic-bezier(.6,0,.8,.6); }
+    50% { transform: translateY(5vmin) scaleY(1.2) scaleX(.9); opacity: .9; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    56% { transform: translateY(7vmin) scaleY(1.3) scaleX(.8); opacity: 0; animation-timing-function: steps(1, end); }
+    60% { transform: scale(.2); opacity: 0; animation-timing-function: cubic-bezier(.2,.8,.3,1.2); }
+    72%, 100% { transform: none; opacity: 1; }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 30%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.3) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 80% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    94%, 100% { transform: translateX(420%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="glass">
+    <svg class="gild" viewBox="0 0 320 84" aria-hidden="true">
+      <defs>
+        <path id="fwArc" d="M22 78 Q160 -6 298 78"/>
+        <linearGradient id="fwGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3DC9A"/><stop offset=".5" stop-color="#C9A04A"/><stop offset="1" stop-color="#8E6A24"/></linearGradient>
+      </defs>
+      <text font-family="Cormorant Garamond, Georgia, serif" font-weight="700" font-size="30" letter-spacing="7" fill="url(#fwGold)" stroke="#6E5118" stroke-width=".6">
+        <textPath href="#fwArc" startOffset="50%" text-anchor="middle">ATELIER NORD</textPath>
+      </text>
+      <text x="160" y="78" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-weight="500" font-size="15" fill="#5E4A1E">rainy-day window</text>
+    </svg>
+    <div class="note hand" aria-label="Rainy day sale, 40% off">
+      <div class="l1">while it rains…</div>
+      <div class="l2">−40%
+        <i class="drip" style="left:31%;top:70%;height:7vmin"></i>
+        <i class="drip" style="left:58%;top:76%;height:4.4vmin"></i>
+        <i class="drip" style="left:86%;top:72%;height:9vmin"></i>
+      </div>
+    </div>
+    <div class="card">
+      <p><small>Written on the glass</small>Everything, all weekend.<br>Code <b>FOGGY</b></p>
+      <div class="cta">Come inside</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

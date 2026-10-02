@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,400;1,500&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Tint Scale — the frame is a printer's tint ladder: ten horizontal bands of lilac from 10 to 100,
+     each numbered at the edge. The photo is a clean window laid across the middle of the scale;
+     copy sits on the palest bands in ink and on the deepest bands in chalk.
+     tall → window centred across bands 2–7, copy on the deep bands; square/wide → window left, copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EEFB; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4EEFB; color: #3E2769; font-family: "Sora", "Helvetica Neue", Arial, sans-serif; }
+  .band { position: absolute; left: 0; right: 0; height: 10%; box-sizing: border-box; padding: 0 3vmin; display: flex; justify-content: space-between; align-items: center;
+    font-size: 1.6vmin; font-weight: 600; letter-spacing: .08em; }
+  .band .hx { font-weight: 400; letter-spacing: .06em; }
+  .b1 { top: 0; background: #F4EEFB; } .b2 { top: 10%; background: #E8DDF7; } .b3 { top: 20%; background: #DACAF2; }
+  .b4 { top: 30%; background: #CAB4EB; } .b5 { top: 40%; background: #B99DE2; } .b6 { top: 50%; background: #A686D6; color: #2A1850; }
+  .b7 { top: 60%; background: #8F6DC6; color: #F6F0FD; } .b8 { top: 70%; background: #7454AD; color: #F6F0FD; }
+  .b9 { top: 80%; background: #5A3D90; color: #F6F0FD; } .b10 { top: 90%; background: #412970; color: #F6F0FD; }
+  .b1 .hx, .b8 .hx, .b9 .hx, .b10 .hx { visibility: hidden; }
+
+  .photo { position: absolute; left: 18vmin; width: calc(100% - 36vmin); top: 10%; height: 60%; object-fit: cover; object-position: 50% 18%; }
+
+  .k { position: absolute; left: 12vmin; right: 12vmin; top: 0; height: 10%; display: flex; align-items: center; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .head { position: absolute; left: 12vmin; right: 6vmin; top: calc(70% + 3.4vmin); color: #F6F0FD; }
+  h1 { margin: 0; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 400; font-size: 9vmin; line-height: .95; letter-spacing: -.02em; }
+  .sub { margin-top: 1.6vmin; font-size: 2vmin; line-height: 1.4; color: #E4D8F6; }
+  .foot { position: absolute; left: 12vmin; right: 6vmin; bottom: 0; height: 10%; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; color: #F6F0FD; font-size: 1.9vmin; white-space: nowrap; }
+  .foot .off { font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: 4.6vmin; }
+  .foot .off small { font-family: "Sora", sans-serif; font-style: normal; font-size: 1.8vmin; letter-spacing: .12em; margin-left: 1.2vmin; font-weight: 600; }
+  .foot .cta { font-weight: 600; letter-spacing: .16em; text-transform: uppercase; font-size: 1.7vmin; padding: 1vmin 1.6vmin; background: #F6F0FD; color: #412970; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { left: 22vmin; width: calc(100% - 44vmin); }
+    h1 { font-size: 8vmin; }
+    .head { top: calc(70% + 2.6vmin); }
+    .sub { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 10vmin; width: 42%; top: 0; height: 100%; object-position: 50% 22%; }
+    .band .hx { visibility: visible; }
+    .b1 .hx, .b2 .hx, .b3 .hx, .b8 .hx, .b9 .hx, .b10 .hx { visibility: hidden; }
+    .k { left: calc(42% + 16vmin); right: 3vmin; top: 0; height: 10%; }
+    .k span + span { display: none; }
+    .head { left: calc(42% + 16vmin); right: 5vmin; top: calc(10% + 2vmin); color: #3E2769; }
+    h1 { font-size: 7.6vmin; }
+    .sub { display: block; margin-top: 1.4vmin; font-size: 1.8vmin; color: #57417F; }
+    .foot { left: calc(42% + 16vmin); right: 3vmin; bottom: 10%; height: 20%; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .k, .head, .foot { left: calc(44% + 16vmin); }
+    .k span + span { display: inline; }
+    .k { right: 12vmin; }
+    .head { right: 12vmin; }
+    h1 { font-size: 8.2vmin; }
+    .foot { bottom: 0; height: 30%; right: 12vmin; flex-direction: row; align-items: center; }
+    .b8 .hx, .b9 .hx, .b10 .hx { visibility: hidden; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     0.3–2.4s a pale reading light runs down the ladder, 10 → 100, lifting each tint in turn ·
+     3.3s the headline retracts and is redrawn, the sub line follows · 4.8s the offer ticks up ·
+     5.3s a sheen crosses the CTA */
+  .band { animation: tint 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .b1 { animation-delay: -1.35s; } .b2 { animation-delay: -1.2s; } .b3 { animation-delay: -1.05s; } .b4 { animation-delay: -.9s; }
+  .b5 { animation-delay: -.75s; } .b6 { animation-delay: -.6s; } .b7 { animation-delay: -.45s; } .b8 { animation-delay: -.3s; }
+  .b9 { animation-delay: -.15s; }
+  @keyframes tint { 0%, 25%, 41%, 100% { filter: brightness(1) saturate(1); } 32% { filter: brightness(1.1) saturate(1.12); } }
+
+  h1 { animation: redraw 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes redraw {
+    0%, 54%, 74%, 100% { clip-path: inset(-15% -8% -25% -8%); }
+    61%, 62% { clip-path: inset(-15% 108% -25% -8%); }
+  }
+  .sub { animation: subin 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes subin { 0%, 55%, 78%, 100% { opacity: 1; transform: translateY(0); } 60%, 66% { opacity: 0; transform: translateY(1vmin); } }
+
+  .foot .off { transform-origin: 0 60%; animation: tick 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes tick { 0%, 79%, 88%, 100% { transform: scale(1); } 82% { transform: scale(1.1); } 85% { transform: scale(.98); } }
+
+  .foot .cta { position: relative; overflow: hidden; }
+  .foot .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, rgba(255,255,255,0) 35%, rgba(190,160,240,.55) 50%, rgba(255,255,255,0) 65%);
+    background-size: 300% 100%; background-position: 100% 0; animation: sheen 6s cubic-bezier(.4,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 88% { background-position: 100% 0; } 97%, 100% { background-position: 0 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="band b1"><span>10</span><span class="hx">#F4EEFB</span></div>
+  <div class="band b2"><span>20</span><span class="hx">#E8DDF7</span></div>
+  <div class="band b3"><span>30</span><span class="hx">#DACAF2</span></div>
+  <div class="band b4"><span>40</span><span class="hx">#CAB4EB</span></div>
+  <div class="band b5"><span>50</span><span class="hx">#B99DE2</span></div>
+  <div class="band b6"><span>60</span><span class="hx">#A686D6</span></div>
+  <div class="band b7"><span>70</span><span class="hx">#8F6DC6</span></div>
+  <div class="band b8"><span>80</span><span class="hx">#7454AD</span></div>
+  <div class="band b9"><span>90</span><span class="hx">#5A3D90</span></div>
+  <div class="band b10"><span>100</span><span class="hx">#412970</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="k"><span>Tint scale — Lilac</span><span>SS27</span></div>
+  <div class="head">
+    <h1>Lilac, in<br>ten tints.</h1>
+    <div class="sub">From barely-there to deep violet — the new colour story.</div>
+  </div>
+  <div class="foot">
+    <div class="off">20% off<small>LILAC20</small></div>
+    <div class="cta">Shop the tints</div>
+  </div>
+</div>
+</body>
+</html>

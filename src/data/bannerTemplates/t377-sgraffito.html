@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Sgraffito — a panel of dark manganese slip scratched back to the pale terracotta beneath: a border of
+     carved leaves and hatching runs along the seam with the photo, the headline sits in the clay colour.
+     tall → slip panel on top, photo below · 3:4 and wider → photo on the right, carved border down the seam */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2E2622; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #2E2622; color: #EFE2CF; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - 74vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .slip { position: absolute; left: 0; right: 0; top: 0; height: 74vmin; }
+  .slip .tex { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .5; }
+  .band { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 9vmin; display: block; }
+  .vband { display: none; position: absolute; top: 0; bottom: 0; right: 0; width: 9vmin; height: 100%; }
+
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 6.4vmin; bottom: 15vmin; display: flex; flex-direction: column; }
+  .k { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: #D9A27A; white-space: nowrap; }
+  .k svg { width: 4vmin; height: 4vmin; flex: none; }
+  h1 { margin: 3vmin 0 0; font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 12.4vmin; line-height: .92; letter-spacing: -.015em; color: #D9A27A; }
+  h1 em { font-style: normal; color: #EFE2CF; }
+  .d { margin-top: 3vmin; max-width: 56vmin; font-size: 2.5vmin; line-height: 1.5; color: #D8CBB9; }
+  .motif { display: none; flex: 1; min-height: 0; width: 100%; margin-top: 3vmin; }
+  .row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; white-space: nowrap; }
+  .price { font-family: "Gloock", Georgia, serif; font-size: 3.4vmin; color: #EFE2CF; }
+  .price small { font-family: "Hanken Grotesk", Arial, sans-serif; font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #B8A48E; margin-right: 1.2vmin; }
+  .cta { font-size: 1.9vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #2E2622; background: #D9A27A; padding: 1.5vmin 2.6vmin; }
+
+  /* ── 3:4 / 4:5 → photo right, carved border down the seam ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { left: auto; right: 0; top: 0; width: 50%; height: 100%; object-position: 50% 22%; }
+    .slip { right: auto; width: 50%; height: 100%; }
+    .band { display: none; }
+    .vband { display: block; }
+    .copy { left: 6vmin; right: 14vmin; top: 7vmin; bottom: 7vmin; }
+    .k { letter-spacing: .2em; }
+    h1 { font-size: 10vmin; margin-top: 4vmin; }
+    .d { font-size: 2.3vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2.6vmin; margin-top: 3vmin; }
+    .motif { display: block; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .copy { left: 6vmin; right: 13vmin; top: 6vmin; bottom: 6vmin; }
+    .k { font-size: 1.6vmin; letter-spacing: .16em; }
+    h1 { font-size: 8.6vmin; margin-top: 3vmin; }
+    .d { font-size: 2.1vmin; margin-top: 2.4vmin; }
+    .price { font-size: 3vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.3vmin 2.2vmin; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; object-position: 70% 30%; }
+    .slip { width: 46%; }
+    .copy { left: 7vmin; right: 15vmin; top: 7vmin; bottom: 7vmin; }
+    .k { font-size: 1.7vmin; letter-spacing: .24em; }
+    h1 { font-size: 10.4vmin; margin-top: 3.6vmin; }
+    .d { font-size: 2.3vmin; margin-top: 3vmin; }
+    .price { font-size: 3.2vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.5vmin 2.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="slip">
+    <svg class="tex" preserveAspectRatio="none" aria-hidden="true">
+      <filter id="brushy" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency=".006 .06" numOctaves="3" seed="21"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 .16  0 0 0 0 .12  0 0 0 0 .1  0 0 0 -1.6 .95"/>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#brushy)"/>
+    </svg>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+      <defs>
+        <pattern id="carve" width="80" height="80" patternUnits="userSpaceOnUse">
+          <g id="carveG" stroke="#C98C63" stroke-linecap="round" fill="none">
+            <path d="M0 6 H80 M0 74 H80" stroke-width="3"/>
+            <path d="M14 58 C18 34 34 22 58 18 C56 42 40 56 14 58 Z" stroke-width="3"/>
+            <path d="M14 58 C28 46 42 34 58 18" stroke-width="2"/>
+            <path d="M24 49 L22 40 M32 42 L31 32 M40 35 L40 26 M30 48 L39 49 M38 41 L47 41 M46 33 L53 32" stroke-width="1.6"/>
+            <path d="M62 30 L74 18 M64 40 L78 26 M66 50 L80 36 M60 62 L72 50 M4 30 L10 24 M2 42 L8 36" stroke-width="1.8"/>
+            <circle cx="8" cy="64" r="2.6" fill="#C98C63" stroke="none"/><circle cx="70" cy="64" r="2.6" fill="#C98C63" stroke="none"/>
+          </g>
+        </pattern>
+        <pattern id="carveV" width="80" height="80" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+          <use href="#carveG"/>
+        </pattern>
+      </defs>
+    </svg>
+    <svg class="band" viewBox="0 0 2000 80" preserveAspectRatio="xMinYMid slice" aria-hidden="true"><rect width="2000" height="80" fill="url(#carve)"/></svg>
+    <svg class="vband" viewBox="0 0 80 2000" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><rect width="80" height="2000" fill="url(#carveV)"/></svg>
+    <div class="copy">
+      <div class="k">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 20 m0 -2 a2 2 0 1 1 -2 2 a5 5 0 0 1 6 -5 a8 8 0 0 1 3 12 a11 11 0 0 1 -16 1 a14 14 0 0 1 3 -19 a17 17 0 0 1 20 3" fill="none" stroke="#D9A27A" stroke-width="2.2" stroke-linecap="round"/></svg>
+        <span>Carved by hand · AW26</span>
+      </div>
+      <h1>Scratch<br>the <em>surface.</em></h1>
+      <div class="d">A collection with the handwork left in — raw edges, deep tones, nothing smoothed away.</div>
+      <svg class="motif" viewBox="0 0 200 200" preserveAspectRatio="xMinYMid meet" aria-hidden="true"><g fill="none" stroke="#C98C63" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M30 196 C40 150 60 110 96 76 C120 54 150 40 186 34"/><g transform="translate(44 158) rotate(-80) scale(1.0)"><path d="M0 0 C6 -14 22 -22 40 -22 C34 -8 20 2 0 0 Z"/><path d="M0 0 C12 -8 26 -15 40 -22" stroke-width="1.4"/><path d="M11 -5 L10 -12 M19 -9 L19 -17 M27 -13 L28 -20 M12 -3 L19 -2 M20 -7 L27 -6" stroke-width="1.2"/></g><g transform="translate(50 150) rotate(-10) scale(0.9)"><path d="M0 0 C6 -14 22 -22 40 -22 C34 -8 20 2 0 0 Z"/><path d="M0 0 C12 -8 26 -15 40 -22" stroke-width="1.4"/><path d="M11 -5 L10 -12 M19 -9 L19 -17 M27 -13 L28 -20 M12 -3 L19 -2 M20 -7 L27 -6" stroke-width="1.2"/></g><g transform="translate(66 122) rotate(-70) scale(0.95)"><path d="M0 0 C6 -14 22 -22 40 -22 C34 -8 20 2 0 0 Z"/><path d="M0 0 C12 -8 26 -15 40 -22" stroke-width="1.4"/><path d="M11 -5 L10 -12 M19 -9 L19 -17 M27 -13 L28 -20 M12 -3 L19 -2 M20 -7 L27 -6" stroke-width="1.2"/></g><g transform="translate(76 110) rotate(0) scale(0.85)"><path d="M0 0 C6 -14 22 -22 40 -22 C34 -8 20 2 0 0 Z"/><path d="M0 0 C12 -8 26 -15 40 -22" stroke-width="1.4"/><path d="M11 -5 L10 -12 M19 -9 L19 -17 M27 -13 L28 -20 M12 -3 L19 -2 M20 -7 L27 -6" stroke-width="1.2"/></g><g transform="translate(96 90) rotate(-55) scale(0.9)"><path d="M0 0 C6 -14 22 -22 40 -22 C34 -8 20 2 0 0 Z"/><path d="M0 0 C12 -8 26 -15 40 -22" stroke-width="1.4"/><path d="M11 -5 L10 -12 M19 -9 L19 -17 M27 -13 L28 -20 M12 -3 L19 -2 M20 -7 L27 -6" stroke-width="1.2"/></g><g transform="translate(112 72) rotate(10) scale(0.8)"><path d="M0 0 C6 -14 22 -22 40 -22 C34 -8 20 2 0 0 Z"/><path d="M0 0 C12 -8 26 -15 40 -22" stroke-width="1.4"/><path d="M11 -5 L10 -12 M19 -9 L19 -17 M27 -13 L28 -20 M12 -3 L19 -2 M20 -7 L27 -6" stroke-width="1.2"/></g><g transform="translate(134 58) rotate(-40) scale(0.8)"><path d="M0 0 C6 -14 22 -22 40 -22 C34 -8 20 2 0 0 Z"/><path d="M0 0 C12 -8 26 -15 40 -22" stroke-width="1.4"/><path d="M11 -5 L10 -12 M19 -9 L19 -17 M27 -13 L28 -20 M12 -3 L19 -2 M20 -7 L27 -6" stroke-width="1.2"/></g><g transform="translate(150 48) rotate(20) scale(0.7)"><path d="M0 0 C6 -14 22 -22 40 -22 C34 -8 20 2 0 0 Z"/><path d="M0 0 C12 -8 26 -15 40 -22" stroke-width="1.4"/><path d="M11 -5 L10 -12 M19 -9 L19 -17 M27 -13 L28 -20 M12 -3 L19 -2 M20 -7 L27 -6" stroke-width="1.2"/></g><g transform="translate(168 40) rotate(-25) scale(0.6)"><path d="M0 0 C6 -14 22 -22 40 -22 C34 -8 20 2 0 0 Z"/><path d="M0 0 C12 -8 26 -15 40 -22" stroke-width="1.4"/><path d="M11 -5 L10 -12 M19 -9 L19 -17 M27 -13 L28 -20 M12 -3 L19 -2 M20 -7 L27 -6" stroke-width="1.2"/></g></g></svg>
+      <div class="row">
+        <div class="price"><small>From</small>$120</div>
+        <div class="cta">Discover more</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

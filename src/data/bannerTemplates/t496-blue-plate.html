@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Yellowtail&family=Alfa+Slab+One&family=Fjalla+One&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Blue Plate Special — a laminated roadside-diner menu: cherry gingham trim, a cursive "Blue Plate" over a slab SPECIAL,
+     the product served as today's plate, a price list with dotted leaders and a green guest check for the code.
+     tall → menu stacked around the plate · square & wide → plate bleeds on one side, menu on the other */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FBF1DE; }
+  .banner { --cream: #FBF1DE; --cherry: #C5202E; --teal: #2E9C98; --ink: #231B1A; --check: #E3EEDB; --trim: 4.4vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Fjalla One", "Arial Narrow", Arial, sans-serif;
+    background:
+      radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,.55), transparent 60%),
+      radial-gradient(90% 70% at 100% 100%, rgba(46,156,152,.10), transparent 70%),
+      var(--cream); }
+  /* gingham trim (top + bottom) */
+  .trim { position: absolute; left: 0; right: 0; height: var(--trim); z-index: 2;
+    background:
+      linear-gradient(90deg, rgba(197,32,46,.55) 50%, transparent 50%) 0 0 / 3vmin 3vmin,
+      linear-gradient(0deg, rgba(197,32,46,.55) 50%, transparent 50%) 0 0 / 3vmin 3vmin,
+      #FFF8EE;
+    box-shadow: 0 0 0 1px rgba(35,27,26,.15); }
+  .trim.t { top: 0; border-bottom: .5vmin solid var(--cherry); }
+  .trim.b { bottom: 0; border-top: .5vmin solid var(--cherry); }
+
+  .menu { position: absolute; left: 7vmin; right: 7vmin; top: calc(var(--trim) + 4.6vmin); bottom: calc(var(--trim) + 4.4vmin);
+    display: flex; flex-direction: column; align-items: stretch; }
+  .k { display: flex; align-items: center; gap: 2vmin; font-size: 2.1vmin; letter-spacing: .34em; text-transform: uppercase; color: var(--teal); white-space: nowrap; }
+  .k::before, .k::after { content: ""; flex: 1; height: .5vmin; border-top: 1px solid var(--teal); border-bottom: 1px solid var(--teal); }
+  .head { text-align: center; }
+  .script { display: block; margin-top: 1.2vmin; font-family: "Yellowtail", cursive; font-size: 14vmin; line-height: .95; color: var(--cherry); white-space: nowrap;
+    text-shadow: .45vmin .45vmin 0 rgba(35,27,26,.18); }
+  .slab { display: block; margin-top: .4vmin; font-family: "Alfa Slab One", Rockwell, Georgia, serif; font-size: 8.4vmin; line-height: 1; letter-spacing: .16em; padding-left: .16em; color: var(--teal); white-space: nowrap; }
+
+  /* the plate */
+  .plate { position: relative; flex: 1; min-height: 0; margin: 4vmin 0 0; }
+  .plate .tab { position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%); z-index: 2; background: var(--cherry); color: #FFF4E4; padding: .9vmin 2.6vmin .8vmin;
+    font-size: 2vmin; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; box-shadow: .4vmin .4vmin 0 var(--ink); }
+  .plate .fr { position: absolute; inset: 0; border: .5vmin solid var(--ink); padding: 1vmin; box-sizing: border-box; background: #FFF8EE; box-shadow: 1vmin 1vmin 0 var(--teal); }
+  .plate img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+
+  /* price list */
+  .list { margin: 5vmin 0 0; padding: 0; list-style: none; }
+  .list li { display: flex; align-items: baseline; gap: 1.4vmin; font-size: 3vmin; line-height: 1.2; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .list li + li { margin-top: 1.5vmin; }
+  .list li i { flex: 1; min-width: 3vmin; border-bottom: .45vmin dotted rgba(35,27,26,.55); transform: translateY(-.7vmin); }
+  .list li b { font-family: "Alfa Slab One", Georgia, serif; font-weight: 400; font-size: 3.6vmin; letter-spacing: 0; color: var(--cherry); }
+  .list li small { font-size: .62em; }
+
+  /* guest check */
+  .chk { margin-top: 3.6vmin; display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 2.4vmin; padding: 1.6vmin 2.4vmin;
+    font-family: "Courier Prime", "Courier New", monospace; font-size: 2.2vmin; text-transform: uppercase; white-space: nowrap; color: #1F3A2A;
+    background: repeating-linear-gradient(180deg, transparent 0 3.2vmin, rgba(197,32,46,.35) 3.2vmin calc(3.2vmin + 1px)), var(--check);
+    border-top: .6vmin solid #1F5A3E; box-shadow: .6vmin .6vmin 0 rgba(35,27,26,.2); transform: rotate(-1deg); }
+  .chk .no { font-weight: 700; color: var(--cherry); }
+  .chk .code { text-align: center; letter-spacing: .08em; }
+  .chk .code b { font-size: 2.8vmin; letter-spacing: .06em; }
+  .chk .go { font-family: "Fjalla One", sans-serif; font-size: 2.3vmin; letter-spacing: .2em; color: var(--ink); }
+
+  /* the daily deal: a dinner plate, shown when the menu has room (square & wide) */
+  .deal, .list li.y { display: none; }
+
+  /* 3:4 – 4:5 : one-line title, tighter list */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --trim: 3.8vmin; }
+    .menu { top: calc(var(--trim) + 3.6vmin); bottom: calc(var(--trim) + 3.4vmin); }
+    .script { font-size: 11vmin; margin-top: .8vmin; }
+    .slab { font-size: 6.6vmin; margin-top: .4vmin; }
+    .plate { margin-top: 3.4vmin; }
+    .list { margin-top: 4vmin; }
+    .list li { font-size: 2.6vmin; }
+    .list li b { font-size: 3.1vmin; }
+    .list li + li { margin-top: 1vmin; }
+    .list li.x { display: none; }
+    .chk { margin-top: 2.8vmin; padding: 1.2vmin 2.2vmin; font-size: 2vmin; }
+  }
+  /* square : plate bleeds right, menu left */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --trim: 0vmin; }
+    .trim { display: none; }
+    .plate { position: fixed; margin: 0; right: 0; top: 0; bottom: 0; width: 48%; height: 100%; }
+    .plate .fr { border: 0; padding: 0; box-shadow: none; border-left: 3.6vmin solid transparent; background: none; }
+    .plate .fr::before { content: ""; position: absolute; left: -3.6vmin; top: 0; bottom: 0; width: 3.6vmin; border-right: .5vmin solid var(--cherry);
+      background: linear-gradient(90deg, rgba(197,32,46,.55) 50%, transparent 50%) 0 0 / 2.4vmin 2.4vmin, linear-gradient(0deg, rgba(197,32,46,.55) 50%, transparent 50%) 0 0 / 2.4vmin 2.4vmin, #FFF8EE; }
+    .plate .tab { display: none; }
+    .menu { left: 5.6vmin; right: calc(48% + 4.4vmin); top: 6vmin; bottom: 6vmin; }
+    .k { font-size: 1.7vmin; letter-spacing: .26em; gap: 1.4vmin; }
+    .script { font-size: 10.4vmin; margin-top: 1.4vmin; }
+    .slab { font-size: 5.6vmin; letter-spacing: .12em; margin-top: .4vmin; }
+    .deal { display: flex; align-self: center; margin: auto 0; width: 21vmin; height: 21vmin; border-radius: 50%; box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center;
+      background: radial-gradient(circle, #FFFBF3 0 55%, var(--teal) 55.5% 58%, #FFFBF3 58.5% 66%, rgba(46,156,152,.35) 66.5% 67.5%, #FFFBF3 68% 100%);
+      box-shadow: 0 0 0 .5vmin var(--teal), .8vmin 1vmin 0 rgba(35,27,26,.14); }
+    .deal span { font-size: 1.7vmin; letter-spacing: .26em; text-transform: uppercase; color: var(--teal); white-space: nowrap; }
+    .deal b { font-family: "Alfa Slab One", Georgia, serif; font-weight: 400; font-size: 5.6vmin; line-height: .9; color: var(--cherry); margin: 1vmin 0 .8vmin; }
+    .list { margin-top: 0; }
+    .list li { font-size: 2.2vmin; letter-spacing: .04em; gap: 1vmin; }
+    .list li b { font-size: 2.7vmin; }
+    .list li + li { margin-top: 1.4vmin; }
+    .list li.x, .list li.y { display: flex; }
+    .list li.a { display: none; }
+    .list li.y { margin-top: 0; }
+    .chk { margin-top: 3.6vmin; grid-template-columns: 1fr auto; grid-template-areas: "no go" "code code"; row-gap: 1vmin; font-size: 1.8vmin; padding: 1.4vmin 1.8vmin; }
+    .chk .no { grid-area: no; } .chk .go { grid-area: go; font-size: 1.9vmin; } .chk .code { grid-area: code; text-align: left; }
+    .chk .code b { font-size: 2.4vmin; }
+  }
+  /* wide : plate bleeds left, menu right */
+  @media (min-aspect-ratio: 6/5) {
+    .plate { right: auto; left: 0; width: 47%; }
+    .plate .fr { border-left: 0; border-right: 3.8vmin solid transparent; }
+    .plate .fr::before { left: auto; right: -3.8vmin; width: 3.8vmin; border-right: 0; border-left: .5vmin solid var(--cherry); }
+    .menu { left: calc(47% + 7vmin); right: 7vmin; top: 6.4vmin; bottom: 6.4vmin; }
+    .k { font-size: 1.9vmin; letter-spacing: .3em; }
+    .deal { width: 23vmin; height: 23vmin; }
+    .deal b { font-size: 6.2vmin; }
+    .script { font-size: 12.4vmin; }
+    .slab { font-size: 6.8vmin; letter-spacing: .16em; }
+    .list li { font-size: 2.6vmin; letter-spacing: .06em; gap: 1.4vmin; }
+    .list li b { font-size: 3.1vmin; }
+    .list li + li { margin-top: 1.2vmin; }
+    .chk { margin-top: 3.6vmin; grid-template-columns: auto 1fr auto; grid-template-areas: "no code go"; font-size: 2vmin; padding: 1.4vmin 2.2vmin; }
+    .chk .code { text-align: center; }
+    .chk .code b { font-size: 2.6vmin; }
+    .chk .go { font-size: 2.1vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="trim t"></div><div class="trim b"></div>
+  <div class="menu">
+    <div class="head">
+      <div class="k">Open 24 hrs · Est. 1956</div>
+      <span class="script">Blue Plate</span>
+      <span class="slab">SPECIAL</span>
+    </div>
+    <div class="plate">
+      <span class="tab">Today's plate</span>
+      <div class="fr"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    </div>
+    <div class="deal"><span>Today only</span><b>30%</b><span>off</span></div>
+    <ul class="list">
+      <li class="a">The new season<i></i><b>30%<small> off</small></b></li>
+      <li class="y">Fresh arrivals<i></i><b>daily</b></li>
+      <li>Second helping<i></i><b>+10%</b></li>
+      <li class="x">Delivery, all day<i></i><b>free</b></li>
+    </ul>
+    <div class="chk"><span class="no">Check Nº 0926</span><span class="code">Code <b>BLUEPLATE</b></span><span class="go">Order up →</span></div>
+  </div>
+</div>
+</body>
+</html>

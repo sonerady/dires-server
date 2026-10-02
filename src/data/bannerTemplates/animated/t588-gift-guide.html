@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,600;1,6..96,400&family=Jost:wght@400;500;600&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* Gift Guide — a holiday gift-guide email/web header: the header block is a wrapped box (green paper + red ribbon)
+     with a hanging gift tag ("To: the host · $128"), recipient tabs, the photo and a free-wrap / order-by footer.
+     tall → box on top, tabs, photo · 3:4 / square → box as a left column, photo right · wide → wider box, taller photo */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EEE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4EEE2; color: #173A2E; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+
+  .box { position: absolute; left: 0; right: 0; top: 0; height: 50vmin; overflow: hidden; color: #F4EEE2;
+    background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.05) 0 .35vmin, transparent .45vmin) 0 0 / 4vmin 4vmin, #173A2E; }
+  .ribbon { position: absolute; top: 0; bottom: 0; left: 70%; width: 5.4vmin; background: linear-gradient(90deg, #A92A22, #C8372D 30%, #D9493E 55%, #B8302A); box-shadow: 0 0 0 .5vmin rgba(0,0,0,.08); }
+  .string { position: absolute; left: calc(70% + 2.7vmin); top: 0; width: 1px; height: 10vmin; background: #E9D7B3; transform-origin: top; transform: rotate(-9deg); }
+  .tag { position: absolute; left: calc(70% + 4.2vmin); top: 9.4vmin; width: 15vmin; height: 21vmin; transform: rotate(-9deg); transform-origin: 50% 0; background: #F4E6C8; color: #173A2E;
+    clip-path: polygon(22% 0, 78% 0, 100% 16%, 100% 100%, 0 100%, 0 16%); display: flex; flex-direction: column; align-items: center; padding-top: 4.4vmin; box-sizing: border-box; text-align: center; }
+  .tag::before { content: ""; position: absolute; left: 50%; top: 1.4vmin; width: 1.6vmin; height: 1.6vmin; margin-left: -.8vmin; border-radius: 50%; background: #173A2E; }
+  .tag span { line-height: 1; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #6B7A62; }
+  .tag b { margin-top: 1.4vmin; font-family: "Bodoni Moda", Georgia, serif; font-style: italic; font-weight: 400; font-size: 2.6vmin; line-height: 1.05; }
+  .tag em { margin-top: auto; margin-bottom: 1.8vmin; font-style: normal; font-weight: 600; font-size: 2.4vmin; color: #C8372D; }
+
+  .ttl { position: absolute; left: 5vmin; top: 5vmin; width: calc(70% - 9vmin); }
+  .kick { font-size: 1.7vmin; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #E9D7B3; white-space: nowrap; }
+  h1 { margin: 2vmin 0 0; font-family: "Bodoni Moda", Georgia, serif; font-weight: 400; font-size: 12.6vmin; line-height: .9; letter-spacing: -.035em; }
+  h1 i { color: #E9D7B3; }
+  .sub { margin: 3vmin 0 0; font-size: 2.2vmin; line-height: 1.45; color: #CFD8CC; }
+
+  .tabs { position: absolute; left: 5vmin; right: 5vmin; top: 50vmin; height: 9vmin; display: flex; align-items: center; gap: 3.4vmin; border-bottom: 1px solid #CDBF9F; font-size: 1.9vmin; font-weight: 500; white-space: nowrap; overflow: hidden; }
+  .tabs span { position: relative; color: #6B7A62; }
+  .tabs .on { color: #173A2E; font-weight: 600; }
+  .tabs .on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2.9vmin; height: .4vmin; background: #C8372D; }
+
+  .photo { position: absolute; left: 5vmin; top: 63vmin; width: calc(100% - 10vmin); height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .foot { position: absolute; left: 5vmin; right: 5vmin; bottom: 3.4vmin; height: 8vmin; display: flex; align-items: center; gap: 2.4vmin; }
+  .cta { padding: 1.8vmin 3.4vmin; background: #C8372D; color: #FFF6EC; font-size: 1.9vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .fine { font-size: 1.7vmin; line-height: 1.4; color: #4F6456; }
+  .fine b { color: #173A2E; font-weight: 600; }
+
+  /* ── 3:4 / square — box becomes a left column ── */
+  @media (min-aspect-ratio: 7/10) {
+    .box { right: auto; width: 48%; height: 100%; }
+    .ribbon { left: auto; right: 7vmin; }
+    .string { left: auto; right: 9.7vmin; transform: rotate(20deg); }
+    .tag { left: auto; right: 6vmin; top: 9.4vmin; width: 14vmin; height: 19vmin; transform: rotate(8deg); }
+    .ttl { left: 5vmin; top: 33vmin; width: calc(100% - 22vmin); }
+    h1 { font-size: 9.6vmin; }
+    .sub { font-size: 2vmin; }
+    .tabs { left: 5vmin; right: auto; width: calc(48% - 10vmin); top: auto; bottom: 20vmin; height: auto; flex-direction: column; align-items: flex-start; gap: 1.6vmin; border: 0; color: #F4EEE2; overflow: visible; }
+    .tabs span { color: #A9B8A6; }
+    .tabs .on { color: #F4EEE2; }
+    .tabs .on::after { bottom: -.6vmin; height: .3vmin; }
+    .photo { left: calc(48% + 4vmin); top: 5vmin; width: calc(52% - 9vmin); height: calc(100% - 18vmin); }
+    .foot { left: calc(48% + 4vmin); right: 5vmin; bottom: 2.4vmin; height: 9vmin; }
+    .fine { font-size: 1.6vmin; }
+    .foot .fine { order: -1; margin-right: auto; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .ttl { top: 31vmin; }
+    h1 { font-size: 8vmin; }
+    .sub { font-size: 1.8vmin; margin-top: 1.6vmin; }
+    .tabs { bottom: 6vmin; gap: 1.2vmin; font-size: 1.8vmin; }
+    .photo { height: calc(100% - 19vmin); }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .box { width: 50%; }
+    .ttl { width: calc(100% - 30vmin); top: 9vmin; }
+    h1 { font-size: 11vmin; }
+    .sub { font-size: 2vmin; margin-top: 3.6vmin; }
+    .tabs { width: calc(50% - 10vmin); bottom: 6vmin; flex-direction: row; flex-wrap: wrap; gap: 1.4vmin 3vmin; }
+    .photo { left: calc(50% + 4vmin); width: calc(50% - 9vmin); }
+    .foot { left: calc(50% + 4vmin); }
+  }
+
+  /* ── animation loop ── */
+  /* 6s — the wrapped box comes alive: the gift tag swings on its string (pivoting at the string's top),
+     a satin highlight runs down the ribbon, the paper's dot pattern drifts like light snow, the active tab's
+     underline re-draws, the photo breathes in its frame and a sheen passes the CTA. */
+  .box { animation: snow 6s linear infinite; }
+  @keyframes snow { from { background-position: 0 0, 0 0; } to { background-position: 0 4vmin, 0 0; } }
+
+  .tag { --r: -9deg; --px: -9vmin; --py: -9.4vmin; animation: swing 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .string { --r: -9deg; animation: sway 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes swing {
+    0%, 100% { transform: translate(var(--px), var(--py)) rotate(0deg) translate(calc(-1 * var(--px)), calc(-1 * var(--py))) rotate(var(--r)); }
+    25% { transform: translate(var(--px), var(--py)) rotate(3.2deg) translate(calc(-1 * var(--px)), calc(-1 * var(--py))) rotate(var(--r)); }
+    75% { transform: translate(var(--px), var(--py)) rotate(-3.2deg) translate(calc(-1 * var(--px)), calc(-1 * var(--py))) rotate(var(--r)); } }
+  @keyframes sway { 0%, 100% { transform: rotate(var(--r)); } 25% { transform: rotate(calc(var(--r) + 3.2deg)); } 75% { transform: rotate(calc(var(--r) - 3.2deg)); } }
+  @media (min-aspect-ratio: 7/10) {
+    .tag { --r: 8deg; --px: 3.3vmin; --py: -9.4vmin; }
+    .string { --r: 20deg; }
+  }
+
+  .ribbon { overflow: hidden; }
+  .ribbon::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, transparent 0 40%, rgba(255,220,200,.45) 50%, transparent 60% 100%) no-repeat; background-size: 100% 300%;
+    background-position: 0 100%; animation: satin 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes satin { 0%, 20% { background-position: 0 100%; } 60%, 100% { background-position: 0 0; } }
+
+  .tabs .on::after { animation: under 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes under { 0%, 40%, 100% { clip-path: inset(0 0 0 0); } 46% { clip-path: inset(0 0 0 100%); } 46.1% { clip-path: inset(0 100% 0 0); } 56% { clip-path: inset(0 0 0 0); } }
+
+  .photo { transform-origin: 50% 50%; animation: br 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes br { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.4563%); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,246,236,.4) 50%, transparent 65%) no-repeat; background-size: 250% 100%;
+    background-position: 160% 0; animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 70% { background-position: 160% 0; } 86%, 100% { background-position: -60% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="box">
+    <i class="ribbon"></i><i class="string"></i>
+    <div class="tag"><span>To</span><b>the one who has it all</b><em>$128</em></div>
+    <div class="ttl">
+      <div class="kick">Hollis &amp; Vane · Winter</div>
+      <h1>The Gift <i>Guide.</i></h1>
+      <p class="sub">Forty gifts they'll actually keep — picked, wrapped and sent by us.</p>
+    </div>
+  </div>
+  <div class="tabs"><span class="on">For her</span><span>For him</span><span>For the host</span><span>For home</span><span>Under $100</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="foot">
+    <div class="cta">Shop gifts</div>
+    <div class="fine"><b>Free gift wrap</b> on every order<br>Order by 18 Dec for delivery</div>
+  </div>
+</div>
+</body>
+</html>

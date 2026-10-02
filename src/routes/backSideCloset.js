@@ -1,3 +1,4 @@
+const { setGenerationProgress, getGenerationProgress, clearGenerationProgress } = require("../services/generationProgress");
 const { recordRefundCharge } = require("../services/refundChargeEvidence");
 const { NB2_EDIT_MODEL, selectToolEditModel, buildNb2EditInput } = require("../utils/nb2ToolEdit");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims } = require("../utils/gpt25Edit");
@@ -4548,6 +4549,8 @@ router.post("/generate", async (req, res) => {
     // 🔄 Status'u processing'e güncelle
     await updateGenerationStatus(finalGenerationId, userId, "processing");
     stopHeartbeat = startGenerationHeartbeat(supabase, finalGenerationId, userId);
+    // 🧭 Results kartındaki kullanıcı dostu aşama yazısı (services/generationProgress — yalnız bellek)
+    setGenerationProgress(finalGenerationId, "preparing");
 
     // 📊 Back side modunda back_side_generations tablosuna da kaydet
     if (req.body.isBackSideAnalysis) {
@@ -4727,6 +4730,8 @@ router.post("/generate", async (req, res) => {
 
     let enhancedPrompt, backgroundRemovedImage;
 
+    // 🧭 Gemini ürünü/fotoğrafları inceleyip prompt kuruyor
+    setGenerationProgress(finalGenerationId, "product");
     if (isColorChange || isPoseChange || isRefinerMode) {
       // 🎨 COLOR CHANGE MODE, 🕺 POSE CHANGE MODE veya 🔧 REFINER MODE - Özel prompt'lar
       if (isColorChange) {
@@ -5000,6 +5005,7 @@ router.post("/generate", async (req, res) => {
 
       try {
         // GPT Image 1.5 ile görsel oluştur
+        setGenerationProgress(finalGenerationId, "generating");
         const gptImageResult = await callFalAiGptImageEditForRefiner(
           enhancedPrompt,
           finalImage,
@@ -5013,10 +5019,12 @@ router.post("/generate", async (req, res) => {
         );
 
         // Generation'ı completed olarak güncelle (result_image_url ile - updateGenerationStatus içinde Supabase'e kaydediliyor)
+        setGenerationProgress(finalGenerationId, "finishing");
         await updateGenerationStatus(finalGenerationId, userId, "completed", {
           result_image_url: gptImageResult,
           enhanced_prompt: enhancedPrompt,
         });
+        clearGenerationProgress(finalGenerationId, "tamamlandı");
 
         logger.log(
           "✅ [REFINER MODE] Generation completed olarak güncellendi"
@@ -5343,6 +5351,7 @@ router.post("/generate", async (req, res) => {
           `🍌 [BACKSIDE NB] fal.run/${falModel} çağrılıyor — images: ${imageInputArray?.length || 0}, aspect: ${aspectRatioForRequest}, prompt: ${finalPrompt.length} karakter`
         );
 
+        setGenerationProgress(finalGenerationId, attempt > 1 ? "retrying" : "generating");
         const nanoResponse = await axios.post(
           `https://fal.run/${falModel}`,
           buildNb2EditInput(requestBody),
@@ -5544,6 +5553,7 @@ router.post("/generate", async (req, res) => {
         console.error("❌ Polling hatası:", pollingError.message);
 
         // Polling hatası durumunda status'u failed'e güncelle
+        clearGenerationProgress(finalGenerationId, "hata");
         await updateGenerationStatus(finalGenerationId, userId, "failed", {
           processing_time_seconds: Math.round((Date.now() - startTime) / 1000),
         });
@@ -5664,6 +5674,7 @@ router.post("/generate", async (req, res) => {
           logger.log(
             `🔄 Retry ${retryAttempt}: Yeni prediction oluşturuluyor... (Model: ${retryModel})`
           );
+          setGenerationProgress(finalGenerationId, "retrying");
 
           const retryResponse = await axios.post(
             `https://fal.run/${retryModel}`,
@@ -5763,6 +5774,7 @@ router.post("/generate", async (req, res) => {
       // 🔍 NETLEŞTİRME ADIMI — Results'ta 4 MP'den yüksek kademe seçildiyse
       // sonuç kaydedilmeden önce o çözünürlüğe yükseltilir (V7 ile aynı ortak
       // util). Hata/yetersiz kredi durumunda orijinal sonuçla devam edilir.
+      if (Number(upscaleMp) > 4) setGenerationProgress(finalGenerationId, "upscaling");
       const upscaleOutcome = await applyResultUpscale({
         imageUrl: resultImageUrl,
         upscaleMp,
@@ -5772,6 +5784,7 @@ router.post("/generate", async (req, res) => {
         logTag: "BACKSIDE UPSCALE",
       });
       resultImageUrl = upscaleOutcome.imageUrl;
+      setGenerationProgress(finalGenerationId, "finishing");
 
       const updatedGeneration = await updateGenerationStatus(finalGenerationId, userId, "completed", {
         enhanced_prompt: enhancedPrompt,
@@ -5784,6 +5797,7 @@ router.post("/generate", async (req, res) => {
           pre_upscale_image_url: upscaleOutcome.preUpscaleUrl,
         }),
       });
+      clearGenerationProgress(finalGenerationId, "tamamlandı");
       // updateGenerationStatus Supabase bucket'e kaydedip DB'yi günceller,
       // dönen kayıttaki result_image_url artık Supabase URL'sidir (fal.media değil)
       const finalResultImageUrl = updatedGeneration?.result_image_url || resultImageUrl;
@@ -5839,6 +5853,7 @@ router.post("/generate", async (req, res) => {
       console.error("Replicate API başarısız:", finalResult);
 
       // ❌ Status'u failed'e güncelle
+      clearGenerationProgress(finalGenerationId, "hata");
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
         // error_message kolonu yok, bu yüzden genel field kullan
         processing_time_seconds: Math.round((Date.now() - startTime) / 1000),
@@ -5890,6 +5905,7 @@ router.post("/generate", async (req, res) => {
 
     // ❌ Status'u failed'e güncelle (genel hata durumu)
     if (finalGenerationId) {
+      clearGenerationProgress(finalGenerationId, "hata");
       await updateGenerationStatus(finalGenerationId, userId, "failed", {
         // error_message kolonu yok, bu yüzden genel field kullan
         processing_time_seconds: 0,
@@ -5989,6 +6005,8 @@ router.post("/generate", async (req, res) => {
     });
   } finally {
     stopHeartbeat();
+    // 🧭 Güvenlik ağı: açık temizlemeyen erken dönüşlerde aşama bellekte kalmasın (idempotent)
+    if (finalGenerationId) clearGenerationProgress(finalGenerationId, "sonlandı");
   }
 });
 
@@ -6543,6 +6561,11 @@ router.get("/generation-status/:generationId", async (req, res) => {
           generation.settings?.quality_version ||
           "v1", // Kalite versiyonu
         status: finalStatus,
+        // ⏳ Ara aşama — Results kartının altındaki kullanıcı dostu durum yazısı
+        // (bellekteki canlı aşama, services/generationProgress). Tamamlanınca taşınmaz.
+        stage: finalStatus === "processing" || finalStatus === "pending"
+          ? getGenerationProgress(generation.generation_id) || null
+          : null,
         resultImageUrl: generation.result_image_url,
         resultImageThumbnail: thumbnailUrl,
         // 🔍 Netleştirme bilgisi (SimpleImageModal öncesi/sonrası sürgüsü)

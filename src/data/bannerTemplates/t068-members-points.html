@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Members' Week — double points as a club stamp card: a giant 2×, a row of ink stamps half filled */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D9D2EC; }
+  .banner { --panel: 78vmin; --dot: 7.4vmin; position: fixed; inset: 0; overflow: hidden; background: #D9D2EC; color: #2B1D46; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .row { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; padding-bottom: 1.6vmin; border-bottom: .3vmin solid #2B1D46; }
+  .hero { display: flex; align-items: center; gap: 4vmin; margin-top: 2vmin; }
+  .x { font-family: "Syne", "Arial Black", sans-serif; font-weight: 800; font-size: 36vmin; line-height: .8; letter-spacing: -.06em; }
+  .x span { font-weight: 500; font-size: .6em; letter-spacing: 0; }
+  .what h1 { margin: 0; font-family: "Syne", "Arial Black", sans-serif; font-weight: 700; font-size: 7.2vmin; line-height: .95; letter-spacing: -.02em; }
+  .what p { margin: 1.6vmin 0 0; font-size: 2.3vmin; line-height: 1.4; }
+  .what b { display: inline-block; margin-top: 1.4vmin; background: #2B1D46; color: #D9D2EC; font-size: 1.8vmin; font-weight: 600; letter-spacing: .14em; padding: .8vmin 1.4vmin; text-transform: uppercase; }
+  .card { margin-top: auto; }
+  .card .lab { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 1.6vmin; }
+  .dots { display: flex; flex-wrap: wrap; justify-content: space-between; row-gap: 1.6vmin; }
+  .d { position: relative; width: var(--dot); height: var(--dot); border-radius: 50%; border: .3vmin dashed rgba(43,29,70,.55); box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 1.7vmin; font-weight: 600; color: rgba(43,29,70,.6); }
+  .d.s { border: none; background: #E0503A; color: #F7F4FB; font-family: "Syne", sans-serif; font-weight: 800; font-size: calc(var(--dot) * .36); box-shadow: inset 0 0 0 .5vmin #E0503A, inset 0 0 0 .75vmin #F7F4FB; opacity: .94; }
+  .d.s:nth-child(1) { transform: rotate(-14deg); } .d.s:nth-child(2) { transform: rotate(9deg) translateY(.3vmin); }
+  .d.s:nth-child(3) { transform: rotate(-4deg); } .d.s:nth-child(4) { transform: rotate(16deg) translateX(.3vmin); } .d.s:nth-child(5) { transform: rotate(-9deg); }
+  .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 3vmin; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 2vmin; line-height: 1.4; }
+  .cta { flex: none; background: #2B1D46; color: #F7F4FB; border-radius: 99vmin; padding: 1.9vmin 3.6vmin; font-size: 2.1vmin; font-weight: 600; letter-spacing: .06em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 70vmin; --dot: 7vmin; }
+    .panel { top: 4.5vmin; height: calc(var(--panel) - 8.5vmin); }
+    .x { font-size: 30vmin; }
+    .what h1 { font-size: 6.4vmin; }
+    .what p { font-size: 2.1vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  /* square / wide — club side left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --dot: 7.2vmin; }
+    .photo { left: auto; right: 0; top: 0; width: 50%; height: 100%; }
+    .panel { left: 5vmin; right: calc(50% + 5vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    .hero { flex-direction: column; align-items: flex-start; gap: 2.4vmin; margin-top: 3vmin; }
+    .x { font-size: 24vmin; }
+    .what h1 { font-size: 5.4vmin; }
+    .what h1 br { display: none; }
+    .what p { font-size: 1.9vmin; margin-top: 1vmin; }
+    .dots { row-gap: 1.4vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; margin-top: 2.4vmin; }
+    .foot p { font-size: 1.8vmin; }
+    .cta { padding: 1.6vmin 3vmin; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --dot: 5.6vmin; }
+    .photo { width: 48%; }
+    .panel { left: 7vmin; right: calc(48% + 7vmin); top: 7vmin; bottom: 7vmin; }
+    .hero { flex-direction: row; align-items: center; gap: 4vmin; margin-top: 2.6vmin; }
+    .x { font-size: 28vmin; }
+    .what h1 { font-size: 6vmin; }
+    .what h1 br { display: inline; }
+    .dots { flex-wrap: nowrap; }
+    .d { font-size: 1.6vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="row"><span>Members' week</span><span>Club Nº 2048</span></div>
+    <div class="hero">
+      <div class="x">2<span>×</span></div>
+      <div class="what">
+        <h1>Double <br>points</h1>
+        <p>On everything, all week.</p>
+        <b>14 — 20 Oct</b>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lab"><span>Your stamp card</span><span>5 / 10</span></div>
+      <div class="dots">
+        <div class="d s">×2</div><div class="d s">×2</div><div class="d s">×2</div><div class="d s">×2</div><div class="d s">×2</div>
+        <div class="d">06</div><div class="d">07</div><div class="d">08</div><div class="d">09</div><div class="d">10</div>
+      </div>
+    </div>
+    <div class="foot"><p>€1 spent = 2 points.<br>500 points = €10 off.</p><div class="cta">Join the club — free</div></div>
+  </div>
+</div>
+</body>
+</html>

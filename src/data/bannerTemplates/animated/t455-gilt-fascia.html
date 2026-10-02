@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Diplomata+SC&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  /* Gilt Fascia — a Victorian draper's shopfront: black-glass fascia with blocked gold-leaf lettering,
+     carved console brackets, fluted cast-iron pilasters, the look in the plate-glass window and the sale gilded on the stall-riser.
+     tall → fascia / window / riser stacked · square & wide → fascia across, riser sign left, window right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C3027; }
+  .banner { --pw: 9vmin; --ft: 4vmin; --fh: 25vmin; --green: #22392F; --cream: #EFE3C8;
+    position: fixed; inset: 0; overflow: hidden; font-family: "Old Standard TT", "Baskerville", Georgia, serif; color: var(--cream);
+    background: linear-gradient(90deg, #1A2D24, #22392F 50%, #1A2D24); }
+  .gilt { background: linear-gradient(180deg, #FFF3C4 0%, #EAC25E 34%, #B07B22 52%, #F4D77F 70%, #C18F32 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(.28vmin .32vmin 0 #2A1A06); }
+  .glass { background:
+      linear-gradient(112deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 18%, rgba(255,255,255,.07) 22%, rgba(255,255,255,0) 30%, rgba(255,255,255,0) 64%, rgba(255,255,255,.05) 68%, rgba(255,255,255,0) 71%),
+      linear-gradient(180deg, #151A18 0%, #07090A 100%);
+    box-shadow: inset 0 0 0 .6vmin #0B0E0D, inset 0 0 0 .85vmin #B48A3A, inset 0 0 0 1.3vmin #0B0E0D, inset 0 0 0 1.45vmin rgba(180,138,58,.55); }
+
+  /* cornice with dentils */
+  .cornice { position: absolute; left: 0; right: 0; top: 0; height: var(--ft);
+    background: linear-gradient(180deg, #2E4A3D 0%, #22392F 45%, #152219 100%); box-shadow: 0 .5vmin 1vmin rgba(0,0,0,.4); z-index: 2; }
+  .cornice::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1.4vmin; background: repeating-linear-gradient(90deg, #C6A058 0 1.2vmin, #1A2C23 1.2vmin 2vmin); opacity: .85; }
+
+  .fascia { position: absolute; left: 0; right: 0; top: var(--ft); height: var(--fh); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 var(--pw); }
+  .fascia .est { font-family: "Pinyon Script", "Snell Roundhand", cursive; font-size: 3.6vmin; line-height: 1.1; }
+  .fascia .name { font-family: "Diplomata SC", "Rockwell", Georgia, serif; font-size: 7.2vmin; line-height: 1.12; white-space: nowrap; }
+  .fascia .trade { margin-top: .8vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; white-space: nowrap; color: #D9C08A; }
+
+  /* console brackets */
+  .con { position: absolute; top: calc(var(--ft) - .4vmin); width: var(--pw); height: calc(var(--fh) + 4vmin); z-index: 3; }
+  .con.l { left: 0; } .con.r { right: 0; transform: scaleX(-1); }
+  .con svg { width: 100%; height: 100%; display: block; }
+
+  /* pilasters */
+  .pil { position: absolute; top: calc(var(--ft) + var(--fh)); bottom: 0; width: var(--pw);
+    background: linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,0) 20%, rgba(255,255,255,.06) 50%, rgba(0,0,0,0) 80%, rgba(0,0,0,.35)),
+      repeating-linear-gradient(90deg, #2C4A3C 0 1.3vmin, #14231B 1.3vmin 1.75vmin); }
+  .pil::before { content: ""; position: absolute; left: -.6vmin; right: -.6vmin; top: 0; height: 4vmin; background: linear-gradient(180deg, #D9B464 0%, #8E6522 40%, #2A4436 42%, #1E3329 100%); border-bottom: .5vmin solid #C6A058; }
+  .pil::after { content: ""; position: absolute; left: -.6vmin; right: -.6vmin; bottom: 0; height: 6vmin; background: linear-gradient(180deg, #C6A058 0 .5vmin, #2A4436 .5vmin, #17271F 100%); }
+  .pil.l { left: 0; } .pil.r { right: 0; } .pil.m { display: none; }
+
+  .win { position: absolute; left: var(--pw); right: var(--pw); top: calc(var(--ft) + var(--fh) + 1.4vmin); bottom: 49vmin; background: #0B0E0D; box-shadow: 0 0 0 1.4vmin #1A2C23, 0 0 0 1.8vmin #C6A058; }
+  .win img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+  .win::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 18%, rgba(255,255,255,0) 100%); }
+
+  .riser { position: absolute; left: calc(var(--pw) + 1vmin); right: calc(var(--pw) + 1vmin); bottom: 7.4vmin; height: 38vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .now { display: flex; align-items: center; gap: 2vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .4em; text-transform: uppercase; }
+  .now::before, .now::after { content: ""; width: 7vmin; height: .3vmin; background: linear-gradient(90deg, #B07B22, #F4D77F, #B07B22); }
+  .script { margin-top: 1vmin; font-family: "Pinyon Script", cursive; font-size: 7vmin; line-height: 1; padding: 0 2vmin; }
+  .sale { font-family: "Diplomata SC", Georgia, serif; font-size: 9.6vmin; line-height: 1.1; white-space: nowrap; }
+  .off { margin-top: 1.2vmin; font-size: 3vmin; font-weight: 700; letter-spacing: .2em; margin-right: -.2em; text-transform: uppercase; white-space: nowrap; }
+  .fine { margin-top: 1.4vmin; font-style: italic; font-size: 2.3vmin; color: #E6D6B2; white-space: nowrap; }
+  .fine i { font-style: normal; }
+  .fine b { font-style: normal; font-weight: 700; letter-spacing: .16em; color: #F4D77F; }
+  .step { position: absolute; left: 0; right: 0; bottom: 0; height: 3vmin; background: linear-gradient(180deg, #8C8576 0%, #6D675B 100%); border-top: 1px solid #B3AC9B; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pw: 8vmin; --fh: 21vmin; }
+    .fascia .name { font-size: 6.4vmin; }
+    .win { bottom: 41vmin; }
+    .riser { height: 31vmin; bottom: 6.4vmin; }
+    .script { font-size: 5.8vmin; }
+    .sale { font-size: 8vmin; }
+    .off { font-size: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 7vmin; --ft: 3.4vmin; --fh: 19vmin; }
+    .fascia .name { font-size: 6.4vmin; }
+    .fascia .est { font-size: 3vmin; }
+    .pil.m { display: block; left: calc(100% - 7vmin - 45% - 7vmin); }
+    .win { left: auto; right: var(--pw); width: 45%; bottom: 7vmin; }
+    .riser { left: calc(var(--pw) + 1vmin); right: calc(45% + 2 * var(--pw) + 1vmin); top: calc(var(--ft) + var(--fh) + 1.6vmin); bottom: 7vmin; height: auto; }
+    .now { font-size: 1.7vmin; letter-spacing: .3em; gap: 1.4vmin; }
+    .now::before, .now::after { width: 3.4vmin; }
+    .script { font-size: 5vmin; }
+    .sale { font-size: 5.7vmin; }
+    .off { font-size: 1.9vmin; letter-spacing: .08em; margin-right: -.08em; }
+    .fine { font-size: 1.9vmin; line-height: 1.6; }
+    .fine span { display: block; } .fine i { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 8vmin; --fh: 21vmin; }
+    .fascia .name { font-size: 7.6vmin; }
+    .fascia .est { font-size: 3.4vmin; }
+    .pil.m { left: calc(100% - 8vmin - 48% - 8vmin); }
+    .win { width: 48%; }
+    .riser { right: calc(48% + 2 * var(--pw) + 1vmin); }
+    .now { font-size: 2vmin; }
+    .now::before, .now::after { width: 6vmin; }
+    .script { font-size: 6.6vmin; }
+    .sale { font-size: 9.6vmin; }
+    .off { font-size: 2.8vmin; }
+    .fine { font-size: 2.2vmin; }
+    .fine span { display: inline; } .fine i { display: inline; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     constant: a slow push-in on the look in the plate-glass window
+     1.0s a reflection slides across the black-glass fascia and the gold leaf of the house name flares after it ·
+     2.7s the "Now on" gilt rules draw out · 3.2s the reflection crosses the stall-riser and "Sale" flares */
+  .win { overflow: hidden; }
+  .win img { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+
+  .glass::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(112deg, rgba(255,240,200,0) 42%, rgba(255,240,200,.07) 46%, rgba(255,246,222,.2) 50%, rgba(255,240,200,.07) 54%, rgba(255,240,200,0) 58%) 100% 0 / 300% 100% no-repeat; }
+  .fascia::before { animation: refl1 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .riser::before { animation: refl2 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes refl1 { 0%, 14% { background-position: 100% 0; } 38%, 100% { background-position: 0 0; } }
+  @keyframes refl2 { 0%, 50% { background-position: 100% 0; } 74%, 100% { background-position: 0 0; } }
+
+  .fascia .name { animation: leaf1 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .riser .sale { animation: leaf2 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes leaf1 { 0%, 20% { filter: drop-shadow(.28vmin .32vmin 0 #2A1A06) brightness(1); } 27% { filter: drop-shadow(.28vmin .32vmin 0 #2A1A06) brightness(1.35); } 36%, 100% { filter: drop-shadow(.28vmin .32vmin 0 #2A1A06) brightness(1); } }
+  @keyframes leaf2 { 0%, 56% { filter: drop-shadow(.28vmin .32vmin 0 #2A1A06) brightness(1); } 63% { filter: drop-shadow(.28vmin .32vmin 0 #2A1A06) brightness(1.35); } 72%, 100% { filter: drop-shadow(.28vmin .32vmin 0 #2A1A06) brightness(1); } }
+
+  .now::before { transform-origin: 100% 50%; animation: gline 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .now::after { transform-origin: 0 50%; animation: gline 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes gline { 0%, 38% { transform: scaleX(1); } 43% { transform: scaleX(0); } 54%, 100% { transform: scaleX(1); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="fascia glass">
+    <div class="est gilt">Established 1887</div>
+    <div class="name gilt">Hale &amp; Co.</div>
+    <div class="trade">Drapers · Outfitters · Tailors</div>
+  </div>
+  <div class="cornice"></div>
+  <div class="con l" aria-hidden="true">
+    <svg viewBox="0 0 90 300" preserveAspectRatio="none">
+      <defs><linearGradient id="cg" x1="0" x2="1"><stop offset="0" stop-color="#1A2C23"/><stop offset=".5" stop-color="#2F4E40"/><stop offset="1" stop-color="#142219"/></linearGradient></defs>
+      <path d="M0 0 H 90 V 40 C 90 90, 30 90, 34 150 C 38 200, 80 210, 70 250 C 62 285, 20 290, 10 300 H 0 Z" fill="url(#cg)"/>
+      <path d="M90 40 C 90 90, 30 90, 34 150 C 38 200, 80 210, 70 250 C 62 285, 20 290, 10 300" fill="none" stroke="#C6A058" stroke-width="2" vector-effect="non-scaling-stroke"/>
+      <path d="M60 60 C 40 70, 40 100, 58 100 C 70 100, 70 84, 60 84" fill="none" stroke="#C6A058" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      <path d="M50 230 C 40 250, 52 268, 64 258" fill="none" stroke="#C6A058" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      <rect x="0" y="0" width="90" height="10" fill="#C6A058"/>
+    </svg>
+  </div>
+  <div class="con r" aria-hidden="true">
+    <svg viewBox="0 0 90 300" preserveAspectRatio="none">
+      <path d="M0 0 H 90 V 40 C 90 90, 30 90, 34 150 C 38 200, 80 210, 70 250 C 62 285, 20 290, 10 300 H 0 Z" fill="url(#cg)"/>
+      <path d="M90 40 C 90 90, 30 90, 34 150 C 38 200, 80 210, 70 250 C 62 285, 20 290, 10 300" fill="none" stroke="#C6A058" stroke-width="2" vector-effect="non-scaling-stroke"/>
+      <path d="M60 60 C 40 70, 40 100, 58 100 C 70 100, 70 84, 60 84" fill="none" stroke="#C6A058" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      <path d="M50 230 C 40 250, 52 268, 64 258" fill="none" stroke="#C6A058" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      <rect x="0" y="0" width="90" height="10" fill="#C6A058"/>
+    </svg>
+  </div>
+  <div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="pil l"></div><div class="pil m"></div><div class="pil r"></div>
+  <div class="riser glass">
+    <div class="now gilt">Now on</div>
+    <div class="script gilt">The Autumn</div>
+    <div class="sale gilt">Sale</div>
+    <div class="off gilt">30% off throughout</div>
+    <div class="fine"><span>Code <b>HALE30</b></span><i> · </i><span>open daily till seven</span></div>
+  </div>
+  <div class="step"></div>
+</div>
+</body>
+</html>

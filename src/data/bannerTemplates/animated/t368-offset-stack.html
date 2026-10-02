@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Offset Stack — the photo sits on three hard-offset sheets of teal, lightest nearest, deepest furthest,
+     stepping down and right like a stack of cut card. Each sheet is tagged at its corner.
+     The concept doubles as the offer: layer three pieces, save 20%.
+     tall → stack on top, copy below; square/wide → stack left, copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0A4645; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0A4645; color: #E2F4F1; font-family: "Epilogue", "Helvetica Neue", Arial, sans-serif;
+    --x: 6vmin; --y: 6vmin; --w: calc(100% - 24vmin); --h: 56%; --d: 4vmin; }
+  .sheet, .photo { position: absolute; width: var(--w); height: var(--h); }
+  .photo { left: var(--x); top: var(--y); object-fit: cover; object-position: 50% 18%; }
+  .s1 { left: calc(var(--x) + var(--d)); top: calc(var(--y) + var(--d)); background: #A8DCD5; color: #0A4645; }
+  .s2 { left: calc(var(--x) + 2 * var(--d)); top: calc(var(--y) + 2 * var(--d)); background: #4DA8A0; color: #06302F; }
+  .s3 { left: calc(var(--x) + 3 * var(--d)); top: calc(var(--y) + 3 * var(--d)); background: #1C7672; color: #E2F4F1; }
+  .sheet span { position: absolute; right: 1vmin; bottom: .9vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .1em; line-height: 1; white-space: nowrap; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: calc(var(--y) + var(--h) + 3 * var(--d) + 5vmin); bottom: 6vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .k { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #8CCBC3; white-space: nowrap; }
+  h1 { margin: 0; font-weight: 800; font-size: 10.6vmin; line-height: .88; letter-spacing: -.05em; }
+  h1 em { font-style: normal; color: #7FCCC2; }
+  .foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .offer { font-size: 2.1vmin; line-height: 1.45; }
+  .offer b { display: block; font-weight: 800; font-size: 3.4vmin; letter-spacing: -.02em; }
+  .code { font-size: 1.8vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; text-align: right; line-height: 1.8; white-space: nowrap; }
+  .code b { display: inline-block; padding: .6vmin 1.2vmin; background: #A8DCD5; color: #0A4645; font-weight: 800; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --h: 56%; --w: calc(100% - 30vmin); --x: 9vmin; }
+    .copy { left: 9vmin; right: 9vmin; bottom: 5vmin; top: calc(var(--y) + var(--h) + 3 * var(--d) + 4vmin); }
+    h1 { font-size: 8.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --x: 6vmin; --y: 6vmin; --w: 42%; --h: calc(100% - 22.2vmin); --d: 3.4vmin; }
+    .photo { object-position: 50% 22%; }
+    .copy { left: calc(42% + 22vmin); right: 5vmin; top: 7vmin; bottom: 7vmin; }
+    .k { flex-direction: column; gap: 1vmin; }
+    h1 { font-size: 7.6vmin; }
+    .offer b { font-size: 2.8vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+    .code { text-align: left; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --w: 44%; --x: 7vmin; --y: 7vmin; --h: calc(100% - 26vmin); --d: 4vmin; }
+    .offer b { font-size: 3.4vmin; }
+    .copy { left: calc(44% + 27vmin); right: 7vmin; top: 8vmin; bottom: 8vmin; }
+    .k { flex-direction: row; }
+    h1 { font-size: 10.4vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     1.2s the three sheets slide up under the photo, one behind the other, like a stack squared up ·
+     2.2s they're dealt back out, T·01 → T·03, each landing with a little spring ·
+     4.0s "in teal." re-inks · 5.3s a sheen crosses the code chip */
+  .s1 { --k: 1; } .s2 { --k: 2; } .s3 { --k: 3; }
+  .sheet { animation: deal 6s cubic-bezier(.55,0,.75,.3) infinite; }
+  .s1 { animation-delay: -.24s; } .s2 { animation-delay: -.12s; }
+  @keyframes deal {
+    0%, 18% { transform: translate(0, 0); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    28%, 34% { transform: translate(calc(var(--d) * var(--k) * -1), calc(var(--d) * var(--k) * -1)); animation-timing-function: cubic-bezier(.3,1.45,.55,1); }
+    48%, 100% { transform: translate(0, 0); }
+  }
+
+  h1 em { display: inline-block; animation: ink 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes ink {
+    0%, 62%, 80%, 100% { clip-path: inset(-20% -6% -25% -6%); }
+    68%, 69% { clip-path: inset(-20% 106% -25% -6%); }
+  }
+
+  .code b { position: relative; overflow: hidden; }
+  .code b::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.75) 50%, rgba(255,255,255,0) 65%);
+    background-size: 300% 100%; background-position: 100% 0; animation: sheen 6s cubic-bezier(.4,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 86% { background-position: 100% 0; } 96%, 100% { background-position: 0 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sheet s3"><span>T·03</span></div>
+  <div class="sheet s2"><span>T·02</span></div>
+  <div class="sheet s1"><span>T·01</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="k"><span>The Teal Layers</span><span>AW 27</span></div>
+    <h1>Layer it<br><em>in teal.</em></h1>
+    <div class="foot">
+      <div class="offer"><b>Layer 3, save 20%</b>Mix any three pieces</div>
+      <div class="code">Code <b>LAYER3</b><br>Shop now →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,282 @@
+{
+ "af": {
+  "title": "Jou terugbetaling is goedgekeur",
+  "body": "{{credits}} krediete is terug in jou rekening. Tik om die besonderhede te sien."
+ },
+ "am": {
+  "title": "የክሬዲት ተመላሽዎ ጸድቋል",
+  "body": "{{credits}} ክሬዲቶች ወደ መለያዎ ተመልሰዋል። ዝርዝሩን ለማየት ይንኩ።"
+ },
+ "ar": {
+  "title": "تمت الموافقة على طلب الاسترداد",
+  "body": "تمت إعادة {{credits}} رصيد إلى حسابك. اضغط لعرض التفاصيل."
+ },
+ "az": {
+  "title": "Geri qaytarma sorğun təsdiqləndi",
+  "body": "{{credits}} kredit hesabına geri qaytarıldı. Ətraflı məlumat üçün toxun."
+ },
+ "be": {
+  "title": "Вяртанне крэдытаў ухвалена",
+  "body": "На твой рахунак вернута крэдытаў: {{credits}}. Націсні, каб паглядзець падрабязнасці."
+ },
+ "bg": {
+  "title": "Възстановяването е одобрено",
+  "body": "{{credits}} кредита отново са в акаунта ти. Докосни за подробности."
+ },
+ "bn": {
+  "title": "আপনার রিফান্ড অনুমোদিত হয়েছে",
+  "body": "{{credits}} ক্রেডিট আপনার অ্যাকাউন্টে ফিরে এসেছে। বিস্তারিত দেখতে ট্যাপ করুন।"
+ },
+ "ca": {
+  "title": "S'ha aprovat el teu reemborsament",
+  "body": "Hem retornat {{credits}} crèdits al teu compte. Toca per veure'n els detalls."
+ },
+ "cs": {
+  "title": "Vrácení kreditů bylo schváleno",
+  "body": "Na účet se ti vrátily kredity: {{credits}}. Klepnutím zobrazíš podrobnosti."
+ },
+ "da": {
+  "title": "Din refusion er godkendt",
+  "body": "{{credits}} kreditter er tilbage på din konto. Tryk for at se detaljerne."
+ },
+ "de": {
+  "title": "Deine Erstattung wurde genehmigt",
+  "body": "{{credits}} Credits wurden deinem Konto wieder gutgeschrieben. Tippe hier für die Details."
+ },
+ "el": {
+  "title": "Η επιστροφή σου εγκρίθηκε",
+  "body": "{{credits}} credits επιστράφηκαν στον λογαριασμό σου. Πάτα για να δεις τις λεπτομέρειες."
+ },
+ "en": {
+  "title": "Your refund is approved",
+  "body": "{{credits}} credits are back in your account. Tap to see the details."
+ },
+ "es": {
+  "title": "Tu reembolso ha sido aprobado",
+  "body": "Hemos devuelto {{credits}} créditos a tu cuenta. Toca para ver los detalles."
+ },
+ "et": {
+  "title": "Sinu tagasimakse on kinnitatud",
+  "body": "{{credits}} krediiti on su kontole tagasi kantud. Puuduta, et näha üksikasju."
+ },
+ "eu": {
+  "title": "Zure itzulketa onartu da",
+  "body": "{{credits}} kreditu itzuli dira zure kontura. Sakatu xehetasunak ikusteko."
+ },
+ "fa": {
+  "title": "درخواست بازپرداخت شما تأیید شد",
+  "body": "{{credits}} اعتبار به حساب شما برگشت. برای دیدن جزئیات ضربه بزنید."
+ },
+ "fi": {
+  "title": "Hyvityksesi on hyväksytty",
+  "body": "Tilillesi palautettiin {{credits}} krediittiä. Napauta ja katso tiedot."
+ },
+ "fil": {
+  "title": "Aprubado na ang refund mo",
+  "body": "Naibalik na sa account mo ang {{credits}} credits. I-tap para makita ang detalye."
+ },
+ "fr": {
+  "title": "Votre remboursement est validé",
+  "body": "{{credits}} crédits sont de retour sur votre compte. Touchez pour voir les détails."
+ },
+ "gl": {
+  "title": "Aprobouse o teu reembolso",
+  "body": "{{credits}} créditos volveron á túa conta. Toca para ver os detalles."
+ },
+ "gu": {
+  "title": "તમારું રિફંડ મંજૂર થયું",
+  "body": "{{credits}} ક્રેડિટ તમારા એકાઉન્ટમાં પાછી જમા થઈ ગઈ છે. વિગતો જોવા માટે ટૅપ કરો."
+ },
+ "he": {
+  "title": "ההחזר שלך אושר",
+  "body": "{{credits}} קרדיטים חזרו לחשבון שלך. הקישו לצפייה בפרטים."
+ },
+ "hi": {
+  "title": "आपका रिफ़ंड मंज़ूर हो गया",
+  "body": "{{credits}} क्रेडिट आपके अकाउंट में वापस आ गए हैं। डिटेल्स देखने के लिए टैप करें।"
+ },
+ "hr": {
+  "title": "Tvoj povrat je odobren",
+  "body": "{{credits}} kredita vraćeno je na tvoj račun. Dodirni za detalje."
+ },
+ "hu": {
+  "title": "Jóváhagytuk a visszatérítésedet",
+  "body": "{{credits}} kredit visszakerült a fiókodba. Koppints a részletekért."
+ },
+ "hy": {
+  "title": "Կրեդիտների վերադարձը հաստատվել է",
+  "body": "Ձեր հաշվին վերադարձվել է {{credits}} կրեդիտ։ Հպեք՝ մանրամասները տեսնելու համար։"
+ },
+ "id": {
+  "title": "Pengembalian dana kamu disetujui",
+  "body": "{{credits}} kredi sudah kembali ke akunmu. Ketuk untuk melihat detailnya."
+ },
+ "is": {
+  "title": "Endurgreiðslan þín var samþykkt",
+  "body": "Inneign upp á {{credits}} hefur verið skilað á reikninginn þinn. Ýttu til að sjá nánar."
+ },
+ "it": {
+  "title": "Il tuo rimborso è stato approvato",
+  "body": "{{credits}} crediti sono di nuovo nel tuo account. Tocca per vedere i dettagli."
+ },
+ "ja": {
+  "title": "返金申請が承認されました",
+  "body": "{{credits}}クレジットがアカウントに戻りました。タップして詳細を確認しましょう。"
+ },
+ "ka": {
+  "title": "კრედიტების დაბრუნება დამტკიცდა",
+  "body": "{{credits}} კრედიტი დაგიბრუნდათ ანგარიშზე. შეეხეთ დეტალების სანახავად."
+ },
+ "kk": {
+  "title": "Қайтару өтінішіңіз мақұлданды",
+  "body": "{{credits}} кредит шотыңызға қайтарылды. Толығырақ білу үшін түртіңіз."
+ },
+ "km": {
+  "title": "ការសងវិញរបស់អ្នកត្រូវបានអនុម័ត",
+  "body": "ក្រេឌីត {{credits}} ត្រូវបានបង្វិលចូលគណនីរបស់អ្នកវិញហើយ។ ចុចដើម្បីមើលព័ត៌មានលម្អិត។"
+ },
+ "kn": {
+  "title": "ನಿಮ್ಮ ರೀಫಂಡ್ ಅನುಮೋದನೆಯಾಗಿದೆ",
+  "body": "{{credits}} ಕ್ರೆಡಿಟ್‌ಗಳು ನಿಮ್ಮ ಖಾತೆಗೆ ಮರಳಿ ಬಂದಿವೆ. ವಿವರಗಳನ್ನು ನೋಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ."
+ },
+ "ko": {
+  "title": "환불이 승인되었어요",
+  "body": "{{credits}} 크레딧이 계정에 다시 적립되었어요. 탭해서 자세한 내용을 확인해 보세요."
+ },
+ "ky": {
+  "title": "Кайтаруу өтүнүчүңүз бекитилди",
+  "body": "{{credits}} кредит эсебиңизге кайтарылды. Чоо-жайын көрүү үчүн басыңыз."
+ },
+ "lo": {
+  "title": "ການຄືນເງິນຂອງທ່ານຖືກອະນຸມັດແລ້ວ",
+  "body": "{{credits}} ເຄຣດິດໄດ້ກັບຄືນເຂົ້າບັນຊີຂອງທ່ານແລ້ວ. ແຕະເພື່ອເບິ່ງລາຍລະອຽດ."
+ },
+ "lt": {
+  "title": "Kreditų grąžinimas patvirtintas",
+  "body": "Į jūsų paskyrą grąžinta kreditų: {{credits}}. Palieskite ir peržiūrėkite išsamiau."
+ },
+ "lv": {
+  "title": "Tava atmaksa ir apstiprināta",
+  "body": "Tavā kontā atgriezti kredīti: {{credits}}. Pieskaries, lai skatītu detaļas."
+ },
+ "mk": {
+  "title": "Твојот поврат е одобрен",
+  "body": "{{credits}} кредити се вратени на твојата сметка. Допри за да ги видиш деталите."
+ },
+ "ml": {
+  "title": "നിങ്ങളുടെ റീഫണ്ട് അംഗീകരിച്ചു",
+  "body": "{{credits}} ക്രെഡിറ്റുകൾ നിങ്ങളുടെ അക്കൗണ്ടിൽ തിരികെയെത്തി. വിശദാംശങ്ങൾ കാണാൻ ടാപ്പ് ചെയ്യുക."
+ },
+ "mn": {
+  "title": "Таны буцаалтыг зөвшөөрлөө",
+  "body": "{{credits}} кредит таны дансанд буцаж орлоо. Дэлгэрэнгүйг харах бол дарна уу."
+ },
+ "mr": {
+  "title": "तुमचा परतावा मंजूर झाला",
+  "body": "{{credits}} क्रेडिट्स तुमच्या खात्यात परत जमा झाले आहेत. तपशील पाहण्यासाठी टॅप करा."
+ },
+ "ms": {
+  "title": "Bayaran balik anda telah diluluskan",
+  "body": "{{credits}} kredit telah dikembalikan ke akaun anda. Ketik untuk melihat butiran."
+ },
+ "ne": {
+  "title": "तपाईंको रिफन्ड स्वीकृत भयो",
+  "body": "{{credits}} क्रेडिट तपाईंको खातामा फिर्ता आयो। विवरण हेर्न ट्याप गर्नुहोस्।"
+ },
+ "nl": {
+  "title": "Je terugbetaling is goedgekeurd",
+  "body": "{{credits}} credits staan weer op je account. Tik om de details te bekijken."
+ },
+ "no": {
+  "title": "Refusjonen din er godkjent",
+  "body": "{{credits}} kreditter er tilbake på kontoen din. Trykk for å se detaljene."
+ },
+ "pa": {
+  "title": "ਤੁਹਾਡਾ ਰਿਫੰਡ ਮਨਜ਼ੂਰ ਹੋ ਗਿਆ ਹੈ",
+  "body": "{{credits}} ਕ੍ਰੈਡਿਟ ਤੁਹਾਡੇ ਖਾਤੇ ਵਿੱਚ ਵਾਪਸ ਆ ਗਏ ਹਨ। ਵੇਰਵੇ ਦੇਖਣ ਲਈ ਟੈਪ ਕਰੋ।"
+ },
+ "pl": {
+  "title": "Twój zwrot został zatwierdzony",
+  "body": "Na Twoje konto wróciły kredyty: {{credits}}. Dotknij, aby zobaczyć szczegóły."
+ },
+ "pt": {
+  "title": "O seu reembolso foi aprovado",
+  "body": "{{credits}} créditos voltaram à sua conta. Toque para ver os detalhes."
+ },
+ "rm": {
+  "title": "Tia restituziun è approvada",
+  "body": "{{credits}} credits èn puspè sin tes conto. Tutga per vesair ils detagls."
+ },
+ "ro": {
+  "title": "Rambursarea ta a fost aprobată",
+  "body": "Creditele tale ({{credits}}) au revenit în cont. Atinge pentru a vedea detaliile."
+ },
+ "ru": {
+  "title": "Возврат одобрен",
+  "body": "Кредиты возвращены на ваш счёт: {{credits}}. Нажмите, чтобы посмотреть подробности."
+ },
+ "si": {
+  "title": "ඔබේ ආපසු ගෙවීම අනුමත කළා",
+  "body": "ඔබේ ගිණුමට ක්‍රෙඩිට් {{credits}}ක් ආපසු ලැබුණා. විස්තර බැලීමට තට්ටු කරන්න."
+ },
+ "sk": {
+  "title": "Vrátenie kreditov bolo schválené",
+  "body": "Na tvoj účet sa vrátili kredity: {{credits}}. Ťukni a pozri si podrobnosti."
+ },
+ "sl": {
+  "title": "Vračilo je odobreno",
+  "body": "Na tvoj račun smo vrnili kredite: {{credits}}. Tapni za podrobnosti."
+ },
+ "sr": {
+  "title": "Tvoj povraćaj je odobren",
+  "body": "Krediti su vraćeni na tvoj nalog: {{credits}}. Dodirni za detalje."
+ },
+ "sv": {
+  "title": "Din återbetalning har godkänts",
+  "body": "{{credits}} krediter har lagts tillbaka på ditt konto. Tryck för att se detaljerna."
+ },
+ "sw": {
+  "title": "Marejesho yako yameidhinishwa",
+  "body": "Krediti {{credits}} zimerudishwa kwenye akaunti yako. Gusa ili uone maelezo."
+ },
+ "ta": {
+  "title": "உங்கள் ரீஃபண்ட் அங்கீகரிக்கப்பட்டது",
+  "body": "{{credits}} கிரெடிட்கள் உங்கள் கணக்கில் மீண்டும் சேர்க்கப்பட்டன. விவரங்களைப் பார்க்கத் தட்டவும்."
+ },
+ "te": {
+  "title": "మీ రీఫండ్ ఆమోదించబడింది",
+  "body": "{{credits}} క్రెడిట్‌లు మీ ఖాతాలోకి తిరిగి వచ్చాయి. వివరాలు చూడటానికి ట్యాప్ చేయండి."
+ },
+ "th": {
+  "title": "คำขอคืนเครดิตของคุณได้รับอนุมัติแล้ว",
+  "body": "คืน {{credits}} เครดิตเข้าบัญชีของคุณแล้ว แตะเพื่อดูรายละเอียด"
+ },
+ "tr": {
+  "title": "İaden onaylandı",
+  "body": "{{credits}} kredi hesabına geri yüklendi. Ayrıntılar için dokun."
+ },
+ "uk": {
+  "title": "Ваше повернення схвалено",
+  "body": "Кредити повернуто на ваш баланс: {{credits}}. Торкніться, щоб переглянути деталі."
+ },
+ "ur": {
+  "title": "آپ کا ریفنڈ منظور ہو گیا",
+  "body": "{{credits}} کریڈٹس آپ کے اکاؤنٹ میں واپس آ گئے ہیں۔ تفصیلات دیکھنے کے لیے ٹیپ کریں۔"
+ },
+ "uz": {
+  "title": "Qaytarish so‘rovingiz tasdiqlandi",
+  "body": "{{credits}} kredit hisobingizga qaytarildi. Tafsilotlarni ko‘rish uchun bosing."
+ },
+ "vi": {
+  "title": "Yêu cầu hoàn trả đã được duyệt",
+  "body": "{{credits}} credit đã được hoàn lại vào tài khoản của bạn. Nhấn để xem chi tiết."
+ },
+ "zh": {
+  "title": "你的退款已获批准",
+  "body": "{{credits}} 积分已退回你的账户。点按查看详情。"
+ },
+ "zu": {
+  "title": "Ukubuyiselwa kwakho kuvunyiwe",
+  "body": "Amakhredithi angu-{{credits}} abuyele ku-akhawunti yakho. Thepha ukuze ubone imininingwane."
+ }
+}

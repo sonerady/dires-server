@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* In a New Light — gradient-mesh aura: soft colour fields, the photo melting into them, an aura reading card */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5EEE9; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1D1822; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(60vmin 48vmin at 12% 78%, rgba(255,166,120,.85), rgba(255,166,120,0) 70%),
+      radial-gradient(64vmin 54vmin at 92% 70%, rgba(190,155,255,.85), rgba(190,155,255,0) 70%),
+      radial-gradient(56vmin 44vmin at 70% 98%, rgba(255,150,196,.8), rgba(255,150,196,0) 70%),
+      radial-gradient(50vmin 40vmin at 40% 62%, rgba(160,232,206,.75), rgba(160,232,206,0) 70%),
+      #F5EEE9; }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .16; mix-blend-mode: soft-light; }
+
+  /* TALL — photo on top, melting down into the colour field */
+  .photo { position: absolute; top: 0; left: 0; width: 100%; height: 58%; object-fit: cover; object-position: 50% 22%;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 84.0%, rgba(0,0,0,0.985) 85.2%, rgba(0,0,0,0.943) 86.5%, rgba(0,0,0,0.874) 87.7%, rgba(0,0,0,0.784) 88.9%, rgba(0,0,0,0.677) 90.2%, rgba(0,0,0,0.56) 91.4%, rgba(0,0,0,0.44) 92.6%, rgba(0,0,0,0.323) 93.8%, rgba(0,0,0,0.216) 95.1%, rgba(0,0,0,0.126) 96.3%, rgba(0,0,0,0.057) 97.5%, rgba(0,0,0,0.015) 98.8%, rgba(0,0,0,0) 100.0%); mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 84.0%, rgba(0,0,0,0.985) 85.2%, rgba(0,0,0,0.943) 86.5%, rgba(0,0,0,0.874) 87.7%, rgba(0,0,0,0.784) 88.9%, rgba(0,0,0,0.677) 90.2%, rgba(0,0,0,0.56) 91.4%, rgba(0,0,0,0.44) 92.6%, rgba(0,0,0,0.323) 93.8%, rgba(0,0,0,0.216) 95.1%, rgba(0,0,0,0.126) 96.3%, rgba(0,0,0,0.057) 97.5%, rgba(0,0,0,0.015) 98.8%, rgba(0,0,0,0) 100.0%); }
+  .tag { position: absolute; top: 4.4vmin; left: 5vmin; padding: 1vmin 2vmin; border-radius: 99vmin; background: rgba(255,255,255,.72); font-size: 1.8vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: 55.5%; bottom: 5.4vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.9vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #4A3F55; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .86; letter-spacing: -.02em; }
+  h1 i { color: #6A3FC4; }
+  .card { margin-top: 2.6vmin; background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.9); border-radius: 3vmin; padding: 2.2vmin 3vmin; box-shadow: 0 1.6vmin 4vmin rgba(90,60,120,.12); }
+  .card .h { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #6A5D78; padding-bottom: 1.2vmin; }
+  .card .r { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; padding: 1vmin 0; border-top: 1px solid rgba(29,24,34,.14); font-size: 2.3vmin; }
+  .card .r span { color: #6A5D78; }
+  .card .r b { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-style: italic; font-size: 3.2vmin; line-height: 1; }
+  .card .r3 { display: none; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 2.2vmin; line-height: 1.35; }
+  .offer b { display: block; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 6.4vmin; line-height: .95; }
+  .cta { background: #1D1822; color: #F5EEE9; border-radius: 99vmin; padding: 2vmin 3.6vmin; font-size: 2.2vmin; font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
+
+  /* SHORTER PORTRAIT / SQUARE / WIDE — photo left, melting right */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { background:
+      radial-gradient(56vmin 60vmin at 62% 18%, rgba(255,166,120,.85), rgba(255,166,120,0) 70%),
+      radial-gradient(60vmin 64vmin at 98% 58%, rgba(190,155,255,.85), rgba(190,155,255,0) 70%),
+      radial-gradient(50vmin 50vmin at 70% 100%, rgba(255,150,196,.8), rgba(255,150,196,0) 70%),
+      radial-gradient(46vmin 46vmin at 58% 60%, rgba(160,232,206,.7), rgba(160,232,206,0) 70%),
+      #F5EEE9; }
+    .photo { width: 56%; height: 100%; -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80.0%, rgba(0,0,0,0.985) 81.5%, rgba(0,0,0,0.943) 83.1%, rgba(0,0,0,0.874) 84.6%, rgba(0,0,0,0.784) 86.2%, rgba(0,0,0,0.677) 87.7%, rgba(0,0,0,0.56) 89.2%, rgba(0,0,0,0.44) 90.8%, rgba(0,0,0,0.323) 92.3%, rgba(0,0,0,0.216) 93.8%, rgba(0,0,0,0.126) 95.4%, rgba(0,0,0,0.057) 96.9%, rgba(0,0,0,0.015) 98.5%, rgba(0,0,0,0) 100.0%); mask-image: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 80.0%, rgba(0,0,0,0.985) 81.5%, rgba(0,0,0,0.943) 83.1%, rgba(0,0,0,0.874) 84.6%, rgba(0,0,0,0.784) 86.2%, rgba(0,0,0,0.677) 87.7%, rgba(0,0,0,0.56) 89.2%, rgba(0,0,0,0.44) 90.8%, rgba(0,0,0,0.323) 92.3%, rgba(0,0,0,0.216) 93.8%, rgba(0,0,0,0.126) 95.4%, rgba(0,0,0,0.057) 96.9%, rgba(0,0,0,0.015) 98.5%, rgba(0,0,0,0) 100.0%); }
+    .copy { left: calc(52% + 4vmin); right: 5vmin; top: 6vmin; bottom: 5vmin; }
+    .kick { font-size: 1.7vmin; letter-spacing: .18em; }
+    h1 { font-size: 10.6vmin; }
+    .card { padding: 1.8vmin 2.4vmin; border-radius: 2.4vmin; }
+    .card .r { font-size: 2vmin; }
+    .card .r b { font-size: 2.8vmin; }
+    .card .r3 { display: flex; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.2vmin; }
+    .offer { font-size: 1.9vmin; }
+    .offer b { font-size: 5.4vmin; }
+    .cta { font-size: 2vmin; padding: 1.8vmin 3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 54%; }
+    .copy { left: calc(50% + 4vmin); }
+    h1 { font-size: 11vmin; }
+    .card { margin-top: 2.6vmin; }
+    .card .r { padding: .8vmin 0; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .offer b { font-size: 4.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .copy { left: calc(46% + 5vmin); right: 6vmin; top: 7vmin; bottom: 6vmin; }
+    h1 { font-size: 14vmin; }
+    .card { margin-top: 4vmin; }
+    .card { max-width: 62vmin; }
+    .offer b { font-size: 5.8vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design — slow, dreamy: the aura shifts its colours ───────── */
+  /* the colour field (a copy of the banner's own mesh) breathes and drifts through the spectrum */
+  .banner::before { content: ""; position: absolute; inset: 0; background: inherit; animation: aura 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes aura {
+    0%, 100% { transform: scale(1) translate(0, 0); filter: hue-rotate(0deg); }
+    33% { transform: scale(1.06) translate(1.5%, -1%); filter: hue-rotate(22deg); }
+    66% { transform: scale(1.05) translate(-1.5%, 1.2%); filter: hue-rotate(-16deg); }
+  }
+  /* the photo: a barely-there push-in */
+  .photo { transform-origin: 50% 0; animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @media (min-aspect-ratio: 7/10) { .photo { transform-origin: 0 50%; } }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  /* "light." glows through apricot and pink, then settles back to lilac */
+  h1 i { padding-right: .12em; margin-right: -.12em; background: linear-gradient(90deg, #6A3FC4 0 33.4%, #E0845A 44%, #D0569A 54%, #6A3FC4 66.6% 100%) 0% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: hue 8s linear infinite; }
+  @keyframes hue {
+    0%, 20% { background-position: 0% 0; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    52%, 100% { background-position: 100% 0; }
+  }
+  /* a soft light passes over the glass reading card */
+  .card { position: relative; overflow: hidden; }
+  .card::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 26%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.25) 35%, rgba(255,255,255,.6) 50%, rgba(255,255,255,.25) 65%, rgba(255,255,255,0) 100%);
+    transform: translateX(-180%) skewX(-16deg); animation: glass 8s linear infinite; }
+  @keyframes glass {
+    0%, 56% { transform: translateX(-180%) skewX(-16deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    74%, 100% { transform: translateX(480%) skewX(-16deg); }
+  }
+  /* the card rows surface one by one, like a reading coming in */
+  .card .r b { animation: read 8s linear infinite; }
+  .card .r:nth-child(3) b { animation-delay: -7.7s; }
+  .card .r:nth-child(4) b { animation-delay: -7.4s; }
+  @keyframes read {
+    0%, 60% { opacity: 1; filter: blur(0); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    64% { opacity: 0; filter: blur(.5vmin); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    72%, 100% { opacity: 1; filter: blur(0); }
+  }
+  /* the pill tag breathes */
+  .tag { animation: tag 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes tag { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } 50% { box-shadow: 0 0 0 .8vmin rgba(255,255,255,.35); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tag">New season</div>
+  <div class="copy">
+    <div class="kick">The glow edit — SS26</div>
+    <h1>In a new<br><i>light.</i></h1>
+    <div class="card">
+      <div class="h"><span>Aura reading</span><span>Today</span></div>
+      <div class="r"><span>Mood</span><b>soft, sunlit</b></div>
+      <div class="r"><span>Colour</span><b>apricot → lilac</b></div>
+      <div class="r r3"><span>Energy</span><b>a fresh start</b></div>
+    </div>
+    <div class="foot"><div class="offer"><b>−20%</b>on the new edit · code GLOW20</div><div class="cta">Shop the edit</div></div>
+  </div>
+</div>
+</body>
+</html>

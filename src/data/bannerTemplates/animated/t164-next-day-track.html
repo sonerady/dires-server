@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Next-Day Track — a delivery promise told as a parcel tracker: a tear-off calendar tile pinned to the seam,
+     a four-stop route and an order-by cut-off. tall → photo above a cobalt panel; square / wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1F3BD1; }
+  .banner { --panel: 72vmin; position: fixed; inset: 0; overflow: hidden; background: #1F3BD1; color: #F1EDE4; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .cal { position: absolute; left: 6vmin; top: calc(100% - var(--panel) - 8vmin); width: 21vmin; background: #F1EDE4; color: #0E1330; box-shadow: 0 1.4vmin 3vmin rgba(8,14,60,.3); transform: rotate(-3deg); }
+  .cal .hd { position: relative; background: #0E1330; color: #F1EDE4; text-align: center; padding: 1.2vmin 0 1vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; }
+  .cal .hd::before, .cal .hd::after { content: ""; position: absolute; top: -1vmin; width: 1.2vmin; height: 2.4vmin; border-radius: 99vmin; background: #9AA6C8; }
+  .cal .hd::before { left: 4vmin; } .cal .hd::after { right: 4vmin; }
+  .cal .d { display: block; text-align: center; font-family: "Instrument Serif", Georgia, serif; font-size: 13vmin; line-height: 1; padding-top: 1vmin; }
+  .cal .m { display: block; text-align: center; padding: 0 0 1.8vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  .cal .m::before { content: ""; display: block; margin: 0 3vmin 1.4vmin; border-top: 1px dashed rgba(14,19,48,.45); }
+
+  .cut { position: absolute; left: 32vmin; right: 6vmin; top: calc(100% - var(--panel) + 4.4vmin); display: flex; justify-content: space-between; align-items: flex-start; gap: 2vmin; }
+  .kick { font-size: 1.8vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #C9D2FF; line-height: 1.5; }
+  .kick b { display: block; color: #F1EDE4; font-size: 3.6vmin; letter-spacing: -.01em; text-transform: none; font-weight: 600; line-height: 1.1; margin-top: .4vmin; }
+  .kick b span { font-variant-numeric: tabular-nums; }
+  .pin { flex: none; width: 5.6vmin; height: 5.6vmin; border-radius: 50%; border: 1px solid rgba(241,237,228,.5); display: flex; align-items: center; justify-content: center; }
+  .pin svg { width: 3vmin; height: 3vmin; }
+
+  .body { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - var(--panel) + 22vmin); bottom: 5.4vmin; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 10.4vmin; line-height: .92; letter-spacing: -.015em; }
+  h1 i { color: #C9D2FF; }
+
+  .track { position: relative; margin-top: auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .track::before { content: ""; position: absolute; left: 1.3vmin; right: 12%; top: 1.2vmin; height: 0; border-top: .35vmin dotted rgba(241,237,228,.55); }
+  .track::after { content: ""; position: absolute; left: 1.3vmin; width: 38%; top: 1.05vmin; height: .45vmin; background: #F1EDE4; }
+  .stop { position: relative; z-index: 1; font-size: 1.8vmin; font-weight: 500; line-height: 1.3; color: #C9D2FF; }
+  .stop i { display: block; width: 2.6vmin; height: 2.6vmin; margin-bottom: 1.4vmin; border-radius: 50%; background: #1F3BD1; border: .4vmin solid rgba(241,237,228,.7); box-sizing: border-box; }
+  .stop.done { color: #F1EDE4; }
+  .stop.done i { background: #F1EDE4; border-color: #F1EDE4; }
+  .stop.now i { background: #1F3BD1; border-color: #F1EDE4; box-shadow: 0 0 0 .8vmin rgba(241,237,228,.22); }
+  .stop b { display: block; font-weight: 700; color: #F1EDE4; }
+
+  .foot { margin-top: 3.6vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(241,237,228,.35); display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 1.9vmin; line-height: 1.4; color: #C9D2FF; }
+  .foot p b { color: #F1EDE4; font-weight: 600; }
+  .cta { flex: none; background: #F1EDE4; color: #0E1330; border-radius: 99vmin; padding: 1.9vmin 3.4vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 66vmin; }
+    .cal { width: 19vmin; top: calc(100% - var(--panel) - 7vmin); }
+    .cal .d { font-size: 11.4vmin; }
+    .cut { left: 29vmin; top: calc(100% - var(--panel) + 3.6vmin); }
+    .body { top: calc(100% - var(--panel) + 20vmin); bottom: 4.6vmin; }
+    h1 { font-size: 9.2vmin; }
+    .foot { margin-top: 3vmin; padding-top: 2vmin; }
+  }
+  /* square / wide — photo left; the calendar tile pinned top-right of the panel */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 44%; }
+    .photo { width: var(--pw); height: 100%; }
+    .cal { left: auto; right: 5vmin; top: 5.6vmin; width: 17vmin; transform: rotate(3deg); }
+    .cal .d { font-size: 10vmin; }
+    .cal .hd { font-size: 1.6vmin; }
+    .cal .m { font-size: 1.6vmin; }
+    .cut { left: calc(var(--pw) + 5vmin); right: 26vmin; top: 7vmin; }
+    .kick { font-size: 1.6vmin; letter-spacing: .16em; }
+    .kick b { font-size: 2.9vmin; }
+    .pin { display: none; }
+    .body { left: calc(var(--pw) + 5vmin); right: 5vmin; top: 33vmin; bottom: 5vmin; }
+    h1 { font-size: 7.6vmin; }
+    .stop { font-size: 1.6vmin; }
+    .stop i { width: 2.2vmin; height: 2.2vmin; margin-bottom: 1.1vmin; }
+    .track::before { top: 1vmin; left: 1.1vmin; } .track::after { top: .85vmin; left: 1.1vmin; }
+    .foot { margin-top: 2.6vmin; padding-top: 2vmin; flex-direction: column; align-items: stretch; gap: 1.8vmin; }
+    .foot p { font-size: 1.7vmin; }
+    .cta { text-align: center; padding: 1.7vmin 2.6vmin; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 46%; }
+    .cal { right: 7vmin; top: 6.4vmin; width: 20vmin; }
+    .cal .d { font-size: 12vmin; }
+    .cut { left: calc(var(--pw) + 7vmin); right: 32vmin; top: 8vmin; }
+    .kick { font-size: 1.8vmin; letter-spacing: .22em; }
+    .kick b { font-size: 3.6vmin; }
+    .body { left: calc(var(--pw) + 7vmin); right: 7vmin; top: 36vmin; bottom: 6vmin; }
+    h1 { font-size: 8.6vmin; }
+    .stop { font-size: 1.8vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 3vmin; }
+    .foot p { font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+     constant: slow photo push-in · the cut-off clock hand ticks round once (12 steps) · the "Packed" stop sends a ring every 2s
+     beats: .6s a glowing parcel runs the dotted route to the door · 2.8s the calendar leaf flips over on its pin ·
+            3.8s "Wear it tomorrow." wipes out and back · 5.0s sheen across the CTA pill */
+  .photo { transform-origin: 50% 20%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .pin svg path { transform-box: view-box; transform-origin: 12px 12px; animation: hand 6s steps(12, end) infinite; }
+  @keyframes hand { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+  .stop.now i { position: relative; }
+  .stop.now i::after { content: ""; position: absolute; inset: -.4vmin; border-radius: 50%; border: .3vmin solid #F1EDE4; opacity: 0; animation: ping 2s linear infinite; }
+  @keyframes ping {
+    0% { transform: scale(1); opacity: 0; }
+    5% { transform: scale(1.05); opacity: .9; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    60%, 100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  .track .run { position: absolute; left: calc(25% - .2vmin); right: calc(25% - 2.8vmin); top: 0; height: 2.6vmin; z-index: 0; pointer-events: none;
+    background: radial-gradient(circle closest-side, #FFFFFF 0 45%, rgba(241,237,228,.5) 62%, rgba(241,237,228,0) 100%) no-repeat 0 -.1vmin / 3vmin 3vmin;
+    opacity: 0; animation: parcel 6s linear infinite; }
+  @keyframes parcel {
+    0%, 9% { background-position: 0% -.1vmin; opacity: 0; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    12% { opacity: 1; animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    38% { background-position: 100% -.1vmin; opacity: 1; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    44%, 100% { background-position: 100% -.1vmin; opacity: 0; }
+  }
+  .stop:nth-child(5) i { animation: arrive 6s linear infinite; }
+  @keyframes arrive {
+    0%, 36% { transform: scale(1); border-color: rgba(241,237,228,.7); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    39% { transform: scale(1.35); border-color: #FFFFFF; animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    46%, 100% { transform: scale(1); border-color: rgba(241,237,228,.7); }
+  }
+
+  .cal { transform-origin: 50% 0; animation: swing 6s linear infinite; }
+  @keyframes swing {
+    0%, 46% { transform: rotate(-3deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    50% { transform: rotate(-5.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    55% { transform: rotate(-1.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    60% { transform: rotate(-3.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    65%, 100% { transform: rotate(-3deg); }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .cal { animation-name: swing-r; }
+  }
+  @keyframes swing-r {
+    0%, 46% { transform: rotate(3deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    50% { transform: rotate(5.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    55% { transform: rotate(1.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    60% { transform: rotate(3.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    65%, 100% { transform: rotate(3deg); }
+  }
+  .cal .d { transform-origin: 50% 0; animation: leaf 6s linear infinite; }
+  @keyframes leaf {
+    0%, 46% { transform: perspective(40vmin) rotateX(0); animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    56%, 100% { transform: perspective(40vmin) rotateX(360deg); }
+  }
+
+  h1 i { display: inline-block; clip-path: inset(-20% -8% -25% -4%); animation: wipe 6s linear infinite; }
+  @keyframes wipe {
+    0%, 63% { clip-path: inset(-20% -8% -25% -4%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    70% { clip-path: inset(-20% -8% -25% 104%); animation-timing-function: steps(1, end); }
+    71% { clip-path: inset(-20% 104% -25% -4%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    80%, 100% { clip-path: inset(-20% -8% -25% -4%); }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 30%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(31,59,209,0) 0%, rgba(31,59,209,.08) 30%, rgba(31,59,209,.22) 50%, rgba(31,59,209,.08) 70%, rgba(31,59,209,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 82% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    95%, 100% { transform: translateX(380%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="cut">
+    <div class="kick">Next-day delivery<b>Order in <span>3h 42m</span></b></div>
+    <div class="pin"><svg viewBox="0 0 24 24" fill="none" stroke="#F1EDE4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></div>
+  </div>
+
+  <div class="body">
+    <h1>Order today.<br><i>Wear it tomorrow.</i></h1>
+    <div class="track">
+      <span class="run"></span>
+      <div class="stop done"><i></i><b>Ordered</b>by 14:00</div>
+      <div class="stop now"><i></i><b>Packed</b>tonight</div>
+      <div class="stop"><i></i><b>On its way</b>8:00</div>
+      <div class="stop"><i></i><b>At your door</b>by noon</div>
+    </div>
+    <div class="foot">
+      <p><b>Free next-day</b> on orders over €60<br>Free returns within 30 days</p>
+      <div class="cta">Shop now →</div>
+    </div>
+  </div>
+
+  <div class="cal">
+    <div class="hd">Arrives</div>
+    <span class="d">26</span>
+    <span class="m">Thu · Sep</span>
+  </div>
+</div>
+</body>
+</html>

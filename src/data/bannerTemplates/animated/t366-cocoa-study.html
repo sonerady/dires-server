@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Cocoa Study — a colour-theory painting of nested squares in five browns, offset like the classic studies:
+     each ring is wider on one side, and that wider band is where one line of copy lives,
+     so the text steps inward from espresso to latte until it reaches the photo at the centre.
+     tall → rings open at the top; square/wide → rings open to the left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #22120A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #22120A; color: #F3E6D8; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .r { position: absolute; }
+  .r1 { left: 3.6vmin; right: 3.6vmin; top: 11vmin; bottom: 3.6vmin; background: #4A2A1A; }
+  .r2 { left: 7.2vmin; right: 7.2vmin; top: 33vmin; bottom: 7.2vmin; background: #8A5638; }
+  .r3 { left: 10.8vmin; right: 10.8vmin; top: 43.5vmin; bottom: 10.8vmin; background: #C9A286; }
+  .photo { position: absolute; left: 14.4vmin; width: calc(100% - 28.8vmin); top: 51.5vmin; height: calc(100% - 65.9vmin); object-fit: cover; object-position: 50% 18%; }
+
+  .l0 { position: absolute; left: 3.6vmin; right: 3.6vmin; top: 0; height: 11vmin; display: flex; align-items: center; justify-content: space-between; font-size: 1.7vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: #D9C3AF; white-space: nowrap; }
+  .l1 { position: absolute; left: 7.2vmin; right: 7.2vmin; top: 11vmin; height: 22vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  h1 { margin: 0; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 500; font-size: 10.6vmin; line-height: .9; letter-spacing: -.01em; white-space: nowrap; }
+  .l1 .no { font-size: 1.7vmin; letter-spacing: .18em; text-transform: uppercase; color: #D9C3AF; text-align: right; line-height: 1.5; }
+  .l2 { position: absolute; left: 10.8vmin; right: 10.8vmin; top: 33vmin; height: 10.5vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; font-size: 2.2vmin; white-space: nowrap; color: #FBF1E6; }
+  .l2 b { font-weight: 600; font-size: 3vmin; letter-spacing: -.01em; }
+  .l3 { position: absolute; left: 14.4vmin; right: 14.4vmin; top: 43.5vmin; height: 8vmin; display: flex; align-items: center; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #22120A; white-space: nowrap; }
+
+  .legend { display: none; }
+  .legend div { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.8vmin; letter-spacing: .06em; color: #E7D5C3; padding: 1.1vmin 0; border-top: 1px solid rgba(243,230,216,.16); white-space: nowrap; }
+  .legend i { display: block; width: 3.6vmin; height: 3.6vmin; box-shadow: 0 0 0 1px rgba(243,230,216,.2); }
+  .legend em { font-style: normal; margin-left: auto; font-size: 1.6vmin; letter-spacing: .12em; color: #BFA48D; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .r1 { top: 10vmin; } .r2 { top: 29vmin; } .r3 { top: 38.5vmin; }
+    .photo { top: 46vmin; height: calc(100% - 60.4vmin); }
+    .l0 { height: 10vmin; } .l1 { top: 10vmin; height: 19vmin; } .l2 { top: 29vmin; height: 9.5vmin; } .l3 { top: 38.5vmin; height: 7.5vmin; }
+    h1 { font-size: 9.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .r1 { left: 36%; right: 3vmin; top: 3vmin; bottom: 3vmin; }
+    .r2 { left: calc(36% + 8vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .r3 { left: calc(36% + 14vmin); right: 9vmin; top: 9vmin; bottom: 9vmin; }
+    .photo { left: calc(36% + 18vmin); width: calc(64% - 30vmin); top: 12vmin; height: calc(100% - 24vmin); object-position: 50% 22%; }
+    .l0 { left: 5vmin; right: auto; top: 5vmin; height: auto; width: calc(36% - 9vmin); display: block; }
+    .l0 span { display: block; } .l0 span + span { margin-top: 1vmin; }
+    .l1 { left: 5vmin; right: auto; top: auto; bottom: 5vmin; height: auto; width: calc(36% - 9vmin); flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    h1 { font-size: 9vmin; white-space: normal; }
+    .legend { display: block; position: absolute; left: 5vmin; width: calc(36% - 9vmin); top: 17vmin; }
+    .l1 .no { text-align: left; }
+    /* vertical strip labels in the wide side bands */
+    .l2, .l3 { top: 3vmin; bottom: 3vmin; height: auto; right: auto; writing-mode: vertical-rl; transform: rotate(180deg); justify-content: space-between; }
+    .l2 { left: 36%; top: 6vmin; bottom: 6vmin; width: 8vmin; font-size: 1.9vmin; }
+    .l2 b { font-size: 2.4vmin; }
+    .l3 { left: calc(36% + 8vmin); top: 9vmin; bottom: 9vmin; width: 6vmin; font-size: 1.6vmin; letter-spacing: .14em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .r1 { left: 40%; } .r2 { left: calc(40% + 9vmin); } .r3 { left: calc(40% + 15.5vmin); }
+    .photo { left: calc(40% + 19.5vmin); width: calc(60% - 31.5vmin); }
+    .l0, .l1 { left: 6vmin; width: calc(40% - 12vmin); }
+    .l0 { top: 6vmin; } .l1 { bottom: 6vmin; }
+    .legend { left: 6vmin; width: calc(40% - 12vmin); top: 19vmin; }
+    h1 { font-size: 10vmin; }
+    .l2 { left: 40%; width: 9vmin; } .l3 { left: calc(40% + 9vmin); width: 6.5vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     0.6s the study "steps inward": each brown lifts in turn, cacao → milk → latte, like the eye travelling to the centre ·
+     2.4s the title is repainted left to right · 3.6s a low warm light drags across the painted squares ·
+     5.0s the offer punches */
+  .r { background-image: linear-gradient(112deg, rgba(255,226,190,0) 42%, rgba(255,226,190,.26) 50%, rgba(255,226,190,0) 58%);
+    background-attachment: fixed; background-size: 300% 100%; background-repeat: no-repeat; background-position: 100% 0;
+    animation: step 6s cubic-bezier(.45,0,.55,1) infinite, light 6s cubic-bezier(.45,0,.4,1) infinite; }
+  .r1 { animation-delay: -.5s, 0s; } .r2 { animation-delay: -.25s, 0s; }
+  @keyframes step { 0%, 12%, 30%, 100% { filter: brightness(1); } 20% { filter: brightness(1.12); } }
+  @keyframes light { 0%, 58% { background-position: 100% 0; } 80%, 100% { background-position: 0 0; } }
+
+  h1 { animation: paint 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes paint {
+    0%, 36%, 58%, 100% { clip-path: inset(-20% -6% -25% -6%); }
+    42%, 43% { clip-path: inset(-20% 106% -25% -6%); }
+  }
+  .l2 b { display: inline-block; animation: punch 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes punch { 0%, 82%, 92%, 100% { transform: scale(1); } 85.5% { transform: scale(1.12); } 89% { transform: scale(.98); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="r r1"></div><div class="r r2"></div><div class="r r3"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="legend">
+    <div><i style="background:#22120A"></i>Espresso<em>01</em></div>
+    <div><i style="background:#4A2A1A"></i>Cacao<em>02</em></div>
+    <div><i style="background:#8A5638"></i>Milk<em>03</em></div>
+    <div><i style="background:#C9A286"></i>Latte<em>04</em></div>
+  </div>
+  <div class="l0"><span>The Brown Edit</span><span>Autumn 27</span></div>
+  <div class="l1"><h1>Study in Cocoa</h1><div class="no">Four browns<br>Plate Nº 5</div></div>
+  <div class="l2"><b>Up to 30% off</b><span>Espresso to latte</span></div>
+  <div class="l3"><span>Code COCOA30</span><span>Shop now →</span></div>
+</div>
+</body>
+</html>

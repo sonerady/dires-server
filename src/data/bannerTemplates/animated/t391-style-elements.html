@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Style Elements — the outfit written as a chemical formula: three crops of the same photo sit on
+     periodic-table element tiles (atomic no., symbol, name, price as the "mass") and react into the
+     double-height "Lk" tile, the finished look. tall / 3:4 → photo above, formula row below;
+     square → photo left, 2×2 table right; wide → photo left, the formula row on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFECE3; }
+  .banner { --t: 18.75vmin; position: fixed; inset: 0; overflow: hidden; background: #EFECE3; color: #161616;
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column; padding: 5vmin; box-sizing: border-box; }
+  .mono { font-family: "IBM Plex Mono", "Courier New", monospace; }
+
+  .top { flex: none; display: flex; justify-content: space-between; align-items: center; font-family: "IBM Plex Mono", monospace; font-size: 1.8vmin; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
+  .top svg { width: 12vmin; height: 3.6vmin; display: block; }
+  .ph { flex: 1 1 auto; min-height: 0; position: relative; margin-top: 2.6vmin; overflow: hidden; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .copy { flex: none; margin-top: 3.4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  h1 { margin: 0; font-weight: 800; font-stretch: 72%; font-variation-settings: "wdth" 72; font-size: 11vmin; line-height: .84; letter-spacing: -.02em; white-space: nowrap; }
+  .sub { font-family: "IBM Plex Mono", monospace; font-size: 1.9vmin; line-height: 1.4; text-align: right; padding-bottom: .4vmin; }
+  .formula { display: none; font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 2.2vmin; letter-spacing: .02em; }
+
+  .eq { flex: none; margin-top: 3.4vmin; display: flex; align-items: flex-start; justify-content: space-between; }
+  .op { flex: none; width: 5vmin; height: var(--t); display: flex; align-items: center; justify-content: center; font-family: "IBM Plex Mono", monospace; font-size: 4.4vmin; font-weight: 400; }
+  .op.is { height: calc(var(--t) * 1.6); }
+  .el { flex: none; width: var(--t); }
+  .cr { position: relative; width: var(--t); height: var(--t); overflow: hidden; background: #DAD5C9; }
+  .cr img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+  .e1 .cr img { object-position: 50% 30%; transform: scale(1.35); transform-origin: 50% 30%; }
+  .e2 .cr img { object-position: 50% 48%; transform: scale(2.6); transform-origin: 50% 48%; }
+  .e3 .cr img { object-position: 50% 86%; transform: scale(1.8); transform-origin: 50% 88%; }
+  .tile { position: relative; height: calc(var(--t) * .6); box-sizing: border-box; padding: 1vmin 1.1vmin; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr auto; }
+  .tile i, .tile em { font-family: "IBM Plex Mono", monospace; font-style: normal; font-size: 1.7vmin; font-weight: 600; line-height: 1; }
+  .tile em { text-align: right; font-weight: 500; }
+  .tile b { grid-column: 1 / -1; align-self: end; font-weight: 700; font-stretch: 100%; font-variation-settings: "wdth" 100; font-size: calc(var(--t) * .27); line-height: .9; letter-spacing: -.02em; }
+  .tile span { grid-column: 1 / -1; margin-top: .5vmin; font-family: "IBM Plex Mono", monospace; font-size: 1.7vmin; line-height: 1; text-transform: lowercase; }
+  .e1 .tile { background: #BCCDAA; }
+  .e2 .tile { background: #EBBBA8; }
+  .e3 .tile { background: #EDD68A; }
+  .res .tile { height: calc(var(--t) * 1.6); background: #161616; color: #EFECE3; padding: 1.4vmin 1.4vmin; }
+  .res .tile b { font-size: calc(var(--t) * .66); font-weight: 800; }
+  .res .tile span { font-size: 1.9vmin; margin-top: .9vmin; }
+
+  .foot { flex: none; margin-top: 3.4vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; border-top: 1px solid #161616; padding-top: 2.2vmin; }
+  .foot p { margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 1.9vmin; line-height: 1.4; }
+  .foot p b { font-weight: 600; background: #161616; color: #EFECE3; padding: .2vmin .8vmin; }
+  .cta { flex: none; font-weight: 700; font-size: 2.2vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; border-bottom: .35vmin solid #161616; padding-bottom: .5vmin; }
+
+  /* 3:4 / 4:5 — same stack, smaller tiles */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --t: 15.5vmin; padding: 4.4vmin 5vmin; }
+    .ph { margin-top: 2.2vmin; }
+    .copy, .eq { margin-top: 2.8vmin; }
+    h1 { font-size: 9.4vmin; }
+    .foot { margin-top: 2.6vmin; padding-top: 1.8vmin; }
+  }
+  /* square — photo bleeds on the left, the table is a 2×2 block on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --t: 17vmin; display: grid; grid-template-columns: 46% minmax(0, 1fr); grid-template-rows: auto auto auto 1fr auto; column-gap: 5vmin; padding: 0 5vmin 0 0; }
+    .ph { grid-column: 1; grid-row: 1 / -1; margin: 0; }
+    .top { grid-column: 2; grid-row: 1; margin-top: 5vmin; }
+    .top svg { width: 9vmin; }
+    .copy { grid-column: 2; grid-row: 2; margin-top: 3.4vmin; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    h1 { font-size: 8.4vmin; }
+    .sub { display: none; }
+    .formula { display: block; }
+    .eq { grid-column: 2; grid-row: 3; margin-top: 3vmin; display: grid; grid-template-columns: var(--t) var(--t); gap: 2.4vmin; justify-content: start; }
+    .op { display: none; }
+    .res .tile { height: calc(var(--t) * 1.6); }
+    .foot { grid-column: 2; grid-row: 5; margin: 0 0 5vmin; flex-direction: column; align-items: flex-start; gap: 1.6vmin; padding-top: 1.8vmin; }
+    .foot p { font-size: 1.8vmin; }
+  }
+  /* wide — photo left, the formula row on the right */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --t: 15.2vmin; grid-template-columns: 40% minmax(0, 1fr); column-gap: 6vmin; padding-right: 6vmin; }
+    .top { margin-top: 6vmin; }
+    .top svg { width: 12vmin; }
+    .copy { flex-direction: column; align-items: flex-start; gap: 2vmin; margin-top: 5vmin; }
+    h1 { font-size: 11vmin; }
+    .sub { display: block; text-align: left; font-size: 2.1vmin; }
+    .sub br { display: none; }
+    .formula { display: none; }
+    .eq { display: flex; gap: 0; justify-content: space-between; margin-top: 6vmin; }
+    .op { display: flex; width: 4.4vmin; font-size: 3.8vmin; }
+    .foot { flex-direction: row; align-items: center; margin-bottom: 6vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     the reaction: 1.2 s the three element tiles lift one after another (0.3 s apart) as the "+" signs spin a
+     half turn, 2.4 s "=" pulses and the black "Lk" tile takes the charge — a punch and a light sweep —
+     the crops inside the elements drift very slightly · the last cell of the mini periodic table blinks like a cursor */
+  .e1, .e2, .e3 { animation: lift 6s cubic-bezier(.3,0,.25,1) infinite; }
+  .e2 { animation-name: lift2; }
+  .e3 { animation-name: lift3; }
+  @keyframes lift  { 0%, 18%, 36%, 100% { transform: translateY(0); } 24% { transform: translateY(-1.6vmin); } 30% { transform: translateY(.2vmin); } }
+  @keyframes lift2 { 0%, 23%, 41%, 100% { transform: translateY(0); } 29% { transform: translateY(-1.6vmin); } 35% { transform: translateY(.2vmin); } }
+  @keyframes lift3 { 0%, 28%, 46%, 100% { transform: translateY(0); } 34% { transform: translateY(-1.6vmin); } 40% { transform: translateY(.2vmin); } }
+  .op { animation: spin 6s cubic-bezier(.6,0,.3,1) infinite; }
+  .op:nth-child(4) { animation-name: spin2; }
+  .op.is { animation-name: eqp; }
+  @keyframes spin  { 0%, 21%, 100% { transform: rotate(0deg); } 31%, 99.9% { transform: rotate(180deg); } }
+  @keyframes spin2 { 0%, 26%, 100% { transform: rotate(0deg); } 36%, 99.9% { transform: rotate(180deg); } }
+  @keyframes eqp { 0%, 36%, 50%, 100% { transform: scale(1); opacity: 1; } 40% { transform: scale(1.35); opacity: .6; } 44% { transform: scale(1); opacity: 1; } }
+  .res { animation: punch 6s cubic-bezier(.3,0,.25,1) infinite; }
+  @keyframes punch { 0%, 40%, 56%, 100% { transform: scale(1); } 45% { transform: scale(1.07); } 50% { transform: scale(.99); } }
+  .res .tile { overflow: hidden; }
+  .res .tile::after { content: ""; position: absolute; top: -10%; bottom: -10%; left: 0; width: 60%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(239,236,227,0) 0%, rgba(239,236,227,.22) 50%, rgba(239,236,227,0) 100%);
+    transform: translateX(-120%) skewX(-12deg); animation: sweep 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes sweep { 0%, 43% { transform: translateX(-120%) skewX(-12deg); } 60%, 100% { transform: translateX(240%) skewX(-12deg); } }
+  .cr img { animation: drift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .e1 .cr img { animation-name: d1; }
+  .e2 .cr img { animation-name: d2; }
+  .e3 .cr img { animation-name: d3; }
+  @keyframes d1 { 0%, 100% { transform: scale(1.35); } 50% { transform: scale(1.42); } }
+  @keyframes d2 { 0%, 100% { transform: scale(2.6); } 50% { transform: scale(2.72); } }
+  @keyframes d3 { 0%, 100% { transform: scale(1.8); } 50% { transform: scale(1.88); } }
+  .top .hot { animation: blink 1s steps(1, end) infinite; }
+  @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .15; } }
+  .cta { display: inline-block; animation: nudge 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 64%, 100% { transform: translateX(0); } 80% { transform: translateX(.8vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <span>Periodic table of style</span>
+    <svg viewBox="0 0 120 36" aria-hidden="true"><g fill="#161616" opacity=".22"><rect x="0" y="0" width="7" height="7"/><rect x="113" y="0" width="7" height="7"/><rect x="0" y="9" width="7" height="7"/><rect x="9" y="9" width="7" height="7"/><rect x="77" y="9" width="7" height="7"/><rect x="86" y="9" width="7" height="7"/><rect x="95" y="9" width="7" height="7"/><rect x="104" y="9" width="7" height="7"/><rect x="113" y="9" width="7" height="7"/><rect x="0" y="18" width="7" height="7"/><rect x="9" y="18" width="7" height="7"/><rect x="77" y="18" width="7" height="7"/><rect x="86" y="18" width="7" height="7"/><rect x="95" y="18" width="7" height="7"/><rect x="104" y="18" width="7" height="7"/><rect x="113" y="18" width="7" height="7"/></g><g fill="#161616" opacity=".22"><rect x="0" y="27" width="7" height="7"/><rect x="9" y="27" width="7" height="7"/><rect x="18" y="27" width="7" height="7"/><rect x="27" y="27" width="7" height="7"/><rect x="36" y="27" width="7" height="7"/><rect x="45" y="27" width="7" height="7"/><rect x="54" y="27" width="7" height="7"/><rect x="63" y="27" width="7" height="7"/><rect x="72" y="27" width="7" height="7"/><rect x="81" y="27" width="7" height="7"/><rect x="90" y="27" width="7" height="7"/><rect x="99" y="27" width="7" height="7"/><rect x="108" y="27" width="7" height="7"/></g><rect class="hot" x="113" y="27" width="7" height="7" fill="#161616"/></svg>
+  </div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="copy">
+    <h1>Good chemistry.</h1>
+    <div class="sub">Three elements, <br>one finished look.</div>
+    <div class="formula">Hr + Tx + Fn = Lk</div>
+  </div>
+  <div class="eq">
+    <div class="el e1"><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="tile"><i>08</i><em>€129</em><b>Hr</b><span>hero</span></div></div>
+    <div class="op">+</div>
+    <div class="el e2"><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="tile"><i>26</i><em>€59</em><b>Tx</b><span>texture</span></div></div>
+    <div class="op">+</div>
+    <div class="el e3"><div class="cr"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="tile"><i>47</i><em>€86</em><b>Fn</b><span>finish</span></div></div>
+    <div class="op is">=</div>
+    <div class="el res"><div class="tile"><i>01</i><em>€274</em><b>Lk</b><span>the look</span></div></div>
+  </div>
+  <div class="foot">
+    <p>Any 3 elements <b>−15%</b> · code ELEMENT15</p>
+    <div class="cta">Mix yours →</div>
+  </div>
+</div>
+</body>
+</html>

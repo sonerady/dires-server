@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Twin Tickets — matching outfits as a pair of cloakroom tickets torn from the same roll: one big (A · grown-up),
+     one small (B · mini), both stamped No. 0427, with punched notches and a perforated stub.
+     tall → photo above a cream counter panel; square/wide → photo left, tickets + copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE7D8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFE7D8; color: #8E1B20; font-family: "Courier Prime", "Courier New", monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 74vmin); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 64vmin; display: flex; flex-direction: column; }
+  .k { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: 2vmin 0 0; font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 900; font-size: 11.4vmin; line-height: .86; text-transform: uppercase; letter-spacing: .005em; color: #2A1414; }
+  h1 em { font-style: normal; color: #C2272D; }
+
+  .pair { position: relative; flex: 1; min-height: 0; margin-top: 2vmin; }
+  .tk { position: absolute; display: flex; background: #F4B9AE; color: #8E1B20; box-shadow: 0 .6vmin 1.4vmin rgba(42,20,20,.16);
+    background-image: repeating-linear-gradient(0deg, rgba(142,27,32,.05) 0 1px, transparent 1px .7vmin); }
+  .tk::before, .tk::after { content: ""; position: absolute; top: 50%; width: var(--n); height: var(--n); margin-top: calc(var(--n) / -2); border-radius: 50%; background: #EFE7D8; }
+  .tk::before { left: calc(var(--n) / -2); } .tk::after { right: calc(var(--n) / -2); }
+  .stub { flex: none; width: 24%; border-right: .35vmin dashed rgba(142,27,32,.55); display: flex; align-items: center; justify-content: center; }
+  .stub span { writing-mode: vertical-rl; rotate: 180deg; font-weight: 700; letter-spacing: .14em; white-space: nowrap; }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 4% 0 7%; }
+  .main small { display: block; width: fit-content; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .main b { display: block; width: fit-content; font-family: "Big Shoulders Display", sans-serif; font-weight: 900; line-height: .85; letter-spacing: .02em; }
+  .main i { display: block; width: fit-content; font-style: italic; white-space: nowrap; }
+
+  .big { --n: 3.6vmin; left: 0; top: 0; width: 54vmin; height: 25vmin; transform: rotate(-3deg); }
+  .big .stub span { font-size: 1.8vmin; }
+  .big small { font-size: 1.7vmin; }
+  .big b { font-size: 11vmin; margin: .6vmin 0; }
+  .big i { font-size: 2.3vmin; }
+  .small { --n: 2.4vmin; right: 1vmin; bottom: 1vmin; width: 36vmin; height: 15.6vmin; transform: rotate(4deg); background-color: #F7CFC6; }
+  .small .stub span { font-size: 1.6vmin; }
+  .small small { font-size: 1.6vmin; letter-spacing: .1em; }
+  .small b { font-size: 6.6vmin; margin: .3vmin 0; }
+  .small i { font-size: 1.8vmin; }
+  .punch { position: absolute; right: 6%; bottom: 12%; width: 3.4vmin; height: 3.4vmin; border-radius: 50%; border: .3vmin solid #C2272D; color: #C2272D; font-size: 1.6vmin; font-weight: 700; display: flex; align-items: center; justify-content: center; transform: rotate(12deg); }
+
+  .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; margin-top: 2.4vmin; padding-top: 2.4vmin; border-top: .3vmin solid #8E1B20; color: #2A1414; }
+  .offer { font-size: 2.3vmin; line-height: 1.35; }
+  .offer b { color: #C2272D; }
+  .cta { flex: none; background: #2A1414; color: #F4B9AE; padding: 1.8vmin 3vmin; font-family: "Big Shoulders Display", sans-serif; font-weight: 900; font-size: 3vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .photo { height: calc(100% - 68vmin); }
+    .panel { height: 59vmin; bottom: 4.4vmin; }
+    h1 { font-size: 10vmin; }
+    .big { width: 54vmin; height: 23vmin; }
+    .big b { font-size: 10vmin; }
+  }
+  /* 3:4 / 4:5 → photo left, counter right */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 26%; }
+    .panel { left: calc(50% + 5vmin); right: 4.6vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .k span:last-child { display: none; }
+    h1 { font-size: 8.6vmin; margin-top: 2.4vmin; }
+    .pair { margin-top: 4vmin; flex: none; height: 30vmin; }
+    .foot { margin-top: auto; }
+    .big { width: 40vmin; height: 19vmin; --n: 3vmin; }
+    .big b { font-size: 7.6vmin; }
+    .big small { font-size: 1.6vmin; letter-spacing: .1em; }
+    .big i { font-size: 1.9vmin; }
+    .small { width: 28vmin; height: 12.6vmin; right: 0; }
+    .small b { font-size: 5vmin; }
+    .small small { font-size: 1.6vmin; letter-spacing: .06em; }
+    .small i { font-size: 1.6vmin; }
+    .small .stub { width: 22%; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .offer { font-size: 2vmin; }
+    .cta { font-size: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .panel { left: calc(48% + 5vmin); right: 5vmin; }
+    .k span:last-child { display: inline; }
+    .k { font-size: 1.6vmin; letter-spacing: .1em; }
+    h1 { font-size: 7.6vmin; }
+    .big { width: 36vmin; height: 17vmin; }
+    .big b { font-size: 7vmin; }
+    .small { width: 25vmin; height: 11.4vmin; }
+    .pair { height: 27vmin; }
+    .small b { font-size: 4.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .panel { left: calc(44% + 7vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; }
+    .k { font-size: 1.8vmin; letter-spacing: .16em; }
+    h1 { font-size: 10vmin; }
+    .big { width: 50vmin; height: 22vmin; }
+    .big b { font-size: 9.6vmin; }
+    .big small { font-size: 1.7vmin; letter-spacing: .16em; }
+    .big i { font-size: 2.2vmin; }
+    .small { width: 32vmin; height: 14vmin; right: 1vmin; }
+    .pair { height: 34vmin; margin-top: 4vmin; }
+    .small b { font-size: 5.8vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .offer { font-size: 2.2vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     the tickets breathe on the counter (slow float), a light sheen slides across both at 1.2 s like fresh-printed card,
+     the mini ticket hops over to its twin and settles at 2.8 s, "Same number." wipes out & back at 4 s,
+     and the CTA gets stamped at 5 s */
+  .tk { background-image: linear-gradient(100deg, transparent 40%, rgba(255,255,255,.5) 50%, transparent 60%),
+      repeating-linear-gradient(0deg, rgba(142,27,32,.05) 0 1px, transparent 1px .7vmin);
+    background-size: 300% 100%, auto; background-repeat: no-repeat, repeat; background-position: 0 0, 0 0; }
+  .big { animation: bigF 6s cubic-bezier(.45,0,.55,1) infinite, sheen 6s cubic-bezier(.5,0,.4,1) infinite; }
+  .small { animation: hop 6s cubic-bezier(.45,0,.55,1) infinite, sheen 6s cubic-bezier(.5,0,.4,1) infinite; animation-delay: 0s, -5.7s; }
+  @keyframes sheen { 0%, 20% { background-position: 0 0, 0 0; } 38%, 100% { background-position: 100% 0, 0 0; } }
+  @keyframes bigF {
+    0%, 100% { transform: rotate(-3deg) translateY(0); }
+    25% { transform: rotate(-3.8deg) translateY(-.5vmin); }
+    50% { transform: rotate(-2.4deg) translateY(.2vmin); }
+    75% { transform: rotate(-3.4deg) translateY(-.3vmin); }
+  }
+  @keyframes hop {
+    0%, 45%, 100% { transform: rotate(4deg) translate(0, 0); }
+    50% { transform: rotate(-1deg) translate(-1.6vmin, -2.2vmin); }
+    55% { transform: rotate(6deg) translate(.3vmin, .3vmin); }
+    60% { transform: rotate(3.4deg) translate(0, 0); }
+    65% { transform: rotate(4.4deg) translate(0, 0); }
+    70% { transform: rotate(4deg) translate(0, 0); }
+  }
+  .small .main b { animation: stampB 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .big .main b { animation: stampB 6s cubic-bezier(.3,0,.3,1) infinite; animation-delay: -.25s; }
+  @keyframes stampB { 0%, 53%, 70%, 100% { color: #8E1B20; } 57%, 62% { color: #C2272D; } }
+
+  h1 em { display: inline-block; animation: wipe 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes wipe {
+    0%, 66%, 100% { clip-path: inset(-10% -4% -10% 0); transform: translateY(0); }
+    71% { clip-path: inset(-10% 104% -10% 0); transform: translateY(0); }
+    72% { clip-path: inset(-10% -4% -10% 100%); transform: translateY(.8vmin); }
+    79% { clip-path: inset(-10% -4% -10% 0); transform: translateY(0); }
+  }
+
+  .cta { animation: stamp 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes stamp {
+    0%, 82%, 100% { transform: rotate(0) scale(1); background: #2A1414; color: #F4B9AE; }
+    85% { transform: rotate(-2deg) scale(.93); background: #C2272D; color: #FFF3EE; }
+    89% { transform: rotate(0) scale(1.03); background: #C2272D; color: #FFF3EE; }
+    93% { transform: rotate(0) scale(1); background: #2A1414; color: #F4B9AE; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="k"><span>The Twin Set Counter</span><span>Keep both halves</span></div>
+    <h1>Two of a kind. <em>Same number.</em></h1>
+    <div class="pair">
+      <div class="tk big">
+        <div class="stub"><span>Nº 0427 · A</span></div>
+        <div class="main"><small>Twin set · Admit one</small><b>0427</b><i>A — the grown-up</i></div>
+      </div>
+      <div class="tk small">
+        <div class="stub"><span>0427 · B</span></div>
+        <div class="main"><small>Twin set</small><b>0427</b><i>B — the mini</i></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="offer">Matching pairs from <b>€49</b><br>Code <b>TWINS15</b> — 15% off both</div>
+      <div class="cta">Claim your pair</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

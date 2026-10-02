@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Initials Emboss — the personalisation step of a luxury product page: a saddle-stitched tan leather panel
+     with a pressed plate where the initials "A·N" are hot-foil stamped in gold (drop-shadow emboss), the foil
+     options (gold selected, silver, blind) as chips, and "Personalise — complimentary".
+     tall → photo above the leather; 3:4 / square → photo left, leather right; wide → photo | plate | copy */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #6B4630; }
+  .banner { --panel: 80vmin; --cr: #F1E6D2; --gd: #E2C58A; position: fixed; inset: 0; overflow: hidden; color: var(--cr); font-family: "Mulish", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.05) 0 .15vmin, transparent .3vmin) 0 0 / 1.3vmin 1.1vmin,
+      radial-gradient(circle at 70% 60%, rgba(0,0,0,.12) 0 .2vmin, transparent .35vmin) 0 0 / 1.7vmin 1.5vmin,
+      radial-gradient(120% 90% at 50% 100%, #7A5238 0%, #5E3C28 70%, #4F3221 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .leather { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 7vmin 9vmin 7.4vmin; display: grid;
+    grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr auto auto; grid-template-areas: "eb" "h1" "plate" "opts" "cta"; justify-items: center; text-align: center; column-gap: 6vmin; }
+  .leather::before { content: ""; position: absolute; inset: 3vmin; border: .3vmin dashed rgba(226,197,138,.55); pointer-events: none; }
+  .leather::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .6vmin; background: linear-gradient(rgba(0,0,0,.35), transparent); }
+
+  .eb { grid-area: eb; font-size: 1.7vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: var(--gd); white-space: nowrap; }
+  h1 { grid-area: h1; margin: 1.8vmin 0 0; font-family: "Cinzel", "Trajan Pro", Georgia, serif; font-weight: 400; font-size: 6.4vmin; line-height: 1.05; letter-spacing: .04em; white-space: nowrap; }
+
+  .plate { grid-area: plate; align-self: center; margin-top: 3.4vmin; width: 62vmin; padding: 4vmin 0 3.4vmin; background: rgba(0,0,0,.14); box-shadow: inset 0 .5vmin 1.2vmin rgba(0,0,0,.45), inset 0 -.2vmin .4vmin rgba(255,255,255,.08), 0 .2vmin 0 rgba(255,255,255,.06); }
+  .mono { font-family: "Cinzel", Georgia, serif; font-weight: 600; font-size: 19vmin; line-height: 1; letter-spacing: .02em;
+    background: linear-gradient(170deg, #FBEFC9 0%, #E7C77F 30%, #A67C36 52%, #F0D697 70%, #B98D45 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 .35vmin 0 rgba(0,0,0,.45)) drop-shadow(0 -.15vmin 0 rgba(255,240,200,.2)); }
+  .mono span { font-size: .5em; vertical-align: .38em; padding: 0 .06em; }
+  .plate small { display: block; margin-top: 1.6vmin; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: rgba(241,230,210,.75); white-space: nowrap; }
+
+  .opts { grid-area: opts; margin-top: 3.4vmin; display: flex; gap: 2vmin; }
+  .opts span { display: flex; align-items: center; gap: 1.2vmin; padding: 1.2vmin 2vmin 1.2vmin 1.2vmin; border: 1px solid rgba(241,230,210,.3); border-radius: 99vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .opts span.on { border-color: var(--gd); background: rgba(226,197,138,.12); }
+  .opts i { width: 2.8vmin; height: 2.8vmin; border-radius: 50%; }
+  .opts .g i { background: linear-gradient(150deg, #FBEFC9, #C49A4E 55%, #F0D697); }
+  .opts .s i { background: linear-gradient(150deg, #FFFFFF, #A9ADB1 55%, #E6E8EA); }
+  .opts .b i { background: #4F3221; box-shadow: inset 0 .3vmin .5vmin rgba(0,0,0,.5), inset 0 -.2vmin .3vmin rgba(255,255,255,.12); }
+
+  .cta { grid-area: cta; margin-top: 3.4vmin; justify-self: stretch; display: flex; align-items: center; justify-content: space-between; height: 7vmin; padding: 0 3vmin; background: var(--cr); color: #3E281A; font-size: 1.9vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .cta em { font-style: normal; font-weight: 600; letter-spacing: .06em; text-transform: none; color: #7A5238; }
+
+  /* ── 3:4 / 4:5 and square: photo left, leather right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 46%; height: 100%; }
+    .leather { left: 46%; top: 0; height: auto; padding: 7.4vmin 7vmin 7vmin; }
+    .leather::before { inset: 3vmin; }
+    .leather::after { left: 0; top: 0; bottom: 0; right: auto; width: .6vmin; height: auto; background: linear-gradient(90deg, rgba(0,0,0,.35), transparent); }
+    h1 { font-size: 4.8vmin; white-space: normal; }
+    .plate { width: 100%; padding: 3.6vmin 0 3vmin; }
+    .mono { font-size: 13vmin; }
+    .plate small { font-size: 1.6vmin; letter-spacing: .06em; }
+    .opts { flex-direction: column; gap: 1.2vmin; justify-self: stretch; }
+    .opts span { padding: 1vmin 1.6vmin 1vmin 1vmin; font-size: 1.6vmin; }
+    .cta { height: 6.4vmin; padding: 0 2.2vmin; font-size: 1.7vmin; letter-spacing: .1em; }
+    .cta em { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .leather { left: 48%; padding: 7vmin 7vmin 7vmin; }
+    h1 { font-size: 5vmin; }
+    .opts { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 1.2vmin; justify-self: center; }
+    .opts span { font-size: 1.6vmin; }
+  }
+  /* ── wide: photo | plate | copy ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; }
+    .leather { left: 40%; padding: 8vmin 8vmin 8vmin; column-gap: 6vmin; justify-items: start; text-align: left;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; grid-template-areas: "plate eb" "plate h1" "plate opts" "plate cta"; }
+    .plate { align-self: stretch; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .mono { font-size: 15vmin; }
+    .plate small { font-size: 1.7vmin; letter-spacing: .1em; }
+    .eb { white-space: normal; line-height: 1.6; letter-spacing: .2em; }
+    h1 { font-size: 6vmin; white-space: normal; margin-top: 2vmin; }
+    .opts { align-self: end; flex-direction: column; gap: 1.2vmin; justify-self: stretch; }
+    .opts span { font-size: 1.7vmin; }
+    .cta { height: 6.8vmin; padding: 0 2.6vmin; font-size: 1.8vmin; letter-spacing: .14em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="leather">
+    <div class="eb">Complimentary personalisation</div>
+    <h1>Make it yours.</h1>
+    <div class="plate"><div class="mono">A<span>·</span>N</div><small>Up to three initials · stamped by hand</small></div>
+    <div class="opts"><span class="g on"><i></i>Gold</span><span class="s"><i></i>Silver</span><span class="b"><i></i>Blind</span></div>
+    <div class="cta"><span>Personalise</span><em>Complimentary</em></div>
+  </div>
+</div>
+</body>
+</html>

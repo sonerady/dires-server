@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Figtree:wght@400;500;700&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* Waitlist Spot — a restock-waitlist page/email: the photo bleeding off one edge, "sold out twice" headline,
+     your would-be place in line, the drop date, a segmented "batch reserved" meter, a drawn email field + join button.
+     tall → photo bleeds off the top, panel below · 3:4 / square → photo bleeds off the left · wide → photo bleeds off the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C1B22; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #1C1B22; color: #F1EEF8; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 24%; display: block; }
+  .chip { margin-left: auto; padding: .8vmin 1.8vmin; border-radius: 99vmin; background: #C9B6FF; color: #1C1B22; font-size: 1.6vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  .panel { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.4vmin; height: 77vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; align-items: center; gap: 1.4vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #C9B6FF; white-space: nowrap; }
+  .kick i { width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #C9B6FF; box-shadow: 0 0 0 .6vmin rgba(201,182,255,.2); }
+  h1 { margin: 2vmin 0 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 7vmin; line-height: 1; letter-spacing: -.04em; }
+  h1 span { color: #C9B6FF; font-weight: 400; }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 3vmin; margin-top: 3.4vmin; padding: 2.4vmin 0; border-top: 1px solid rgba(241,238,248,.16); border-bottom: 1px solid rgba(241,238,248,.16); }
+  .stats b { display: block; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 600; font-size: 5.4vmin; line-height: 1; letter-spacing: -.04em; white-space: nowrap; }
+  .stats span { display: block; margin-top: 1vmin; font-size: 1.7vmin; color: #A9A4B8; }
+
+  .meter { margin-top: 2.8vmin; }
+  .meter .t { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 500; white-space: nowrap; }
+  .meter .t b { color: #C9B6FF; }
+  .segs { margin-top: 1.2vmin; height: 1.6vmin; display: flex; gap: .5vmin; }
+  .segs i { flex: 1; border-radius: .3vmin; background: rgba(241,238,248,.12); }
+  .segs i.f { background: #C9B6FF; }
+
+  .form { margin-top: auto; display: flex; height: 7.4vmin; border: 1px solid rgba(241,238,248,.4); border-radius: 99vmin; padding: .7vmin; box-sizing: border-box; }
+  .field { flex: 1; display: flex; align-items: center; padding-left: 2.4vmin; font-size: 2vmin; color: #8C879C; white-space: nowrap; }
+  .field::after { content: ""; width: 1px; height: 2.8vmin; margin-left: .4vmin; background: #C9B6FF; }
+  .join { display: flex; align-items: center; padding: 0 3.4vmin; border-radius: 99vmin; background: #F1EEF8; color: #1C1B22; font-size: 1.9vmin; font-weight: 700; white-space: nowrap; }
+  .fine { margin-top: 1.6vmin; font-size: 1.6vmin; line-height: 1.4; color: #8C879C; text-align: center; }
+
+  /* ── 3:4 / square — photo bleeds off the left ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 46%; height: 100%; }
+    .panel { left: calc(46% + 5vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; height: auto; }
+    h1 { font-size: 5.4vmin; }
+    .stats { grid-template-columns: 1fr; gap: 2.4vmin; }
+    .stats b { font-size: 4.6vmin; }
+    .form { flex-direction: column; height: auto; border-radius: 3.6vmin; gap: .7vmin; }
+    .field { padding: 1.8vmin 2vmin; }
+    .join { justify-content: center; padding: 1.9vmin; }
+    .fine { text-align: left; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .panel { top: 5vmin; bottom: 5vmin; }
+    h1 { font-size: 4.6vmin; margin-top: 1.6vmin; }
+    .stats { grid-template-columns: 1fr 1fr; margin-top: 2.4vmin; padding: 2vmin 0; }
+    .stats b { font-size: 4vmin; }
+    .meter { margin-top: 2.2vmin; }
+  }
+  /* ── wide — photo bleeds off the right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: auto; right: 0; width: 48%; }
+    .panel { left: 6vmin; right: calc(48% + 6vmin); top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 5.6vmin; }
+    .stats b { font-size: 4.8vmin; }
+    .form { flex-direction: row; height: 7.4vmin; border-radius: 99vmin; gap: 0; }
+    .field { padding: 0 0 0 2.4vmin; }
+    .join { padding: 0 3.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><i></i>Restock waitlist<span class="chip">Sold out · Sep 2</span></div>
+    <h1>Sold out twice. <span>Batch 04 is coming.</span></h1>
+    <div class="stats">
+      <div><b>#1,284</b><span>Your spot if you join now</span></div>
+      <div><b>12 Oct</b><span>Batch 04 drop date</span></div>
+    </div>
+    <div class="meter">
+      <div class="t"><span>Batch 04 reserved</span><b>82%</b></div>
+      <div class="segs"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="form"><div class="field">you@email.com</div><div class="join">Join the waitlist</div></div>
+    <div class="fine">Waitlist gets 48-hour early access · One email when it lands</div>
+  </div>
+</div>
+</body>
+</html>

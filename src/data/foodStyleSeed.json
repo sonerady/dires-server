@@ -1,0 +1,46 @@
+[
+  {
+    "name": "{\"en\":\"Fine dining\",\"tr\":\"Fine dining\"}",
+    "subtitle": "{\"en\":\"Sculpted light and oxblood marble\",\"tr\":\"Heykelsi ışık ve bordo mermer\"}",
+    "image_urls": [
+      "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927-luxury-v2/pasta-after.webp"
+    ],
+    "style_prompt": "Luxury Italian fine dining editorial. Oxblood marble, warm raking side light shaped by negative fill, luminous food highlights and deep yet detailed shadows. Restrained cream linen, softly defocused dark restaurant architecture; real optical depth, believable contact shadows. Compose as an elegant gastronomic campaign, not a flat menu snapshot. Food colors stay authentic. Preserve the original plate, exact ingredients and portion; never copy the reference dish. No alcohol, wine glasses, stemware, drink bottles or bar imagery anywhere in the scene.",
+    "user_id": "global",
+    "status": "ready",
+    "translations_status": "ready"
+  },
+  {
+    "name": "{\"en\":\"Luxury brasserie\",\"tr\":\"Lüks brasserie\"}",
+    "subtitle": "{\"en\":\"Walnut burl and cinematic contrast\",\"tr\":\"Ceviz dokusu ve sinematik kontrast\"}",
+    "image_urls": [
+      "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927-luxury-v2/burger-after.webp"
+    ],
+    "style_prompt": "Luxury members-club brasserie campaign. Polished walnut-burl tabletop, softly out-of-focus olive banquette and restrained warm brass accents. Sculpted side light with a narrow glow on actual food texture, rich dimensional shadows and refined editorial composition. Premium appetite appeal without extra food layers, invented garnish or artificial gloss. Preserve the original tableware, exact ingredients, structure and serving size. No alcohol, wine glasses, stemware, drink bottles or bar imagery anywhere in the scene.",
+    "user_id": "global",
+    "status": "ready",
+    "translations_status": "ready"
+  },
+  {
+    "name": "{\"en\":\"Couture patisserie\",\"tr\":\"Couture pastane\"}",
+    "subtitle": "{\"en\":\"Cream onyx and chocolate silk\",\"tr\":\"Krem oniks ve çikolata ipek\"}",
+    "image_urls": [
+      "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927-luxury-v2/dessert-after.webp"
+    ],
+    "style_prompt": "Parisian couture patisserie editorial. Cream onyx plinth or tabletop, softly folded chocolate-brown silk and distant refined architectural molding. Carefully shaped soft side light, delicate specular highlights, rich tonal separation and sophisticated generous negative space. Clean luxury pastry campaign photography. Preserve the exact dessert, toppings, layers, proportions and original plate; no invented embellishments. No alcohol, wine glasses, stemware, drink bottles or bar imagery anywhere in the scene.",
+    "user_id": "global",
+    "status": "ready",
+    "translations_status": "ready"
+  },
+  {
+    "name": "{\"en\":\"Botanical gastronomy\",\"tr\":\"Botanik gastronomi\"}",
+    "subtitle": "{\"en\":\"Green onyx and architectural sunlight\",\"tr\":\"Yeşil oniks ve mimari gün ışığı\"}",
+    "image_urls": [
+      "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927-luxury-v2/bowl-after.webp"
+    ],
+    "style_prompt": "Luxury botanical restaurant editorial on green onyx. Architectural directional sunlight softly filtered through foliage, sculptural dappled shadows around rather than obscuring the dish, deep botanical background and elegant negative space. Greens remain realistic and the dish clearly legible. Fine dining art direction with natural color, texture and contact shadows. Preserve all actual ingredients, exact portions, arrangement and original tableware. No alcohol, wine glasses, stemware, drink bottles or bar imagery anywhere in the scene.",
+    "user_id": "global",
+    "status": "ready",
+    "translations_status": "ready"
+  }
+]

@@ -1974,5 +1974,43 @@
       ],
       "screen": null
     }
+  },
+  {
+    "builtin_id": "food-photography",
+    "position": 2,
+    "draft": {
+      "version": 1,
+      "title": "Yemek Fotoğrafçılığı",
+      "description": "Yemeğini menü, restoran veya sosyal medya için profesyonel çekime dönüştür.",
+      "language": "tr",
+      "translations": {
+        "tr": {
+          "title": "Yemek Fotoğrafçılığı",
+          "description": "Yemeğini menü, restoran veya sosyal medya için profesyonel çekime dönüştür."
+        },
+        "en": {
+          "title": "Food Photography",
+          "description": "Turn your dish into a professional menu, restaurant or social photo."
+        }
+      },
+      "buttonHue": 24,
+      "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927/pasta-before.webp",
+      "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927-luxury-v2/pasta-after.webp",
+      "introExamples": [
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927/burger-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927-luxury-v2/burger-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927/dessert-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927-luxury-v2/dessert-after.webp"
+        },
+        {
+          "beforeUrl": "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927/bowl-before.webp",
+          "afterUrl": "https://api.diress.ai/storage/v1/object/public/reference/food-photography/20260927-luxury-v2/bowl-after.webp"
+        }
+      ],
+      "screen": null
+    }
   }
 ]

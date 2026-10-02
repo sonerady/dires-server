@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Rubik:wght@400;500;800&display=swap" rel="stylesheet">
+<style>
+  /* Bar Scarf — a knitted terrace scarf held up across the stand: jacquard bar stripes, intarsia pixel lettering
+     that carries the offer, a stitch texture over everything and loose fringe at both ends.
+     tall/4:5 → photo above, scarf panel below · square/wide → panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #26282A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #26282A; color: #F1E7CF; font-family: "Rubik", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; overflow: hidden;
+    background: radial-gradient(ellipse 70% 60% at 50% 55%, #303335, #222425 80%); }
+  .kick { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; display: flex; justify-content: space-between; font-weight: 500; font-size: 1.9vmin; letter-spacing: .24em; text-transform: uppercase; color: #C9BFA6; white-space: nowrap; }
+  .hl { position: absolute; left: 7vmin; right: 7vmin; top: 10.5vmin; margin: 0; font-weight: 800; font-size: 9.4vmin; line-height: .92; letter-spacing: -.02em; }
+  .hl em { font-style: normal; color: #E07A3F; }
+
+  /* the scarf */
+  .scarf { position: absolute; left: 4.5vmin; right: 4.5vmin; top: 34vmin; height: 25vmin; display: flex; transform: rotate(-3deg);
+    filter: drop-shadow(0 1.2vmin 1.4vmin rgba(0,0,0,.45)); }
+  .fr { flex: none; width: 4vmin; margin: 1.4vmin 0; background: repeating-linear-gradient(180deg, #F1E7CF 0 .7vmin, transparent .7vmin 1.25vmin);
+    -webkit-mask: linear-gradient(90deg, #000 60%, rgba(0,0,0,.55)); mask: linear-gradient(90deg, #000 60%, rgba(0,0,0,.55)); }
+  .fr.l { transform: scaleX(-1); }
+  .knit { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; background: #1F6F6B; overflow: hidden; }
+  .bars { flex: none; height: 5.2vmin; background: linear-gradient(180deg, #F1E7CF 0 22%, #1F6F6B 22% 44%, #E07A3F 44% 60%, #1F6F6B 60% 78%, #F1E7CF 78% 100%); }
+  .mid { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 2vmin; gap: 4vmin; white-space: nowrap; }
+  .px { font-family: "Silkscreen", "Courier New", monospace; font-weight: 700; font-size: 8vmin; line-height: 1; letter-spacing: .02em; color: #F1E7CF; }
+  .px.sm { font-size: 4.4vmin; color: #E07A3F; }
+  .diam { flex: none; width: 5vmin; height: 5vmin; background: #F1E7CF; transform: rotate(45deg); box-shadow: inset 0 0 0 1.2vmin #E07A3F; }
+  .knit::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,.2) 0 .12vmin, transparent .12vmin .7vmin, rgba(255,255,255,.07) .7vmin .8vmin, transparent .8vmin 1.1vmin),
+      repeating-linear-gradient(180deg, rgba(0,0,0,.12) 0 .1vmin, transparent .1vmin .75vmin); }
+
+  .offer { position: absolute; left: 7vmin; right: 7vmin; top: 64vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .offer p { margin: 0; font-size: 2.3vmin; line-height: 1.45; color: #E4DBC3; }
+  .offer p b { color: #F1E7CF; font-weight: 800; letter-spacing: .04em; }
+  .cta { flex: none; padding: 1.8vmin 3vmin; background: #E07A3F; color: #1E1F20; font-weight: 800; font-size: 2.4vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 76vmin); }
+    .panel { height: 76vmin; }
+    .kick { top: 5vmin; }
+    .hl { top: 9vmin; font-size: 8.4vmin; }
+    .scarf { top: 30vmin; height: 23vmin; }
+    .px { font-size: 7.6vmin; }
+    .offer { top: 58vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 62vmin); }
+    .panel { height: 62vmin; }
+    .kick { top: 4.4vmin; font-size: 1.7vmin; }
+    .hl { top: 8vmin; font-size: 7vmin; }
+    .hl br { display: none; }
+    .scarf { top: 21vmin; height: 21vmin; }
+    .bars { height: 4.4vmin; }
+    .px { font-size: 6.8vmin; }
+    .offer { top: 47vmin; }
+    .offer p { font-size: 2.1vmin; }
+    .cta { padding: 1.5vmin 2.6vmin; font-size: 2.2vmin; }
+  }
+  /* square / wide → panel left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { right: 50%; top: 0; height: auto; }
+    .kick { left: 5vmin; right: 5vmin; top: 5vmin; font-size: 1.6vmin; letter-spacing: .16em; }
+    .hl { left: 5vmin; right: 5vmin; top: 10vmin; font-size: 7.4vmin; }
+    .hl br { display: inline; }
+    .scarf { left: 2vmin; right: 2vmin; top: 41vmin; height: 19vmin; }
+    .fr { width: 3vmin; }
+    .bars { height: 4vmin; }
+    .mid { padding: 0 1vmin; gap: 2vmin; }
+    .mid .diam { display: none; }
+    .px { font-size: 5.8vmin; }
+    .offer { left: 5vmin; right: 5vmin; top: auto; bottom: 5vmin; flex-direction: column; align-items: stretch; gap: 2.4vmin; }
+    .offer p { font-size: 2vmin; }
+    .cta { text-align: center; padding: 1.5vmin 2vmin; font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { right: 46%; }
+    .kick { left: 7vmin; right: 7vmin; top: 6vmin; font-size: 1.8vmin; letter-spacing: .22em; }
+    .hl { left: 7vmin; right: 7vmin; top: 11vmin; font-size: 8.4vmin; }
+    .scarf { left: 3vmin; right: 3vmin; top: 38vmin; height: 23vmin; }
+    .fr { width: 3.6vmin; }
+    .bars { height: 4.8vmin; }
+    .mid { padding: 0 2vmin; gap: 3.6vmin; }
+    .mid .diam { display: block; width: 4vmin; height: 4vmin; box-shadow: inset 0 0 0 1vmin #E07A3F; }
+    .px { font-size: 7.4vmin; }
+    .offer { left: 7vmin; right: 7vmin; bottom: 7vmin; flex-direction: row; align-items: flex-end; }
+    .offer p { font-size: 2.1vmin; }
+    .cta { padding: 1.6vmin 2.8vmin; font-size: 2.3vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* constant: the fringe flutters in the terrace wind; photo breathes in
+     beats: 0.6s + 1.4s the scarf is pumped up twice overhead, "loud." thumps on each pump ·
+     3.2s the intarsia "40% OFF" knits back in row-by-row (stepped pixel wipe) while the diamonds turn ·
+     4.8s a sheen crosses the CTA */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .scarf { animation: pump 6s linear infinite; }
+  @keyframes pump {
+    0%, 8% { transform: translateY(0) rotate(-3deg); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    13% { transform: translateY(-2.2vmin) rotate(-4deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    19% { transform: translateY(0) rotate(-2.4deg); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    24% { transform: translateY(-2.2vmin) rotate(-4deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    31% { transform: translateY(.3vmin) rotate(-2.8deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    36%, 100% { transform: translateY(0) rotate(-3deg); }
+  }
+  .hl em { display: inline-block; transform-origin: 20% 80%; animation: thump 6s linear infinite; }
+  @keyframes thump {
+    0%, 9% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    12.5% { transform: scale(1.1) rotate(-2deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    18% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    23.5% { transform: scale(1.1) rotate(-2deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    30%, 100% { transform: scale(1); }
+  }
+
+  .fr { transform-origin: 0% 50%; animation: flutter 1s cubic-bezier(.45,0,.55,1) infinite; }
+  .fr.l { transform-origin: 100% 50%; animation-name: flutterL; animation-delay: -.5s; }
+  @keyframes flutter { 0%, 100% { transform: skewY(0) scaleX(1); } 50% { transform: skewY(6deg) scaleX(.86); } }
+  @keyframes flutterL { 0%, 100% { transform: scaleX(-1) skewY(0); } 50% { transform: scaleX(-.86) skewY(-6deg); } }
+
+  .px { animation: knit 6s linear infinite; }
+  @keyframes knit {
+    0%, 52% { clip-path: inset(0 0 0 0); opacity: 1; }
+    52.5% { clip-path: inset(0 0 100% 0); opacity: 1; animation-timing-function: steps(7, end); }
+    64%, 100% { clip-path: inset(0 0 0 0); opacity: 1; }
+  }
+  .diam { animation: turn 6s linear infinite; }
+  @keyframes turn {
+    0%, 52% { transform: rotate(45deg); animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    66%, 100% { transform: rotate(225deg); }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 26%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.4) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-140%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-140%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    92%, 100% { transform: translateX(460%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><span>Nord Athletic · Away end</span><span>26/27</span></div>
+    <h1 class="hl">Wear your <br>colours <em>loud.</em></h1>
+    <div class="scarf">
+      <span class="fr l"></span>
+      <div class="knit">
+        <div class="bars"></div>
+        <div class="mid"><span class="diam"></span><span class="px">40% OFF</span><span class="diam"></span></div>
+        <div class="bars"></div>
+      </div>
+      <span class="fr"></span>
+    </div>
+    <div class="offer"><p>The terrace edit, knitted in.<br>02.10 – 12.10 · code <b>TERRACE40</b></p><span class="cta">Shop the edit →</span></div>
+  </div>
+</div>
+</body>
+</html>

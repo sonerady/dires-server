@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&family=Shadows+Into+Light+Two&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Pressed Bloom — a herbarium page: heavy cotton paper, the photo held by four kraft mounting corners, two pressed
+     sprigs (a five-petal bloom and a lavender stem) strapped down with paper strips, and a ruled specimen label filled
+     in by hand that carries the name, date and price.
+     tall → title / photo / sprigs + label · 3:4 & square → photo left, title + sprigs + label right ·
+     wide → title + label left, photo centre, sprigs in their own column */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EEE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3E3A2F; font-family: "IBM Plex Mono", ui-monospace, monospace;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(160,140,100,.10) 0 .15vmin, transparent .25vmin) 0 0 / 2.3vmin 2.9vmin,
+      radial-gradient(circle at 70% 60%, rgba(120,110,90,.08) 0 .12vmin, transparent .2vmin) 0 0 / 3.7vmin 3.1vmin,
+      radial-gradient(ellipse at 50% 40%, #F7F3EA 0%, #F0EADC 70%, #E8E0CE 100%); }
+
+  .head { position: absolute; left: 9vmin; right: 9vmin; top: 7vmin; }
+  .kick { font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: #7D7560; white-space: nowrap; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; font-size: 11vmin; line-height: .88; letter-spacing: -.02em; color: #2F3326; }
+  h1 i { font-weight: 400; color: #7A5A78; }
+  .sub { margin-top: 1.8vmin; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 3vmin; color: #5A5646; }
+
+  .mount { position: absolute; left: 10vmin; right: 10vmin; top: 38vmin; bottom: 52vmin; }
+  .mount img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; box-shadow: 0 .3vmin .9vmin rgba(70,60,40,.2); }
+  .c { position: absolute; width: 4.6vmin; height: 4.6vmin; background: linear-gradient(135deg, #A88A62, #8E7150); box-shadow: 0 .2vmin .4vmin rgba(0,0,0,.2); }
+  .c1 { left: -1.2vmin; top: -1.2vmin; clip-path: polygon(0 0, 100% 0, 0 100%); }
+  .c2 { right: -1.2vmin; top: -1.2vmin; clip-path: polygon(0 0, 100% 0, 100% 100%); }
+  .c3 { right: -1.2vmin; bottom: -1.2vmin; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+  .c4 { left: -1.2vmin; bottom: -1.2vmin; clip-path: polygon(0 0, 100% 100%, 0 100%); }
+
+  /* pressed sprigs — pure CSS */
+  .sprigs { position: absolute; left: 7vmin; bottom: 7vmin; width: 32vmin; height: 40vmin; }
+  .sprig { position: absolute; bottom: 0; width: 16vmin; height: 38vmin; }
+  .s1 { left: 0; transform: rotate(-6deg); }
+  .s2 { left: 15vmin; height: 34vmin; transform: rotate(7deg); }
+  .stem { position: absolute; left: 50%; bottom: 0; width: 5vmin; height: 74%; border-left: .35vmin solid #8C8A5C; border-radius: 60% 0 0 40% / 50% 0 0 50%; }
+  .leaf { position: absolute; width: 6.4vmin; height: 2.6vmin; border-radius: 0 100% 0 100%; background: linear-gradient(90deg, #97A077, #B7B98E); opacity: .9; }
+  .leaf::after { content: ""; position: absolute; left: 10%; right: 12%; top: 50%; height: 1px; background: rgba(80,80,50,.4); }
+  .s1 .l1 { left: 52%; bottom: 22%; transform: rotate(-28deg); }
+  .s1 .l2 { left: calc(52% - 6.2vmin); bottom: 38%; transform: rotate(205deg); }
+  .s1 .l3 { left: 54%; bottom: 52%; width: 5vmin; height: 2vmin; transform: rotate(-40deg); }
+  .bloom { position: absolute; left: calc(50% - 7vmin); top: 0; width: 14vmin; height: 14vmin; }
+  .bloom i { position: absolute; left: calc(50% - 2.4vmin); top: 0; width: 4.8vmin; height: 7vmin; transform-origin: 50% 100%;
+    transform: rotate(calc(var(--i) * 72deg + 8deg)); border-radius: 50% 50% 45% 45% / 62% 62% 38% 38%;
+    background: radial-gradient(ellipse at 50% 30%, rgba(196,150,190,.88), rgba(150,108,150,.8) 70%, rgba(120,86,120,.7)); }
+  .bloom b { position: absolute; left: calc(50% - 1.4vmin); top: calc(50% - 1.4vmin); width: 2.8vmin; height: 2.8vmin; border-radius: 50%;
+    background: radial-gradient(circle, #D8B35A 0 30%, #B98B3C 70%); }
+  .lav { position: absolute; left: calc(50% - 1.2vmin); width: 2.4vmin; height: 3.2vmin; border-radius: 50%; background: radial-gradient(ellipse at 40% 35%, #A69AC8, #7E6FA6); }
+  .s2 .stem { height: 100%; left: 50%; border-radius: 0; width: 0; }
+  .s2 .l1 { left: 50%; bottom: 14%; transform: rotate(-50deg); width: 7vmin; height: 1.6vmin; }
+  .s2 .l2 { left: calc(50% - 6.8vmin); bottom: 24%; transform: rotate(230deg); width: 7vmin; height: 1.6vmin; }
+  .strap { position: absolute; left: calc(50% - 2.6vmin); width: 5.2vmin; height: 1.8vmin; background: #FBF8F0; box-shadow: 0 .1vmin .3vmin rgba(0,0,0,.14); }
+
+  /* specimen label */
+  .label { position: absolute; right: 8vmin; bottom: 7vmin; width: 52vmin; background: #FBF8EF; border: 1px solid #6F6A55; padding: 2.2vmin 2.6vmin 2vmin; box-sizing: border-box; box-shadow: 0 .3vmin .8vmin rgba(70,60,40,.14); }
+  .label h2 { margin: 0 0 1.2vmin; font-size: 1.6vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; text-align: center; color: #3E3A2F; padding-bottom: 1.2vmin; border-bottom: 3px double #6F6A55; }
+  .row { display: flex; align-items: baseline; gap: 1.6vmin; border-bottom: 1px solid rgba(111,106,85,.45); padding: .8vmin 0 .4vmin; }
+  .row span { flex: none; width: 11vmin; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; color: #7D7560; }
+  .row em { font-family: "Shadows Into Light Two", cursive; font-style: normal; font-size: 3vmin; line-height: 1.1; color: #2E3F66; white-space: nowrap; }
+  .row.price em { font-size: 4.6vmin; }
+  .cta { margin-top: 1.8vmin; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .06em; white-space: nowrap; }
+  .cta i { font-style: normal; color: #7D7560; font-weight: 400; }
+
+  /* ── 3:4 — photo left, title / sprigs / label right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .mount { left: 7vmin; right: auto; width: 52vmin; top: 8vmin; bottom: 8vmin; }
+    .head { left: 64vmin; right: 4vmin; top: 7vmin; }
+    .kick { white-space: normal; line-height: 1.5; font-size: 1.6vmin; }
+    h1 { font-size: 7.4vmin; }
+    .sub { font-size: 2.4vmin; }
+    .label { right: 4vmin; bottom: 8vmin; width: 32vmin; padding: 1.8vmin 2vmin; }
+    .row { flex-direction: column; gap: 0; }
+    .row em { font-size: 2.8vmin; }
+    .row.price em { font-size: 4.2vmin; }
+    .cta { flex-direction: column; gap: .6vmin; }
+    .sprigs { left: 66vmin; bottom: auto; top: 38vmin; width: 32vmin; height: 40vmin; transform: scale(.62); transform-origin: 0 0; }
+  }
+  /* ── square — photo left; sprigs laid on their side under the title ── */
+  @media (min-aspect-ratio: 9/10) {
+    .mount { left: 6vmin; width: 46vmin; top: 7vmin; bottom: 7vmin; }
+    .head { left: 59vmin; right: 5vmin; top: 6vmin; }
+    .kick { white-space: nowrap; }
+    h1 { font-size: 6.8vmin; margin-top: 1.2vmin; }
+    .sub { font-size: 2.3vmin; margin-top: 1.2vmin; }
+    .label { left: 59vmin; right: 5vmin; width: auto; bottom: 6vmin; padding: 1.4vmin 2vmin 1.6vmin; }
+    .label h2 { margin-bottom: .4vmin; padding-bottom: .8vmin; }
+    .row { flex-direction: row; gap: 1.2vmin; padding: .5vmin 0 .2vmin; }
+    .row span { width: 9vmin; }
+    .row em { font-size: 2.5vmin; }
+    .row.price em { font-size: 3.6vmin; }
+    .cta { flex-direction: row; margin-top: 1.2vmin; font-size: 1.6vmin; }
+    .cta i { display: none; }
+    .sprigs { left: 64vmin; top: 44vmin; transform: rotate(-78deg) scale(.5); transform-origin: 0 0; }
+  }
+  /* ── wide — title + label left, photo centre, sprigs column right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .head { left: 7vmin; right: auto; width: 44vmin; top: 8vmin; }
+    h1 { font-size: 8.6vmin; }
+    .sub { font-size: 2.6vmin; }
+    .mount { left: 57vmin; width: auto; right: 42vmin; top: 7vmin; bottom: 7vmin; }
+    .label { left: 7vmin; right: auto; width: 44vmin; bottom: 7vmin; padding: 1.8vmin 2.4vmin; }
+    .row { gap: 1.6vmin; padding: .7vmin 0 .3vmin; }
+    .row span { width: 10vmin; }
+    .row em { font-size: 2.8vmin; }
+    .row.price em { font-size: 4.2vmin; }
+    .cta i { display: inline; }
+    .sprigs { left: auto; right: 5vmin; top: 12vmin; bottom: auto; transform: scale(.95); transform-origin: 100% 0; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div class="kick">Herbarium Nº 09 · Atelier Verne</div>
+    <h1>Pressed<br><i>for the season</i></h1>
+    <div class="sub">Slow-made pieces, kept for years.</div>
+  </div>
+
+  <div class="mount">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <i class="c c1"></i><i class="c c2"></i><i class="c c3"></i><i class="c c4"></i>
+  </div>
+
+  <div class="sprigs" aria-hidden="true">
+    <div class="sprig s1">
+      <i class="stem"></i><i class="leaf l1"></i><i class="leaf l2"></i><i class="leaf l3"></i>
+      <div class="bloom"><i style="--i:0"></i><i style="--i:1"></i><i style="--i:2"></i><i style="--i:3"></i><i style="--i:4"></i><b></b></div>
+      <i class="strap" style="bottom:30%;transform:rotate(-8deg)"></i>
+    </div>
+    <div class="sprig s2">
+      <i class="stem"></i><i class="leaf l1"></i><i class="leaf l2"></i>
+      <i class="lav" style="top:0;transform:translateX(.2vmin) rotate(-8deg)"></i>
+      <i class="lav" style="top:2.4vmin;transform:translateX(-.9vmin) rotate(-24deg)"></i>
+      <i class="lav" style="top:2.6vmin;transform:translateX(1.1vmin) rotate(20deg)"></i>
+      <i class="lav" style="top:5.2vmin;transform:translateX(-1vmin) rotate(-26deg)"></i>
+      <i class="lav" style="top:5.4vmin;transform:translateX(1.1vmin) rotate(22deg)"></i>
+      <i class="lav" style="top:8.2vmin;transform:translateX(-.9vmin) rotate(-24deg)"></i>
+      <i class="lav" style="top:8.4vmin;transform:translateX(1vmin) rotate(20deg)"></i>
+      <i class="lav" style="top:11.4vmin;transform:translateX(0) scale(.8)"></i>
+      <i class="strap" style="bottom:40%;transform:rotate(6deg)"></i>
+    </div>
+  </div>
+
+  <div class="label">
+    <h2>Specimen label</h2>
+    <div class="row"><span>Name</span><em>the linen piece</em></div>
+    <div class="row"><span>Collected</span><em>25 · IX · 2026</em></div>
+    <div class="row"><span>Habitat</span><em>your wardrobe</em></div>
+    <div class="row price"><span>Price</span><em>$74</em></div>
+    <div class="cta"><span>Shop the collection →</span><i>Free shipping</i></div>
+  </div>
+</div>
+</body>
+</html>

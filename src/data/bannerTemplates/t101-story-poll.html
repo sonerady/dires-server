@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Story Poll — a social story: progress bars, account row, the photo on a flat colour ground and a two-option poll sticker.
+     tall → stacked column; square / wide → photo left, story chrome + poll right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D8452B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #D8452B; color: #FFF6EC; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    display: flex; flex-direction: column; padding: 3.2vmin 5vmin 5.4vmin; box-sizing: border-box; }
+  /* faint paper grain so the flat ground doesn't look digital */
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background-image: radial-gradient(rgba(255,255,255,.07) .1vmin, transparent .12vmin), radial-gradient(rgba(0,0,0,.06) .1vmin, transparent .12vmin);
+    background-size: 0.9vmin 0.9vmin, 1.3vmin 1.3vmin; background-position: 0 0, .4vmin .6vmin; }
+
+  .chrome { position: relative; flex: none; }
+  .bars { display: flex; gap: .9vmin; }
+  .bars i { flex: 1; height: .55vmin; border-radius: 1vmin; background: rgba(255,246,236,.35); overflow: hidden; }
+  .bars i:first-child { background: #FFF6EC; }
+  .bars i:nth-child(2) { background: linear-gradient(90deg, #FFF6EC 0 58%, rgba(255,246,236,.35) 58%); }
+  .who { display: flex; align-items: center; gap: 1.8vmin; margin-top: 2.2vmin; }
+  .av { flex: none; width: 5.6vmin; height: 5.6vmin; border-radius: 50%; background: #FFF6EC; color: #D8452B; display: flex; align-items: center; justify-content: center;
+    font-family: "Instrument Serif", Georgia, serif; font-size: 3vmin; line-height: 1; box-shadow: 0 0 0 .45vmin #D8452B, 0 0 0 .75vmin #FFF6EC; }
+  .handle { font-size: 2.3vmin; font-weight: 600; letter-spacing: -.01em; }
+  .ago { font-size: 2.1vmin; opacity: .7; margin-left: -.6vmin; }
+  .dots { margin-left: auto; display: flex; gap: .7vmin; }
+  .dots i { width: .8vmin; height: .8vmin; border-radius: 50%; background: #FFF6EC; }
+
+  .shot { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 2.6vmin; overflow: hidden; background: #B83A23; }
+  .shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .tag { position: absolute; left: 0; top: 2.6vmin; background: #FFF6EC; color: #1E1512; font-size: 1.8vmin; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; padding: 1vmin 1.8vmin 1vmin 1.6vmin; }
+
+  .ask { position: relative; flex: none; margin-top: 3vmin; }
+  .lead { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 4.4vmin; line-height: 1; margin: 0 0 1.8vmin .4vmin; }
+  .lead br { display: none; }
+  .poll { background: #FFF6EC; color: #1E1512; border-radius: 3.2vmin; padding: 3.2vmin 3.2vmin 2.6vmin; transform: rotate(-1.6deg); box-shadow: 0 1.6vmin 3.4vmin rgba(80,16,6,.28); }
+  .q { font-size: 5.6vmin; font-weight: 800; letter-spacing: -.035em; line-height: .98; }
+  .opt { position: relative; margin-top: 1.4vmin; height: 7vmin; border-radius: 99vmin; background: #EFE4D6; overflow: hidden; display: flex; align-items: center; padding: 0 2.8vmin; }
+  .opt:first-of-type { margin-top: 2.4vmin; }
+  .opt .fill { position: absolute; left: 0; top: 0; bottom: 0; height: 100%; border-radius: 99vmin; }
+  .opt.a .fill { width: 82%; background: linear-gradient(90deg, #F07A4D, #D8452B); }
+  .opt.b .fill { width: 18%; background: #D9CBB8; }
+  .opt span { position: relative; font-size: 2.6vmin; font-weight: 800; letter-spacing: .02em; }
+  .opt.a span { color: #FFF6EC; }
+  .opt b { position: relative; margin-left: auto; font-size: 2.6vmin; font-weight: 800; }
+  .foot { display: flex; justify-content: space-between; margin-top: 2vmin; font-size: 1.8vmin; font-weight: 600; color: #6C5A4E; letter-spacing: .02em; }
+  .foot em { font-style: normal; color: #D8452B; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 3vmin 5vmin 4.6vmin; }
+    .lead { display: none; }
+    .ask { margin-top: 2.6vmin; }
+    .poll { padding: 2.6vmin 3vmin 2.2vmin; }
+    .q { font-size: 4.8vmin; }
+    .opt { height: 6vmin; margin-top: 1.1vmin; }
+    .opt:first-of-type { margin-top: 1.8vmin; }
+    .foot { margin-top: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .shot { position: absolute; left: 4.5vmin; top: 4.5vmin; bottom: 4.5vmin; width: 48%; height: auto; margin: 0; }
+    .chrome { position: absolute; left: calc(48% + 9vmin); right: 5vmin; top: 5vmin; }
+    .ask { position: absolute; left: calc(48% + 9vmin); right: 5vmin; bottom: 6vmin; margin: 0; }
+    .lead { display: block; font-size: 7.4vmin; line-height: .92; margin-bottom: 3vmin; }
+    .lead br { display: inline; }
+    .poll { padding: 2.8vmin 3vmin 2.4vmin; }
+    .q { font-size: 4.2vmin; }
+    .opt { height: 6.2vmin; padding: 0 2.4vmin; }
+    .opt span, .opt b { font-size: 2.3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 50%; }
+    .chrome, .ask { left: calc(50% + 10vmin); right: 7vmin; }
+    .lead { font-size: 8.6vmin; }
+    .q { font-size: 5.4vmin; }
+    .opt { height: 7vmin; }
+    .opt span, .opt b { font-size: 2.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="chrome">
+    <div class="bars"><i></i><i></i><i></i><i></i></div>
+    <div class="who">
+      <div class="av">An</div>
+      <div class="handle">atelier.nord</div>
+      <div class="ago">2h</div>
+      <div class="dots"><i></i><i></i><i></i></div>
+    </div>
+  </div>
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="tag">New drop</div></div>
+  <div class="ask">
+    <div class="lead">Be <br>honest…</div>
+    <div class="poll">
+      <div class="q">Wear it or skip it?</div>
+      <div class="opt a"><div class="fill"></div><span>Wear it</span><b>82%</b></div>
+      <div class="opt b"><div class="fill"></div><span>Skip it</span><b>18%</b></div>
+      <div class="foot"><span>2,418 votes</span><em>Shop the drop →</em></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

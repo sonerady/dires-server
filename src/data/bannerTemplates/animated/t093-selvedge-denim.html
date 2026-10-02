@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,500;0,700;1,500&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Selvedge — indigo twill panel, a white-and-red selvedge ID along the seam, double copper stitching,
+     a leather back patch. tall → photo above the denim; 7/10+ → photo left, selvedge runs down the seam */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C2A4A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F1EADB; font-family: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+    background:
+      repeating-linear-gradient(62deg, rgba(255,255,255,.055) 0 .28vmin, transparent .28vmin .85vmin),
+      repeating-linear-gradient(-28deg, rgba(0,0,0,.12) 0 .2vmin, transparent .2vmin 1.3vmin),
+      radial-gradient(120% 80% at 70% 90%, #2A3D66 0%, #1D2B4C 55%, #152039 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 64vmin); object-fit: cover; object-position: 50% 22%; }
+
+  /* selvedge ID: off-white edge, one red thread */
+  .selv { position: absolute; left: 0; right: 0; top: calc(100% - 64vmin); height: 3.2vmin; z-index: 2;
+    background: linear-gradient(180deg, #F4EFE4 0 35%, #C4322B 35% 62%, #F4EFE4 62% 100%);
+    box-shadow: 0 .5vmin 1.2vmin rgba(0,0,0,.35); }
+  .selv::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 .2vmin, transparent .2vmin .6vmin); }
+  /* double row of copper topstitching */
+  .stitch { position: absolute; left: 0; right: 0; top: calc(100% - 64vmin + 5vmin); height: 1.8vmin; border-top: .35vmin dashed #E0A04A; border-bottom: .35vmin dashed #E0A04A; opacity: .95; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; height: 48vmin; }
+  .k { font-size: 2vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #E0A04A; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Zilla Slab", Rockwell, Georgia, serif; font-weight: 700; font-size: 13.4vmin; line-height: .9; letter-spacing: -.02em; }
+  h1 i { font-weight: 500; color: #CFD8EA; }
+  .lede { margin-top: 2.6vmin; width: 48vmin; font-size: 2.9vmin; font-weight: 500; line-height: 1.3; letter-spacing: .02em; color: #CFD8EA; }
+  .lede b { color: #F1EADB; font-weight: 700; }
+  .cta { position: absolute; left: 0; bottom: 0; display: flex; align-items: center; gap: 2vmin; font-size: 2.6vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; padding-bottom: 1.2vmin; border-bottom: .35vmin dashed #E0A04A; }
+
+  /* leather patch */
+  .patch { position: absolute; right: 0; bottom: 1vmin; width: 34vmin; padding: 1.4vmin; box-sizing: border-box; transform: rotate(-3deg); border-radius: .8vmin;
+    background: radial-gradient(120% 90% at 30% 20%, #B77F4C 0%, #9A6337 60%, #7E4E2A 100%); box-shadow: 0 1vmin 2.2vmin rgba(0,0,0,.45), inset 0 0 1.4vmin rgba(60,30,10,.5); color: #3E2412; }
+  .patch .in { border: .3vmin dashed rgba(250,225,190,.55); border-radius: .4vmin; padding: 2.2vmin 1.6vmin 2vmin; text-align: center; }
+  .patch .b { font-family: "Zilla Slab", Georgia, serif; font-weight: 700; font-size: 4.2vmin; line-height: 1; letter-spacing: .03em; white-space: nowrap; text-transform: uppercase; text-shadow: 0 .15vmin 0 rgba(255,220,180,.35); }
+  .patch .r { display: flex; justify-content: space-between; margin-top: 1.4vmin; padding-top: 1.2vmin; border-top: .25vmin solid rgba(62,36,18,.55); font-size: 1.8vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .patch .s { margin-top: 1vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+  .price { display: none; position: absolute; left: 0; bottom: 42vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #CFD8EA; }
+  .price b { display: block; margin-top: .6vmin; font-family: "Zilla Slab", Georgia, serif; font-size: 7vmin; font-weight: 700; letter-spacing: -.01em; color: #F1EADB; }
+  /* copper rivets */
+  .rivet { position: absolute; width: 2.4vmin; height: 2.4vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F2C08A 0%, #B8753A 45%, #6E3F1B 100%); box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.5); }
+  .rv1 { left: 3vmin; top: calc(100% - 64vmin + 9.5vmin); }
+  .rv2 { right: 3vmin; top: calc(100% - 64vmin + 9.5vmin); }
+
+  /* ── 7/10+ : photo left, selvedge vertical along the seam ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 56%; height: 100%; object-position: 50% 25%; }
+    .selv { left: 56%; right: auto; top: 0; bottom: 0; width: 3.2vmin; height: auto; background: linear-gradient(90deg, #F4EFE4 0 35%, #C4322B 35% 62%, #F4EFE4 62% 100%); }
+    .selv::after { background: repeating-linear-gradient(180deg, rgba(0,0,0,.06) 0 .2vmin, transparent .2vmin .6vmin); }
+    .stitch { left: calc(56% + 5vmin); right: auto; top: 0; bottom: 0; width: 1.8vmin; height: auto; border: 0; border-left: .35vmin dashed #E0A04A; border-right: .35vmin dashed #E0A04A; }
+    .rv1 { left: calc(56% + 9vmin); top: 3vmin; }
+    .rv2 { right: auto; left: calc(56% + 9vmin); top: auto; bottom: 3vmin; }
+    .panel { left: calc(56% + 11vmin); right: 5vmin; top: 8vmin; bottom: 7vmin; height: auto; }
+    h1 { font-size: 8.4vmin; }
+    .lede { width: auto; font-size: 2.3vmin; }
+    .patch { right: auto; left: 0; bottom: 11vmin; width: 28vmin; }
+    .patch .b { font-size: 3.5vmin; }
+    .price { display: block; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 52%; }
+    .selv { left: 52%; }
+    .stitch { left: calc(52% + 5vmin); }
+    .rv1, .rv2 { left: calc(52% + 9vmin); }
+    .panel { left: calc(52% + 11vmin); top: 7vmin; bottom: 6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .lede { font-size: 2.2vmin; }
+    .patch { bottom: 9vmin; width: 26vmin; padding: 1.2vmin; }
+    .patch .in { padding: 1.6vmin 1.4vmin; }
+    .patch .b { font-size: 3.1vmin; }
+    .price { bottom: 38vmin; font-size: 1.9vmin; }
+    .price b { font-size: 6vmin; }
+    .cta { font-size: 2.2vmin; }
+  }
+  /* ── wide: patch moves beside the copy ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .selv { left: 46%; }
+    .stitch { left: calc(46% + 5vmin); }
+    .rv1, .rv2 { left: calc(46% + 9vmin); }
+    .panel { left: calc(46% + 12vmin); right: 6vmin; top: 10vmin; bottom: 9vmin; }
+    h1 { font-size: 12.4vmin; }
+    .lede { width: 44vmin; font-size: 2.7vmin; }
+    .patch { left: auto; right: 0; bottom: 0; width: 30vmin; padding: 1.4vmin; }
+    .price { bottom: 10vmin; }
+    .patch .in { padding: 2.2vmin 1.6vmin 2vmin; }
+    .patch .b { font-size: 3.6vmin; }
+    .cta { font-size: 2.5vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  /* "to fade." — a bleach wave washes through the letters, left to right */
+  h1 i { display: inline-block;
+    -webkit-mask-image: linear-gradient(90deg, #000 0 38%, rgba(0,0,0,.22) 50%, #000 62% 100%); mask-image: linear-gradient(90deg, #000 0 38%, rgba(0,0,0,.22) 50%, #000 62% 100%);
+    -webkit-mask-size: 300% 100%; mask-size: 300% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-position: 100% 0; mask-position: 100% 0; animation: bleach 6s linear infinite; }
+  @keyframes bleach {
+    0%, 12% { -webkit-mask-position: 100% 0; mask-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    42%, 100% { -webkit-mask-position: 0% 0; mask-position: 0% 0; }
+  }
+  /* topstitching is sewn again: unpicked in a blink, then run back along the seam */
+  .stitch { animation: sewH 6s linear infinite; }
+  @keyframes sewH {
+    0%, 48% { clip-path: inset(-1vmin 0 -1vmin 0); animation-timing-function: cubic-bezier(.7,0,1,.5); }
+    51% { clip-path: inset(-1vmin 0 -1vmin 100%); animation-timing-function: steps(1, end); }
+    52% { clip-path: inset(-1vmin 100% -1vmin 0); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    80%, 100% { clip-path: inset(-1vmin 0 -1vmin 0); }
+  }
+  @keyframes sewV {
+    0%, 48% { clip-path: inset(0 -1vmin 0 -1vmin); animation-timing-function: cubic-bezier(.7,0,1,.5); }
+    51% { clip-path: inset(100% -1vmin 0 -1vmin); animation-timing-function: steps(1, end); }
+    52% { clip-path: inset(0 -1vmin 100% -1vmin); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    80%, 100% { clip-path: inset(0 -1vmin 0 -1vmin); }
+  }
+  /* copper rivets catch a glint in turn */
+  .rivet { animation: glint 6s linear infinite; }
+  .rv2 { animation-delay: -5.6s; }
+  @keyframes glint {
+    0%, 82% { filter: brightness(1); transform: scale(1); }
+    86% { filter: brightness(1.55); transform: scale(1.12); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    92%, 100% { filter: brightness(1); transform: scale(1); }
+  }
+  /* leather patch: stamped once — lifts, then presses back into the cloth */
+  .patch { animation: stamp 6s linear infinite; }
+  @keyframes stamp {
+    0%, 60% { transform: rotate(-3deg) scale(1); box-shadow: 0 1vmin 2.2vmin rgba(0,0,0,.45), inset 0 0 1.4vmin rgba(60,30,10,.5); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    66% { transform: rotate(-4.5deg) scale(1.04); box-shadow: 0 2vmin 3.6vmin rgba(0,0,0,.5), inset 0 0 1.4vmin rgba(60,30,10,.5); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    70% { transform: rotate(-3deg) scale(.985); box-shadow: 0 .5vmin 1.2vmin rgba(0,0,0,.4), inset 0 0 1.4vmin rgba(60,30,10,.5); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    75%, 100% { transform: rotate(-3deg) scale(1); box-shadow: 0 1vmin 2.2vmin rgba(0,0,0,.45), inset 0 0 1.4vmin rgba(60,30,10,.5); }
+  }
+  /* selvedge: the red ID thread gives one soft pulse as the seam is finished */
+  .selv::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0 35%, #FF5A4A 35% 62%, transparent 62% 100%); opacity: 0; animation: thread 6s linear infinite; }
+  @keyframes thread { 0%, 76% { opacity: 0; } 80% { opacity: .7; animation-timing-function: cubic-bezier(.3,0,.3,1); } 92%, 100% { opacity: 0; } }
+  /* CTA arrow nudge */
+  .cta .ar { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 84% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    87% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    90% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    93% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    96%, 100% { transform: translateX(0); }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .stitch { animation-name: sewV; }
+    .selv::before { background: linear-gradient(90deg, transparent 0 35%, #FF5A4A 35% 62%, transparent 62% 100%); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="selv"></div>
+  <div class="stitch"></div>
+  <div class="rivet rv1"></div><div class="rivet rv2"></div>
+  <div class="panel">
+    <div class="k">The Indigo Edit · SS26</div>
+    <h1>Built<br><i>to fade.</i></h1>
+    <div class="lede"><b>25% off</b> the new drop — this week only. Code INDIGO25.</div>
+    <div class="price">From<b>$89</b></div>
+    <div class="patch"><div class="in">
+      <div class="b">Blue Loom</div>
+      <div class="r"><span>Lot 026</span><span>Est. 2026</span></div>
+      <div class="s">Wear · Fade · Repeat</div>
+    </div></div>
+    <div class="cta">Shop the edit <span class="ar">→</span></div>
+  </div>
+</div>
+</body>
+</html>

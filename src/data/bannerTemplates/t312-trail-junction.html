@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  /* Trail Junction — an Alpine hiking signpost at a trail fork: a galvanised pole, a white location plate
+     ("Sale Pass, 2 026 m"), and signal-yellow arrow boards clamped on with steel bands, each pointing to a
+     part of the sale with a walking time; the hardest route carries the white-red-white mountain-trail tip.
+     tall → photo above, pole centred with arrows both ways · square/wide → photo left, pole on the seam, all arrows point on */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #22313A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #22313A; color: #F4F1E8; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 94vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 94vmin; overflow: hidden; box-sizing: border-box; padding: 5vmin 6vmin 0;
+    background: linear-gradient(180deg, #2B3C46, #22313A 40%, #1C2830); }
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #A9B8BF; white-space: nowrap; }
+  .kick b { color: #F5C400; font-weight: 700; }
+  h1 { margin: 2vmin 0 0; font-weight: 800; font-stretch: 72%; font-size: 9.6vmin; line-height: .92; letter-spacing: -.01em; text-transform: uppercase; }
+  h1 span { color: #F5C400; }
+
+  .post { position: absolute; left: 0; right: 0; bottom: 0; top: 30vmin; --x: 50%; }
+  .post::before { content: ""; position: absolute; left: calc(var(--x) - 1.7vmin); width: 3.4vmin; top: 0; bottom: 0;
+    background: linear-gradient(90deg, #5F686D, #C9CFD2 30%, #EDF0F1 45%, #9AA3A8 70%, #4B5358); }
+  .post::after { content: ""; position: absolute; left: calc(var(--x) - 2vmin); width: 4vmin; top: -1.2vmin; height: 1.6vmin; border-radius: 50% 50% 0 0; background: #6F787D; }
+  .plate, .arrow, .foot { position: relative; box-sizing: border-box; }
+  .plate { width: 58vmin; margin: 0 0 0 calc(var(--x) - 29vmin); padding: 1.8vmin 2.6vmin; background: #FBFAF5; color: #121212; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; box-shadow: 0 .8vmin 1.2vmin rgba(0,0,0,.35); }
+  .plate b { font-weight: 800; font-size: 4.4vmin; letter-spacing: -.01em; white-space: nowrap; }
+  .plate span { font-weight: 600; font-size: 2.4vmin; white-space: nowrap; }
+  .arrow { height: 11.4vmin; width: 46vmin; margin-top: 2.2vmin; background: #F5C400; color: #111; display: flex; align-items: center; gap: 2vmin; padding: 0 6vmin 0 2.6vmin;
+    box-shadow: 0 .8vmin 1.2vmin rgba(0,0,0,.35); }
+  .arrow.r { margin-left: calc(var(--x) + .6vmin); clip-path: polygon(0 0, calc(100% - 4.6vmin) 0, 100% 50%, calc(100% - 4.6vmin) 100%, 0 100%); }
+  .arrow.l { margin-left: calc(var(--x) - 46.6vmin); padding: 0 2.6vmin 0 6vmin; flex-direction: row-reverse; text-align: right; clip-path: polygon(4.6vmin 0, 100% 0, 100% 100%, 4.6vmin 100%, 0 50%); }
+  .dest { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .5vmin; }
+  .dest b { font-weight: 800; font-size: 3.5vmin; line-height: 1; letter-spacing: -.01em; white-space: nowrap; }
+  .dest small { font-weight: 500; font-size: 1.8vmin; letter-spacing: .02em; white-space: nowrap; }
+  .time { font-weight: 800; font-stretch: 85%; font-size: 3.2vmin; white-space: nowrap; }
+  /* mountain-trail tip: white-red-white */
+  .tip { position: absolute; top: 0; bottom: 0; width: 6.4vmin; background: linear-gradient(90deg, #FBFAF5 0 33%, #D5231F 33% 67%, #FBFAF5 67%); }
+  .arrow.r .tip { right: 0; } .arrow.l .tip { left: 0; }
+  .arrow.alp { padding-right: 8.4vmin; }
+  .arrow.alp .time { color: #111; }
+  /* steel clamp band over the pole */
+  .band { position: absolute; top: 1.6vmin; bottom: 1.6vmin; width: 5vmin; background: linear-gradient(90deg, #7B8489, #D6DBDE 50%, #7B8489); opacity: .9; }
+  .arrow.r .band { left: 0; width: 1.4vmin; } .arrow.l .band { right: 0; width: 1.4vmin; }
+  .arrow.r, .arrow.l { overflow: visible; }
+  .foot { width: 58vmin; margin: 3.6vmin 0 0 calc(var(--x) - 29vmin); display: flex; align-items: stretch; box-shadow: 0 .8vmin 1.2vmin rgba(0,0,0,.35); }
+  .foot span { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.4vmin 1.6vmin; background: #FBFAF5; color: #121212; font-weight: 700; font-size: 2.1vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .foot span + span { background: #D5231F; color: #FBFAF5; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 84vmin); }
+    .panel { height: 84vmin; padding-top: 4.4vmin; }
+    h1 { font-size: 8.6vmin; margin-top: 1.6vmin; }
+    .post { top: 26vmin; }
+    .arrow { height: 10.4vmin; margin-top: 1.8vmin; }
+    .foot { margin-top: 3vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .panel { height: 66vmin; padding-top: 3.6vmin; }
+    h1 { font-size: 7vmin; margin-top: 1.2vmin; }
+    h1 br { display: none; }
+    .post { top: 16vmin; }
+    .plate { padding: 1.3vmin 2.4vmin; }
+    .plate b { font-size: 3.8vmin; }
+    .arrow { height: 9.4vmin; margin-top: 1.5vmin; }
+    .dest b { font-size: 3.1vmin; }
+    .dest small { font-size: 1.6vmin; }
+    .time { font-size: 2.8vmin; }
+    .foot { margin-top: 2.4vmin; }
+    .foot span { padding: 1.1vmin 1.4vmin; font-size: 1.9vmin; }
+  }
+  /* square / wide → photo left, pole on the seam, every arrow points on into the panel */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 50%; top: 0; height: auto; padding: 4.6vmin 4vmin 0 5vmin; }
+    .kick { flex-direction: column; gap: .6vmin; font-size: 1.6vmin; }
+    h1 { font-size: 6.6vmin; margin-top: 2vmin; }
+    h1 br { display: inline; }
+    .post { top: 32vmin; --x: 2.4vmin; }
+    .plate { width: calc(100% - 5vmin); margin-left: 2.4vmin; padding: 1.4vmin 2vmin; }
+    .plate b { font-size: 3.4vmin; }
+    .plate span { font-size: 1.9vmin; }
+    .arrow, .arrow.l { width: calc(100% - 5.4vmin); height: 9.6vmin; margin: 1.6vmin 0 0 3vmin; padding: 0 5.4vmin 0 2.4vmin; flex-direction: row; text-align: left;
+      clip-path: polygon(0 0, calc(100% - 4vmin) 0, 100% 50%, calc(100% - 4vmin) 100%, 0 100%); }
+    .arrow.alp { padding-right: 7.4vmin; }
+    .arrow.l .tip { left: auto; right: 0; }
+    .arrow.l .band { right: auto; left: 0; }
+    .tip { width: 5.6vmin; }
+    .dest b { font-size: 2.8vmin; }
+    .dest small { font-size: 1.6vmin; }
+    .time { font-size: 2.5vmin; }
+    .foot { width: calc(100% - 5vmin); margin: 2.6vmin 0 0 2.4vmin; flex-direction: column; }
+    .foot span { padding: 1vmin 1.2vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .panel { left: 48%; padding: 5vmin 6vmin 0 7vmin; }
+    .kick { flex-direction: row; font-size: 1.8vmin; }
+    h1 { font-size: 8vmin; }
+    h1 br { display: none; }
+    .post { top: 25vmin; }
+    .plate { width: 66vmin; }
+    .plate b { font-size: 3.8vmin; }
+    .plate span { font-size: 2.1vmin; }
+    .arrow, .arrow.l { width: 62vmin; height: 10.4vmin; margin-top: 1.8vmin; }
+    .dest b { font-size: 3.3vmin; }
+    .dest small { font-size: 1.8vmin; }
+    .time { font-size: 3vmin; }
+    .foot { width: 66vmin; flex-direction: row; margin-top: 3.2vmin; }
+    .foot span { padding: 1.3vmin 1.4vmin; font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><span>Trail No. 30 · <b>Autumn route</b></span><span>Signposted sale</span></div>
+    <h1>All paths lead <br><span>downhill.</span></h1>
+    <div class="post">
+      <div class="plate"><b>Sale Pass</b><span>2 026 m</span></div>
+      <div class="arrow r"><i class="band"></i><div class="dest"><b>New drop</b><small>Just landed</small></div><span class="time">10 min</span></div>
+      <div class="arrow l"><i class="band"></i><div class="dest"><b>The edit −30%</b><small>Across the collection</small></div><span class="time">45 min</span></div>
+      <div class="arrow r alp"><i class="band"></i><div class="dest"><b>Final −50%</b><small>Last sizes only</small></div><span class="time">2 h 15</span><i class="tip"></i></div>
+      <div class="foot"><span>Code WANDER30</span><span>Start walking →</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

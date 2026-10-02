@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&family=DM+Serif+Display:ital@0;1&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* It's Back — a back-in-stock alert email: live "back in stock" status pill, a big serif headline,
+     the photo, size chips (sold-out sizes struck through, "your size" highlighted), a low-stock meter and the reason you got the email.
+     tall → stacked · 3:4 → photo top, size + stock in two columns · square → photo left · wide → copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECEEF0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECEEF0; color: #15181C; font-family: "Plus Jakarta Sans", "Helvetica Neue", Arial, sans-serif; }
+
+  .meta { position: absolute; left: 5vmin; right: 5vmin; top: 4vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; white-space: nowrap; }
+  .logo { font-weight: 800; font-size: 2.8vmin; letter-spacing: -.02em; }
+  .logo i { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; }
+  .live { display: inline-flex; align-items: center; gap: 1.2vmin; padding: 1vmin 2vmin; border-radius: 99vmin; background: #D8F2E4; color: #13643F; font-size: 1.7vmin; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  .live i { width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: #1F9A62; box-shadow: 0 0 0 .6vmin rgba(31,154,98,.22); }
+
+  .hl { position: absolute; left: 5vmin; right: 5vmin; top: 11vmin; }
+  h1 { margin: 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 15vmin; line-height: .88; letter-spacing: -.03em; }
+  h1 i { color: #1F9A62; }
+  .hl p { margin: 3vmin 0 0; font-size: 2.2vmin; line-height: 1.45; color: #4A5058; }
+
+  .photo { position: absolute; left: 5vmin; top: 36vmin; width: calc(100% - 10vmin); height: calc(100% - 94vmin); object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .info { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.4vmin; height: 51vmin; display: flex; flex-direction: column; }
+  .prod { display: flex; align-items: baseline; justify-content: space-between; gap: 2vmin; padding-bottom: 1.8vmin; border-bottom: 1px solid #C9CDD2; }
+  .prod b { font-size: 3vmin; font-weight: 800; letter-spacing: -.02em; }
+  .prod span { font-size: 1.7vmin; color: #6A7078; }
+  .prod em { font-style: normal; font-size: 3vmin; font-weight: 700; }
+  .lab { margin-top: 2.2vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #6A7078; }
+  .sizes { display: flex; gap: 1.2vmin; margin-top: 1.2vmin; }
+  .sz { position: relative; flex: 1; height: 6vmin; display: flex; align-items: center; justify-content: center; border: 1px solid #B9BEC5; background: #FFFFFF; font-size: 2vmin; font-weight: 700; }
+  .sz.out { background: transparent; color: #A3A8AF; border-color: #D2D6DB; }
+  .sz.out::after { content: ""; position: absolute; left: 12%; right: 12%; top: 50%; height: 1px; background: #A3A8AF; transform: rotate(-24deg); }
+  .sz.me { background: #15181C; border-color: #15181C; color: #FFFFFF; }
+  .stock { margin-top: 2.4vmin; }
+  .stock .t { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 500; white-space: nowrap; }
+  .stock .t b { color: #C2410C; font-weight: 800; }
+  .meter { margin-top: 1vmin; height: .9vmin; border-radius: 99vmin; background: #D5D9DE; overflow: hidden; }
+  .meter i { display: block; width: 14%; height: 100%; background: #C2410C; }
+  .perks { display: none; margin-top: 3vmin; gap: 1vmin 2.6vmin; flex-wrap: wrap; font-size: 1.7vmin; color: #4A5058; }
+  .perks span::before { content: ""; display: inline-block; width: 1vmin; height: 1vmin; margin-right: 1vmin; border-radius: 50%; background: #1F9A62; }
+  .buy { margin-top: auto; display: flex; flex-direction: column; gap: 1.4vmin; }
+  .cta { padding: 2.2vmin; background: #15181C; color: #FFFFFF; text-align: center; font-size: 2.1vmin; font-weight: 700; white-space: nowrap; }
+  .why { font-size: 1.6vmin; line-height: 1.4; color: #6A7078; text-align: center; }
+
+  /* ── 3:4 ── */
+  @media (min-aspect-ratio: 7/10) {
+    h1 { font-size: 12.4vmin; }
+    .hl { right: 34vmin; }
+    .hl p { font-size: 2vmin; }
+    .photo { top: 32vmin; height: calc(100% - 78vmin); }
+    .info { height: 40vmin; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto 1fr; column-gap: 4vmin; }
+    .prod { grid-column: 1 / 3; }
+    .pick { grid-column: 1; }
+    .stock { grid-column: 2; margin-top: 2.2vmin; }
+    .buy { grid-column: 1 / 3; margin-top: 0; align-self: end; flex-direction: row; align-items: center; gap: 2.4vmin; }
+    .cta { padding: 2vmin 4vmin; }
+    .why { text-align: left; }
+    .sz { height: 5.4vmin; }
+  }
+  /* ── square — photo left, copy right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 5vmin; top: 5vmin; width: calc(48% - 5vmin); height: calc(100% - 10vmin); }
+    .meta { left: calc(48% + 4vmin); }
+    .logo { display: none; }
+    .hl { left: calc(48% + 4vmin); right: 5vmin; top: 12vmin; }
+    h1 { font-size: 10vmin; }
+    .hl p { font-size: 1.8vmin; }
+    .info { left: calc(48% + 4vmin); right: 5vmin; bottom: 5vmin; height: 52vmin; display: flex; }
+    .prod b, .prod em { font-size: 2.6vmin; }
+    .lab { margin-top: 1.8vmin; }
+    .sz { height: 5vmin; font-size: 1.8vmin; }
+    .stock { margin-top: 2vmin; }
+    .perks { display: flex; flex-direction: column; }
+    .info { top: 36vmin; height: auto; }
+    .buy { margin-top: auto; flex-direction: column; align-items: stretch; gap: 1.2vmin; }
+    .cta { padding: 1.9vmin; font-size: 1.9vmin; }
+    .why { text-align: left; }
+  }
+  /* ── wide — copy left, photo right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: auto; right: 5vmin; width: calc(46% - 5vmin); }
+    .meta { left: 6vmin; right: calc(46% + 5vmin); }
+    .logo { display: block; }
+    .hl { left: 6vmin; right: calc(46% + 5vmin); top: 11vmin; }
+    h1 { font-size: 11vmin; }
+    .info { left: 6vmin; right: calc(46% + 5vmin); top: 38vmin; height: auto; }
+    .perks { flex-direction: row; }
+    .buy { flex-direction: row; align-items: center; gap: 2.4vmin; }
+    .cta { padding: 2vmin 3.6vmin; }
+  }
+
+  /* ── animation loop ── */
+  /* 6s — the restock alert, live: the status dot pings every 1.5s, "back." drops back into the headline,
+     the photo breathes in its frame, your size (M) gets a selection pulse, the low-stock meter ticks down
+     and refills, and a sheen runs across the CTA. */
+  .live i { position: relative; animation: dot 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  .live i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .25vmin solid #1F9A62; opacity: 0;
+    animation: ring 1.5s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes dot { 0%, 100% { box-shadow: 0 0 0 .6vmin rgba(31,154,98,.22); } 50% { box-shadow: 0 0 0 .25vmin rgba(31,154,98,.1); } }
+  @keyframes ring { 0% { opacity: 0; transform: scale(1); } 8% { opacity: .7; } 70%, 100% { opacity: 0; transform: scale(2.8); } }
+
+  h1 i { display: inline-block; animation: back 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes back {
+    0%, 12%, 36%, 100% { transform: translateY(0); opacity: 1; }
+    18% { transform: translateY(.18em); opacity: 0; }
+    18.1% { transform: translateY(-.4em); opacity: 0; }
+    28% { transform: translateY(.04em); opacity: 1; }
+    32% { transform: translateY(-.01em); opacity: 1; } }
+
+  .photo { transform-origin: 50% 50%; animation: br 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes br { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.4563%); } }
+
+  .sz.me { animation: pick 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pick { 0%, 40%, 56%, 100% { box-shadow: 0 0 0 0 rgba(21,24,28,0); transform: scale(1); }
+                    44% { box-shadow: 0 0 0 .5vmin rgba(21,24,28,.25); transform: scale(1.06); }
+                    50% { box-shadow: 0 0 0 1.2vmin rgba(21,24,28,0); transform: scale(1); } }
+
+  .meter i { animation: drain 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes drain { 0%, 46%, 100% { clip-path: inset(0 0 0 0); opacity: 1; } 52%, 72% { clip-path: inset(0 28% 0 0); opacity: 1; } 76% { clip-path: inset(0 28% 0 0); opacity: .55; } }
+  .stock .t b { animation: warn 6s linear infinite; }
+  @keyframes warn { 0%, 50%, 60%, 100% { opacity: 1; } 53%, 57% { opacity: .45; } 55% { opacity: 1; } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.28) 50%, transparent 65%) no-repeat; background-size: 250% 100%;
+    background-position: 160% 0; animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 78% { background-position: 160% 0; } 92%, 100% { background-position: -60% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="meta"><span class="logo">mono<i>&amp;</i>co</span><span class="live"><i></i>Back in stock</span></div>
+  <div class="hl">
+    <h1>It's <i>back.</i></h1>
+    <p>You asked us to tell you first — so we did.</p>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="info">
+    <div class="prod"><div><b>The Tessa</b> <span>· Oat</span></div><em>$185</em></div>
+    <div class="pick">
+      <div class="lab">Sizes</div>
+      <div class="sizes"><span class="sz">XS</span><span class="sz out">S</span><span class="sz me">M</span><span class="sz">L</span><span class="sz out">XL</span></div>
+    </div>
+    <div class="stock">
+      <div class="t"><span>Your size (M)</span><span><b>Only 7 left</b></span></div>
+      <div class="meter"><i></i></div>
+    </div>
+    <div class="perks"><span>Free shipping</span><span>30-day returns</span><span>Restocked today</span></div>
+    <div class="buy">
+      <div class="cta">Get it before it's gone →</div>
+      <div class="why">You tapped "Notify me" on 12 Sep.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

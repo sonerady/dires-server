@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Flower Power — butter-yellow flower-child poster: fat pink "Flower Power" runs up the left edge beside the photo,
+     big hand-cut daisies bloom in the corners, and a "3 for 2" spring offer sits in the band below.
+     tall / 3:4 / square → vertical headline left of the photo, offer band underneath · wide → headline strip, offer column, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFD84D; }
+  .banner { --band: 38vmin; --strip: 30vmin; --fs: 13.6vmin; position: fixed; inset: 0; overflow: hidden; color: #3B1F0E; font-family: "Nunito", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(120vmin 90vmin at 20% 100%, #FFC23A 0%, rgba(255,194,58,0) 70%), #FFD84D; }
+  .photo { position: absolute; left: calc(var(--strip) + 6vmin); right: 5vmin; top: 5vmin; width: calc(100% - var(--strip) - 11vmin); height: calc(100% - 5vmin - var(--band)); object-fit: cover; object-position: 50% 20%; display: block; z-index: 2; }
+  .vert { position: absolute; left: 4vmin; top: calc(100vh - var(--band)); width: calc(100vh - 5vmin - var(--band)); height: var(--strip); transform: rotate(-90deg); transform-origin: 0 0;
+    display: flex; flex-direction: column; justify-content: center; }
+  .vert h1 { margin: 0; font-family: "Shrikhand", "Cooper Black", Georgia, serif; font-weight: 400; font-size: var(--fs); line-height: .98; letter-spacing: .005em; color: #F0508C; white-space: nowrap;
+    text-shadow: .5vmin .5vmin 0 #FF8A1F, 1vmin 1vmin 0 #3B1F0E; }
+  .vert h1 span { display: block; color: #FF8A1F; text-shadow: .5vmin .5vmin 0 #F0508C, 1vmin 1vmin 0 #3B1F0E; }
+  .dz { position: absolute; display: block; overflow: visible; }
+  .dz.a { left: 5vmin; top: 5vmin; width: 26vmin; height: 26vmin; color: #FFFBEF; }
+  .dz.b { right: -9vmin; bottom: -9vmin; width: 36vmin; height: 36vmin; color: #FFFBEF; transform: rotate(14deg); }
+  .dz.c { right: 23vmin; bottom: 3vmin; width: 11vmin; height: 11vmin; color: #F7A1C4; transform: rotate(-10deg); }
+  .copy { position: absolute; left: 6vmin; right: 30vmin; bottom: 5vmin; height: calc(var(--band) - 9vmin); display: flex; flex-direction: column; justify-content: center; z-index: 3; }
+  .k { font-size: 1.9vmin; font-weight: 900; letter-spacing: .24em; text-transform: uppercase; color: #3E8E3A; white-space: nowrap; }
+  .off { margin-top: 1.2vmin; display: flex; align-items: center; gap: 3vmin; }
+  .off b { font-family: "Shrikhand", "Cooper Black", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: 1; color: #3B1F0E; white-space: nowrap; }
+  .off span { font-size: 2.3vmin; font-weight: 600; line-height: 1.35; }
+  .off span em { font-style: normal; font-weight: 900; color: #D93A78; }
+  .act { margin-top: 2vmin; display: flex; align-items: center; gap: 3vmin; }
+  .cta { background: #F0508C; color: #FFFBEF; border-radius: 99vmin; padding: 1.6vmin 3.4vmin; font-size: 2.2vmin; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; box-shadow: .5vmin .5vmin 0 #3B1F0E; }
+  .code { font-size: 1.9vmin; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .code b { font-weight: 900; color: #D93A78; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --band: 34vmin; --strip: 28vmin; --fs: 12.6vmin; }
+    .dz.a { width: 22vmin; height: 22vmin; left: 6vmin; }
+    .copy { height: calc(var(--band) - 8vmin); bottom: 4vmin; }
+    .off b { font-size: 9.6vmin; }
+    .off span { font-size: 2.1vmin; }
+    .dz.b { width: 32vmin; height: 32vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --band: 33vmin; --strip: 24vmin; --fs: 10.8vmin; }
+    .dz.a { width: 13vmin; height: 13vmin; left: 7vmin; top: 4vmin; }
+    .copy { right: 32vmin; }
+    .off b { font-size: 9vmin; }
+    .off span { font-size: 2vmin; }
+    .cta { font-size: 2vmin; padding: 1.4vmin 3vmin; }
+    .code { font-size: 1.7vmin; }
+    .dz.b { width: 30vmin; height: 30vmin; right: -7vmin; bottom: -8vmin; }
+    .dz.c { right: 22vmin; bottom: 2.4vmin; width: 9vmin; height: 9vmin; }
+  }
+  /* wide → headline strip | offer column | photo */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --band: 5vmin; --strip: 26vmin; --fs: 12.2vmin; }
+    .photo { left: auto; right: 5vmin; width: 62vmin; height: 90vmin; }
+    .dz.a { width: 20vmin; height: 20vmin; left: 7vmin; top: 5vmin; }
+    .copy { left: calc(var(--strip) + 9vmin); right: 72vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .off { flex-direction: column; align-items: flex-start; gap: 1.6vmin; margin-top: 2vmin; }
+    .off b { font-size: 12vmin; }
+    .off span { font-size: 2.3vmin; }
+    .act { flex-direction: column; align-items: flex-start; gap: 2vmin; margin-top: 3vmin; }
+    .dz.b { left: calc(var(--strip) + 24vmin); right: auto; bottom: -12vmin; width: 28vmin; height: 28vmin; }
+    .dz.c { left: calc(var(--strip) + 12vmin); right: auto; bottom: 4vmin; width: 8vmin; height: 8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="daisy" viewBox="-50 -50 100 100">
+        <g fill="currentColor" stroke="#3B1F0E" stroke-width="1.6">
+          <ellipse rx="10" ry="24" cy="-24"/><ellipse rx="10" ry="24" cy="-24" transform="rotate(40)"/><ellipse rx="10" ry="24" cy="-24" transform="rotate(80)"/>
+          <ellipse rx="10" ry="24" cy="-24" transform="rotate(120)"/><ellipse rx="10" ry="24" cy="-24" transform="rotate(160)"/><ellipse rx="10" ry="24" cy="-24" transform="rotate(200)"/>
+          <ellipse rx="10" ry="24" cy="-24" transform="rotate(240)"/><ellipse rx="10" ry="24" cy="-24" transform="rotate(280)"/><ellipse rx="10" ry="24" cy="-24" transform="rotate(320)"/>
+        </g>
+        <circle r="13" fill="#FF8A1F" stroke="#3B1F0E" stroke-width="1.6"/>
+        <circle r="7" fill="#F2B233"/>
+      </symbol>
+    </defs>
+  </svg>
+  <svg class="dz a" aria-hidden="true"><use href="#daisy"/></svg>
+  <svg class="dz b" aria-hidden="true"><use href="#daisy"/></svg>
+  <svg class="dz c" aria-hidden="true"><use href="#daisy"/></svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="vert"><h1>Flower <span>Power</span></h1></div>
+  <div class="copy">
+    <div class="k">Petal &amp; Pine · Spring drop</div>
+    <div class="off"><b>3 for 2</b><span>on every new-season print. <em>The third one’s on us.</em></span></div>
+    <div class="act"><span class="cta">Pick a bunch</span><span class="code">Code <b>BLOOM3</b></span></div>
+  </div>
+</div>
+</body>
+</html>

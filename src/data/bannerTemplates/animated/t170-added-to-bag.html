@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Added to Bag — the moment after the tap: a bottom sheet rises over the photo with a tick, the line item
+     (thumbnail, size, price), an unlocked free-delivery meter and checkout. tall → bottom sheet; square / wide → side sheet */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #121212; }
+  .banner { --sheet: 74vmin; position: fixed; inset: 0; overflow: hidden; background: #121212; color: #121212; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--sheet) + 4vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .toast { position: absolute; left: 5vmin; top: 5vmin; display: flex; align-items: center; gap: 1.2vmin; background: rgba(18,18,18,.82); color: #FAF8F4; border-radius: 99vmin; padding: 1.2vmin 2.2vmin 1.2vmin 1.4vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .toast i { width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #7FD08A; box-shadow: 0 0 0 .5vmin rgba(127,208,138,.3); }
+
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: var(--sheet); background: #FAF8F4; border-radius: 4.4vmin 4.4vmin 0 0; box-shadow: 0 -1.6vmin 4vmin rgba(0,0,0,.18); padding: 2.2vmin 6vmin 5.4vmin; box-sizing: border-box; display: flex; flex-direction: column; }
+  .grab { align-self: center; width: 10vmin; height: .8vmin; border-radius: 99vmin; background: #D6D1C8; flex: none; }
+
+  .hd { margin-top: 3.4vmin; display: flex; align-items: center; gap: 2vmin; }
+  .tick { flex: none; width: 6.4vmin; height: 6.4vmin; border-radius: 50%; background: #2F6B3B; display: flex; align-items: center; justify-content: center; }
+  .tick svg { width: 3.6vmin; height: 3.6vmin; }
+  h1 { margin: 0; flex: 1; font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 6.6vmin; line-height: 1; letter-spacing: -.015em; white-space: nowrap; }
+  .x { flex: none; width: 4.4vmin; height: 4.4vmin; }
+
+  .item { margin-top: 3.4vmin; display: flex; gap: 3vmin; padding: 2.6vmin 0; border-top: 1px solid #E4DFD6; border-bottom: 1px solid #E4DFD6; }
+  .th { flex: none; width: 17vmin; height: 21vmin; overflow: hidden; background: #E9E4DA; }
+  .th img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; display: block; }
+  .info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .info small { font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #7A746A; }
+  .info .nm { margin-top: .8vmin; font-family: "Gloock", Georgia, serif; font-size: 3.6vmin; line-height: 1.05; }
+  .info .opt { margin-top: 1.2vmin; font-size: 1.9vmin; color: #5A554D; white-space: nowrap; }
+  .info .opt b { color: #121212; font-weight: 600; }
+  .info .pr { margin-top: auto; display: flex; align-items: baseline; gap: 1.2vmin; font-size: 3vmin; font-weight: 700; white-space: nowrap; }
+  .info .pr s { font-size: 2vmin; font-weight: 500; color: #8C867C; }
+  .info .pr em { font-style: normal; font-size: 1.7vmin; font-weight: 700; letter-spacing: .06em; color: #2F6B3B; }
+
+  .meter { margin-top: 3vmin; }
+  .meter .lab { display: flex; align-items: center; gap: 1.2vmin; font-size: 2vmin; font-weight: 600; }
+  .meter .lab svg { width: 3vmin; height: 3vmin; flex: none; }
+  .meter .lab span { margin-left: auto; font-size: 1.7vmin; font-weight: 500; color: #7A746A; white-space: nowrap; }
+  .meter .bar { position: relative; margin-top: 1.4vmin; height: 1vmin; border-radius: 99vmin; background: #2F6B3B; }
+  .meter .bar::after { content: ""; position: absolute; right: -.4vmin; top: 50%; width: 2.2vmin; height: 2.2vmin; border-radius: 50%; background: #2F6B3B; border: .5vmin solid #FAF8F4; transform: translateY(-50%); }
+
+  .also { display: none; margin-top: 3.4vmin; }
+  .also small { display: block; margin-bottom: 1.4vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #7A746A; }
+  .also .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6vmin; }
+  .also .row div { font-size: 1.8vmin; font-weight: 600; }
+  .also .c { position: relative; height: 12vmin; overflow: hidden; margin-bottom: .8vmin; background: #E9E4DA; }
+  .also .c img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .also .c1 img { transform: scale(2); transform-origin: 50% 30%; }
+  .also .c2 img { transform: scale(2.4); transform-origin: 50% 60%; }
+  .also .c3 img { transform: scale(2.2); transform-origin: 50% 85%; }
+  .foot { margin-top: auto; }
+  .sub { display: flex; justify-content: space-between; align-items: baseline; font-size: 2vmin; font-weight: 500; color: #5A554D; margin-bottom: 2vmin; }
+  .sub b { font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 3.6vmin; color: #121212; }
+  .acts { display: flex; gap: 2vmin; }
+  .acts span { display: flex; align-items: center; justify-content: center; padding: 2.1vmin 0; font-size: 2.1vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .acts .o { flex: .75; border: .3vmin solid #121212; }
+  .acts .c { flex: 1.25; background: #121212; color: #FAF8F4; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --sheet: 68vmin; }
+    .sheet { padding: 2vmin 5.4vmin 4.6vmin; }
+    .hd { margin-top: 2.6vmin; }
+    h1 { font-size: 5.8vmin; }
+    .tick { width: 5.6vmin; height: 5.6vmin; }
+    .item { margin-top: 2.6vmin; padding: 2vmin 0; }
+    .th { width: 14vmin; height: 17.5vmin; }
+    .meter { margin-top: 2.4vmin; }
+    .sub { margin-bottom: 1.6vmin; }
+    .acts span { padding: 1.8vmin 0; }
+  }
+  /* square / wide — a side sheet slides in from the right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 50%; }
+    .photo { width: calc(var(--pw) + 4vmin); height: 100%; }
+    .sheet { left: var(--pw); right: 0; top: 0; bottom: 0; height: auto; border-radius: 4.4vmin 0 0 4.4vmin; padding: 5vmin 5vmin 5vmin 5.4vmin; box-shadow: -1.6vmin 0 4vmin rgba(0,0,0,.18); }
+    .grab { display: none; }
+    .hd { margin-top: 0; gap: 1.6vmin; }
+    .tick { width: 5vmin; height: 5vmin; }
+    .tick svg { width: 2.8vmin; height: 2.8vmin; }
+    h1 { font-size: 4.4vmin; white-space: normal; }
+    .x { width: 3.6vmin; height: 3.6vmin; }
+    .item { margin-top: 3vmin; padding: 2.2vmin 0; gap: 2.4vmin; }
+    .th { width: 12vmin; height: 15vmin; }
+    .info .nm { font-size: 2.9vmin; }
+    .info .opt { font-size: 1.7vmin; }
+    .info .pr { font-size: 2.6vmin; }
+    .meter .lab { font-size: 1.8vmin; }
+    .meter .lab span { display: none; }
+    .sub { font-size: 1.8vmin; }
+    .sub b { font-size: 3.2vmin; }
+    .acts { flex-direction: column; gap: 1.4vmin; }
+    .acts span { padding: 1.7vmin 0; font-size: 1.9vmin; }
+    .toast { left: 4vmin; top: 4vmin; }
+    .also { display: block; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 54%; }
+    .sheet { padding: 6vmin 6vmin 6vmin 6.4vmin; }
+    h1 { font-size: 5vmin; }
+    .th { width: 14vmin; height: 17.5vmin; }
+    .info .nm { font-size: 3.2vmin; }
+    .meter .lab span { display: inline; }
+    .acts { flex-direction: row; gap: 1.6vmin; }
+    .toast { left: 5vmin; top: 5vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+     constant: slow photo push-in · the "reserved" dot sends a live ring every 2s
+     beats: .4s the green tick pops and redraws · 1.4s the free-delivery meter drains and refills, then the van hops ·
+            3.4s the line-item thumbnail drops into place · 4.6s sheen over Checkout, arrow nudges */
+  .photo { transform-origin: 50% 20%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .toast i { position: relative; }
+  .toast i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .3vmin solid #7FD08A; opacity: 0; animation: ping 2s linear infinite; }
+  @keyframes ping {
+    0% { transform: scale(1); opacity: 0; }
+    5% { transform: scale(1.1); opacity: .9; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    60%, 100% { transform: scale(2.8); opacity: 0; }
+  }
+
+  .tick { animation: tickpop 6s linear infinite; }
+  @keyframes tickpop {
+    0%, 6% { transform: scale(1); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    7.5% { transform: scale(.6); animation-timing-function: cubic-bezier(.2,.9,.3,1.4); }
+    11.5% { transform: scale(1.12); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    14.5%, 100% { transform: scale(1); }
+  }
+  .tick svg path { stroke-dasharray: 19; stroke-dashoffset: 0; animation: tickdraw 6s linear infinite; }
+  @keyframes tickdraw {
+    0%, 7.4% { stroke-dashoffset: 0; animation-timing-function: steps(1, end); }
+    7.5% { stroke-dashoffset: 19; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    14%, 100% { stroke-dashoffset: 0; }
+  }
+
+  .meter .bar { clip-path: inset(-1.5vmin -1.5vmin -1.5vmin -1.5vmin); animation: fill 6s linear infinite; }
+  @keyframes fill {
+    0%, 22% { clip-path: inset(-1.5vmin -1.5vmin -1.5vmin -1.5vmin); animation-timing-function: cubic-bezier(.7,0,.9,.6); }
+    26% { clip-path: inset(-1.5vmin 101% -1.5vmin -1.5vmin); animation-timing-function: cubic-bezier(.3,0,.25,1); }
+    44%, 100% { clip-path: inset(-1.5vmin -1.5vmin -1.5vmin -1.5vmin); }
+  }
+  .meter .lab svg { animation: van 6s linear infinite; }
+  @keyframes van {
+    0%, 43% { transform: translate(0, 0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    46% { transform: translate(.6vmin, -.7vmin); animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    49% { transform: translate(.6vmin, 0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    51% { transform: translate(.6vmin, -.3vmin); animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    53% { transform: translate(.4vmin, 0); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    58%, 100% { transform: translate(0, 0); }
+  }
+
+  .item .th { animation: land 6s linear infinite; }
+  @keyframes land {
+    0%, 56% { transform: translateY(0) scale(1); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    58.5% { transform: translateY(-1.4vmin) scale(1.05); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    61% { transform: translateY(.3vmin) scale(.97); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    65%, 100% { transform: translateY(0) scale(1); }
+  }
+
+  .acts .c { position: relative; overflow: hidden; }
+  .acts .c::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 26%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,.3) 50%, rgba(255,255,255,.08) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 76% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    90%, 100% { transform: translateX(450%) skewX(-18deg); }
+  }
+  .acts .c .ar { display: inline-block; font-style: normal; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 79% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    82% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    85% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    88% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    91%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="toast"><i></i>Reserved for 30 min</div>
+
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="hd">
+      <div class="tick"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 3.8L18.2 8" fill="none" stroke="#FAF8F4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h1>Added to your bag</h1>
+      <svg class="x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="#121212" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </div>
+
+    <div class="item">
+      <div class="th"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="info">
+        <small>New season</small>
+        <div class="nm">The Weekend Edit</div>
+        <div class="opt">Size <b>M</b> · Colour <b>Ecru</b> · Qty <b>1</b></div>
+        <div class="pr">€129<s>€159</s><em>−20%</em></div>
+      </div>
+    </div>
+
+    <div class="meter">
+      <div class="lab"><svg viewBox="0 0 24 24" fill="none" stroke="#2F6B3B" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 6.5h11v9h-11zM13.5 9.5h4.2l3 3.2v2.8h-7.2z"/><circle cx="6.5" cy="17" r="1.8" fill="#FAF8F4"/><circle cx="17" cy="17" r="1.8" fill="#FAF8F4"/></svg>Free delivery unlocked<span>€60 / €60</span></div>
+      <div class="bar"></div>
+    </div>
+
+    <div class="also">
+      <small>Complete the look</small>
+      <div class="row">
+        <div><div class="c c1"><img src="{{PRODUCT_IMAGE}}" alt=""></div>€49</div>
+        <div><div class="c c2"><img src="{{PRODUCT_IMAGE}}" alt=""></div>€65</div>
+        <div><div class="c c3"><img src="{{PRODUCT_IMAGE}}" alt=""></div>€39</div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <div class="sub"><span>Subtotal · 1 item</span><b>€129.00</b></div>
+      <div class="acts"><span class="o">View bag</span><span class="c">Checkout&nbsp;<i class="ar">→</i></span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

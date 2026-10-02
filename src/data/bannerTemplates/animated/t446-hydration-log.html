@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Hydration Log — a wellness-app daily tracker made physical: a glass bottle gauge filled to 750 ml with a soft
+     wave, a row of eight glasses (six ticked), the offer logged as today's refill.
+     tall → photo above, tracker below · 3:4 and wider → tracker left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E3F0EF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #0F3B44; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(70vmin 50vmin at 12% 100%, rgba(143,206,214,.55), rgba(143,206,214,0) 70%), #E3F0EF; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 78vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 78vmin; box-sizing: border-box; padding: 5vmin 6vmin 5.4vmin; display: flex; gap: 6vmin; }
+
+  .gauge { flex: none; position: relative; width: 20vmin; display: flex; flex-direction: column; justify-content: flex-end; }
+  .bottle { display: block; width: 100%; height: auto; overflow: visible; }
+  .bottle text { font-family: "Figtree", Arial, sans-serif; font-size: 3.4px; font-weight: 600; fill: #0F3B44; }
+  .gcap { margin-top: 1.6vmin; text-align: center; font-size: 1.6vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #3F6970; white-space: nowrap; }
+
+  .col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .head { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .head span:last-child { color: #3F6970; font-weight: 500; }
+  h1 { margin: 2.6vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 11.6vmin; line-height: .9; letter-spacing: -.02em; }
+  h1 i { color: #2C8A9A; }
+
+  .track { margin-top: auto; padding-top: 2vmin; border-top: 1px solid rgba(15,59,68,.3); }
+  .tl { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.7vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+  .tl b { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 3.4vmin; letter-spacing: 0; text-transform: none; }
+  .glasses { display: flex; gap: 1.2vmin; margin-top: 1.6vmin; }
+  .g { position: relative; width: 4.6vmin; height: 6vmin; clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%); background: rgba(15,59,68,.18); }
+  .g::before { content: ""; position: absolute; inset: .3vmin .3vmin .3vmin; clip-path: polygon(0 0, 100% 0, 86% 100%, 14% 100%); background: #E3F0EF; }
+  .g.f::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; top: 30%; clip-path: polygon(3% 0, 97% 0, 86% 100%, 14% 100%); background: linear-gradient(180deg, #8FD0DA, #3E9CAE); }
+
+  .foot { margin-top: 3vmin; display: flex; align-items: center; justify-content: space-between; gap: 2.4vmin; }
+  .offer { font-size: 1.8vmin; line-height: 1.4; color: #2D5A62; }
+  .offer b { display: block; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 5vmin; line-height: 1; color: #0F3B44; }
+  .cta { flex: none; padding: 1.9vmin 3vmin; border-radius: 99vmin; background: #0F3B44; color: #E3F0EF; font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 70vmin); }
+    .panel { height: 70vmin; padding-top: 4.4vmin; padding-bottom: 4.8vmin; }
+    .gauge { width: 18vmin; }
+    h1 { font-size: 10.4vmin; margin-top: 2.2vmin; }
+  }
+  /* ── 3:4 and wider → tracker left, photo right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { left: auto; right: 0; width: 48%; height: 100%; object-position: 50% 22%; }
+    .panel { left: 0; right: 48%; top: 0; height: auto; padding: 6vmin 5vmin 5.4vmin 5.4vmin; flex-direction: column; gap: 0; }
+    .gauge { position: absolute; left: 5.4vmin; bottom: 5.4vmin; width: 13vmin; }
+    .col { width: 100%; }
+    .head span:last-child { display: none; }
+    h1 { font-size: 9.6vmin; }
+    .track, .foot { margin-left: 17vmin; }
+    .glasses { gap: .8vmin; }
+    .g { width: 2.9vmin; height: 4vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .offer b { font-size: 4.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .panel { right: 46%; padding: 5vmin 5vmin 5vmin 5vmin; }
+    .gauge { left: 5vmin; bottom: 5vmin; width: 12vmin; }
+    h1 { font-size: 8.4vmin; margin-top: 2vmin; }
+    .track, .foot { margin-left: 16vmin; }
+    .g { width: 3vmin; height: 4vmin; }
+    .foot { margin-top: 2.4vmin; }
+    .offer b { font-size: 4vmin; }
+    .cta { padding: 1.6vmin 2.6vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 70% 30%; }
+    .panel { right: 46%; padding: 6vmin 6vmin 6vmin 6.4vmin; flex-direction: row; gap: 5vmin; }
+    .gauge { position: relative; left: auto; bottom: auto; width: 17vmin; }
+    .head span:last-child { display: inline; }
+    h1 { font-size: 10.4vmin; margin-top: 2.6vmin; }
+    .track, .foot { margin-left: 0; }
+    .glasses { gap: 1vmin; }
+    .g { width: 3.8vmin; height: 5vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .offer b { font-size: 4.6vmin; }
+    .cta { padding: 1.9vmin 3vmin; font-size: 2vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) ─────────
+     constant: water in the bottle rolls sideways and bobs, its sheen line follows; photo breathes (≤1.03)
+     beats: 1.2 s the six logged glasses hop in a wave · 2.4 s the 7th glass fills, holds, drains by 5.2 s ·
+            3.3 s "fluid." drains out and refills bottom-up · 4.8 s the CTA gets a light sweep */
+  .bottle .wave { animation: roll 3s linear infinite; }
+  @keyframes roll { from { transform: translate(0, 0); } 25% { transform: translate(7px, -.8px); } 50% { transform: translate(14px, 0); } 75% { transform: translate(21px, .8px); } to { transform: translate(28px, 0); } }
+
+  .photo { transform-origin: 50% 35%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .g.f { animation: hop 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .g.f:nth-child(1) { animation-delay: -3.6s; } .g.f:nth-child(2) { animation-delay: -3.5s; } .g.f:nth-child(3) { animation-delay: -3.4s; }
+  .g.f:nth-child(4) { animation-delay: -3.3s; } .g.f:nth-child(5) { animation-delay: -3.2s; } .g.f:nth-child(6) { animation-delay: -3.1s; }
+  @keyframes hop { 0%, 80%, 92%, 100% { transform: translateY(0); } 85% { transform: translateY(-1vmin); } 89% { transform: translateY(.15vmin); } }
+  /* 7th glass: fill rises from the bottom, holds, then drains */
+  .g:nth-child(7)::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; top: 30%; clip-path: polygon(3% 0, 97% 0, 86% 100%, 14% 100%);
+    background: linear-gradient(180deg, #8FD0DA, #3E9CAE); transform-origin: 50% 100%; transform: scaleY(0);
+    animation: fill7 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes fill7 { 0%, 40% { transform: scaleY(0); } 52%, 78% { transform: scaleY(1); } 88%, 100% { transform: scaleY(0); } }
+
+  h1 i { display: inline-block; animation: refill 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes refill {
+    0%, 55% { clip-path: inset(-10% -6% -25% 0); }
+    63% { clip-path: inset(110% -6% -25% 0); }
+    64% { clip-path: inset(110% -6% -25% 0); }
+    76%, 100% { clip-path: inset(-10% -6% -25% 0); }
+  }
+  .tl b { display: inline-block; transform-origin: 100% 70%; animation: tick 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes tick { 0%, 50%, 62%, 100% { transform: scale(1); color: #0F3B44; } 54% { transform: scale(1.14); color: #2C8A9A; } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: -45%; width: 35%; transform: skewX(-20deg);
+    background: linear-gradient(90deg, transparent, rgba(167,220,227,.6), transparent); opacity: 0;
+    animation: sweep 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sweep { 0%, 79% { transform: translateX(0) skewX(-20deg); opacity: 0; } 80% { opacity: 1; } 93% { transform: translateX(460%) skewX(-20deg); opacity: 1; } 94%, 100% { transform: translateX(460%) skewX(-20deg); opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="gauge">
+      <svg class="bottle" viewBox="0 0 40 124" aria-hidden="true">
+        <defs>
+          <clipPath id="body"><rect x="4" y="20" width="32" height="102" rx="9"/></clipPath>
+          <linearGradient id="wat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A7DCE3"/><stop offset="1" stop-color="#3B98AA"/></linearGradient>
+          <linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".7"/><stop offset=".3" stop-color="#fff" stop-opacity=".15"/><stop offset="1" stop-color="#fff" stop-opacity=".35"/></linearGradient>
+        </defs>
+        <rect x="13" y="0" width="14" height="8" rx="2" fill="#0F3B44"/>
+        <path d="M14 8 H26 V14 Q36 16 36 26 H4 Q4 16 14 14 Z" fill="#CFE7E8" stroke="#0F3B44" stroke-width=".8"/>
+        <rect x="4" y="20" width="32" height="102" rx="9" fill="#EEF7F6"/>
+        <g clip-path="url(#body)">
+          <g class="wave"><path d="M-28 48 Q-21 45 -14 48 T0 48 T14 48 T28 48 T42 48 T56 48 T70 48 V124 H-28 Z" fill="url(#wat)"/>
+          <path d="M-28 50.5 Q-21 48 -14 50.5 T0 50.5 T14 50.5 T28 50.5 T42 50.5 T56 50.5 T70 50.5" fill="none" stroke="#fff" stroke-width=".7" opacity=".7"/></g>
+          <rect x="6.5" y="24" width="4" height="92" rx="2" fill="url(#gl)"/>
+        </g>
+        <rect x="4" y="20" width="32" height="102" rx="9" fill="none" stroke="#0F3B44" stroke-width=".9"/>
+        <g stroke="#0F3B44" stroke-width=".6">
+          <line x1="30" y1="30" x2="36" y2="30"/><line x1="30" y1="48" x2="36" y2="48"/><line x1="30" y1="66" x2="36" y2="66"/><line x1="30" y1="84" x2="36" y2="84"/><line x1="30" y1="102" x2="36" y2="102"/>
+          <line x1="33" y1="39" x2="36" y2="39"/><line x1="33" y1="57" x2="36" y2="57"/><line x1="33" y1="75" x2="36" y2="75"/><line x1="33" y1="93" x2="36" y2="93"/><line x1="33" y1="111" x2="36" y2="111"/>
+        </g>
+        <text x="28.6" y="31.2" text-anchor="end">1L</text>
+        <text x="28.6" y="49.2" text-anchor="end">750</text>
+        <text x="28.6" y="67.2" text-anchor="end">500</text>
+        <text x="28.6" y="85.2" text-anchor="end">250</text>
+      </svg>
+      <div class="gcap">750 ml</div>
+    </div>
+    <div class="col">
+      <div class="head"><span>Hydration log · Day 03</span><span>Move edit</span></div>
+      <h1>Stay<br><i>fluid.</i></h1>
+      <div class="track">
+        <div class="tl"><span>Today</span><b>6 / 8</b></div>
+        <div class="glasses"><i class="g f"></i><i class="g f"></i><i class="g f"></i><i class="g f"></i><i class="g f"></i><i class="g f"></i><i class="g"></i><i class="g"></i></div>
+      </div>
+      <div class="foot">
+        <div class="offer"><b>−25%</b>Refill on the move edit · code SIP25</div>
+        <div class="cta">Top up →</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

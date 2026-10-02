@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Line Sheet — the wholesale order sheet a brand sends to buyers, opened to everyone: a ruled header band,
+     the look in an image cell with its style tag, and a style / colour / RRP / showroom-price table
+     (the pictured line flagged, retail struck, the new price in signal orange).
+     tall → header, image cell, table beneath · square & wide → header across, image cell left, table right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FAFAF7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FAFAF7; color: #121212;
+    font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+  .mono { font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace; }
+
+  .head { position: absolute; left: 0; right: 0; top: 0; height: 12vmin; box-sizing: border-box; padding: 0 4.5vmin; border-bottom: 1px solid #121212;
+    display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 3vmin; }
+  .brand { font-size: 4.4vmin; font-weight: 700; font-variation-settings: "wdth" 75; letter-spacing: -.01em; text-transform: uppercase; line-height: 1; }
+  .meta { text-align: right; font-size: 1.65vmin; line-height: 1.45; letter-spacing: .02em; }
+  .meta b { font-weight: 700; }
+
+  .cell { position: absolute; left: 0; right: 0; top: 12vmin; height: calc(100% - 12vmin - 80vmin); border-bottom: 1px solid #121212; overflow: hidden; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .tag { position: absolute; left: 4.5vmin; top: 3vmin; padding: .9vmin 1.4vmin; background: #FAFAF7; font-size: 1.7vmin; font-weight: 500; letter-spacing: .04em; white-space: nowrap; }
+  .tag b { color: #FF4F14; font-weight: 700; }
+
+  .sheet { position: absolute; left: 4.5vmin; right: 4.5vmin; bottom: 4.4vmin; height: calc(80vmin - 8.8vmin); display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: #FF4F14; }
+  h1 { margin: 1.6vmin 0 0; font-size: 9.6vmin; font-weight: 600; font-variation-settings: "wdth" 80; line-height: .96; letter-spacing: -.025em; text-wrap: balance; }
+  .big { margin-top: auto; padding-top: 3vmin; display: flex; align-items: flex-end; gap: 2.4vmin; }
+  .big b { font-size: 17vmin; font-weight: 600; font-variation-settings: "wdth" 75; line-height: .78; letter-spacing: -.045em; color: #FF4F14; }
+  .big span { padding-bottom: .6vmin; font-size: 1.7vmin; line-height: 1.45; letter-spacing: .04em; text-transform: uppercase; }
+  .tbl { margin-top: 3.4vmin; display: grid; grid-template-columns: auto 1fr auto auto; column-gap: 0; font-size: 1.95vmin; }
+  .tbl > span:not(.r) { padding-right: 3.2vmin; }
+  .tbl > .r { padding-left: 3.2vmin; }
+  .tbl > span { padding-top: 1.35vmin; padding-bottom: 1.35vmin; border-bottom: 1px solid rgba(18,18,18,.22); white-space: nowrap; display: flex; align-items: center; gap: 1.2vmin; }
+  .tbl .th { padding-top: 0; padding-bottom: 1vmin; border-bottom: 1px solid #121212; font-size: 1.6vmin; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #666; }
+  .tbl .r { justify-content: flex-end; }
+  .tbl s { color: #777; text-decoration-thickness: 1px; }
+  .tbl .now { font-weight: 700; color: #FF4F14; }
+  .tbl .on { background: #FFE9DF; }
+  .tbl .on.l { box-shadow: -1.4vmin 0 0 #FFE9DF; }
+  .tbl .on.e { box-shadow: 1.4vmin 0 0 #FFE9DF; }
+  .sw { width: 1.8vmin; height: 1.8vmin; flex: none; border: 1px solid rgba(18,18,18,.35); }
+  .foot { margin-top: 2.4vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .code { display: flex; flex-direction: column; gap: .7vmin; }
+  .code b { font-size: 2.9vmin; font-weight: 700; letter-spacing: .02em; }
+  .code b em { font-style: normal; background: #121212; color: #FAFAF7; padding: .2vmin 1vmin; margin-left: .4vmin; }
+  .code span { font-size: 1.7vmin; color: #555; }
+  .pg { font-size: 1.7vmin; color: #555; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .cell { height: calc(100% - 12vmin - 76vmin); }
+    .sheet { height: calc(76vmin - 8vmin); bottom: 4vmin; }
+    h1 { font-size: 9vmin; }
+    .big b { font-size: 16vmin; }
+    .tbl { margin-top: 2.6vmin; }
+    .tbl > span { padding-top: 1.1vmin; padding-bottom: 1.1vmin; }
+  }
+  /* square & wide: image cell left, sheet right */
+  @media (min-aspect-ratio: 9/10) {
+    .head { height: 10vmin; padding: 0 4vmin; }
+    .brand { font-size: 3.6vmin; }
+    .meta { font-size: 1.55vmin; }
+    .cell { top: 10vmin; bottom: 0; height: auto; width: 46%; right: auto; border-bottom: 0; border-right: 1px solid #121212; }
+    .tag { left: 2.6vmin; top: 2.6vmin; font-size: 1.6vmin; }
+    .sheet { left: calc(46% + 4vmin); right: 4vmin; top: 14vmin; bottom: 4vmin; height: auto; }
+    .kick { font-size: 1.6vmin; }
+    h1 { font-size: 6.6vmin; margin-top: 1.4vmin; }
+    .big b { font-size: 13vmin; }
+    .big span { font-size: 1.5vmin; }
+    .tbl { margin-top: 2.4vmin; font-size: 1.7vmin; }
+    .tbl > span:not(.r) { padding-right: 2vmin; }
+    .tbl > .r { padding-left: 2vmin; }
+    .tbl .th { font-size: 1.5vmin; letter-spacing: .04em; }
+    .tbl > span { padding-top: 1vmin; padding-bottom: 1vmin; gap: .9vmin; }
+    .sw { width: 1.5vmin; height: 1.5vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.2vmin; margin-top: 2.2vmin; }
+    .code b { font-size: 2.4vmin; }
+    .code span, .pg { font-size: 1.55vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .head { height: 11vmin; padding: 0 5vmin; }
+    .brand { font-size: 4.2vmin; }
+    .meta { font-size: 1.7vmin; }
+    .cell { top: 11vmin; width: 44%; }
+    .tag { left: 3.4vmin; top: 3vmin; font-size: 1.7vmin; }
+    .sheet { left: calc(44% + 5.5vmin); right: 5vmin; top: 16vmin; bottom: 5vmin; }
+    .kick { font-size: 1.7vmin; }
+    h1 { font-size: 8.6vmin; margin-top: 1.8vmin; }
+    .big b { font-size: 17vmin; }
+    .big span { font-size: 1.7vmin; }
+    .tbl { margin-top: 3vmin; font-size: 2vmin; }
+    .tbl > span:not(.r) { padding-right: 3.6vmin; }
+    .tbl > .r { padding-left: 3.6vmin; }
+    .tbl .th { font-size: 1.6vmin; letter-spacing: .08em; }
+    .tbl > span { padding-top: 1.3vmin; padding-bottom: 1.3vmin; gap: 1.2vmin; }
+    .sw { width: 1.8vmin; height: 1.8vmin; }
+    .foot { flex-direction: row; align-items: flex-end; margin-top: 2.8vmin; }
+    .code b { font-size: 2.8vmin; }
+    .code span, .pg { font-size: 1.7vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div class="brand">Studio Oro</div>
+    <div class="meta mono"><b>LINE SHEET · SS27</b><br>Delivery 01 · Showroom</div>
+  </div>
+  <div class="cell">
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="tag mono"><b>■</b> STYLE 27-114 / ÉCRU 04</div>
+  </div>
+  <div class="sheet">
+    <div class="kick mono">One week only · 06–12 Oct</div>
+    <h1>Showroom prices, open to all.</h1>
+    <div class="big"><b>−30%</b><span class="mono">On every style<br>on the sheet</span></div>
+    <div class="tbl mono">
+      <span class="th">Style</span><span class="th">Colour</span><span class="th r">RRP</span><span class="th r">Now</span>
+      <span class="on l">27-114</span><span class="on"><i class="sw" style="background:#EFE6D2"></i>Écru 04</span><span class="on r"><s>€320</s></span><span class="on e r now">€224</span>
+      <span>27-208</span><span><i class="sw" style="background:#CDB08A"></i>Sand 11</span><span class="r"><s>€140</s></span><span class="r now">€98</span>
+      <span>27-301</span><span><i class="sw" style="background:#23242B"></i>Ink 90</span><span class="r"><s>€160</s></span><span class="r now">€112</span>
+    </div>
+    <div class="foot">
+      <div class="code"><b>Use code <em class="mono">LINE30</em></b><span class="mono">studio-oro.com</span></div>
+      <div class="pg mono">p. 03 / 12</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -60,6 +60,25 @@ CRITICAL FORMATTING RULES:
 Render the full grid as ONE composite 9:16 photo with NO text overlays anywhere, and with the model facing the camera (front or 3/4 front) in all 6 cells.`;
 }
 
+// 🛍️ 24 Eyl 2026: e-ticaret ürün videosu storyboard'u (Video Stüdyosu kartları + serbest video brief'i).
+// Eski moda istemi ("aynı model, aynı kıyafet") kupa/parfüm/çanta gibi ürünlere uymuyordu.
+// `direction` = kartın yönetmen kuralı (videoSkillPrompt craft) ya da brief cümleleri.
+const GRID_LAYOUT = { "9:16": "2 columns × 3 rows", "3:4": "2 columns × 3 rows", "1:1": "3 columns × 2 rows", "4:3": "3 columns × 2 rows", "16:9": "3 columns × 2 rows", "21:9": "3 columns × 2 rows" };
+function buildCommerceGridPrompt({ direction = "", notes = "", aspectRatio = "9:16", productCount = 1, duration = 10, presenterImageIndex = null, locationImageIndex = null } = {}) {
+  const ratio = GRID_LAYOUT[aspectRatio] ? aspectRatio : "9:16";
+  const productRefs = productCount > 1 ? `The ${productCount} input photos show the SAME product from different angles` : "The input photo shows the product";
+  const refs = locationImageIndex ? `The first ${productCount} input photo(s) show the product. Input photo ${locationImageIndex} is ONLY the selected location/background reference, not a product photo. Preserve that environment` : presenterImageIndex ? `The first ${productCount} input photo(s) show the product. Input photo ${presenterImageIndex} is ONLY the chosen presenter identity reference, not a product photo` : productRefs;
+  const safeNotes = String(notes || "").replace(/\s+/g, " ").trim().slice(0, 600);
+  return `Create a single ${ratio} storyboard image for a ${duration}-second e-commerce product video, arranged as a ${GRID_LAYOUT[ratio]} grid (6 cells), read left→right, top→bottom. ${refs}. Ignore the messy backgrounds of the product reference photos only.
+
+DIRECTION FOR THE VIDEO (follow it): ${direction || "Choose the single most effective product-video concept for this product and commit to it."}
+${safeNotes ? `SELLER NOTES (context only, never render as text): ${safeNotes}\n` : ""}
+The 6 cells are the 6 key shots of that video in order: cell 1 = the opening hook, cells 2–5 = the development (product in use / details / hero moments, as the direction requires), cell 6 = the closing hero shot. Each cell is a finished, photoreal frame of that shot, with varied framing (wide, medium, close-up, macro) where the direction allows.
+
+PRODUCT LOCK: the product in every cell is IDENTICAL to the product reference photos — same shape, color, material, logo, label, print, proportions and details. Never redesign it, never add text, prices, badges or fake claims.
+FORMAT: ONE composite image with the grid baked in, thin white gutters (~6px) between cells, NO text, NO numbers, NO captions or labels anywhere. Consistent lighting and art direction across cells, premium commercial photography quality.`;
+}
+
 // 🧩 fal.ai geçici CDN'inden Supabase "images" bucket'ına persist eder.
 // Hata durumunda fallback olarak orijinal fal URL'i döner.
 async function persistGridToSupabase(supabase, falUrl) {
@@ -96,49 +115,68 @@ async function persistGridToSupabase(supabase, falUrl) {
 
 // 🧩 Komple pipeline — GPT Image 2.5 (yedek nano-banana-2) çağrısı + Supabase persist + log.
 // Hata durumunda { success:false, error } döner (caller fallback yapabilir).
+const NB2_EDIT_MODEL = "fal-ai/nano-banana-2/edit";
+/** "nano-banana-2" | "gpt-image-2.5" → denenecek modeller (24 Eyl 2026: Ürün satış videosu NB2, diğerleri GPT 2.5).
+ *  26 Eyl 2026 (kullanıcı kararı): satış DIŞI kartlar yalnız GPT 2.5 medium'a gider — NB2'ye yedek düşmez
+ *  (GPT hata verirse önizleme hata döner, kullanıcı "Tekrar dene"yi kullanır). Satış videosu NB2, yedeği GPT 2.5. */
+function previewModelOrder(preferred) {
+  return preferred === "nano-banana-2" ? [NB2_EDIT_MODEL, GPT25_EDIT_MODEL] : [GPT25_EDIT_MODEL];
+}
+// Storyboard önizlemesi GPT 2.5'te sabit "medium" (app_config.gpt25_quality genel üretim içindir, burada kullanılmaz)
+const PREVIEW_GPT25_QUALITY = "medium";
+
 async function generateVideoGridPreview({
   supabase,
   sourceUrl,
+  sourceUrls = null, // 🛍️ ürün açıları (ilk = ana ürün)
   userPrompt = "",
+  prompt: promptOverride = null, // 🛍️ buildCommerceGridPrompt çıktısı; yoksa eski moda istemi
+  aspectRatio = "9:16",
+  preferredModel = "gpt-image-2.5",
   falApiKey = process.env.FAL_API_KEY,
   logTag = "VIDEO_GRID",
 }) {
-  if (!sourceUrl) {
+  const images = (Array.isArray(sourceUrls) && sourceUrls.length ? sourceUrls : [sourceUrl]).filter(Boolean).slice(0, 6);
+  if (!images.length) {
     return { success: false, error: "missing sourceUrl" };
   }
   if (!falApiKey) {
     return { success: false, error: "missing FAL_API_KEY" };
   }
 
-  const prompt = buildGridPrompt(userPrompt);
+  const prompt = promptOverride || buildGridPrompt(userPrompt);
+  const ratio = GRID_LAYOUT[aspectRatio] ? aspectRatio : "9:16";
 
-  // 🎨 Birincil: GPT Image 2.5 Sunburst (kalite app_config.gpt25_quality → medium, 9:16 → ~3,7 MP
-  // tablo boyutu). Hata verirse eski model nano-banana-2/edit yedek (11 Eyl 2026).
+  // 🎨 GPT Image 2.5 Sunburst (kalite: PREVIEW_GPT25_QUALITY = medium) ya da nano-banana-2/edit;
+  // yalnız satış videosunda NB2 → GPT 2.5 yedeği var (26 Eyl 2026).
   const requestBody = {
     prompt,
-    image_urls: [sourceUrl],
+    image_urls: images,
     output_format: "png",
-    aspect_ratio: "9:16",
+    aspect_ratio: ratio,
     num_images: 1,
     resolution: "2K",
     safety_tolerance: "6",
   };
   const headers = { Authorization: `Key ${falApiKey}`, "Content-Type": "application/json" };
   let nanoResponse;
-  let usedModel = GPT25_EDIT_MODEL;
-  try {
-    console.log(`🧩 [${logTag}] ${GPT25_EDIT_MODEL} çağrılıyor`);
-    nanoResponse = await axios.post(`https://fal.run/${GPT25_EDIT_MODEL}`, buildEditInput(GPT25_EDIT_MODEL, requestBody), { headers, timeout: 300000 });
-    if (!nanoResponse?.data?.images?.[0]?.url) throw new Error("GPT Image 2.5 returned no image");
-  } catch (gptErr) {
-    console.warn(`🛟 [${logTag}] GPT Image 2.5 başarısız (${gptErr?.response?.data?.detail || gptErr?.message}); nano-banana-2'ye geçiliyor`);
-    usedModel = "fal-ai/nano-banana-2/edit";
+  let usedModel = null;
+  let lastError = null;
+  for (const model of previewModelOrder(preferredModel)) {
     try {
-      nanoResponse = await axios.post(`https://fal.run/${usedModel}`, requestBody, { headers, timeout: 300000 });
+      console.log(`🧩 [${logTag}] ${model} çağrılıyor (${images.length} görsel, ${ratio})`);
+      const body = model === GPT25_EDIT_MODEL ? buildEditInput(GPT25_EDIT_MODEL, { ...requestBody, quality: PREVIEW_GPT25_QUALITY }) : requestBody;
+      nanoResponse = await axios.post(`https://fal.run/${model}`, body, { headers, timeout: 300000 });
+      if (!nanoResponse?.data?.images?.[0]?.url) throw new Error(`${model} returned no image`);
+      usedModel = model;
+      break;
     } catch (err) {
-      console.error(`❌ [${logTag}] nano-banana hata:`, err?.response?.data || err?.message);
-      return { success: false, error: err?.message || "nano-banana failed" };
+      lastError = err;
+      console.warn(`🛟 [${logTag}] ${model} başarısız (${err?.response?.data?.detail ? JSON.stringify(err.response.data.detail).slice(0, 200) : err?.message})`);
     }
+  }
+  if (!usedModel) {
+    return { success: false, error: lastError?.message || "preview generation failed" };
   }
   console.log(`🧩 [${logTag}] grid modeli: ${usedModel}`);
 
@@ -163,10 +201,13 @@ async function generateVideoGridPreview({
     gridUrl,
     falRequestId,
     promptUsed: prompt,
+    model: usedModel,
   };
 }
 
 module.exports = {
+  buildCommerceGridPrompt,
+  previewModelOrder,
   buildGridPrompt,
   persistGridToSupabase,
   generateVideoGridPreview,

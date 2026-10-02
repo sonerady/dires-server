@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Archivo:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* First Look — a new creative director's debut: the photo is Look 01 of the show's running order.
+     A black running-order strip (01 lit, the rest to come) runs along the seam.
+     tall → photo above, strip, then the headline; square/wide → photo left, vertical strip, text right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F8F7F3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F8F7F3; color: #111; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; top: 0; left: 0; width: 100%; height: 66%; object-fit: cover; object-position: 50% 18%; }
+  .strip { position: absolute; left: 0; right: 0; top: 66%; height: 6vmin; background: #111; overflow: hidden; }
+  .ro { display: flex; align-items: center; height: 100%; padding-left: 5vmin; gap: 3.4vmin; white-space: nowrap; font-size: 2vmin; font-weight: 600; letter-spacing: .12em; color: #6F6D68; }
+  .ro b { font-weight: 600; color: #111; background: #F8F7F3; padding: .7vmin 1.2vmin; }
+  .copy { position: absolute; left: 5vmin; right: 5vmin; top: calc(66% + 6vmin); bottom: 0; display: flex; flex-direction: column; justify-content: center; }
+  .k { display: flex; align-items: center; gap: 2vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; }
+  .k i { width: 1.6vmin; height: 1.6vmin; border-radius: 50%; background: #D8321F; }
+  .h { margin-top: 1.4vmin; font-family: "Instrument Serif", "Times New Roman", serif; font-size: min(13.5vmin, 7.6vh); line-height: .88; letter-spacing: -.02em; }
+  .h em { font-style: italic; }
+  .row { margin-top: 2.6vmin; padding-top: 2vmin; border-top: 1px solid rgba(17,17,17,.25); display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .by { font-size: 1.9vmin; letter-spacing: .08em; line-height: 1.5; color: #55534E; }
+  .by b { display: block; font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400; font-size: 4.6vmin; line-height: 1.05; letter-spacing: 0; color: #111; }
+  .cta { flex: none; text-align: right; font-size: 1.9vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; line-height: 1.7; }
+  .cta span { display: block; font-weight: 400; letter-spacing: .08em; text-transform: none; color: #55534E; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 62%; }
+    .strip { top: 62%; }
+    .copy { top: calc(62% + 6vmin); }
+    .h { font-size: 11vmin; }
+    .row { margin-top: 2vmin; padding-top: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .strip { left: 50%; right: auto; top: 0; bottom: 0; width: 7.5vmin; height: 100%; }
+    .ro { flex-direction: column; height: auto; padding: 5vmin 0 0; gap: 2.6vmin; font-size: 1.8vmin; letter-spacing: .06em; }
+    .ro b { padding: .8vmin .9vmin; }
+    .copy { left: calc(50% + 12vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; }
+    .k { font-size: 1.7vmin; letter-spacing: .22em; }
+    .h { font-size: 10vmin; margin-top: 2.4vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 3vmin; margin-top: 4vmin; }
+    .by b { font-size: 4.2vmin; }
+    .cta { text-align: left; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; }
+    .strip { left: 54%; width: 8vmin; }
+    .ro { font-size: 1.9vmin; }
+    .copy { left: calc(54% + 14vmin); right: 7vmin; }
+    .k { font-size: 1.9vmin; letter-spacing: .3em; }
+    .h { font-size: 12.4vmin; }
+    .by b { font-size: 4.8vmin; }
+    .cta { font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* the photo: slow push-in + a double flashbulb pop from the pit */
+  .photo { transform-origin: 50% 50%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite, bulbs 6s linear infinite; }
+  @keyframes push {
+    0%, 100% { transform: scale(1); clip-path: inset(0); }
+    50% { transform: scale(1.03); clip-path: inset(1.456%); }
+  }
+  @keyframes bulbs {
+    0%, 30% { filter: brightness(1); }
+    30.8% { filter: brightness(1.55) contrast(.92); }
+    33.5% { filter: brightness(1); }
+    36% { filter: brightness(1); }
+    36.8% { filter: brightness(1.4) contrast(.94); }
+    40%, 100% { filter: brightness(1); }
+  }
+  /* live dot: steady broadcast pulse */
+  .k i { position: relative; animation: live 1.5s linear infinite; }
+  @keyframes live { 0%, 55% { opacity: 1; } 65%, 88% { opacity: .35; } 98%, 100% { opacity: 1; } }
+  .k i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: .3vmin solid #D8321F; box-sizing: border-box; opacity: 0; animation: ring 1.5s linear infinite; }
+  @keyframes ring {
+    0% { transform: scale(1); opacity: 0; }
+    5% { transform: scale(1.05); opacity: .9; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    70%, 100% { transform: scale(2.6); opacity: 0; }
+  }
+  /* "Collection" is revealed again */
+  .h em { display: inline-block; animation: coll 6s linear infinite; }
+  @keyframes coll {
+    0%, 44% { clip-path: inset(-25% -10% -25% -10%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    51% { clip-path: inset(-25% -10% -25% 110%); animation-timing-function: steps(1, end); }
+    51.2% { clip-path: inset(-25% 110% -25% -10%); animation-timing-function: cubic-bezier(.22,.7,.2,1); }
+    68%, 100% { clip-path: inset(-25% -10% -25% -10%); }
+  }
+  /* the running order: a light runs down the looks still to come */
+  .ro span { animation: run 6s linear infinite; }
+  @keyframes run {
+    0%, 93% { color: #6F6D68; }
+    95% { color: #F8F7F3; }
+    99.5%, 100% { color: #6F6D68; }
+  }
+  .ro span:nth-of-type(1) { animation-delay: -1.800s; }
+  .ro span:nth-of-type(2) { animation-delay: -1.725s; }
+  .ro span:nth-of-type(3) { animation-delay: -1.650s; }
+  .ro span:nth-of-type(4) { animation-delay: -1.575s; }
+  .ro span:nth-of-type(5) { animation-delay: -1.500s; }
+  .ro span:nth-of-type(6) { animation-delay: -1.425s; }
+  .ro span:nth-of-type(7) { animation-delay: -1.350s; }
+  .ro span:nth-of-type(8) { animation-delay: -1.275s; }
+  .ro span:nth-of-type(9) { animation-delay: -1.200s; }
+  .ro span:nth-of-type(10) { animation-delay: -1.125s; }
+  .ro span:nth-of-type(11) { animation-delay: -1.050s; }
+  .ro span:nth-of-type(12) { animation-delay: -0.975s; }
+  .ro span:nth-of-type(13) { animation-delay: -0.900s; }
+  .ro span:nth-of-type(14) { animation-delay: -0.825s; }
+  .ro span:nth-of-type(15) { animation-delay: -0.750s; }
+  .ro span:nth-of-type(16) { animation-delay: -0.675s; }
+  .ro span:nth-of-type(17) { animation-delay: -0.600s; }
+  .ro span:nth-of-type(18) { animation-delay: -0.525s; }
+  .ro span:nth-of-type(19) { animation-delay: -0.450s; }
+  .ro span:nth-of-type(20) { animation-delay: -0.375s; }
+  .ro span:nth-of-type(21) { animation-delay: -0.300s; }
+  .ro span:nth-of-type(22) { animation-delay: -0.225s; }
+  .ro span:nth-of-type(23) { animation-delay: -0.150s; }
+  /* look 01 chip ticks when the light has run */
+  .ro b { display: inline-block; animation: chip 6s linear infinite; }
+  @keyframes chip {
+    0%, 90% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    93% { transform: scale(1.14); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    97%, 100% { transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="strip"><div class="ro"><b>01</b><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span><span>09</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span></div></div>
+  <div class="copy">
+    <div class="k"><i></i>Look 01 of 48</div>
+    <div class="h">The First<br><em>Collection</em></div>
+    <div class="row">
+      <div class="by"><b>by Iris Vale</b>Creative Director</div>
+      <div class="cta">Watch the debut<span>Live 04.10 · 20:00 CET</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

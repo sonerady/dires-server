@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Club Pennant — a felt souvenir pennant pinned to a plaster wall: stitched cream sleeve with tie cords and
+     tassels, appliqué script and block lettering that follows the taper, and a round felt patch for the offer.
+     tall/4:5 → photo above, wall below · square/wide → wall left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EDE4D2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EDE4D2; color: #1E2A4A; font-family: "Josefin Sans", "Futura", "Century Gothic", sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 82vmin); object-fit: cover; object-position: 50% 20%; }
+  .wall { position: absolute; left: 0; right: 0; bottom: 0; height: 82vmin; overflow: hidden;
+    background: radial-gradient(ellipse 80% 70% at 40% 35%, #F4ECDC, #E3D8C2 90%); }
+  .plaster { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .35; mix-blend-mode: multiply; }
+
+  .pen { position: absolute; left: 4vmin; top: 7vmin; width: 90vmin; height: 36vmin; transform: rotate(-4deg); transform-origin: 3vmin 50%; overflow: visible;
+    filter: drop-shadow(.6vmin 1.2vmin 1vmin rgba(60,44,20,.28)); }
+  .pin { position: absolute; left: 4.4vmin; top: 6.2vmin; width: 2.6vmin; height: 2.6vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F5A38F, #C0392B 60%, #7A1F15); box-shadow: .3vmin .5vmin .6vmin rgba(0,0,0,.3); }
+
+  .patch { position: absolute; right: 6vmin; top: 42vmin; width: 22vmin; height: 22vmin; transform: rotate(8deg); filter: drop-shadow(.4vmin .8vmin .8vmin rgba(60,44,20,.3)); }
+  .copy { position: absolute; left: 7vmin; right: 34vmin; top: 46vmin; }
+  .copy .k { font-weight: 600; font-size: 1.9vmin; letter-spacing: .26em; text-transform: uppercase; color: #8A6A2E; }
+  .copy h2 { margin: 1.4vmin 0 0; font-weight: 700; font-size: 4.6vmin; line-height: 1.05; letter-spacing: -.01em; }
+  .copy p { margin: 1.4vmin 0 0; font-size: 2.2vmin; line-height: 1.4; }
+  .copy p b { font-weight: 700; color: #B8401F; letter-spacing: .06em; }
+  .cta { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: center; padding: 1.8vmin 3vmin 1.5vmin; background: #1E2A4A; color: #F4ECDC; font-weight: 700; font-size: 2.4vmin; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .cta span:last-child { color: #E2B23A; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 76vmin); }
+    .wall { height: 76vmin; }
+    .pen { top: 6vmin; width: 84vmin; height: 33.6vmin; }
+    .pin { top: 5.2vmin; }
+    .patch { top: 38vmin; width: 20vmin; height: 20vmin; }
+    .copy { top: 42vmin; right: 32vmin; }
+    .copy h2 { font-size: 4.3vmin; }
+    .cta { bottom: 4.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 62vmin); }
+    .wall { height: 62vmin; }
+    .pen { left: 5vmin; top: 5vmin; width: 66vmin; height: 26.4vmin; }
+    .pin { left: 5.4vmin; top: 4vmin; }
+    .patch { right: 7vmin; top: 6vmin; width: 19vmin; height: 19vmin; }
+    .copy { left: 8vmin; right: 8vmin; top: 36vmin; }
+    .copy h2 { font-size: 4.4vmin; }
+    .copy p { font-size: 2vmin; }
+    .cta { left: 8vmin; right: 8vmin; bottom: 4.4vmin; padding: 1.5vmin 2.6vmin 1.2vmin; font-size: 2.1vmin; }
+  }
+  /* square / wide → wall left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 45%; height: 100%; object-position: 50% 25%; }
+    .wall { right: 45%; top: 0; height: auto; }
+    .pen { left: 2vmin; top: 8vmin; width: 50vmin; height: 20vmin; }
+    .pin { left: 2.4vmin; top: 7.2vmin; width: 2.2vmin; height: 2.2vmin; }
+    .patch { right: auto; left: 35vmin; top: 54vmin; width: 17vmin; height: 17vmin; }
+    .copy { left: 5vmin; right: 5vmin; top: 48vmin; display: block; }
+    .copy .k { font-size: 1.7vmin; letter-spacing: .2em; }
+    .copy h2 { margin-top: 1.4vmin; font-size: 5vmin; max-width: 29vmin; }
+    .copy p { margin-top: 2vmin; font-size: 1.9vmin; }
+    .cta { left: 5vmin; right: 5vmin; bottom: 5vmin; font-size: 1.9vmin; padding: 1.4vmin 2.2vmin 1.1vmin; letter-spacing: .14em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .wall { right: 46%; }
+    .pen { left: 4vmin; top: 9vmin; width: 70vmin; height: 28vmin; }
+    .pin { left: 4.4vmin; top: 8.2vmin; width: 2.6vmin; height: 2.6vmin; }
+    .patch { left: auto; right: 6vmin; top: 44vmin; width: 20vmin; height: 20vmin; }
+    .copy { left: 7vmin; right: 32vmin; top: 47vmin; }
+    .copy h2 { font-size: 4.6vmin; max-width: none; }
+    .copy p { font-size: 2.1vmin; }
+    .cta { left: 7vmin; right: 7vmin; bottom: 7vmin; font-size: 2.2vmin; padding: 1.7vmin 2.8vmin 1.4vmin; letter-spacing: .18em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="wall">
+    <svg class="plaster" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true"><filter id="pl"><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="4" seed="7"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#pl)"/></svg>
+    <svg class="pen" viewBox="0 0 300 120" aria-hidden="true">
+      <defs>
+        <filter id="felt" x="-3%" y="-6%" width="106%" height="112%"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6"/></filter>
+      </defs>
+      <!-- tie cords + tassels -->
+      <path d="M8 6 C 2 -2, -6 -4, -8 -10 M8 114 C 2 124, -4 128, -6 136" stroke="#E2B23A" stroke-width="1.6" fill="none"/>
+      <g fill="#E2B23A"><path d="M-10 -12 l4 0 l1 -9 l-6 0 z"/><path d="M-8 134 l4 0 l2 10 l-8 0 z"/></g>
+      <g filter="url(#felt)">
+        <path d="M22 0 L300 60 L22 120 Z" fill="#1E2A4A"/>
+        <rect x="0" y="0" width="24" height="120" fill="#F4ECDC"/>
+        <path d="M24 5 L276 60 L24 115" fill="none" stroke="#E2B23A" stroke-width="1.2" stroke-dasharray="3 2.4" opacity=".85"/>
+      </g>
+      <path d="M17 3 V117" stroke="#1E2A4A" stroke-width="1" stroke-dasharray="3 2.4" opacity=".6"/>
+      <g filter="url(#felt)">
+        <text x="40" y="37" font-family="Josefin Sans, Futura, sans-serif" font-weight="700" font-size="11" letter-spacing="3" fill="#E2B23A">NORD F.C.</text>
+        <text x="36" y="78" font-family="Shrikhand, Georgia, serif" font-size="38" fill="#F4ECDC" stroke="#B8401F" stroke-width="3" paint-order="stroke" textLength="150" lengthAdjust="spacingAndGlyphs">Autumn</text>
+        <text x="40" y="98" font-family="Josefin Sans, Futura, sans-serif" font-weight="700" font-size="11" letter-spacing="3.2" fill="#E2B23A">CUP · 1926</text>
+        <path d="M226 52 l3.1 6.3 7 1 -5 4.9 1.2 7 -6.3 -3.3 -6.3 3.3 1.2 -7 -5 -4.9 7 -1 z" fill="#E2B23A"/>
+      </g>
+    </svg>
+    <span class="pin"></span>
+    <svg class="patch" viewBox="0 0 100 100" aria-hidden="true">
+      <defs><path id="pc" d="M 20 52 A 30 30 0 0 1 80 52"/><path id="pc2" d="M 22 58 A 28 28 0 0 0 78 58"/></defs>
+      <g filter="url(#felt)"><circle cx="50" cy="50" r="48" fill="#E2B23A"/><circle cx="50" cy="50" r="40" fill="#1E2A4A"/></g>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#1E2A4A" stroke-width="1" stroke-dasharray="2.4 2"/>
+      <text font-family="Josefin Sans, sans-serif" font-weight="700" font-size="8.4" letter-spacing="2.6" fill="#E2B23A"><textPath href="#pc" startOffset="50%" text-anchor="middle">UP TO</textPath></text>
+      <text x="50" y="63" text-anchor="middle" font-family="Shrikhand, Georgia, serif" font-size="27" fill="#F4ECDC">30%</text>
+      <text font-family="Josefin Sans, sans-serif" font-weight="700" font-size="8.4" letter-spacing="2.6" fill="#E2B23A"><textPath href="#pc2" startOffset="50%" text-anchor="middle">OFF</textPath></text>
+    </svg>
+    <div class="copy">
+      <div class="k">Souvenir shop · 03 – 13.10</div>
+      <h2>The Autumn Cup sale</h2>
+      <p>Now on. Pin up the season.<br>Code <b>CUP30</b></p>
+    </div>
+    <div class="cta"><span>Shop the cup</span><span>→</span></div>
+  </div>
+</div>
+</body>
+</html>

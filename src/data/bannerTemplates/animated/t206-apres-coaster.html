@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Work+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Après Coaster — the offer printed on a round beer mat from an après-ski bar, left on a red gingham tablecloth:
+     circular rim lettering, a glass ring stain, a pencil tally for "your tab" and a happy-hour line.
+     tall → photo above, tablecloth below; square/wide → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EDE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3A2418; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; }
+  .cloth { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin;
+    background: linear-gradient(90deg, rgba(196,44,38,.55) 50%, transparent 50%) 0 0 / 7vmin 7vmin,
+                linear-gradient(180deg, rgba(196,44,38,.55) 50%, transparent 50%) 0 0 / 7vmin 7vmin,
+                #F6F0E6;
+    box-shadow: inset 0 1.6vmin 2.4vmin -1.2vmin rgba(58,36,24,.35); }
+  .cloth::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 .2vmin, transparent .2vmin .6vmin); }
+  .mat { position: absolute; left: 50%; top: 5vmin; width: 62vmin; height: 62vmin; margin-left: -31vmin; z-index: 1; transform: rotate(-6deg); filter: drop-shadow(0 .6vmin .5vmin rgba(58,36,24,.3)) drop-shadow(0 2vmin 3vmin rgba(58,36,24,.25)); }
+  .mat svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .mat text { font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif; }
+  .mat .disp { font-family: "Shrikhand", "Cooper Black", Georgia, serif; }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; z-index: 1; display: flex; align-items: stretch; background: #3A2418; color: #F7EFDD; box-shadow: 0 1vmin 2vmin rgba(58,36,24,.3); }
+  .foot span { display: flex; align-items: center; padding: 1.7vmin 2.4vmin; font-size: 2.1vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .foot span:first-child { flex: 1; min-width: 0; }
+  .foot b { color: #F2B35A; font-weight: 800; margin: 0 .6em; }
+  .foot span:last-child { background: #C42C26; gap: 1.6vmin; }
+  .foot em { font-style: normal; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 78vmin); }
+    .cloth { height: 78vmin; }
+    .mat { top: 4vmin; width: 58vmin; height: 58vmin; margin-left: -29vmin; }
+    .foot { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .cloth { height: 66vmin; }
+    .mat { top: 3.4vmin; width: 49vmin; height: 49vmin; margin-left: -24.5vmin; }
+    .foot { bottom: 3.4vmin; }
+    .foot span { padding: 1.3vmin 2.2vmin; font-size: 1.9vmin; }
+  }
+  /* square / wide → photo left, tablecloth right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .cloth { left: 50%; top: 0; height: auto; box-shadow: inset 1.6vmin 0 2.4vmin -1.2vmin rgba(58,36,24,.35); }
+    .mat { top: 11vmin; left: 50%; width: 48vmin; height: 48vmin; margin-left: -24vmin; }
+    .foot { left: 4vmin; right: 4vmin; bottom: 5vmin; flex-direction: column; }
+    .foot span { justify-content: center; padding: 1.3vmin 1.8vmin; font-size: 1.8vmin; }
+    .foot span:last-child { justify-content: space-between; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .cloth { left: 48%; }
+    .mat { top: 5vmin; width: 64vmin; height: 64vmin; margin-left: -32vmin; }
+    .foot { left: 6vmin; right: 6vmin; bottom: 6vmin; flex-direction: row; }
+    .foot span { padding: 1.7vmin 2.4vmin; font-size: 2vmin; }
+    .foot span:first-child { justify-content: flex-start; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     1.0s the beer mat is flicked — it lifts a touch and spins a full turn on the cloth, settling back at its angle ·
+     2.9s the pencil tally is re-scored stroke by stroke (| | | | then the slash) · 4.1s a cold glass leaves the ring stain darker, then it dries ·
+     5.0s "16–18h" warms and the CTA arrow nudges · constant: photo breathes (≤1.03) */
+  .photo { transform-origin: 50% 20%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .mat { animation: flick 6s linear infinite; }
+  @keyframes flick {
+    0%, 16% { transform: rotate(-6deg) scale(1); animation-timing-function: cubic-bezier(.5,0,.8,.5); }
+    18% { transform: rotate(-14deg) scale(1.03); animation-timing-function: cubic-bezier(.15,.6,.2,1); }
+    33% { transform: rotate(357deg) scale(1.01); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    36.5% { transform: rotate(353deg) scale(1); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    39% { transform: rotate(354deg) scale(1); animation-timing-function: steps(1, end); }
+    100% { transform: rotate(-6deg) scale(1); }
+  }
+
+  .tl { stroke-dasharray: 1 1; stroke-dashoffset: 0; animation: tally 6s linear infinite; }
+  .t2 { animation-delay: -5.85s; } .t3 { animation-delay: -5.7s; } .t4 { animation-delay: -5.55s; } .t5 { animation-delay: -5.3s; }
+  @keyframes tally {
+    0%, 44% { stroke-dashoffset: 0; opacity: 1; animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    46% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    48.5% { stroke-dashoffset: 1; opacity: 1; animation-timing-function: cubic-bezier(.5,.1,.3,1); }
+    51.5%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+
+  .stain { animation: stain 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes stain {
+    0%, 67% { stroke-opacity: .16; stroke-width: 3.5; }
+    70% { stroke-opacity: .34; stroke-width: 4.2; }
+    92%, 100% { stroke-opacity: .16; stroke-width: 3.5; }
+  }
+
+  .foot b { animation: warm 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes warm {
+    0%, 80% { color: #F2B35A; text-shadow: 0 0 0 rgba(242,179,90,0); }
+    86% { color: #FFD27F; text-shadow: 0 0 1.6vmin rgba(242,179,90,.8); }
+    96%, 100% { color: #F2B35A; text-shadow: 0 0 0 rgba(242,179,90,0); }
+  }
+  .foot em { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 83% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    86% { transform: translateX(1.1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    89% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    92% { transform: translateX(1.1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    95%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cloth">
+    <div class="mat">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <path id="rim" d="M100 100 m-80 0 a80 80 0 1 1 160 0 a80 80 0 1 1 -160 0"/>
+          <radialGradient id="card" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#FBF5E8"/><stop offset="1" stop-color="#EFE4CD"/></radialGradient>
+        </defs>
+        <circle cx="100" cy="100" r="98" fill="url(#card)"/>
+        <circle cx="100" cy="100" r="93" fill="none" stroke="#C42C26" stroke-width="3"/>
+        <circle cx="100" cy="100" r="69" fill="none" stroke="#C42C26" stroke-width="1"/>
+        <!-- glass ring stain -->
+        <circle class="stain" cx="122" cy="84" r="40" fill="none" stroke="#9A6A3A" stroke-opacity=".16"
+ stroke-width="3.5" stroke-dasharray="120 6 60 10 40 4"/>
+        <text font-size="10.4" font-weight="800" fill="#C42C26"><textPath href="#rim" textLength="496" lengthAdjust="spacing">APRÈS-SKI CLUB ✱ FROM 16:00 ✱ TILL LATE ✱ HÜTTE NORD ✱ SINCE 1968 ✱</textPath></text>
+        <text x="100" y="62" text-anchor="middle" font-size="8" font-weight="700" letter-spacing="2.4" fill="#3A2418">WARM-UP OFFER</text>
+        <text class="disp" x="100" y="112" text-anchor="middle" font-size="53" fill="#3A2418" letter-spacing="-1">25%</text>
+        <text class="disp" x="100" y="131" text-anchor="middle" font-size="12.4" fill="#C42C26">off everything cosy</text>
+        <g transform="rotate(-4 100 150)">
+          <rect x="58" y="140" width="84" height="15" fill="#C42C26"/>
+          <path d="M58 140 l-6 7.5 l6 7.5z M142 140 l6 7.5 l-6 7.5z" fill="#9E211C"/>
+          <text x="100" y="151" text-anchor="middle" font-size="8.4" font-weight="800" letter-spacing="2" fill="#FBF5E8">CODE APRES25</text>
+        </g>
+        <!-- pencil tally: your tab -->
+        <g stroke="#5B5B63" stroke-width="1.3" stroke-linecap="round" opacity=".8">
+          <path class="tl t1" pathLength="1" d="M90 38 l1 11"/><path class="tl t2" pathLength="1" d="M94.5 37.6 l1 11"/><path class="tl t3" pathLength="1" d="M99 37.2 l1 11"/><path class="tl t4" pathLength="1" d="M103.5 36.8 l1 11"/><path class="tl t5" pathLength="1" d="M87 46 l20 -7"/>
+        </g>
+      </svg>
+    </div>
+    <div class="foot"><span>Happy hour <b>16–18h</b> extra 10%</span><span>Shop now <em>→</em></span></div>
+  </div>
+</div>
+</body>
+</html>

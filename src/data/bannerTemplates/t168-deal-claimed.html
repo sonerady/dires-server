@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Deal Claimed — a timed "lightning deal": countdown tiles, an expanded-grotesk headline, the deal price in hot pink
+     and a segmented claimed-meter. tall → timer band / photo band / deal band; square / wide → photo left, deal column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2A0F2D; }
+  .banner { --top: 29vmin; --bot: 52vmin; position: fixed; inset: 0; overflow: hidden; background: #2A0F2D; color: #FFF1F6; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: var(--top); width: 100%; height: calc(100% - var(--top) - var(--bot)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .head { position: absolute; left: 5.5vmin; right: 5.5vmin; top: 5.5vmin; }
+  .row1 { display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .kick { display: flex; align-items: center; gap: 1.2vmin; font-family: "Space Mono", Menlo, monospace; font-size: 1.8vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #F7B9D2; white-space: nowrap; }
+  .kick svg { width: 3.4vmin; height: 3.4vmin; }
+  .timer { display: flex; align-items: flex-start; gap: .8vmin; }
+  .timer .t { text-align: center; }
+  .timer .t b { display: block; min-width: 7.4vmin; background: #FFF1F6; color: #2A0F2D; padding: .9vmin .6vmin; font-family: "Space Mono", Menlo, monospace; font-weight: 700; font-size: 4.2vmin; line-height: 1; letter-spacing: -.02em; box-sizing: border-box; position: relative; }
+  .timer .t b::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(42,15,45,.22); }
+  .timer .t small { display: block; margin-top: .7vmin; font-family: "Space Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #F7B9D2; }
+  .timer .c { font-family: "Space Mono", Menlo, monospace; font-weight: 700; font-size: 3.6vmin; line-height: 6vmin; color: #FF3E8A; }
+  h1 { margin: 2.6vmin 0 0; font-weight: 900; font-stretch: 125%; font-variation-settings: "wdth" 125; font-size: 8vmin; line-height: .9; letter-spacing: -.03em; text-transform: uppercase; white-space: nowrap; }
+  h1 span { color: #FF3E8A; }
+
+  .deal { position: absolute; left: 5.5vmin; right: 5.5vmin; bottom: 5.5vmin; height: calc(var(--bot) - 10vmin); display: flex; flex-direction: column; justify-content: space-between; }
+  .price { display: flex; align-items: flex-end; gap: 3vmin; }
+  .price b { font-weight: 900; font-variation-settings: "wdth" 110; font-size: 17vmin; line-height: .78; letter-spacing: -.05em; color: #FF3E8A; }
+  .price .was { padding-bottom: .6vmin; font-family: "Space Mono", Menlo, monospace; font-size: 1.9vmin; line-height: 1.5; color: #F7B9D2; }
+  .price .was s { display: block; font-size: 2.8vmin; color: #FFF1F6; }
+  .price .was em { display: inline-block; margin-top: .6vmin; font-style: normal; background: #FF3E8A; color: #2A0F2D; font-weight: 700; padding: .2vmin 1vmin; }
+
+  .meter .lab { display: flex; justify-content: space-between; font-family: "Space Mono", Menlo, monospace; font-size: 1.9vmin; letter-spacing: .04em; margin-bottom: 1.3vmin; }
+  .meter .lab b { color: #FF3E8A; }
+  .bar { display: grid; grid-template-columns: repeat(20, 1fr); gap: .5vmin; height: 2.6vmin; }
+  .bar i { background: rgba(255,241,246,.16); }
+  .bar i.on { background: #FF3E8A; }
+  .note { margin-top: 1.4vmin; font-size: 1.8vmin; color: #F7B9D2; }
+
+  .cta { display: flex; align-items: center; justify-content: space-between; background: #FFF1F6; color: #2A0F2D; border-radius: 99vmin; padding: 2.1vmin 3.2vmin; font-weight: 800; font-variation-settings: "wdth" 112; font-size: 2.2vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --top: 26vmin; --bot: 46vmin; }
+    .head { top: 4.6vmin; }
+    h1 { font-size: 7vmin; margin-top: 2.2vmin; }
+    .timer .t b { font-size: 3.8vmin; min-width: 6.8vmin; }
+    .deal { bottom: 4.6vmin; height: calc(var(--bot) - 8.4vmin); }
+    .price b { font-size: 14vmin; }
+    .note { display: none; }
+  }
+  /* square / wide — photo left, deal column right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 48%; }
+    .photo { top: 0; width: var(--pw); height: 100%; }
+    .head { left: calc(var(--pw) + 5vmin); right: 5vmin; top: 5vmin; }
+    .row1 { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .timer .t b { font-size: 3.6vmin; min-width: 6.6vmin; }
+    h1 { font-size: 6.6vmin; white-space: normal; font-variation-settings: "wdth" 100; font-stretch: 100%; line-height: .92; }
+    .deal { left: calc(var(--pw) + 5vmin); right: 5vmin; bottom: 5vmin; height: 50vmin; }
+    .price b { font-size: 12vmin; }
+    .price .was s { font-size: 2.4vmin; }
+    .note { display: none; }
+    .cta { padding: 1.8vmin 2.6vmin; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 44%; }
+    .head { left: calc(var(--pw) + 6.5vmin); right: 6.5vmin; top: 6vmin; }
+    .row1 { flex-direction: row; align-items: center; }
+    h1 { font-size: 6.6vmin; white-space: nowrap; font-variation-settings: "wdth" 125; font-stretch: 125%; line-height: .9; margin-top: 3vmin; }
+    .deal { left: calc(var(--pw) + 6.5vmin); right: 6.5vmin; bottom: 6vmin; height: 50vmin; }
+    .price b { font-size: 15vmin; }
+    .note { display: block; }
+    .cta { padding: 2vmin 3vmin; font-size: 2.1vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="head">
+    <div class="row1">
+      <div class="kick"><svg viewBox="0 0 24 24"><path d="M13.5 2 4.5 13.6h6.2L9.8 22l9.7-12.2h-6.4z" fill="#FF3E8A"/></svg>Today only · Deal 07</div>
+      <div class="timer">
+        <div class="t"><b>02</b><small>hrs</small></div><span class="c">:</span>
+        <div class="t"><b>14</b><small>min</small></div><span class="c">:</span>
+        <div class="t"><b>37</b><small>sec</small></div>
+      </div>
+    </div>
+    <h1>Lightning <span>deal</span></h1>
+  </div>
+
+  <div class="deal">
+    <div class="price"><b>€79</b><div class="was">Was<s>€129</s><em>−39%</em></div></div>
+    <div class="meter">
+      <div class="lab"><b>78% claimed</b><span>Only 42 left</span></div>
+      <div class="bar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+      <div class="note">Limit two per customer · Free returns</div>
+    </div>
+    <div class="cta"><span>Grab the deal</span><span>→</span></div>
+  </div>
+</div>
+</body>
+</html>

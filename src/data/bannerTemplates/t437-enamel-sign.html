@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;600;700&family=Libre+Baskerville:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Enamel Sign — a cobalt porcelain-enamel department sign screwed to a white glazed-tile factory wall:
+     inset white keyline, four brass screws, chips knocked out of the enamel down to black iron with a rust halo,
+     and a small red arrow plate beneath it for the CTA.
+     tall / 3:4 → photo above the tiled wall; square / wide → photo left, signs on the wall to the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECEBE4; }
+  .banner { --P: 86vmin; --s: 1vmin; position: fixed; inset: 0; overflow: hidden; color: #1C2B63; font-family: "Antonio", "Arial Narrow", Arial, sans-serif; background: #ECEBE4; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--P)); object-fit: cover; object-position: 50% 22%; display: block; }
+  /* glazed tile wall, stack bond */
+  .wall { position: absolute; left: 0; right: 0; bottom: 0; height: var(--P); box-sizing: border-box; padding: 6vmin 6vmin 5vmin; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.10) 0%, rgba(0,0,0,0) 3vmin),
+      linear-gradient(0deg, #C9C7BD 0 .45vmin, rgba(0,0,0,0) .45vmin) 0 0 / 100% 7vmin,
+      linear-gradient(90deg, #C9C7BD 0 .45vmin, rgba(0,0,0,0) .45vmin) 0 0 / 14vmin 100%,
+      radial-gradient(90% 60% at 30% 20%, #F7F6F1 0%, #ECEBE4 60%, #E2E0D7 100%); }
+
+  /* the enamel sign */
+  .sign { position: relative; width: calc(var(--s) * 88); box-sizing: border-box; padding: calc(var(--s) * 5.2) calc(var(--s) * 6) calc(var(--s) * 4.6); border-radius: calc(var(--s) * 2.6);
+    background: radial-gradient(120% 90% at 30% 20%, #2B45A8 0%, #213A92 55%, #1A2F7A 100%); color: #FAF8F1; text-align: center;
+    box-shadow: 0 calc(var(--s) * 1.4) calc(var(--s) * 2.4) rgba(30,30,20,.35), inset 0 calc(var(--s) * .3) 0 rgba(255,255,255,.18), inset 0 calc(var(--s) * -.4) 0 rgba(0,0,0,.25); }
+  .sign::before { content: ""; position: absolute; inset: calc(var(--s) * 1.8); border: calc(var(--s) * .55) solid #FAF8F1; border-radius: calc(var(--s) * 1.4); pointer-events: none; }
+  /* gloss */
+  .sign::after { content: ""; position: absolute; left: 6%; right: 40%; top: 4%; height: 22%; border-radius: 50%; background: radial-gradient(ellipse, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 70%); pointer-events: none; }
+  .scr { position: absolute; width: calc(var(--s) * 2.6); height: calc(var(--s) * 2.6); border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFF0B8 0%, #C99A3A 55%, #6D4A12 100%); box-shadow: 0 calc(var(--s) * .2) calc(var(--s) * .3) rgba(0,0,0,.5); z-index: 2; }
+  .scr::after { content: ""; position: absolute; left: 15%; right: 15%; top: 50%; height: calc(var(--s) * .3); margin-top: calc(var(--s) * -.15); background: #5A3C0C; transform: rotate(var(--r, 30deg)); }
+  .s1 { left: calc(var(--s) * 3.4); top: calc(var(--s) * 3.4); --r: 20deg; } .s2 { right: calc(var(--s) * 3.4); top: calc(var(--s) * 3.4); --r: 75deg; }
+  .s3 { left: calc(var(--s) * 3.4); bottom: calc(var(--s) * 3.4); --r: -40deg; } .s4 { right: calc(var(--s) * 3.4); bottom: calc(var(--s) * 3.4); --r: 110deg; }
+  /* enamel chips */
+  .chip { position: absolute; background: #1B1B1D; box-shadow: 0 0 0 calc(var(--s) * .35) rgba(150,78,30,.55), 0 0 0 calc(var(--s) * .7) rgba(230,232,236,.55); z-index: 1; }
+  .c1 { left: calc(var(--s) * -.2); top: 38%; width: calc(var(--s) * 1.8); height: calc(var(--s) * 3.4); border-radius: 0 60% 40% 0 / 0 50% 50% 0; }
+  .c2 { right: 12%; bottom: calc(var(--s) * -.2); width: calc(var(--s) * 4.2); height: calc(var(--s) * 1.6); border-radius: 50% 60% 0 0 / 80% 70% 0 0; }
+  .c3 { right: calc(var(--s) * 7.5); top: calc(var(--s) * 2.6); width: calc(var(--s) * 1.3); height: calc(var(--s) * 1.1); border-radius: 50% 40% 60% 45%; }
+
+  .band { position: relative; display: flex; align-items: center; justify-content: center; gap: calc(var(--s) * 2); font-weight: 600; font-size: max(1.7vmin, calc(var(--s) * 3)); letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  .band::before, .band::after { content: ""; flex: 1; max-width: calc(var(--s) * 10); height: calc(var(--s) * .4); background: #FAF8F1; }
+  .sign h1 { position: relative; margin: calc(var(--s) * 2.4) 0 0; font-weight: 700; font-size: calc(var(--s) * 16); line-height: .9; letter-spacing: .005em; text-transform: uppercase; }
+  .sign .it { position: relative; margin-top: calc(var(--s) * 2.6); padding-top: calc(var(--s) * 2.4); border-top: calc(var(--s) * .4) solid rgba(250,248,241,.85); font-family: "Libre Baskerville", Georgia, serif; font-style: italic; font-size: calc(var(--s) * 3.3); line-height: 1.3; }
+  .sign .it b { font-style: normal; font-family: "Antonio", "Arial Narrow", sans-serif; font-weight: 700; font-size: calc(var(--s) * 4.6); letter-spacing: .02em; color: #FFD66B; }
+  .sign .mk { position: relative; margin-top: calc(var(--s) * 2.2); font-weight: 400; font-size: max(1.6vmin, calc(var(--s) * 1.9)); letter-spacing: .3em; text-transform: uppercase; opacity: .9; }
+
+  .under { width: calc(var(--s) * 88); display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .code { font-family: "Libre Baskerville", Georgia, serif; font-size: 2.1vmin; color: #2A2C33; line-height: 1.5; }
+  .code b { font-family: "Antonio", "Arial Narrow", sans-serif; font-weight: 700; letter-spacing: .12em; font-size: 2.6vmin; color: #1C2B63; }
+  /* red arrow plate */
+  .arrow { position: relative; flex: none; display: flex; align-items: center; height: 9vmin; padding: 0 7.4vmin 0 3.4vmin; background: radial-gradient(120% 120% at 30% 20%, #D8413A 0%, #B92D28 100%); color: #FAF8F1;
+    clip-path: polygon(0 0, calc(100% - 4.5vmin) 0, 100% 50%, calc(100% - 4.5vmin) 100%, 0 100%); font-weight: 700; font-size: 3.4vmin; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .arrow::before { content: ""; position: absolute; left: 1vmin; top: 1vmin; bottom: 1vmin; right: 1vmin; border: .4vmin solid #FAF8F1; border-right: 0; clip-path: inherit; }
+  .arrow::after { content: ""; position: absolute; left: 1.2vmin; top: 50%; width: 1.4vmin; height: 1.4vmin; margin-top: -.7vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #FFF0B8, #9C7424 70%); }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --P: 70vmin; --s: .84vmin; }
+    .wall { padding: 4.4vmin 6vmin 4vmin; }
+    .under { width: calc(var(--s) * 88); }
+    .arrow { height: 7.6vmin; font-size: 2.9vmin; padding: 0 6.4vmin 0 3vmin; }
+    .code { font-size: 1.9vmin; }
+  }
+  /* square → photo left */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --s: .5vmin; }
+    .photo { width: 46%; height: 100%; object-position: 50% 24%; }
+    .wall { left: 46%; top: 0; height: auto; padding: 8vmin 4.4vmin 6vmin; justify-content: center; gap: 7vmin;
+      background:
+        linear-gradient(90deg, rgba(0,0,0,.12) 0%, rgba(0,0,0,0) 3vmin),
+        linear-gradient(0deg, #C9C7BD 0 .45vmin, rgba(0,0,0,0) .45vmin) 0 0 / 100% 7vmin,
+        linear-gradient(90deg, #C9C7BD 0 .45vmin, rgba(0,0,0,0) .45vmin) 0 0 / 14vmin 100%,
+        radial-gradient(90% 60% at 30% 20%, #F7F6F1 0%, #ECEBE4 60%, #E2E0D7 100%); }
+    .sign h1 { font-size: calc(var(--s) * 20); }
+    .sign { padding: calc(var(--s) * 6) calc(var(--s) * 5) calc(var(--s) * 5.4); }
+    .sign .it { font-size: max(1.8vmin, calc(var(--s) * 3.3)); }
+    .under { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .arrow { height: 7vmin; font-size: 2.6vmin; padding: 0 6vmin 0 3vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --s: .66vmin; }
+    .photo { width: 44%; object-position: 50% 30%; }
+    .wall { left: 44%; padding: 7vmin 6vmin 6vmin; gap: 6vmin; }
+    .sign h1 { font-size: calc(var(--s) * 19); }
+    .under { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="wall">
+    <div class="sign">
+      <i class="scr s1"></i><i class="scr s2"></i><i class="scr s3"></i><i class="scr s4"></i>
+      <i class="chip c1"></i><i class="chip c2"></i><i class="chip c3"></i>
+      <div class="band">Dept. 26</div>
+      <h1>New stock<br>this way</h1>
+      <div class="it">The work edit, <b>30% off</b> this week.</div>
+      <div class="mk">Atelier Nord Works · Est. 1926</div>
+    </div>
+    <div class="under">
+      <div class="code">Quote <b>DEPT26</b> at the counter<br>Until Sunday 12 October</div>
+      <div class="arrow">Shop now</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

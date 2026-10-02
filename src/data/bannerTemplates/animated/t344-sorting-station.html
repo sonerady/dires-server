@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Sorting Station — a Nordic in-store take-back point: three colour-coded bin fronts with posting slots,
+     white pictogram discs and numbered fractions (wearable / worn out / hangers). The offer: a voucher per bag.
+     tall → photo above, headline + bins below; 3:4 and wider → photo left, station right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DEDCD6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #DEDCD6; color: #1E2321; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 88vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .station { position: absolute; left: 0; right: 0; bottom: 0; height: 88vmin; box-sizing: border-box; padding: 5vmin 5vmin 0; display: flex; flex-direction: column; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 4vmin; }
+  .kick { font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #59605C; white-space: nowrap; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 700; font-size: 8.6vmin; line-height: .95; letter-spacing: -.035em; }
+  h1 span { color: #5E7462; }
+  .note { margin: 2.4vmin 0 0; max-width: 62vmin; font-size: 2.2vmin; line-height: 1.4; color: #3B413E; }
+  .voucher { flex: none; text-align: right; padding-top: .4vmin; }
+  .voucher strong { display: block; font-weight: 700; font-size: 9vmin; line-height: .85; letter-spacing: -.05em; }
+  .voucher span { display: block; margin-top: 1vmin; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; color: #59605C; white-space: nowrap; }
+
+  .bins { flex: 1; min-height: 0; margin-top: 4.4vmin; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6vmin; }
+  .bin { position: relative; background: var(--c); color: #F4F2EC; display: flex; flex-direction: column; align-items: center; padding: 3vmin 2vmin 0; box-sizing: border-box;
+         box-shadow: inset 0 -1.2vmin 0 rgba(0,0,0,.12); }
+  .bin::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.4vmin; background: rgba(255,255,255,.18); }
+  .slot { width: 72%; height: 3.2vmin; border-radius: 1.6vmin; background: #1B1F1D; box-shadow: inset 0 .7vmin .9vmin rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.35); margin-top: 1.4vmin; }
+  .disc { margin-top: 3.6vmin; width: 13vmin; height: 13vmin; border-radius: 50%; background: #F4F2EC; display: flex; align-items: center; justify-content: center; flex: none; }
+  .disc svg { width: 64%; height: 64%; }
+  .bin i { margin-top: auto; font-style: normal; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .1em; opacity: .85; }
+  .bin b { margin: .6vmin 0 3.4vmin; font-weight: 700; font-size: 2.6vmin; letter-spacing: -.01em; white-space: nowrap; }
+  .b1 { --c: #62786A; } .b2 { --c: #6F7F8C; } .b3 { --c: #A8906A; }
+
+  .foot { flex: none; height: 9vmin; display: flex; justify-content: space-between; align-items: center; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .foot b { font-family: "Instrument Sans", Arial, sans-serif; font-weight: 700; font-size: 2.4vmin; letter-spacing: -.005em; text-transform: none; }
+  .foot .cta { border-bottom: .35vmin solid #1E2321; padding-bottom: .2vmin; font-weight: 500; }
+
+  /* 3:4 / 4:5 → station column right */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .station { left: 50%; top: 0; height: auto; padding: 5vmin 4vmin 0; }
+    .head { flex-direction: column; gap: 2.4vmin; }
+    h1 { font-size: 6.8vmin; }
+    .note { font-size: 2vmin; }
+    .voucher { text-align: left; padding-top: 0; }
+    .voucher strong { font-size: 7.6vmin; }
+    .bins { gap: 1.2vmin; }
+    .bin { padding: 2vmin 1vmin 0; }
+    .slot { width: 80%; height: 2.4vmin; }
+    .disc { width: 10vmin; height: 10vmin; margin-top: 3vmin; }
+    .bin b { font-size: 1.9vmin; margin-bottom: 2.6vmin; }
+    .bin i { font-size: 1.6vmin; }
+    .foot { flex-direction: column; align-items: flex-start; justify-content: center; gap: 1.6vmin; height: 14vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .station { left: 48%; padding: 4.4vmin 4vmin 0; }
+    .head { flex-direction: row; gap: 2vmin; }
+    h1 { font-size: 6vmin; margin-top: 1.2vmin; }
+    .note { display: none; }
+    .voucher { text-align: right; }
+    .voucher strong { font-size: 7vmin; }
+    .bins { margin-top: 3.4vmin; }
+    .disc { width: 9vmin; height: 9vmin; margin-top: 2.4vmin; }
+    .bin b { font-size: 1.9vmin; margin-bottom: 2.2vmin; }
+    .foot { flex-direction: row; align-items: center; justify-content: space-between; height: 8vmin; font-size: 1.6vmin; }
+    .foot b { font-size: 2.1vmin; }
+    .foot .date { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; object-position: 50% 28%; }
+    .station { left: 50%; padding: 5vmin 5vmin 0; }
+    h1 { font-size: 7.4vmin; }
+    .note { display: block; font-size: 2vmin; max-width: 44vmin; margin-top: 1.8vmin; }
+    .voucher strong { font-size: 8.4vmin; }
+    .bins { margin-top: 3.6vmin; gap: 1.6vmin; }
+    .disc { width: 10vmin; height: 10vmin; }
+    .bin b { font-size: 2.2vmin; }
+    .foot { font-size: 1.8vmin; }
+    .foot b { font-size: 2.3vmin; }
+    .foot .date { display: inline; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* 1 · a folded garment is posted into each slot in turn (only visible mid-loop; t=0 = the empty station) */
+  .slot { position: relative; }
+  .slot::after { content: ""; position: absolute; left: 28%; width: 44%; bottom: 50%; height: 4.6vmin; border-radius: .3vmin;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0 38%, rgba(0,0,0,.14) 38% 44%, rgba(0,0,0,0) 44%), var(--g, #ECE4D2);
+    box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.25); opacity: 0; transform: translateY(-2.2vmin); clip-path: inset(-2vmin -2vmin 0 -2vmin);
+    animation: post 6s linear infinite; }
+  .b1 { --g: #ECE4D2; } .b2 { --g: #C7D0DA; } .b3 { --g: #E4D3B4; }
+  @keyframes post {
+    0%, 7% { opacity: 0; transform: translateY(-2.2vmin); clip-path: inset(-2vmin -2vmin 0 -2vmin); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    10% { opacity: 1; transform: translateY(-1.2vmin); clip-path: inset(-2vmin -2vmin 0 -2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    12.5% { opacity: 1; transform: translateY(0); clip-path: inset(-2vmin -2vmin 0 -2vmin); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    16% { opacity: 1; transform: translateY(4.6vmin); clip-path: inset(-2vmin -2vmin 4.6vmin -2vmin); animation-timing-function: steps(1, end); }
+    16.5%, 100% { opacity: 0; transform: translateY(-2.2vmin); clip-path: inset(-2vmin -2vmin 0 -2vmin); }
+  }
+  /* 2 · the bin front takes the drop, its pictogram disc confirms with a small pop */
+  .bin { animation: take 6s linear infinite; }
+  @keyframes take { 0%, 15.5% { transform: translateY(0); } 17% { transform: translateY(.35vmin); animation-timing-function: cubic-bezier(.3,0,.3,1); } 21%, 100% { transform: translateY(0); } }
+  .disc { animation: pop 6s linear infinite; }
+  @keyframes pop {
+    0%, 16% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1.3); }
+    19.5% { transform: scale(1.1); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    24%, 100% { transform: scale(1); }
+  }
+  .bin b { animation: label 6s linear infinite; }
+  @keyframes label { 0%, 16% { opacity: 1; } 18% { opacity: .55; } 22%, 100% { opacity: 1; } }
+  /* stagger: bin 1 → 2 → 3, 1.2 s apart */
+  .b2 .slot::after, .b2, .b2 .disc, .b2 b { animation-delay: -4.8s; }
+  .b3 .slot::after, .b3, .b3 .disc, .b3 b { animation-delay: -3.6s; }
+  /* 3 · three bags in → the voucher punches */
+  .voucher strong { transform-origin: 100% 60%; animation: voucher 6s linear infinite; }
+  @keyframes voucher {
+    0%, 62% { transform: scale(1); color: #1E2321; animation-timing-function: cubic-bezier(.2,.8,.3,1.25); }
+    66% { transform: scale(1.14); color: #5E7462; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    73%, 100% { transform: scale(1); color: #1E2321; }
+  }
+  /* 4 · "Wear new." re-reveals behind the voucher beat, then the CTA nudges */
+  h1 span { display: inline-block; animation: wear 6s linear infinite; }
+  @keyframes wear {
+    0%, 62% { clip-path: inset(-10% 0 -25% 0); animation-timing-function: steps(1, end); }
+    62.5% { clip-path: inset(-10% 100% -25% 0); animation-timing-function: cubic-bezier(.3,0,.15,1); }
+    74%, 100% { clip-path: inset(-10% 0 -25% 0); }
+  }
+  .foot .cta { animation: cta 6s linear infinite; }
+  @keyframes cta {
+    0%, 80% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    84% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    92% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    96%, 100% { transform: translateX(0); }
+  }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="station">
+    <div class="head">
+      <div>
+        <div class="kick">Take-back · every store</div>
+        <h1>Bring back.<br><span>Wear new.</span></h1>
+        <p class="note">Hand in a bag of old clothes, any brand, any state. We sort it, you shop the new season.</p>
+      </div>
+      <div class="voucher"><strong>−15%</strong><span>Per bag</span></div>
+    </div>
+    <div class="bins">
+      <div class="bin b1"><div class="slot"></div>
+        <div class="disc"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M17 8l-10 6 4 8 5-2v20h16V20l5 2 4-8-10-6c-1 3.5-3.5 5-7 5s-6-1.5-7-5z" fill="none" stroke="#62786A" stroke-width="3" stroke-linejoin="round"/></svg></div>
+        <i>01</i><b>Wearable</b></div>
+      <div class="bin b2"><div class="slot"></div>
+        <div class="disc"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M17 8l-10 6 4 8 5-2v20h16V20l5 2 4-8-10-6c-1 3.5-3.5 5-7 5s-6-1.5-7-5z" fill="none" stroke="#6F7F8C" stroke-width="3" stroke-linejoin="round"/><path d="M16 28l5 3-3 3 5 3-2 3" fill="none" stroke="#6F7F8C" stroke-width="3" stroke-linejoin="round"/></svg></div>
+        <i>02</i><b>Worn out</b></div>
+      <div class="bin b3"><div class="slot"></div>
+        <div class="disc"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M19.5 13.5a4.5 4.5 0 1 1 4.5 4.5v3.4L6 34h36L24 21.4" fill="none" stroke="#A8906A" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+        <i>03</i><b>Hangers</b></div>
+    </div>
+    <div class="foot"><b>Hav Studio</b><span class="date">Until 31 October</span><span class="cta">Find a store →</span></div>
+  </div>
+</div>
+</body>
+</html>

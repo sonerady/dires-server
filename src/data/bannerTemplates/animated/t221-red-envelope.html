@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Red Envelope — Lunar New Year: the copy panel is a hongbao. A deeper red flap folds down from the seam,
+     closed by a gold-foil seal with a plum blossom; faint gold cloud scrolls are printed on the paper.
+     Lucky numbers carry the offer. tall → photo above the envelope; square/wide → photo left, envelope right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #A8141B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #A8141B; color: #F8E7C4; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 18%; }
+  .env { position: absolute; left: 0; right: 0; top: calc(100% - 80vmin); bottom: 0; overflow: hidden;
+    background: radial-gradient(90vmin 60vmin at 50% 40%, #B81A22 0%, #A8141B 55%, #8F0F16 100%); }
+  .clouds { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .16; }
+  .flap { position: absolute; left: 0; top: 0; width: 100%; height: 17vmin; }
+  .seal { position: absolute; left: 50%; top: 10vmin; width: 14vmin; height: 14vmin; margin-left: -7vmin; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #FBE3A4 0%, #E3B55E 40%, #B9852F 80%, #9C6B22 100%);
+    box-shadow: 0 .6vmin 1.4vmin rgba(60,0,0,.45), inset 0 0 0 .35vmin rgba(255,240,200,.55), inset 0 0 0 .9vmin rgba(140,90,20,.25); }
+  .seal svg { position: absolute; inset: 14%; width: 72%; height: 72%; }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 27vmin; bottom: 5vmin; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .k { font-size: 1.8vmin; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; color: #F0C877; margin-right: -.32em; }
+  h1 { margin: 1.8vmin 0 0; font-family: "DM Serif Display", Didot, Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .95; letter-spacing: -.01em; color: #FFF3DC; }
+  h1 i { color: #F0C877; }
+  .p { margin-top: 1.8vmin; font-size: 2.3vmin; line-height: 1.45; color: #F4D9B0; }
+  .nums { margin-top: 3vmin; display: flex; align-items: stretch; border-top: 1px solid rgba(240,200,119,.6); border-bottom: 1px solid rgba(240,200,119,.6); }
+  .nums div { padding: 1.4vmin 3vmin; display: flex; flex-direction: column; align-items: center; }
+  .nums div + div { border-left: 1px solid rgba(240,200,119,.6); }
+  .nums b { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 6.4vmin; line-height: 1; color: #FFF3DC; }
+  .nums b sup { font-size: .45em; vertical-align: .8em; }
+  .nums span { margin-top: .6vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #F0C877; white-space: nowrap; }
+  .foot { margin-top: auto; display: flex; align-items: center; gap: 2.4vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+  .foot .code { color: #F4D9B0; white-space: nowrap; }
+  .foot .code em { font-style: normal; color: #FFF3DC; border: 1px dashed rgba(240,200,119,.9); padding: .8vmin 1.4vmin; margin-left: 1vmin; }
+  .foot .cta { background: linear-gradient(135deg, #F7D98E, #D9A54A); color: #7A0C12; padding: 1.5vmin 3vmin; white-space: nowrap; }
+  .side { display: none; }
+  .flap .w { display: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .env { top: calc(100% - 66vmin); }
+    .flap { height: 14vmin; }
+    .seal { top: 7.6vmin; width: 12vmin; height: 12vmin; margin-left: -6vmin; }
+    .copy { top: 21.5vmin; bottom: 4vmin; }
+    h1 { font-size: 9vmin; margin-top: 2.2vmin; }
+    .p { display: none; }
+    .nums { margin-top: 2.2vmin; }
+    .nums b { font-size: 5.4vmin; }
+  }
+  /* square / wide → photo left, envelope right; flap folds in from the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 44%; height: 100%; object-position: 50% 25%; }
+    .env { left: 44%; top: 0; }
+    .flap { width: 12vmin; height: 100%; }
+    .flap .t { display: none; }
+    .flap .w { display: inline; }
+    .seal { left: 6vmin; top: 50%; margin-left: 0; margin-top: -5.5vmin; width: 11vmin; height: 11vmin; }
+    .copy { left: 20vmin; right: 4vmin; top: 7vmin; bottom: 6vmin; align-items: flex-start; text-align: left; justify-content: center; }
+    .k { margin-right: 0; letter-spacing: .24em; }
+    h1 { font-size: 7.6vmin; margin-top: 2vmin; }
+    .p { display: block; font-size: 2.1vmin; }
+    .nums { margin-top: 2.6vmin; }
+    .nums div { padding: 1.2vmin 2.2vmin; }
+    .nums div:first-child { padding-left: 0; }
+    .nums b { font-size: 5.2vmin; }
+    .foot { margin-top: 3.4vmin; flex-direction: column; align-items: flex-start; gap: 2vmin; font-size: 1.8vmin; }
+    .foot .code em { margin-left: .8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .env { left: 46%; }
+    .flap { width: 20vmin; }
+    .seal { left: 13vmin; width: 14vmin; height: 14vmin; margin-top: -7vmin; }
+    .copy { left: 32vmin; right: 7vmin; top: 8vmin; bottom: 8vmin; }
+    h1 { font-size: 10.4vmin; }
+    .p { font-size: 2.3vmin; }
+    .nums b { font-size: 6vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 2.6vmin; font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: gold cloud scrolls drift sideways (one tile per loop) · beats: 1.8s the flap lifts and settles,
+     2.6s the gold seal stamps down and a foil glint crosses it · 3.4s a light sweep runs through "wrapped." ·
+     4.2s the lucky numbers flip over like a split-flap board · 5.0s a sheen crosses the CTA */
+  .clouds { left: -120px; width: calc(100% + 120px); animation: drift 6s linear infinite; }
+  @keyframes drift { from { transform: translateX(0); } to { transform: translateX(120px); } }
+  .flap { transform-origin: 50% 0%; animation: flapT 6s linear infinite; }
+  @keyframes flapT {
+    0%, 30% { transform: scaleY(1); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    37% { transform: scaleY(.8); animation-timing-function: cubic-bezier(.6,0,.9,.6); }
+    42% { transform: scaleY(1.03); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    45%, 100% { transform: scaleY(1); }
+  }
+  @keyframes flapW {
+    0%, 30% { transform: scaleX(1); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    37% { transform: scaleX(.8); animation-timing-function: cubic-bezier(.6,0,.9,.6); }
+    42% { transform: scaleX(1.03); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    45%, 100% { transform: scaleX(1); }
+  }
+  .seal { overflow: hidden; animation: stamp 6s linear infinite; }
+  @keyframes stamp {
+    0%, 40% { transform: scale(1); animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    43% { transform: scale(1.1); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    45% { transform: scale(.94); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    50%, 100% { transform: scale(1); }
+  }
+  .seal::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,248,220,0), rgba(255,248,220,.55) 50%, rgba(255,248,220,0));
+    transform: translateX(-150%) skewX(-20deg); animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 45% { transform: translateX(-150%) skewX(-20deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    56%, 100% { transform: translateX(300%) skewX(-20deg); }
+  }
+  h1 i { background: linear-gradient(100deg, #F0C877 0 40%, #FFF4D2 50%, #F0C877 60% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; padding-right: .08em; margin-right: -.08em;
+    animation: shine 6s linear infinite; }
+  @keyframes shine {
+    0%, 56% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    72%, 100% { background-position: 0% 0; }
+  }
+  .nums b { display: block; animation: flip 6s linear infinite; }
+  .nums div + div b { animation-delay: -5.82s; }
+  @keyframes flip {
+    0%, 69% { transform: perspective(30vmin) rotateX(0deg); opacity: 1; animation-timing-function: cubic-bezier(.55,0,.9,.5); }
+    72.5% { transform: perspective(30vmin) rotateX(-90deg); opacity: .6; animation-timing-function: steps(1, end); }
+    73% { transform: perspective(30vmin) rotateX(90deg); opacity: .6; animation-timing-function: cubic-bezier(.15,.7,.3,1.25); }
+    78%, 100% { transform: perspective(30vmin) rotateX(0deg); opacity: 1; }
+  }
+  .foot .cta { position: relative; overflow: hidden; }
+  .foot .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 36%;
+    background: linear-gradient(90deg, rgba(255,250,230,0), rgba(255,255,255,.7) 50%, rgba(255,250,230,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 83% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    96%, 100% { transform: translateX(340%) skewX(-18deg); }
+  }
+  @media (min-aspect-ratio: 9/10) { .flap { transform-origin: 0% 50%; animation-name: flapW; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="env">
+    <svg class="clouds" aria-hidden="true">
+      <defs>
+        <pattern id="cl" width="120" height="70" patternUnits="userSpaceOnUse">
+          <g fill="none" stroke="#F0C877" stroke-width="1.6" stroke-linecap="round">
+            <path d="M10 44 c0 -9 12 -12 16 -5 c2 -10 18 -10 19 1 c7 -3 13 3 10 9 H 12 c-4 0 -6 -3 -2 -5 z"/>
+            <path d="M22 42 c0 -4 6 -5 7 -1 M38 41 c0 -5 7 -6 8 -1"/>
+            <path d="M70 16 c0 -8 10 -10 14 -4 c2 -9 16 -9 17 1 c6 -3 12 3 9 8 H 72 c-4 0 -5 -3 -2 -5 z"/>
+            <path d="M81 14 c0 -4 5 -5 6 -1"/>
+          </g>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#cl)"/>
+    </svg>
+    <svg class="flap" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <g class="t">
+        <polygon points="0,0 100,0 50,100" fill="#8A0D14"/>
+        <polyline points="0,0 50,100 100,0" fill="none" stroke="#E3B55E" stroke-width="1" vector-effect="non-scaling-stroke"/>
+      </g>
+      <g class="w">
+        <polygon points="0,0 100,50 0,100" fill="#8A0D14"/>
+        <polyline points="0,0 100,50 0,100" fill="none" stroke="#E3B55E" stroke-width="1" vector-effect="non-scaling-stroke"/>
+      </g>
+    </svg>
+    <div class="seal">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="46" fill="none" stroke="#8C5A17" stroke-width="2" stroke-dasharray="2 4"/>
+        <g fill="#9A2016" fill-opacity=".85">
+          <circle cx="50" cy="30" r="13"/><circle cx="69" cy="44" r="13"/><circle cx="62" cy="66" r="13"/><circle cx="38" cy="66" r="13"/><circle cx="31" cy="44" r="13"/>
+        </g>
+        <circle cx="50" cy="50" r="8" fill="#F6D98F"/>
+        <g stroke="#9A2016" stroke-width="2" stroke-linecap="round"><path d="M50 50 L50 40 M50 50 L59 47 M50 50 L56 58 M50 50 L44 58 M50 50 L41 47"/></g>
+      </svg>
+    </div>
+    <div class="copy">
+      <div class="k">Lunar New Year</div>
+      <h1>Luck, <i>wrapped.</i></h1>
+      <div class="p">The red edit, sealed for the new year.</div>
+      <div class="nums">
+        <div><b>18<sup>%</sup></b><span>Off all</span></div>
+        <div><b>28<sup>%</sup></b><span>Over $188</span></div>
+      </div>
+      <div class="foot"><span class="code">Code<em>LUCKY8</em></span><span class="cta">Open yours</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

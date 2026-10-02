@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Rivet Card — a trims supplier's hardware sample card: black board stock printed in white, a grid of real-looking
+     rivets and tack buttons (copper, brass, nickel, gunmetal…) each with its catalogue number, and one of them
+     ringed in orange grease pencil — Nº 30, the offer. tall / 3:4 → photo above the card; square / wide → card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #171716; }
+  .banner { --P: 88vmin; --u: .86vmin; position: fixed; inset: 0; overflow: hidden; color: #F2EFE7; font-family: "IBM Plex Mono", Menlo, monospace;
+    background: radial-gradient(130% 80% at 80% 100%, #262624 0%, #191918 55%, #121211 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--P)); object-fit: cover; object-position: 50% 22%; display: block; }
+  /* orange die-cut edge of the card */
+  .edge { position: absolute; left: 0; right: 0; top: calc(100% - var(--P)); height: 1.2vmin; background: #E4622A; z-index: 2; }
+
+  .card { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--P) - 1.2vmin); box-sizing: border-box; padding: 4.6vmin 5.5vmin 4vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #A9A69D; white-space: nowrap; }
+  .meta b { color: #E4622A; font-weight: 600; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 900; font-size: 12.4vmin; line-height: .86; letter-spacing: .005em; text-transform: uppercase; }
+  h1 em { font-style: normal; color: #E4622A; }
+  .lede { margin: 2.2vmin 0 0; max-width: 64vmin; font-size: 2.2vmin; line-height: 1.45; color: #CFCBC1; }
+
+  .grid { flex: 1; min-height: 0; margin-top: 3vmin; display: grid; grid-template-columns: repeat(4, 1fr); align-content: center; row-gap: calc(var(--u) * 3.4);
+    border-top: 1px solid rgba(242,239,231,.35); border-bottom: 1px solid rgba(242,239,231,.35); padding: calc(var(--u) * 2.4) 0; }
+  .it { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .it + .it { border-left: 0; }
+  .rv { position: relative; width: calc(var(--u) * 8); height: calc(var(--u) * 8); border-radius: 50%;
+    background: radial-gradient(circle at 36% 30%, var(--a) 0%, var(--b) 42%, var(--c) 100%);
+    box-shadow: 0 calc(var(--u) * .5) calc(var(--u) * .9) rgba(0,0,0,.65), inset 0 0 0 calc(var(--u) * .25) rgba(0,0,0,.25); }
+  .rv::after { content: ""; position: absolute; inset: 30%; border-radius: 50%; background: radial-gradient(circle at 60% 65%, var(--a) 0%, var(--b) 45%, var(--c) 100%); box-shadow: inset 0 calc(var(--u) * .3) calc(var(--u) * .5) rgba(0,0,0,.45); }
+  .rv.tack { width: calc(var(--u) * 9); height: calc(var(--u) * 9); }
+  .rv.tack::after { inset: 18%; border: calc(var(--u) * .3) solid rgba(0,0,0,.25); box-shadow: inset 0 0 0 calc(var(--u) * .7) rgba(255,255,255,.12); background: radial-gradient(circle at 40% 35%, var(--a) 0%, var(--b) 55%, var(--c) 100%); }
+  .cu { --a: #F6C7A1; --b: #C0753F; --c: #5E2E14; }
+  .br { --a: #FBE7A6; --b: #C79A3B; --c: #5A4213; }
+  .ni { --a: #FFFFFF; --b: #B9BCBE; --c: #4B4E51; }
+  .gm { --a: #A7AAAD; --b: #54585C; --c: #1C1E20; }
+  .ab { --a: #D9C08A; --b: #8A6A34; --c: #33230C; }
+  .bk { --a: #6B6B6B; --b: #2A2A2A; --c: #070707; }
+  .no { margin-top: calc(var(--u) * 1.8); font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 800; font-size: calc(var(--u) * 3.2); line-height: 1; letter-spacing: .03em; }
+  .lb { margin-top: calc(var(--u) * .7); font-size: max(1.6vmin, calc(var(--u) * 1.7)); letter-spacing: .08em; text-transform: uppercase; color: #A9A69D; white-space: nowrap; }
+  .it.hit .no, .it.hit .lb { color: #FF7A3D; }
+  /* grease-pencil ring */
+  .it.hit::before { content: ""; position: absolute; left: 50%; top: calc(var(--u) * -2.2); width: calc(var(--u) * 19); height: calc(var(--u) * 20.5); margin-left: calc(var(--u) * -9.5);
+    border: calc(var(--u) * .55) solid #FF6E2E; border-radius: 52% 46% 50% 48% / 48% 52% 46% 54%; transform: rotate(-8deg); opacity: .95; }
+  .it.hit::after { content: ""; position: absolute; left: 50%; top: calc(var(--u) * -1.6); width: calc(var(--u) * 18); height: calc(var(--u) * 19.6); margin-left: calc(var(--u) * -8.6);
+    border: calc(var(--u) * .3) solid #FF6E2E; border-radius: 48% 52% 46% 54% / 52% 48% 54% 46%; transform: rotate(6deg); opacity: .7; }
+
+  .foot { margin-top: 3vmin; display: flex; justify-content: space-between; align-items: center; white-space: nowrap; }
+  .cta { font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 800; font-size: 3.4vmin; letter-spacing: .06em; text-transform: uppercase; border-bottom: .4vmin solid #E4622A; padding-bottom: .5vmin; }
+  .code { font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; color: #A9A69D; }
+  .code b { color: #F2EFE7; font-weight: 600; border: 1px solid rgba(242,239,231,.6); padding: .5vmin 1vmin; margin-left: .8vmin; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --P: 74vmin; --u: .74vmin; }
+    .card { padding: 3.8vmin 5.5vmin 3.4vmin; }
+    h1 { margin-top: 1.8vmin; font-size: 10vmin; }
+    .lede { font-size: 2vmin; margin-top: 1.6vmin; max-width: 70vmin; }
+    .grid { margin-top: 3.4vmin; }
+    .foot { margin-top: 2.4vmin; }
+    .cta { font-size: 3vmin; }
+  }
+  /* square → card right, 3 × 2 samples */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --u: .74vmin; }
+    .photo { width: 46%; height: 100%; object-position: 50% 24%; }
+    .edge { top: 0; bottom: 0; left: 46%; right: auto; width: 1.2vmin; height: auto; }
+    .card { left: calc(46% + 1.2vmin); top: 0; height: auto; padding: 5vmin 4.6vmin 4.4vmin; }
+    .meta span:last-child { display: none; }
+    h1 { font-size: 10vmin; }
+    .lede { font-size: 1.85vmin; }
+    .grid { grid-template-columns: repeat(3, 1fr); }
+    .it:nth-child(n+7) { display: none; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .cta { font-size: 3vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --u: .8vmin; }
+    .photo { width: 44%; object-position: 50% 30%; }
+    .edge { left: 44%; }
+    .card { left: calc(44% + 1.2vmin); padding: 5.6vmin 6vmin 5vmin; }
+    .meta span:last-child { display: inline; }
+    h1 { font-size: 11.5vmin; }
+    .lede { font-size: 2vmin; }
+    .grid { grid-template-columns: repeat(4, 1fr); }
+    .it:nth-child(n+7) { display: flex; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the sample card) ─────────
+     constant: a raking light passes over the hardware — a specular glint travels rivet to rivet, left → right (3s wave); photo push-in
+     beats: 2.3s the grease-pencil ring is scribbled round Nº 30 again (two strokes) · 3.4s rivet Nº 30 is set by the press —
+            it sinks, rebounds, settles · 5.0s the CTA underline is re-drawn in orange */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .rv::before { content: ""; position: absolute; inset: 0; border-radius: 50%; z-index: 1; pointer-events: none; mix-blend-mode: screen;
+    background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.95) 0 6%, rgba(255,255,255,.35) 16%, transparent 38%);
+    opacity: 0; animation: glint 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glint { 0%, 100% { opacity: 0; } 12% { opacity: .9; } 30% { opacity: 0; } }
+  .it:nth-child(4n+1) .rv::before { animation-delay: -2.4s; }
+  .it:nth-child(4n+2) .rv::before { animation-delay: -2.2s; }
+  .it:nth-child(4n+3) .rv::before { animation-delay: -2.0s; }
+  .it:nth-child(4n+4) .rv::before { animation-delay: -1.8s; }
+  .it:nth-child(n+5) .rv::before { animation-duration: 3s; }
+  .it:nth-child(5) .rv::before { animation-delay: -2.3s; }
+  .it:nth-child(6) .rv::before { animation-delay: -2.1s; }
+  .it:nth-child(7) .rv::before { animation-delay: -1.9s; }
+  .it:nth-child(8) .rv::before { animation-delay: -1.7s; }
+
+  .it.hit::before { animation: ring1 6s linear infinite; }
+  .it.hit::after { animation: ring2 6s linear infinite; }
+  @keyframes ring1 {
+    0%, 34% { clip-path: inset(-10% -10% -10% -10%); opacity: .95; }
+    36%, 37.9% { clip-path: inset(-10% -10% -10% -10%); opacity: 0; }
+    38% { clip-path: inset(-10% 110% -10% -10%); opacity: .95; animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    45%, 100% { clip-path: inset(-10% -10% -10% -10%); opacity: .95; }
+  }
+  @keyframes ring2 {
+    0%, 34% { clip-path: inset(-10% -10% -10% -10%); opacity: .7; }
+    36%, 43.9% { clip-path: inset(-10% -10% -10% -10%); opacity: 0; }
+    44% { clip-path: inset(-10% -10% -10% 110%); opacity: .7; animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    50%, 100% { clip-path: inset(-10% -10% -10% -10%); opacity: .7; }
+  }
+
+  .it.hit .rv { animation: set 6s linear infinite; }
+  @keyframes set {
+    0%, 55%, 100% { transform: scale(1); filter: none; }
+    57.5% { transform: scale(.86); filter: brightness(.8); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    61% { transform: scale(1.08); filter: brightness(1.3); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    65% { transform: scale(1); filter: none; }
+  }
+
+  .cta { position: relative; border-bottom-color: transparent; }
+  .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.4vmin; height: .4vmin; background: #E4622A;
+    animation: rule 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes rule {
+    0%, 80% { clip-path: inset(0 0 0 0); }
+    85% { clip-path: inset(0 0 0 100%); }
+    85.5% { clip-path: inset(0 100% 0 0); }
+    96%, 100% { clip-path: inset(0 0 0 0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="edge"></div>
+  <div class="card">
+    <div class="meta"><span>Fig. 26 · <b>Hardware card</b></span><span>Atelier Nord Supply</span></div>
+    <h1>Hardware,<br><em>not hype.</em></h1>
+    <p class="lede">The new work edit — riveted, bar-tacked and built to outlast the trend.</p>
+    <div class="grid">
+      <div class="it"><div class="rv cu"></div><div class="no">Nº 12</div><div class="lb">Copper · 9 mm</div></div>
+      <div class="it"><div class="rv tack br"></div><div class="no">Nº 17</div><div class="lb">Brass tack</div></div>
+      <div class="it hit"><div class="rv gm"></div><div class="no">Nº 30</div><div class="lb">30% off</div></div>
+      <div class="it"><div class="rv ni"></div><div class="no">Nº 21</div><div class="lb">Nickel · 8 mm</div></div>
+      <div class="it"><div class="rv tack ab"></div><div class="no">Nº 24</div><div class="lb">Antique tack</div></div>
+      <div class="it"><div class="rv bk"></div><div class="no">Nº 26</div><div class="lb">Black oxide</div></div>
+      <div class="it"><div class="rv br"></div><div class="no">Nº 33</div><div class="lb">Brass · 9 mm</div></div>
+      <div class="it"><div class="rv tack cu"></div><div class="no">Nº 38</div><div class="lb">Copper tack</div></div>
+    </div>
+    <div class="foot"><span class="code">Code<b>RIVET30</b></span><span class="cta">Shop the hardware →</span></div>
+  </div>
+</div>
+</body>
+</html>

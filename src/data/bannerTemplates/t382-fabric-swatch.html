@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;1,6..96,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Fabric Swatch — the "Materials" tab of a luxury product page, made physical: a pinking-sheared swatch
+     (the same photo cropped tight into the cloth) stapled to a mill card with its swatch number, next to a
+     serif headline, a composition bar (72 / 28), the weave / weight / origin spec and a quiet link.
+     tall → photo above the paper panel; 3:4 and square → photo left, panel right; wide → photo | card | copy */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE6DB; }
+  .banner { --panel: 76vmin; position: fixed; inset: 0; overflow: hidden; background: #ECE6DB; color: #2A2620; font-family: "DM Mono", "SF Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 0 5vmin 5vmin;
+    display: grid; grid-template-columns: 40vmin minmax(0, 1fr); column-gap: 6vmin;
+    grid-template-areas: "strip strip" "card head" "card comp" "card specs" "card cta"; grid-template-rows: auto auto auto 1fr auto; }
+  .strip { grid-area: strip; display: flex; justify-content: space-between; align-items: center; height: 7.5vmin; margin-bottom: 4vmin; border-bottom: 1px solid rgba(42,38,32,.25); font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #6F675C; white-space: nowrap; }
+  .strip b { font-weight: 500; color: #2A2620; }
+
+  .card { grid-area: card; align-self: start; position: relative; background: #FBF9F4; padding: 3.2vmin 3.2vmin 3vmin; box-shadow: 0 .4vmin 1vmin rgba(42,38,32,.08), 0 2.4vmin 4vmin rgba(42,38,32,.12); transform: rotate(-2deg); transform-origin: 50% 0; }
+  .sw { position: relative; aspect-ratio: 1 / 1.08; overflow: hidden; background: #D9D0C1;
+    clip-path: polygon(0.00% 0, 5.56% 1.1vmin, 11.11% 0, 16.67% 1.1vmin, 22.22% 0, 27.78% 1.1vmin, 33.33% 0, 38.89% 1.1vmin, 44.44% 0, 50.00% 1.1vmin, 55.56% 0, 61.11% 1.1vmin, 66.67% 0, 72.22% 1.1vmin, 77.78% 0, 83.33% 1.1vmin, 88.89% 0, 94.44% 1.1vmin, 100.00% 0, calc(100% - 1.1vmin) 4.55%, 100% 9.09%, calc(100% - 1.1vmin) 13.64%, 100% 18.18%, calc(100% - 1.1vmin) 22.73%, 100% 27.27%, calc(100% - 1.1vmin) 31.82%, 100% 36.36%, calc(100% - 1.1vmin) 40.91%, 100% 45.45%, calc(100% - 1.1vmin) 50.00%, 100% 54.55%, calc(100% - 1.1vmin) 59.09%, 100% 63.64%, calc(100% - 1.1vmin) 68.18%, 100% 72.73%, calc(100% - 1.1vmin) 77.27%, 100% 81.82%, calc(100% - 1.1vmin) 86.36%, 100% 90.91%, calc(100% - 1.1vmin) 95.45%, 100% 100.00%, 94.44% calc(100% - 1.1vmin), 88.89% 100%, 83.33% calc(100% - 1.1vmin), 77.78% 100%, 72.22% calc(100% - 1.1vmin), 66.67% 100%, 61.11% calc(100% - 1.1vmin), 55.56% 100%, 50.00% calc(100% - 1.1vmin), 44.44% 100%, 38.89% calc(100% - 1.1vmin), 33.33% 100%, 27.78% calc(100% - 1.1vmin), 22.22% 100%, 16.67% calc(100% - 1.1vmin), 11.11% 100%, 5.56% calc(100% - 1.1vmin), 0.00% 100%, 1.1vmin 95.45%, 0 90.91%, 1.1vmin 86.36%, 0 81.82%, 1.1vmin 77.27%, 0 72.73%, 1.1vmin 68.18%, 0 63.64%, 1.1vmin 59.09%, 0 54.55%, 1.1vmin 50.00%, 0 45.45%, 1.1vmin 40.91%, 0 36.36%, 1.1vmin 31.82%, 0 27.27%, 1.1vmin 22.73%, 0 18.18%, 1.1vmin 13.64%, 0 9.09%, 1.1vmin 4.55%); }
+  .sw img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 55%; transform: scale(3.2); transform-origin: 50% 58%; }
+  .staple { position: absolute; left: 50%; top: 2vmin; width: 7vmin; height: .9vmin; margin-left: -3.5vmin; border-radius: .2vmin; background: linear-gradient(#F4F4F2, #9C9C98 55%, #D6D6D2); box-shadow: 0 .2vmin .4vmin rgba(0,0,0,.25); }
+  .lab { margin-top: 2.4vmin; display: flex; justify-content: space-between; align-items: baseline; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .lab b { font-weight: 500; }
+  .lab + .lab { margin-top: .9vmin; color: #6F675C; }
+
+  .head { grid-area: head; }
+  .eb { font-size: 1.7vmin; letter-spacing: .16em; text-transform: uppercase; color: #9A4B2F; white-space: nowrap; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Bodoni Moda", "Didot", "Times New Roman", serif; font-weight: 400; font-size: 8.6vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 i { font-style: italic; }
+
+  .comp { grid-area: comp; margin-top: 4vmin; }
+  .bar { display: flex; height: 2.4vmin; }
+  .bar i { display: block; height: 100%; }
+  .bar i:first-child { width: 72%; background: #2A2620; }
+  .bar i:last-child { width: 28%; margin-left: .5vmin; background: #9A4B2F; }
+  .leg { margin-top: 1.3vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .06em; white-space: nowrap; }
+  .leg span:last-child { color: #9A4B2F; }
+
+  .specs { grid-area: specs; margin: 3vmin 0 0; padding: 0; list-style: none; }
+  .specs li { display: flex; justify-content: space-between; gap: 2vmin; padding: 1.1vmin 0; border-bottom: 1px solid rgba(42,38,32,.18); font-size: 1.8vmin; letter-spacing: .04em; white-space: nowrap; }
+  .specs li span { color: #6F675C; }
+  .specs li b { font-weight: 500; }
+
+  .cta { grid-area: cta; margin-top: 3vmin; display: flex; justify-content: space-between; align-items: center; padding: 2.1vmin 2.6vmin; background: #2A2620; color: #F4EFE6; font-size: 1.9vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  /* ── 3:4 / 4:5 and square: photo left, panel right (card laid landscape) ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; }
+    .panel { left: 50%; top: 0; height: auto; padding: 0 4.5vmin 4.5vmin;
+      grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr auto auto auto;
+      grid-template-areas: "strip" "head" "card" "comp" "specs" "cta"; }
+    .strip { height: 8vmin; margin-bottom: 3.4vmin; }
+    .strip span:first-child { display: none; }
+    h1 { font-size: 7.2vmin; }
+    .card { align-self: center; margin: 3.4vmin 1vmin 0; padding: 2.2vmin 2.2vmin 2vmin; }
+    .sw { aspect-ratio: 1.7 / 1; }
+    .sw img { object-position: 50% 50%; transform: scale(2.6); }
+    .staple { top: 1.2vmin; width: 6vmin; margin-left: -3vmin; }
+    .lab { margin-top: 1.6vmin; font-size: 1.6vmin; letter-spacing: .06em; }
+    .lab + .lab { display: none; }
+    .comp { margin-top: 3.4vmin; }
+    .specs { margin-top: 1.6vmin; }
+    .specs li { padding: .9vmin 0; font-size: 1.7vmin; }
+    .specs li:nth-child(n+3) { display: none; }
+    .cta { margin-top: 2.6vmin; padding: 1.9vmin 2.2vmin; font-size: 1.8vmin; letter-spacing: .1em; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .panel { left: 48%; padding: 0 5vmin 5vmin; }
+    .strip { height: 8vmin; margin-bottom: 3vmin; }
+    h1 { font-size: 7vmin; }
+    .card { margin-top: 3vmin; }
+    .sw { aspect-ratio: 2 / 1; }
+    .comp { margin-top: 3vmin; }
+  }
+  /* ── wide: photo | card | copy ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 38%; }
+    .panel { left: 38%; padding: 0 6vmin 6vmin; column-gap: 6vmin;
+      grid-template-columns: 38vmin minmax(0, 1fr); grid-template-rows: auto auto auto 1fr auto;
+      grid-template-areas: "strip strip" "card head" "card comp" "card specs" "card cta"; }
+    .strip { height: 9vmin; margin-bottom: 6vmin; }
+    .strip span:first-child { display: inline; }
+    h1 { font-size: 8.4vmin; }
+    .card { align-self: start; margin: 0; padding: 3vmin 3vmin 2.8vmin; }
+    .sw { aspect-ratio: 1 / 1.08; }
+    .sw img { object-position: 50% 55%; transform: scale(3.2); }
+    .staple { top: 1.8vmin; width: 7vmin; margin-left: -3.5vmin; }
+    .lab { margin-top: 2.4vmin; font-size: 1.7vmin; letter-spacing: .08em; }
+    .lab + .lab { display: flex; }
+    .comp { margin-top: 4vmin; }
+    .cta { margin-top: 3vmin; padding: 2.1vmin 2.6vmin; font-size: 1.9vmin; letter-spacing: .14em; }
+    .specs li { flex-direction: row; padding: 1.1vmin 0; font-size: 1.8vmin; }
+    .specs { margin-top: 3vmin; }
+    .specs li:nth-child(n+3) { display: flex; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="strip"><span><b>Studio Oro</b> — Product details</span><span>Materials · 02 / 04</span></div>
+    <div class="card">
+      <div class="sw"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <i class="staple"></i>
+      <div class="lab"><b>Swatch Nº 26–114</b><span>SS26</span></div>
+      <div class="lab"><span>Linen · Silk</span><span>Plain weave</span></div>
+    </div>
+    <div class="head">
+      <div class="eb">The cloth, first</div>
+      <h1>Know<br>the <i>cloth.</i></h1>
+    </div>
+    <div class="comp">
+      <div class="bar"><i></i><i></i></div>
+      <div class="leg"><span>72% Linen</span><span>28% Silk</span></div>
+    </div>
+    <ul class="specs">
+      <li><span>Weight</span><b>180 g/m²</b></li>
+      <li><span>Woven in</span><b>Biella, Italy</b></li>
+      <li><span>Finish</span><b>Garment-washed</b></li>
+      <li><span>Lining</span><b>Cupro</b></li>
+    </ul>
+    <div class="cta"><span>Shop the collection</span><span>→</span></div>
+  </div>
+</div>
+</body>
+</html>

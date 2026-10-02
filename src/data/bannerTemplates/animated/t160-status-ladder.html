@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Status Ladder — the loyalty programme as a staircase: four tiers rise as stepped blocks deepening in tone,
+     each with its threshold and perk; a gold "You" pin sits on Silver with the distance left to Gold.
+     tall → photo above, celadon panel below; square/wide → panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D6E4DA; }
+  .banner { --panel: 86vmin; --ch: 32vmin; position: fixed; inset: 0; overflow: hidden; background: #D6E4DA; color: #14352A; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(20,53,42,.4); font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .top span:last-child { font-weight: 500; letter-spacing: .1em; }
+  h1 { margin: 2.6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .92; letter-spacing: -.02em; }
+  h1 em { font-style: italic; }
+  h1 br { display: none; }
+
+  /* stairs */
+  .stairs { position: relative; display: flex; align-items: flex-end; gap: 1vmin; height: var(--ch); margin: auto 0; padding-top: 7vmin; }
+  .st { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 1.4vmin 1.4vmin 1.6vmin; box-sizing: border-box; }
+  .st:nth-child(1) { height: 30%; background: #BFD3C6; }
+  .st:nth-child(2) { height: 50%; background: #93B3A0; }
+  .st:nth-child(3) { height: 72%; background: #4E7A66; color: #F1F6F2; }
+  .st:nth-child(4) { height: 100%; background: #14352A; color: #F1F6F2; }
+  .st .lab { position: absolute; left: 0; right: 0; bottom: calc(100% + 1vmin); display: flex; justify-content: space-between; align-items: baseline; gap: .6vmin; color: #14352A; white-space: nowrap; }
+  .st .lab b { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 3.4vmin; line-height: 1; }
+  .st .lab span { font-size: 1.6vmin; font-weight: 500; color: #3D5E51; }
+  .st p { margin: 0; font-size: 1.7vmin; font-weight: 500; line-height: 1.25; }
+  .st p strong { display: block; font-size: 2.6vmin; font-weight: 700; letter-spacing: -.01em; }
+  .pin { position: absolute; left: 50%; top: -2vmin; transform: translate(-50%, -100%); background: #C79A3C; color: #1B1206; font-size: 1.7vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding: .7vmin 1.4vmin; white-space: nowrap; }
+  .pin::after { content: ""; position: absolute; left: 50%; top: 100%; margin-left: -.9vmin; border-left: .9vmin solid transparent; border-right: .9vmin solid transparent; border-top: 1vmin solid #C79A3C; }
+  .st.you { box-shadow: inset 0 .6vmin 0 #C79A3C; }
+  .st.you .lab { visibility: hidden; }
+
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 2vmin; border-top: 1px solid rgba(20,53,42,.4); }
+  .prog { flex: 1; min-width: 0; }
+  .prog small { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 500; }
+  .prog small b { font-weight: 700; }
+  .bar { position: relative; height: 1vmin; margin-top: 1vmin; background: rgba(20,53,42,.18); }
+  .bar::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 85%; background: #C79A3C; }
+  .cta { flex: none; background: #14352A; color: #EEF4F0; padding: 1.9vmin 3.2vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 74vmin; --ch: 28vmin; }
+    .copy { bottom: 4.5vmin; height: calc(var(--panel) - 9vmin); }
+    h1 { font-size: 9.6vmin; margin-top: 2vmin; }
+    .stairs { padding-top: 6vmin; }
+  }
+  /* square — panel left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --ch: 36vmin; }
+    .photo { left: 54%; width: 46%; height: 100%; }
+    .copy { left: 5vmin; right: auto; width: calc(54% - 10vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    h1 { font-size: 8.6vmin; }
+    h1 br { display: inline; }
+    .stairs { gap: .7vmin; }
+    .st { padding: 1vmin 1vmin 1.2vmin; }
+    .st .lab b { font-size: 2.6vmin; }
+    .st .lab { flex-direction: column; gap: .2vmin; }
+    .st p { font-size: 1.6vmin; }
+    .st p strong { font-size: 2.1vmin; }
+    .stairs { padding-top: 8vmin; }
+    .pin { font-size: 1.6vmin; padding: .6vmin 1vmin; }
+    .foot { flex-direction: column; align-items: stretch; gap: 2vmin; }
+    .cta { align-self: flex-start; padding: 1.6vmin 2.6vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --ch: 34vmin; }
+    .photo { left: 52%; width: 48%; }
+    .copy { left: 6vmin; width: calc(52% - 12vmin); top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 9.4vmin; }
+    h1 br { display: none; }
+    .stairs { gap: 1vmin; }
+    .st .lab { flex-direction: row; }
+    .st .lab b { font-size: 3vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .cta { align-self: auto; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+     constant: slow photo push-in
+     beats: .6s footsteps climb the stairs — each tier takes the weight and its top edge lights gold, bottom → top ·
+            2.2s the "You" pin hops twice · 3.2s the progress bar drains and refills to €680 · 4.6s sheen over the CTA */
+  .photo { transform-origin: 50% 22%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .st { transform-origin: 50% 100%; animation: tread 6s linear infinite; }
+  .st:nth-child(2) { animation-delay: -5.72s; }
+  .st:nth-child(3) { animation-delay: -5.44s; }
+  .st:nth-child(4) { animation-delay: -5.16s; }
+  @keyframes tread {
+    0%, 10% { transform: scaleY(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    12.5% { transform: scaleY(.955); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    17.5%, 100% { transform: scaleY(1); }
+  }
+  .st::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .6vmin; background: #E0B65A; opacity: 0; pointer-events: none;
+    animation: lit 6s linear infinite; animation-delay: inherit; }
+  @keyframes lit {
+    0%, 10% { opacity: 0; }
+    12% { opacity: 1; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    30%, 100% { opacity: 0; }
+  }
+
+  .pin { animation: hop 6s linear infinite; }
+  @keyframes hop {
+    0%, 36% { transform: translate(-50%, -100%); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    38.5% { transform: translate(-50%, calc(-100% - 1.6vmin)); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    41% { transform: translate(-50%, -100%); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    43% { transform: translate(-50%, calc(-100% - .9vmin)); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    45%, 100% { transform: translate(-50%, -100%); }
+  }
+
+  .bar::after { transform-origin: 0 50%; animation: fill 6s linear infinite; }
+  @keyframes fill {
+    0%, 53% { transform: scaleX(1); animation-timing-function: cubic-bezier(.7,0,.8,.6); }
+    57% { transform: scaleX(0); animation-timing-function: cubic-bezier(.25,.9,.35,1); }
+    72%, 100% { transform: scaleX(1); }
+  }
+  .prog small b { display: inline-block; transform-origin: 100% 50%; animation: near 6s linear infinite; }
+  @keyframes near {
+    0%, 70% { transform: scale(1); color: #14352A; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    73% { transform: scale(1.12); color: #9C7424; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    80%, 100% { transform: scale(1); color: #14352A; }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 34%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.08) 30%, rgba(255,255,255,.3) 50%, rgba(255,255,255,.08) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 76% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    90%, 100% { transform: translateX(330%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="top"><span>Atelier Nord Rewards</span><span>Your status</span></div>
+    <h1>Climb <br><em>the ranks.</em></h1>
+    <div class="stairs">
+      <div class="st"><div class="lab"><b>Bronze</b><span>€0</span></div><p><strong>5%</strong>off</p></div>
+      <div class="st you"><div class="pin">You · Silver</div><div class="lab"><b>Silver</b><span>€300</span></div><p><strong>10%</strong>off</p></div>
+      <div class="st"><div class="lab"><b>Gold</b><span>€800</span></div><p><strong>15%</strong>+ early access</p></div>
+      <div class="st"><div class="lab"><b>Icon</b><span>€1.5k</span></div><p><strong>20%</strong>+ a stylist</p></div>
+    </div>
+    <div class="foot">
+      <div class="prog"><small><span>€680 of €800</span><b>€120 to Gold</b></small><div class="bar"></div></div>
+      <div class="cta">See my perks</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

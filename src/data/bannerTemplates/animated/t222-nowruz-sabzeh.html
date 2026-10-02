@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Work+Sans:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Nowruz Sabzeh — the Persian New Year ("new day") at the spring equinox: a band of cobalt-and-turquoise
+     eight-point girih tiles runs along the seam, and a dish of sprouted sabzeh tied with a pomegranate ribbon
+     sits beside the copy. 13% off until Sizdah Bedar, the thirteenth day.
+     tall → photo above a paper panel; square/wide → photo left, tile band down the seam, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EDE0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4EDE0; color: #1B2F5E; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 74vmin); object-fit: cover; object-position: 50% 18%; }
+  .band { position: absolute; left: 0; right: 0; top: calc(100% - 74vmin); height: 7vmin; overflow: hidden; background: #1C3F8C; }
+  .band svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .band .v { display: none; }
+  .defs { position: absolute; width: 0; height: 0; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100% - 67vmin); }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; bottom: 6vmin; display: flex; flex-direction: column; }
+  .k { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: #1F8A8A; }
+  .k i { width: 1.1vmin; height: 1.1vmin; background: #B3262E; transform: rotate(45deg); flex: none; }
+  h1 { margin: 2.2vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 12.4vmin; line-height: .92; letter-spacing: -.025em; }
+  h1 i { color: #1F8A8A; }
+  .p { margin-top: 2vmin; max-width: 48vmin; font-size: 2.3vmin; line-height: 1.45; color: #3B4A6B; }
+  .offer { margin-top: auto; display: flex; align-items: center; gap: 2.4vmin; }
+  .offer b { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 10vmin; line-height: .85; color: #B3262E; letter-spacing: -.03em; }
+  .offer b sup { font-size: .42em; vertical-align: .95em; font-weight: 400; }
+  .offer span { font-size: 1.8vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; line-height: 1.6; border-left: 1px solid rgba(27,47,94,.35); padding-left: 2.4vmin; }
+  .offer span em { font-style: normal; color: #1F8A8A; }
+  .foot { margin-top: 3vmin; display: flex; align-items: center; gap: 2.4vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+  .foot .code { border: 1px solid #1B2F5E; padding: 1.3vmin 1.8vmin; white-space: nowrap; }
+  .foot .cta { background: #1B2F5E; color: #F4EDE0; padding: 1.4vmin 2.8vmin; white-space: nowrap; }
+  .sabzeh { position: absolute; right: 3vmin; bottom: 4vmin; width: 30vmin; height: 30vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .band { top: calc(100% - 64vmin); height: 6vmin; }
+    .panel { top: calc(100% - 58vmin); }
+    .copy { top: 4.6vmin; bottom: 4.6vmin; }
+    h1 { font-size: 10.4vmin; margin-top: 1.8vmin; }
+    .p { display: none; }
+    .offer b { font-size: 8.6vmin; }
+    .foot { margin-top: 2.6vmin; }
+    .sabzeh { width: 27vmin; height: 27vmin; bottom: 3vmin; }
+  }
+  /* square / wide → photo left, tile band down the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 25%; }
+    .band { left: 46%; right: auto; top: 0; bottom: 0; width: 6vmin; height: auto; }
+    .band .h { display: none; }
+    .band .v { display: block; }
+    .panel { left: calc(46% + 6vmin); top: 0; }
+    .copy { left: 5vmin; right: 4vmin; top: 7vmin; bottom: 6vmin; }
+    h1 { font-size: 8.8vmin; margin-top: 2.4vmin; }
+    .p { display: block; max-width: 30vmin; font-size: 2vmin; }
+    .offer { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .offer b { font-size: 8.4vmin; }
+    .offer span { border-left: 0; padding-left: 0; border-top: 1px solid rgba(27,47,94,.35); padding-top: 1.2vmin; font-size: 1.7vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.6vmin; font-size: 1.8vmin; margin-top: 2.6vmin; }
+    .sabzeh { right: 1vmin; bottom: 14vmin; width: 22vmin; height: 22vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .band { left: 48%; width: 7vmin; }
+    .panel { left: calc(48% + 7vmin); }
+    .copy { left: 7vmin; right: 6vmin; top: 8vmin; bottom: 8vmin; }
+    h1 { font-size: 11vmin; }
+    .p { max-width: 32vmin; font-size: 2.3vmin; }
+    .offer { flex-direction: row; align-items: center; gap: 2.4vmin; }
+    .offer b { font-size: 9.4vmin; }
+    .offer span { border-top: 0; padding-top: 0; border-left: 1px solid rgba(27,47,94,.35); padding-left: 2.4vmin; font-size: 1.8vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 2.4vmin; font-size: 1.9vmin; }
+    .sabzeh { right: 5vmin; bottom: auto; top: 20vmin; width: 28vmin; height: 28vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the girih tile band slides along the seam (one tile per 3s), the sabzeh sways in a spring breeze (3s)
+     beats: 0.9s the red diamond turns a quarter · 2.1s "day." sets and rises again like the equinox sun ·
+     3.7s the 13% blooms · 4.8s a light sweep crosses the CTA */
+  .band .h .run { animation: tileX 3s linear infinite; }
+  @keyframes tileX { from { transform: translateX(0); } to { transform: translateX(-40px); } }
+  .band .v .run { animation: tileY 3s linear infinite; }
+  @keyframes tileY { from { transform: translateY(0); } to { transform: translateY(-40px); } }
+  .grass { transform-origin: 60px 108px; animation: sway 3s linear infinite; }
+  @keyframes sway {
+    0% { transform: skewX(0deg); animation-timing-function: cubic-bezier(.35,0,.55,1); }
+    30% { transform: skewX(-3.2deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    68% { transform: skewX(1.6deg); animation-timing-function: cubic-bezier(.45,0,.65,1); }
+    100% { transform: skewX(0deg); }
+  }
+  .bow { transform-origin: 60px 100px; animation: bow 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bow { 0%, 100% { transform: rotate(0deg); } 35% { transform: rotate(-4deg); } 70% { transform: rotate(2deg); } }
+  .k i { animation: turn 6s linear infinite; }
+  @keyframes turn {
+    0%, 14% { transform: rotate(45deg) scale(1); animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    20% { transform: rotate(112deg) scale(1.45); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    26%, 100% { transform: rotate(135deg) scale(1); }
+  }
+  h1 i { display: inline-block; clip-path: inset(-.1em -.15em -.12em -.15em); }
+  h1 i span { display: inline-block; animation: sunrise 6s linear infinite; }
+  @keyframes sunrise {
+    0%, 34% { transform: translateY(0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.85,.4); }
+    41% { transform: translateY(170%); opacity: 1; animation-timing-function: steps(1, end); }
+    44% { transform: translateY(170%); opacity: 1; animation-timing-function: cubic-bezier(.2,.75,.25,1); }
+    56%, 100% { transform: translateY(0); opacity: 1; }
+  }
+  .offer b { display: inline-block; transform-origin: 30% 70%; animation: bloom 6s linear infinite; }
+  @keyframes bloom {
+    0%, 60% { transform: scale(1) rotate(0deg); animation-timing-function: cubic-bezier(.2,.9,.3,1.25); }
+    65% { transform: scale(1.12) rotate(-3deg); animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    73%, 100% { transform: scale(1) rotate(0deg); }
+  }
+  .foot .cta { position: relative; overflow: hidden; }
+  .foot .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 36%;
+    background: linear-gradient(90deg, rgba(244,237,224,0), rgba(244,237,224,.4) 50%, rgba(244,237,224,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 80% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    94%, 100% { transform: translateX(340%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <svg class="defs" aria-hidden="true"><defs>
+        <pattern id="gh" width="40" height="40" patternUnits="userSpaceOnUse">
+          <rect width="40" height="40" fill="#1C3F8C"/>
+          <g transform="translate(20 20)">
+            <rect x="-11" y="-11" width="22" height="22" fill="#2A9D9A"/>
+            <rect x="-11" y="-11" width="22" height="22" fill="#2A9D9A" transform="rotate(45)"/>
+            <rect x="-6.5" y="-6.5" width="13" height="13" fill="none" stroke="#F4EDE0" stroke-width="1.4"/>
+            <rect x="-6.5" y="-6.5" width="13" height="13" fill="none" stroke="#F4EDE0" stroke-width="1.4" transform="rotate(45)"/>
+            <circle r="2.6" fill="#E9B949"/>
+          </g>
+          <g fill="#F4EDE0"><path d="M0 16 L4 20 L0 24 Z M40 16 L36 20 L40 24 Z"/></g>
+        </pattern>
+      </defs></svg>
+  <div class="band">
+    <svg class="h" viewBox="0 0 2000 40" preserveAspectRatio="xMinYMid slice" aria-hidden="true">
+      
+      <rect class="run" width="2040" height="40" fill="url(#gh)"/>
+    </svg>
+    <svg class="v" viewBox="0 0 40 2000" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+      <rect class="run" width="40" height="2040" fill="url(#gh)"/>
+    </svg>
+  </div>
+  <div class="panel">
+    <svg class="sabzeh" viewBox="0 0 120 130" aria-hidden="true">
+      <ellipse cx="60" cy="124" rx="46" ry="4" fill="#1B2F5E" fill-opacity=".12"/>
+      <g class="grass">
+        <path d="M21.5 108 Q 18.2 71.7 10.7 47.4" stroke="#5F8F2E" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <path d="M22.5 108 Q 20.7 62.1 16.7 31.4" stroke="#76A83A" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M25.2 108 Q 19.3 73.4 5.6 50.4" stroke="#4E7A26" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M27.3 108 Q 24.5 54.0 18.2 17.9" stroke="#5F8F2E" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M28.4 108 Q 22.7 53.3 9.2 16.9" stroke="#76A83A" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+        <path d="M29.4 108 Q 25.1 72.4 15.2 48.6" stroke="#76A83A" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M32.3 108 Q 27.3 70.8 15.4 46.0" stroke="#5F8F2E" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M34.2 108 Q 31.6 64.0 25.7 34.6" stroke="#8DBB4A" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+        <path d="M36.8 108 Q 33.0 67.0 24.1 39.6" stroke="#76A83A" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+        <path d="M36.4 108 Q 34.1 62.2 28.6 31.7" stroke="#8DBB4A" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+        <path d="M38.3 108 Q 33.9 53.2 23.8 16.7" stroke="#4E7A26" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M40.1 108 Q 37.6 54.3 31.7 18.5" stroke="#5F8F2E" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <path d="M42.5 108 Q 39.6 55.6 33.0 20.6" stroke="#8DBB4A" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M44.2 108 Q 44.4 64.9 44.8 36.1" stroke="#8DBB4A" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+        <path d="M46.1 108 Q 45.8 73.7 44.9 50.8" stroke="#4E7A26" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+        <path d="M47.0 108 Q 43.0 60.2 33.8 28.3" stroke="#4E7A26" stroke-width="2.0" fill="none" stroke-linecap="round"/>
+        <path d="M49.4 108 Q 46.7 64.0 40.6 34.7" stroke="#8DBB4A" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M50.0 108 Q 50.9 66.3 53.1 38.5" stroke="#5F8F2E" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M52.1 108 Q 49.3 68.8 42.8 42.7" stroke="#4E7A26" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M53.4 108 Q 52.0 65.8 48.6 37.6" stroke="#4E7A26" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M54.7 108 Q 52.7 71.1 48.1 46.5" stroke="#76A83A" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M58.5 108 Q 57.1 71.0 54.0 46.3" stroke="#76A83A" stroke-width="2.0" fill="none" stroke-linecap="round"/>
+        <path d="M58.8 108 Q 61.1 62.4 66.5 32.0" stroke="#5F8F2E" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+        <path d="M62.0 108 Q 63.1 53.9 65.9 17.8" stroke="#4E7A26" stroke-width="2.0" fill="none" stroke-linecap="round"/>
+        <path d="M62.2 108 Q 61.9 64.3 61.2 35.2" stroke="#76A83A" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M63.3 108 Q 62.8 71.4 61.6 47.0" stroke="#5F8F2E" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M66.1 108 Q 69.2 63.1 76.3 33.1" stroke="#5F8F2E" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M66.7 108 Q 68.2 66.6 71.5 39.1" stroke="#8DBB4A" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M69.2 108 Q 70.1 72.4 72.2 48.7" stroke="#4E7A26" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+        <path d="M70.4 108 Q 72.9 71.8 78.6 47.7" stroke="#8DBB4A" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+        <path d="M73.2 108 Q 73.0 63.5 72.6 33.9" stroke="#8DBB4A" stroke-width="1.7" fill="none" stroke-linecap="round"/>
+        <path d="M74.5 108 Q 76.2 74.4 80.1 52.0" stroke="#5F8F2E" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+        <path d="M75.3 108 Q 75.1 66.9 74.7 39.4" stroke="#76A83A" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+        <path d="M78.6 108 Q 79.0 67.7 80.1 40.8" stroke="#76A83A" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <path d="M80.4 108 Q 81.0 58.6 82.6 25.6" stroke="#4E7A26" stroke-width="2.0" fill="none" stroke-linecap="round"/>
+        <path d="M79.7 108 Q 80.6 74.4 82.6 52.0" stroke="#8DBB4A" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        <path d="M83.1 108 Q 87.2 67.4 96.8 40.3" stroke="#8DBB4A" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <path d="M84.1 108 Q 85.1 70.1 87.6 44.8" stroke="#76A83A" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+        <path d="M86.1 108 Q 89.5 53.1 97.3 16.5" stroke="#5F8F2E" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+        <path d="M88.3 108 Q 89.1 57.2 90.8 23.4" stroke="#5F8F2E" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M90.4 108 Q 93.5 58.3 100.6 25.2" stroke="#76A83A" stroke-width="2.0" fill="none" stroke-linecap="round"/>
+        <path d="M91.7 108 Q 97.4 73.1 110.8 49.8" stroke="#4E7A26" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+        <path d="M93.7 108 Q 95.4 73.1 99.3 49.9" stroke="#76A83A" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M94.9 108 Q 99.4 64.7 109.9 35.8" stroke="#4E7A26" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+        <path d="M95.9 108 Q 97.6 62.8 101.8 32.7" stroke="#5F8F2E" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <path d="M98.7 108 Q 104.1 72.7 116.7 49.2" stroke="#76A83A" stroke-width="2.0" fill="none" stroke-linecap="round"/>
+      </g>
+      <path d="M14 106 H106 L98 122 Q60 128 22 122 Z" fill="#2A9D9A"/>
+      <path d="M14 106 H106" stroke="#1C3F8C" stroke-width="2"/>
+      <path d="M20 113 H100" stroke="#F4EDE0" stroke-width="1" stroke-dasharray="3 3"/>
+      <g class="bow"><path d="M40 96 Q60 104 80 96 L80 102 Q60 110 40 102 Z" fill="#B3262E"/>
+      <path d="M60 99 C 50 86, 40 90, 46 97 C 50 101, 56 100, 60 99 C 64 100, 70 101, 74 97 C 80 90, 70 86, 60 99 Z" fill="#C8313A"/>
+      <path d="M58 101 L50 116 M62 101 L71 115" stroke="#B3262E" stroke-width="3" stroke-linecap="round"/></g>
+    </svg>
+    <div class="copy">
+      <div class="k"><i></i>Nowruz · Spring equinox</div>
+      <h1>A new<br><i><span>day.</span></i></h1>
+      <div class="p">Fresh starts for the Persian New Year.</div>
+      <div class="offer"><b>13<sup>%</sup></b><span>Off until<br><em>the 13th day</em></span></div>
+      <div class="foot"><span class="code">Code NOWRUZ13</span><span class="cta">Shop spring</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

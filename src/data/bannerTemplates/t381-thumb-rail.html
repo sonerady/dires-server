@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Thumb Rail — a luxury product page at rest: a vertical rail of detail thumbnails (crops of the same photo,
+     the first one active), the main image with a quiet counter, and the buy box — serif name, price with duties,
+     colour dots, a size row with the chosen size filled, "Add to bag" and a service line.
+     tall → gallery above the buy box; 3:4 and wider → gallery left, buy box right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F1EC; }
+  .banner { --top: 10vmin; --panel: 66vmin; position: fixed; inset: 0; overflow: hidden; background: #F4F1EC; color: #1A1917; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+
+  .nav { position: absolute; left: 5vmin; right: 5vmin; top: 0; height: var(--top); display: flex; align-items: center; justify-content: space-between; font-size: 1.7vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: #6E6A63; white-space: nowrap; }
+  .nav .wm { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 2.5vmin; font-weight: 500; letter-spacing: .42em; color: #1A1917; padding-left: .42em; }
+  .nav .bag { display: flex; align-items: center; gap: 1vmin; color: #1A1917; }
+  .nav .bag svg { width: 2.6vmin; height: 2.6vmin; }
+
+  .gal { position: absolute; left: 0; right: 0; top: var(--top); bottom: var(--panel); }
+  .rail { position: absolute; left: 5vmin; top: 0; width: 12vmin; display: flex; flex-direction: column; gap: 1.4vmin; }
+  .th { position: relative; height: 15vmin; overflow: hidden; background: #E6E1D8; }
+  .th img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .th.c2 img { transform: scale(2.3); transform-origin: 50% 24%; }
+  .th.c3 img { transform: scale(2.6); transform-origin: 50% 55%; }
+  .th.c4 img { transform: scale(2.4); transform-origin: 50% 86%; }
+  .th:not(.on) { opacity: .78; }
+  .th.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: .5vmin; background: #1A1917; }
+  .count { margin-top: 1.6vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .14em; color: #6E6A63; }
+  .count b { color: #1A1917; font-weight: 600; }
+
+  .main { position: absolute; left: 19.5vmin; right: 5vmin; top: 0; bottom: 0; overflow: hidden; background: #E6E1D8; }
+  .main img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .zoom { position: absolute; right: 2vmin; bottom: 2vmin; width: 5.4vmin; height: 5.4vmin; border-radius: 50%; background: rgba(244,241,236,.92); display: flex; align-items: center; justify-content: center; }
+  .zoom svg { width: 2.6vmin; height: 2.6vmin; }
+
+  .box { position: absolute; left: 5vmin; right: 5vmin; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 4.2vmin 0 4.6vmin; display: flex; flex-direction: column; }
+  .eyebrow { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: #6E6A63; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Cormorant Garamond", "Times New Roman", serif; font-weight: 400; font-size: 7.6vmin; line-height: .95; letter-spacing: -.01em; white-space: nowrap; }
+  h1 i { font-style: italic; }
+  .price { margin-top: 1.6vmin; display: flex; align-items: baseline; gap: 1.6vmin; white-space: nowrap; }
+  .price b { font-size: 3vmin; font-weight: 500; letter-spacing: .02em; }
+  .price span { font-size: 1.7vmin; color: #6E6A63; letter-spacing: .04em; }
+  .desc { display: none; margin: 2.2vmin 0 0; font-size: 1.9vmin; line-height: 1.55; color: #55514A; }
+  .row { margin-top: 2.6vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(26,25,23,.18); display: flex; align-items: center; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .row em { font-style: normal; color: #6E6A63; }
+  .dots { display: flex; gap: 1.6vmin; }
+  .dots i { width: 3vmin; height: 3vmin; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(26,25,23,.2); }
+  .dots i:nth-child(1) { background: #EDE3D0; box-shadow: inset 0 0 0 1px rgba(26,25,23,.2), 0 0 0 .5vmin #F4F1EC, 0 0 0 .7vmin #1A1917; }
+  .dots i:nth-child(2) { background: #B99A74; }
+  .dots i:nth-child(3) { background: #1F1E1C; }
+  .sizes-h { margin-top: 2.4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .sizes-h u { text-decoration: none; border-bottom: 1px solid #1A1917; padding-bottom: .2vmin; font-size: 1.7vmin; }
+  .sizes { margin-top: 1.4vmin; display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2vmin; }
+  .sizes span { display: flex; align-items: center; justify-content: center; height: 5.4vmin; border: 1px solid rgba(26,25,23,.28); font-size: 1.9vmin; font-weight: 500; letter-spacing: .06em; }
+  .sizes span.on { background: #1A1917; border-color: #1A1917; color: #F4F1EC; }
+  .sizes span.out { color: #A9A49B; background: linear-gradient(to top right, transparent calc(50% - .5px), rgba(26,25,23,.25) 50%, transparent calc(50% + .5px)); }
+  .buy { margin-top: auto; display: flex; gap: 1.4vmin; }
+  .cta { flex: 1; display: flex; align-items: center; justify-content: center; height: 7vmin; background: #1A1917; color: #F4F1EC; font-size: 2vmin; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .fav { flex: none; width: 7vmin; height: 7vmin; box-sizing: border-box; border: 1px solid rgba(26,25,23,.35); display: flex; align-items: center; justify-content: center; }
+  .fav svg { width: 2.8vmin; height: 2.8vmin; }
+  .svc { margin-top: 1.8vmin; text-align: center; font-size: 1.7vmin; color: #6E6A63; letter-spacing: .04em; white-space: nowrap; }
+
+  /* ── 3:4 / 4:5: gallery left, buy box right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --top: 9vmin; }
+    .gal { right: 43%; bottom: 0; }
+    .rail { left: 4vmin; width: 10vmin; gap: 1.2vmin; }
+    .th { height: 12.5vmin; }
+    .main { left: 16vmin; right: 0; }
+    .box { left: calc(57% + 4.5vmin); right: 4.5vmin; top: var(--top); height: auto; padding: 1vmin 0 5vmin; }
+    .eyebrow span + span { display: none; }
+    h1 { font-size: 6.4vmin; white-space: normal; }
+    .price { flex-direction: column; gap: .6vmin; }
+    .row { margin-top: 3vmin; }
+    .dots { gap: 1.3vmin; }
+    .dots i { width: 2.6vmin; height: 2.6vmin; }
+    .sizes { grid-template-columns: repeat(3, 1fr); gap: 1vmin; }
+    .sizes span { height: 4.8vmin; }
+    .cta { height: 6.4vmin; font-size: 1.8vmin; letter-spacing: .16em; }
+    .fav { width: 6.4vmin; height: 6.4vmin; }
+    .svc { white-space: normal; text-align: left; line-height: 1.5; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .gal { right: 44%; }
+    .rail { left: 4vmin; width: 10.5vmin; }
+    .th { height: 13vmin; }
+    .main { left: 16.5vmin; }
+    .box { left: calc(56% + 5vmin); right: 5vmin; padding-bottom: 5vmin; }
+    h1 { font-size: 6.6vmin; }
+    .price { flex-direction: row; gap: 1.4vmin; }
+    .sizes { grid-template-columns: repeat(5, 1fr); gap: .9vmin; }
+    .sizes span { height: 5vmin; font-size: 1.8vmin; }
+    .svc { text-align: center; }
+    .desc { display: block; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --top: 9vmin; }
+    .nav .wm { left: 50%; }
+    .gal { right: 48%; }
+    .rail { left: 5vmin; width: 11vmin; gap: 1.4vmin; }
+    .th { height: 14vmin; }
+    .main { left: 18vmin; }
+    .box { left: calc(52% + 7vmin); right: 7vmin; padding: 2vmin 0 6vmin; }
+    .eyebrow span + span { display: inline; }
+    h1 { font-size: 8vmin; white-space: nowrap; }
+    .price b { font-size: 3.2vmin; }
+    .row { margin-top: 3.4vmin; padding-top: 3vmin; }
+    .sizes-h { margin-top: 3vmin; }
+    .sizes span { height: 5.6vmin; font-size: 1.9vmin; }
+    .cta { height: 7vmin; font-size: 2vmin; letter-spacing: .22em; }
+    .fav { width: 7vmin; height: 7vmin; }
+    .svc { white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="nav">
+    <span>New in / Collection</span>
+    <span class="wm">Atelier Nord</span>
+    <span class="bag"><svg viewBox="0 0 24 24" fill="none" stroke="#1A1917" stroke-width="1.4"><path d="M5 8h14l-1 13H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>1</span>
+  </div>
+  <div class="gal">
+    <div class="rail">
+      <div class="th on"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="th c2"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="th c3"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="th c4"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="count"><b>01</b> / 04</div>
+    </div>
+    <div class="main"><img src="{{PRODUCT_IMAGE}}" alt="">
+      <div class="zoom"><svg viewBox="0 0 24 24" fill="none" stroke="#1A1917" stroke-width="1.5"><path d="M12 5v14M5 12h14"/></svg></div>
+    </div>
+  </div>
+  <div class="box">
+    <div class="eyebrow"><span>New season</span><span>Ref. 2604–11</span></div>
+    <h1>The <i>Soleil</i> Piece</h1>
+    <div class="price"><b>$480</b><span>Duties &amp; taxes included</span></div>
+    <p class="desc">Cut in washed natural fibres and finished by hand in small runs. Made to be worn slowly, season after season.</p>
+    <div class="row"><span>Colour <em>— Ecru</em></span><span class="dots"><i></i><i></i><i></i></span></div>
+    <div class="sizes-h"><span>Size</span><u>Size guide</u></div>
+    <div class="sizes"><span>XS</span><span class="on">S</span><span>M</span><span>L</span><span class="out">XL</span></div>
+    <div class="buy"><span class="cta">Add to bag</span><span class="fav"><svg viewBox="0 0 24 24" fill="none" stroke="#1A1917" stroke-width="1.4"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span></div>
+    <div class="svc">Complimentary express delivery · 30-day returns</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Gouache Blocks — a grid of flat, opaque gouache patches brushed onto cream board, each one a cell of
+     the layout (headline, number, price, story, call to action) around the photo; brush-drag streaks and
+     wobbly painted edges come from an SVG filter, the paper shows through the gaps.
+     tall → headline row, photo, blocks below · square → photo left 2/3 · wide → photo left half */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EBDD; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1C1B1A; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(160deg, #F5EFE3 0%, #EFE7D7 100%); }
+  .defs { position: absolute; width: 0; height: 0; }
+
+  .grid { position: absolute; inset: 3.4vmin; display: grid; gap: 2vmin;
+    grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 30vmin 1fr 22vmin 11vmin;
+    grid-template-areas: "head head tag" "photo photo photo" "price info info" "cta cta note"; }
+  .blk { position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 3vmin; box-sizing: border-box; min-width: 0; min-height: 0; }
+  .blk > svg { position: absolute; left: -.6vmin; top: -.6vmin; width: calc(100% + 1.2vmin); height: calc(100% + 1.2vmin); }
+  .blk > * { position: relative; }
+  .ph { grid-area: photo; position: relative; min-height: 0; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+
+  .head { grid-area: head; color: #F6EEDF; }
+  .kick { font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; opacity: .85; white-space: nowrap; }
+  h1 { margin: 0; font-size: 10.6vmin; font-weight: 800; line-height: .88; letter-spacing: -.035em; }
+  .tag { grid-area: tag; align-items: flex-start; }
+  .tag b { font-size: 8vmin; font-weight: 800; line-height: .9; letter-spacing: -.04em; white-space: nowrap; }
+  .tag span { font-size: 1.7vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  .price { grid-area: price; color: #FFF3E6; }
+  .price span { font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .price b { font-size: 9vmin; font-weight: 800; line-height: .9; letter-spacing: -.04em; white-space: nowrap; }
+  .info { grid-area: info; justify-content: center; font-size: 2.3vmin; font-weight: 400; line-height: 1.4; }
+  .cta { grid-area: cta; flex-direction: row; align-items: center; color: #F2EEDD; font-size: 2.3vmin; font-weight: 600; white-space: nowrap; padding: 0 3vmin; }
+  .note { grid-area: note; justify-content: center; font-size: 1.6vmin; font-weight: 600; line-height: 1.3; letter-spacing: .04em; padding: 0 2.4vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .grid { grid-template-rows: 26vmin 1fr 20vmin 10vmin; }
+    h1 { font-size: 9.4vmin; }
+    .info { font-size: 2.1vmin; }
+  }
+  /* ── square-ish: photo takes the left two-thirds ── */
+  @media (min-aspect-ratio: 9/10) {
+    .grid { inset: 3vmin; gap: 1.8vmin; grid-template-columns: 1fr 1fr 1.05fr; grid-template-rows: 1.25fr 1fr 16vmin 10vmin;
+      grid-template-areas: "photo photo head" "photo photo info" "photo photo price" "tag cta note"; }
+    h1 { font-size: 7.6vmin; }
+    .kick { font-size: 1.6vmin; }
+    .info { font-size: 1.9vmin; padding: 2.4vmin; }
+    .price { flex-direction: row; align-items: flex-end; padding: 2.4vmin; }
+    .price b { font-size: 7.4vmin; }
+    .tag { flex-direction: row; align-items: center; gap: 1.4vmin; padding: 0 2.4vmin; }
+    .tag b { font-size: 4.4vmin; }
+    .cta { font-size: 2vmin; padding: 0 2.4vmin; }
+    .note { padding: 0 2vmin; }
+  }
+  /* ── wide: photo left half ── */
+  @media (min-aspect-ratio: 6/5) {
+    .grid { inset: 3.4vmin; gap: 2vmin; grid-template-columns: 1fr 1fr .8fr .8fr; grid-template-rows: 1.15fr 1fr 12vmin;
+      grid-template-areas: "photo photo head head" "photo photo info price" "photo photo cta tag"; }
+    h1 { font-size: 10vmin; }
+    .info { font-size: 2vmin; padding: 3vmin; }
+    .price { flex-direction: column; align-items: flex-start; }
+    .price b { font-size: 8vmin; }
+    .tag b { font-size: 5vmin; }
+    .note { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <filter id="gouache" x="-4%" y="-4%" width="108%" height="108%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="3" seed="14" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.4" numOctaves="2" seed="7" result="s"/>
+      <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -.9 0 0 0 1.38" result="sm"/>
+      <feComposite in="d" in2="sm" operator="in"/>
+    </filter>
+    <rect id="patch" x="1.5" y="1.5" width="97" height="97"/>
+  </defs></svg>
+
+  <div class="grid">
+    <div class="blk head"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><use href="#patch" fill="#2446A6" filter="url(#gouache)"/></svg>
+      <div class="kick">Bloc Studio · SS27</div><h1>Colour<br>first.</h1></div>
+    <div class="blk tag"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><use href="#patch" fill="#E9B23A" filter="url(#gouache)"/></svg>
+      <b>Nº 12</b><span>New drop</span></div>
+    <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="blk price"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><use href="#patch" fill="#DE4429" filter="url(#gouache)"/></svg>
+      <span>From</span><b>$68</b></div>
+    <div class="blk info"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><use href="#patch" fill="#F2C3BC" filter="url(#gouache)"/></svg>
+      <div>Flat, fearless colour in thick opaque coats. Mix the blocks, make it yours.</div></div>
+    <div class="blk cta"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><use href="#patch" fill="#1F5A45" filter="url(#gouache)"/></svg>
+      <span>Shop the colours →</span></div>
+    <div class="blk note"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><use href="#patch" fill="#A9BDEA" filter="url(#gouache)"/></svg>
+      <div>Free delivery this week</div></div>
+  </div>
+</div>
+</body>
+</html>

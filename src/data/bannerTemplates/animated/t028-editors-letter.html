@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Mrs+Saint+Delafield&family=Instrument+Sans:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Editor's Letter — a signed letter from the editor: drop cap, serif body, fountain-pen signature, P.S. with the code.
+     tall → portrait photo above the letter · square & wide → portrait crop left, letter right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F7F2EA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F7F2EA; color: #2A2521; font-family: "Libre Caslon Text", "Times New Roman", Georgia, serif; }
+  .sans { font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+
+  .top { position: absolute; left: 6vmin; right: 6vmin; top: 4vmin; display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; }
+  .top span:last-child { font-weight: 500; color: #7B7064; }
+  .photo { position: absolute; left: 0; top: 10vmin; width: 100%; height: calc(100% - 10vmin - 62vmin); object-fit: cover; object-position: 50% 18%; }
+
+  .letter { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; height: 53vmin; display: flex; flex-direction: column; justify-content: flex-end; }
+  .dear { font-style: italic; font-size: 5.4vmin; line-height: 1; margin-bottom: 2.4vmin; }
+  .body { margin: 0; font-size: 2.75vmin; line-height: 1.5; text-align: justify; hyphens: auto; }
+  .body::first-letter { float: left; font-weight: 700; font-size: 9.6vmin; line-height: .8; padding: .7vmin 1.4vmin 0 0; color: #23355E; }
+  .sign { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 3.4vmin; }
+  .sig { font-family: "Mrs Saint Delafield", "Snell Roundhand", cursive; font-size: 13vmin; line-height: 1; color: #23355E; white-space: nowrap; transform: rotate(-4deg); transform-origin: left bottom; margin-left: -1vmin; }
+  .role { text-align: right; padding-bottom: 2vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; line-height: 1.6; }
+  .role span { display: block; font-weight: 500; color: #7B7064; }
+  .ps { margin-top: 1.4vmin; padding-top: 1.8vmin; border-top: 1px solid rgba(42,37,33,.35); font-style: italic; font-size: 2.6vmin; line-height: 1.35; }
+  .ps b { font-style: normal; font-family: "Instrument Sans", Arial, sans-serif; font-weight: 600; letter-spacing: .14em; font-size: 2.1vmin; background: #23355E; color: #F7F2EA; padding: .3vmin 1vmin; margin: 0 .4vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .top { top: 3.6vmin; }
+    .photo { top: 9vmin; height: calc(100% - 9vmin - 52vmin); }
+    .letter { left: 6vmin; right: 6vmin; height: 46vmin; bottom: 4vmin; }
+    .dear { font-size: 4.6vmin; margin-bottom: 1.6vmin; }
+    .body { font-size: 2.4vmin; }
+    .body::first-letter { font-size: 8.4vmin; }
+    .sig { font-size: 11vmin; }
+    .ps { font-size: 2.3vmin; }
+  }
+  /* square — portrait crop on the left, the letter on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { top: 0; width: 42%; height: 100%; object-position: 50% 25%; }
+    .top { left: calc(42% + 5vmin); right: 5vmin; top: 5vmin; }
+    .top span:last-child { display: none; }
+    .letter { left: calc(42% + 5vmin); right: 5vmin; top: 10vmin; bottom: 5vmin; height: auto; justify-content: center; }
+    .dear { font-size: 4.2vmin; }
+    .body { font-size: 2.2vmin; line-height: 1.45; }
+    .body::first-letter { font-size: 7.6vmin; }
+    .sig { font-size: 8.6vmin; }
+    .role { font-size: 1.6vmin; }
+    .ps { font-size: 2.1vmin; }
+    .ps b { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 36%; }
+    .top { left: calc(36% + 8vmin); right: 8vmin; }
+    .top span:last-child { display: inline; }
+    .letter { left: calc(36% + 8vmin); right: 8vmin; top: 11vmin; bottom: 6vmin; }
+    .dear { font-size: 4.8vmin; }
+    .body { font-size: 2.7vmin; max-width: 70vmin; }
+    .sign, .ps { max-width: 70vmin; }
+    .letter { justify-content: center; }
+    .sig { font-size: 11vmin; }
+    .ps { font-size: 2.3vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* the signature is lifted off the page, then written again with the fountain pen, left to right */
+  .sig { clip-path: inset(-40% -20% -40% -10%); animation: sign 6s linear infinite; }
+  @keyframes sign {
+    0%, 30% { opacity: 1; clip-path: inset(-40% -20% -40% -10%); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    36% { opacity: 0; clip-path: inset(-40% -20% -40% -10%); animation-timing-function: steps(1, end); }
+    37% { opacity: 1; clip-path: inset(-40% 100% -40% -10%); animation-timing-function: cubic-bezier(.45,.05,.4,.95); }
+    41% { clip-path: inset(-40% 100% -40% -10%); animation-timing-function: cubic-bezier(.35,.1,.45,.95); }
+    64%, 100% { opacity: 1; clip-path: inset(-40% -20% -40% -10%); }
+  }
+  /* the printed name answers once the ink is down */
+  .role { animation: role 6s linear infinite; }
+  @keyframes role {
+    0%, 32% { opacity: 1; transform: translateY(0); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    37% { opacity: 0; transform: translateY(0); animation-timing-function: steps(1, end); }
+    62% { opacity: 0; transform: translateY(.8vmin); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    72%, 100% { opacity: 1; transform: translateY(0); }
+  }
+  /* P.S. code: a slow satin sheen crosses the ink block */
+  .ps b { background: linear-gradient(105deg, rgba(255,255,255,0) 40%, rgba(255,255,255,.26) 50%, rgba(255,255,255,0) 60%) 100% 0 / 300% 100% no-repeat, #23355E; animation: satin 6s linear infinite; }
+  @keyframes satin {
+    0%, 74% { background-position: 100% 0, 0 0; animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    90%, 100% { background-position: 0% 0, 0 0; }
+  }
+  /* photo: an unhurried push-in */
+  .photo { animation: push 6s linear infinite; }
+  @keyframes push {
+    0% { transform: scale(1); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: scale(1.025); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    100% { transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top sans"><span>A letter from the editor</span><span>Autumn 2026</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="letter">
+    <div class="dear">Dear reader,</div>
+    <p class="body">This season we went back to the beginning: good cloth, honest cuts and pieces you reach for every single morning. The new collection is finally here, and for this week only it is 20% off, just for you.</p>
+    <div class="sign"><div class="sig">Clara Weiss</div><div class="role sans">Clara Weiss<span>Editor-in-chief</span></div></div>
+    <div class="ps">P.S. Use code <b>DEAR20</b> at checkout. Ends Sunday.</div>
+  </div>
+</div>
+</body>
+</html>

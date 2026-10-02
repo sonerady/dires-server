@@ -24,6 +24,7 @@ const {
 } = require("../utils/studioTools");
 const { marketplaceMainImage, exactSize, standardOutput } = require("../utils/studioToolPost");
 const { GPT25_EDIT_MODEL: STUDIO_GPT25_EDIT_MODEL, buildEditInput: buildStudioEditInput } = require("../utils/gpt25Edit");
+const { parseCanvasPlacement, prepareExpandCanvas, canvasPromptTool, canvasPromptValues, buildExpandCanvasPrompt, finishExpandResult } = require("../utils/expandCanvas");
 const { recordRefundCharge } = require("../services/refundChargeEvidence");
 const { normalizeGenerationAge, ageDirective } = require("../utils/generationAge");
 const { isBagShoot, buildBagFocusDirective, buildBagDirection, buildBagEnhanceInstruction } = require("../utils/bagCampaignPrompt");
@@ -5190,7 +5191,7 @@ function finalizeGenerationPrompt(enhancedPrompt, {
  * hata olursa kayıt "failed" olur, kredi hiç düşmemiş olur.
  */
 async function runStudioToolGeneration({ res, tool, options, meta, userId, generationId, imageUrls, ratio, customDetail, temporaryFiles }) {
-  const prompt = buildStudioPrompt(tool, {
+  const promptInput = {
     values: options.values,
     texts: options.texts,
     details: customDetail || "",
@@ -5199,18 +5200,46 @@ async function runStudioToolGeneration({ res, tool, options, meta, userId, gener
     variantIndex: meta.variantIndex,
     variantTotal: meta.variantTotal,
     language: meta.language,
-  });
+    foodStylePrompt: meta.foodStylePrompt || "",
+  };
+  let prompt = buildStudioPrompt(tool, promptInput);
   logger.log(`🛍️ [STUDIO] ${tool.id} gen:${String(generationId).slice(0, 8)} görsel:${imageUrls.length} oran:${ratio} varyasyon:${meta.variantIndex + 1}/${meta.variantTotal}`);
   setGenerationProgress(generationId, "generating");
   try {
+    // 🧩 Tuval yerleşimi varsa: fotoğraf hedef tuvale gerçekten konur, maskeyle yalnız boş alan doldurulur
+    let expand = null;
+    if (meta.canvas && imageUrls[0]) {
+      const size = gpt25ImageSize(ratio);
+      if (size && size.width) {
+        const src = await axios.get(imageUrls[0], { responseType: "arraybuffer", timeout: 60000, maxContentLength: 60 * 1024 * 1024 });
+        const prepared = await prepareExpandCanvas(Buffer.from(src.data), meta.canvas, size.width, size.height);
+        const stamp = `${String(generationId).slice(0, 8)}_${Date.now()}`;
+        const put = async (name, buffer) => {
+          const path = `studioExpand/${stamp}_${name}.png`;
+          const { error } = await supabase.storage.from("images").upload(path, buffer, { contentType: "image/png", upsert: true });
+          if (error) throw new Error(`expand upload: ${error.message}`);
+          return supabase.storage.from("images").getPublicUrl(path).data.publicUrl;
+        };
+        const [canvasUrl, maskUrl] = await Promise.all([put("canvas", prepared.canvas), put("mask", prepared.mask)]);
+        expand = { ...prepared, W: size.width, H: size.height, canvasUrl, maskUrl };
+        // Tuval istemi (30 Eyl 2026): geometri açıkça yazılır; "ortada tut, her yöne eşit genişlet" konum satırı ve
+        // "tuvali dışa genişlet" yönü çıkar — model ikisini "sahneyi uzaklaştır/ortala" diye okuyordu.
+        prompt = buildExpandCanvasPrompt(
+          buildStudioPrompt(canvasPromptTool(tool), { ...promptInput, values: canvasPromptValues(options.values) }),
+          prepared.rect, size.width, size.height,
+        );
+        logger.log(`🧩 [STUDIO] genişlet tuvali ${size.width}×${size.height} · foto ${prepared.rect.width}×${prepared.rect.height}@${prepared.rect.left},${prepared.rect.top}`);
+      }
+    }
     const input = buildStudioEditInput(STUDIO_GPT25_EDIT_MODEL, {
       prompt,
-      image_urls: imageUrls,
+      image_urls: expand ? [expand.canvasUrl] : imageUrls,
       aspect_ratio: ratio,
-      image_size: resolveStudioImageSize(tool, options.values) || undefined,
+      image_size: expand ? { width: expand.W, height: expand.H } : resolveStudioImageSize(tool, options.values) || undefined,
       quality: "high",
       num_images: 1,
       output_format: "png",
+      ...(expand ? { mask_url: expand.maskUrl } : {}),
     });
     let rawBuffer = null;
     let lastError = null;
@@ -5234,6 +5263,21 @@ async function runStudioToolGeneration({ res, tool, options, meta, userId, gener
     if (!rawBuffer) throw lastError || new Error("generation_failed");
 
     setGenerationProgress(generationId, "finishing");
+    // 🧩 Genişlet (30 Eyl 2026): GPT Image 2.5 maskeyi yalnız ipucu sayıyor, kareyi yeniden çizip ölçekleyebiliyor
+    // (kırmızı elbise testinde sahneyi ~0,8× uzaklaştırdı; 26 Eyl'deki "maske zaten koruyor" varsayımı yanlıştı).
+    // Çıktı tuvale oturtulur, gerekirse hizalanır ve orijinal fotoğraf dikdörtgenine geri konur → orijinal alan
+    // piksel piksel aynı, yalnız yeni alana bakan kenarlarda ince yumuşak geçiş (utils/expandCanvas).
+    let expandMeta = null;
+    if (expand) {
+      try {
+        const finished = await finishExpandResult(rawBuffer, expand);
+        rawBuffer = finished.buffer;
+        expandMeta = finished.meta;
+        logger.log(`🧩 [STUDIO] genişlet sonucu ${expandMeta.alignment} ölçek:${expandMeta.scale} kayma:${expandMeta.dx},${expandMeta.dy} ncc:${expandMeta.ncc} ${expandMeta.ms}ms`);
+      } catch (finishError) {
+        console.error(`❌ [STUDIO] genişlet bitirme başarısız, model çıktısı olduğu gibi kullanılıyor:`, finishError.message);
+      }
+    }
     let output;
     if (tool.post?.type === "mainImage" && STUDIO_MAIN_IMAGE_SPECS[options.values.platform]) {
       output = await marketplaceMainImage(rawBuffer, STUDIO_MAIN_IMAGE_SPECS[options.values.platform]);
@@ -5244,6 +5288,7 @@ async function runStudioToolGeneration({ res, tool, options, meta, userId, gener
     } else {
       output = await standardOutput(rawBuffer);
     }
+    if (expandMeta) output.meta.expand = { alignment: expandMeta.alignment, scale: expandMeta.scale, ncc: expandMeta.ncc };
 
     const fileName = `${userId}/${Date.now()}_studio_${tool.id}_${uuidv4().substring(0, 8)}.jpg`;
     const { error: uploadError } = await supabase.storage
@@ -5292,7 +5337,8 @@ async function runStudioToolGeneration({ res, tool, options, meta, userId, gener
   }
 }
 
-router.post("/generate", async (req, res) => {
+router.post("/generate", (req,res,next) => req.body?.foodStyleProfileId
+  ? require('../middleware/refundIdentity').refundIdentity(supabase)(req,res,next) : next(), async (req, res) => {
   // 🔎 Teşhis logu (21 Ağu): "polling 404: kayıt yok" vakalarında POST'un
   // sunucuya ULAŞIP ulaşmadığını ayırt etmek için handler'ın İLK satırı.
   // Başarısız generationId bu logda yoksa istek istemciden hiç çıkamamıştır.
@@ -5367,6 +5413,14 @@ router.post("/generate", async (req, res) => {
         studioOptions = validateStudioOptions(studioTool, req.body.studioOptions || {});
         const productCount = Math.floor(Number(req.body.studioProductCount));
         const refs = Array.isArray(req.body.studioRefs) ? req.body.studioRefs : [];
+        let foodStyle=null;
+        if(req.body.foodStyleProfileId){
+          if(studioTool.id!=='food-photography')throw new Error('food_style_tool');
+          foodStyle=await require('../utils/foodStyleSelection').resolveFoodStyle(supabase,req.body.foodStyleProfileId,userId);
+          // Canonical profile images replace any client-submitted style images.
+          referenceImages=[...(referenceImages||[]).slice(0,productCount),...foodStyle.images.map(uri=>({uri}))];
+          refs.splice(0,refs.length,{id:'style',count:foodStyle.images.length});
+        }
         const images = Array.isArray(referenceImages) ? referenceImages.length : 0;
         if (!(productCount >= 1 && productCount <= (studioTool.upload?.max || 4))) throw new Error("product_count");
         let refTotal = 0;
@@ -5383,14 +5437,16 @@ router.post("/generate", async (req, res) => {
         const variantTotal = Math.min(4, Math.max(1, Math.floor(Number(req.body.studioVariantTotal) || 1)));
         const variantIndex = Math.min(variantTotal - 1, Math.max(0, Math.floor(Number(req.body.studioVariantIndex) || 0)));
         const language = /^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(req.body.studioLanguage || "") ? req.body.studioLanguage : "en";
-        studioMeta = { productCount, refs: normalizedRefs, variantIndex, variantTotal, language };
+        studioMeta = { productCount, refs: normalizedRefs, variantIndex, variantTotal, language, ...(foodStyle ? {foodStyleProfileId:foodStyle.id,foodStylePrompt:foodStyle.prompt}: {}) };
+        // 🧩 Görselin Çevresini Genişlet: uygulamanın tuval düzenleyicisinden gelen yerleşim (26 Eyl 2026; eski sürümler göndermez)
+        if (studioTool.id === "smart-canvas-expansion") studioMeta.canvas = parseCanvasPlacement(req.body.studioCanvas);
       } catch (validationError) {
         logger.warn(`🛍️ [STUDIO] geçersiz istek (${req.body.studioToolKey}): ${validationError.message}`);
         return res.status(400).json({ success: false, result: { errorCode: "INVALID_STUDIO_OPTIONS", message: "Invalid studio tool options" } });
       }
       ratio = resolveStudioRatio(studioTool, ratio, studioOptions.values);
       promptText = promptText || `[${studioTool.id}] ${studioTool.title.en}`;
-      customDetail = typeof customDetail === "string" ? customDetail.slice(0, 1500) : "";
+      customDetail = typeof customDetail === "string" ? customDetail : "";
       isEditMode = false;
       isRefinerMode = false;
       isColorChange = false;
@@ -5413,6 +5469,7 @@ router.post("/generate", async (req, res) => {
         studioToolKey: studioTool.id,
         studioOptions: studioOptions.values,
         studioTexts: studioOptions.texts,
+        ...(studioMeta.foodStyleProfileId ? {foodStyleProfileId:studioMeta.foodStyleProfileId} : {}),
         studioVariantIndex: studioMeta.variantIndex,
         studioVariantTotal: studioMeta.variantTotal,
         source: "product-studio",

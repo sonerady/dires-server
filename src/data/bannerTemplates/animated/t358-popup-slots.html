@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Albert+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Pop-up Slots — a Seoul pop-up store announcement run like its booking page: wide rounded display type,
+     the run dates, and a card of half-hour visiting slots (some full and struck, one picked in lilac with a tick),
+     a walking-distance pin and a first-100 gift note.
+     tall → photo, then title + slot card · square & wide → photo left, booking column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F2FB; }
+  .banner { position: fixed; inset: 0; overflow: hidden; box-sizing: border-box; padding: 4.6vmin 5.5vmin 5vmin; color: #252046;
+    font-family: "Albert Sans", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(80% 45% at 0% 100%, #E6E0FF 0%, rgba(230,224,255,0) 70%), #F4F2FB;
+    display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas: "top" "ph" "ttl" "card" "foot"; }
+
+  .top { grid-area: top; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.4vmin; white-space: nowrap; font-size: 1.8vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  .top span:last-child { letter-spacing: .06em; font-weight: 500; color: #6A6590; text-transform: none; }
+  .top i { display: inline-block; width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: #7B61FF; margin-right: 1vmin; box-shadow: 0 0 0 .6vmin rgba(123,97,255,.18); }
+
+  .ph { grid-area: ph; position: relative; overflow: hidden; min-height: 0; background: #E4E1EF; }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+
+  .ttl { grid-area: ttl; margin-top: 3vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 2vmin; }
+  h1 { margin: 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 700; font-size: 9.6vmin; line-height: .92; letter-spacing: -.04em; white-space: nowrap; }
+  h1 small { display: block; font-size: 2vmin; font-weight: 400; letter-spacing: .04em; margin-bottom: 1.4vmin; color: #6A6590; }
+  .dates { flex: none; text-align: right; font-family: "Unbounded", sans-serif; font-weight: 600; font-size: 2.8vmin; line-height: 1.15; letter-spacing: -.02em; white-space: nowrap; }
+  .dates span { display: block; font-family: "Albert Sans", sans-serif; font-weight: 500; font-size: 1.7vmin; letter-spacing: .1em; color: #6A6590; margin-top: .6vmin; }
+
+  .card { grid-area: card; margin-top: 2.6vmin; background: #fff; border-radius: 3vmin; padding: 2.4vmin 2.6vmin 2.6vmin; box-shadow: 0 .8vmin 2.4vmin rgba(70,50,160,.08); }
+  .card .h { display: flex; justify-content: space-between; align-items: center; font-size: 1.9vmin; font-weight: 700; white-space: nowrap; margin-bottom: 1.8vmin; }
+  .card .h span { font-weight: 500; color: #8A86A6; font-size: 1.7vmin; display: flex; align-items: center; gap: 1.4vmin; }
+  .card .h span i { display: inline-block; width: 1.2vmin; height: 1.2vmin; border-radius: 50%; margin-right: .5vmin; background: #CFEFE0; box-shadow: inset 0 0 0 1px #6CCB9E; }
+  .card .h span i.f { background: #EDEBF3; box-shadow: none; }
+  .slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.1vmin; }
+  .s { text-align: center; font-weight: 600; font-size: 2vmin; padding: 1.2vmin 0; border-radius: 1.6vmin; background: #F0FAF5; color: #22674A; box-shadow: inset 0 0 0 1px #BFE8D4; white-space: nowrap; }
+  .s.full { background: #F2F1F6; color: #B2AFC4; box-shadow: none; text-decoration: line-through; }
+  .s.pick { background: #7B61FF; color: #fff; box-shadow: 0 .6vmin 1.4vmin rgba(123,97,255,.35); }
+  .s.pick::after { content: " ✓"; }
+
+  .foot { grid-area: foot; margin-top: 2.4vmin; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; white-space: nowrap; }
+  .pin { display: flex; align-items: center; gap: 1.2vmin; font-size: 1.8vmin; line-height: 1.35; color: #4A4570; }
+  .pin svg { width: 3.4vmin; height: 3.4vmin; flex: none; }
+  .pin b { color: #252046; font-weight: 700; display: block; }
+  .go { font-weight: 700; font-size: 2vmin; color: #fff; background: #252046; border-radius: 4vmin; padding: 1.6vmin 2.8vmin; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4vmin 5vmin 4.4vmin; }
+    .top { margin-bottom: 2vmin; }
+    .ttl { margin-top: 2.4vmin; }
+    h1 { font-size: 7vmin; }
+    h1 small { display: none; }
+    .card { margin-top: 2vmin; padding: 2vmin 2.4vmin; }
+    .s { padding: 1vmin 0; }
+    .foot { margin-top: 1.8vmin; }
+  }
+  /* SQUARE — photo left, booking column right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { padding: 4.6vmin; column-gap: 4.4vmin; grid-template-columns: 44% minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto;
+      grid-template-areas: "ph top" "ph ttl" "ph card" "ph foot"; }
+    .top { margin-bottom: 0; }
+    .ttl { margin-top: 0; align-self: center; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    h1 { font-size: 7.4vmin; }
+    h1 small { display: block; }
+    .dates { text-align: left; }
+    .slots { gap: .9vmin; }
+    .s { font-size: 1.8vmin; }
+    .card .h span { display: none; }
+    .go { padding: 1.4vmin 2.2vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { padding: 5vmin 5.5vmin; column-gap: 5vmin; grid-template-columns: 40% minmax(0, 1fr); }
+    .ttl { flex-direction: row; align-items: flex-end; }
+    h1 { font-size: 8.6vmin; }
+    .dates { text-align: right; }
+    .card .h span { display: flex; }
+    .s { font-size: 2vmin; }
+  }
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     a live booking page: the "Now booking" dot beats, slots get snapped up (13:00 fills, 14:30 fills)
+     and reopen, the picked 12:30 re-confirms with a pop, the map pin drops and bounces, Reserve pings */
+  .ph img { transform-origin: 50% 30%; animation: ps-push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ps-push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .top i { animation: ps-dot 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ps-dot { 0%, 100% { box-shadow: 0 0 0 .6vmin rgba(123,97,255,.18); } 50% { box-shadow: 0 0 0 1.1vmin rgba(123,97,255,.04); } }
+
+  .slots .s:nth-child(5), .slots .s:nth-child(8) { text-decoration: line-through; text-decoration-color: rgba(178,175,196,0); animation: ps-fill 6s cubic-bezier(.4,0,.2,1) infinite; }
+  .slots .s:nth-child(8) { animation-name: ps-fill2; }
+  @keyframes ps-fill {
+    0%, 16%, 88%, 100% { background: #F0FAF5; color: #22674A; box-shadow: inset 0 0 0 1px #BFE8D4; text-decoration-color: rgba(178,175,196,0); transform: scale(1); }
+    19% { transform: scale(.92); }
+    22%, 82% { background: #F2F1F6; color: #B2AFC4; box-shadow: inset 0 0 0 1px rgba(191,232,212,0); text-decoration-color: #B2AFC4; transform: scale(1); }
+  }
+  @keyframes ps-fill2 {
+    0%, 30%, 74%, 100% { background: #F0FAF5; color: #22674A; box-shadow: inset 0 0 0 1px #BFE8D4; text-decoration-color: rgba(178,175,196,0); transform: scale(1); }
+    33% { transform: scale(.92); }
+    36%, 68% { background: #F2F1F6; color: #B2AFC4; box-shadow: inset 0 0 0 1px rgba(191,232,212,0); text-decoration-color: #B2AFC4; transform: scale(1); }
+  }
+  .s.pick { animation: ps-pick 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes ps-pick {
+    0%, 46%, 60%, 100% { transform: scale(1); box-shadow: 0 .6vmin 1.4vmin rgba(123,97,255,.35), 0 0 0 0 rgba(123,97,255,0); }
+    50% { transform: scale(1.1); box-shadow: 0 .8vmin 1.8vmin rgba(123,97,255,.45), 0 0 0 0 rgba(123,97,255,.4); }
+    54% { transform: scale(.98); }
+    58% { box-shadow: 0 .6vmin 1.4vmin rgba(123,97,255,.35), 0 0 0 1.4vmin rgba(123,97,255,0); }
+  }
+
+  .pin svg { transform-origin: 50% 100%; animation: ps-pin 3s linear infinite; }
+  @keyframes ps-pin {
+    0%, 56% { transform: translateY(0) scale(1, 1); animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+    68% { transform: translateY(-1.2vmin) scale(.96, 1.04); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    78% { transform: translateY(0) scale(1.1, .9); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    86%, 100% { transform: translateY(0) scale(1, 1); }
+  }
+
+  .go { display: inline-block; animation: ps-go 6s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes ps-go { 0%, 60%, 100% { box-shadow: 0 0 0 0 rgba(37,32,70,0); } 62% { box-shadow: 0 0 0 0 rgba(37,32,70,.35); } 80% { box-shadow: 0 0 0 1.8vmin rgba(37,32,70,0); } }
+  .go .ar { display: inline-block; animation: ps-ar 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ps-ar { 0%, 10%, 40%, 100% { transform: translateX(0); } 25% { transform: translateX(.7vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><span><i></i>Now booking</span><span>Studio Oro · 팝업</span></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="ttl"><h1><small>The new collection, in person</small>Pop-up<br>store.</h1><div class="dates">10.03 – 10.12<span>SEONGSU, SEOUL</span></div></div>
+  <div class="card">
+    <div class="h">Pick a time · Sat 10.03<span><span><i></i>Open</span><span><i class="f"></i>Full</span></span></div>
+    <div class="slots"><span class="s full">11:00</span><span class="s">11:30</span><span class="s full">12:00</span><span class="s pick">12:30</span><span class="s">13:00</span><span class="s full">13:30</span><span class="s">14:00</span><span class="s">14:30</span></div>
+  </div>
+  <div class="foot">
+    <div class="pin"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.4 7-12a7 7 0 0 0-14 0c0 5.6 7 12 7 12z" fill="#E6E0FF" stroke="#7B61FF" stroke-width="1.6"/><circle cx="12" cy="10" r="2.6" fill="#7B61FF"/></svg><div><b>Exit 4 · 3 min walk</b>Free tote for the first 100</div></div>
+    <span class="go">Reserve <span class="ar">→</span></span>
+  </div>
+</div>
+</body>
+</html>

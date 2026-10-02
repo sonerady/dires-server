@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Swing Tag — price drop told by the object itself: a kraft hang tag on a cotton string, old price struck in red pencil */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1ECE3; }
+  .banner { --panel: 66vmin; --s: 1; position: fixed; inset: 0; overflow: hidden; background: #F1ECE3; color: #1E1B17; font-family: "DM Mono", "SF Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .seam { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel)); height: .35vmin; background: #1E1B17; }
+
+  /* the tag hangs from the seam; it rotates around its eyelet */
+  .hang { position: absolute; right: 6vmin; top: calc(100% - var(--panel)); width: 34vmin; }
+  .string { position: absolute; left: calc(50% - 4vmin); top: 0; width: 8vmin; height: 6.5vmin; overflow: visible; }
+  .tag { position: absolute; left: 0; top: 2vmin; width: 34vmin; height: 54vmin; transform-origin: 50% 4.5vmin; transform: rotate(5deg) scale(var(--s));
+    background: #CFB488; color: #2A2016; clip-path: polygon(22% 0, 78% 0, 100% 12%, 100% 100%, 0 100%, 0 12%);
+    background-image: radial-gradient(rgba(90,60,20,.08) 15%, transparent 16%), radial-gradient(rgba(255,255,255,.12) 15%, transparent 16%); background-size: .9vmin .9vmin, 1.3vmin 1.3vmin; background-position: 0 0, .4vmin .6vmin; }
+  .eye { position: absolute; left: calc(50% - 1.6vmin); top: 2.9vmin; width: 3.2vmin; height: 3.2vmin; border-radius: 50%; background: #F1ECE3; box-shadow: 0 0 0 .7vmin #A88A5C, inset .2vmin .3vmin .4vmin rgba(0,0,0,.25); }
+  .in { position: absolute; left: 3.4vmin; right: 3.4vmin; top: 9.4vmin; bottom: 3vmin; display: flex; flex-direction: column; }
+  .brand { text-align: center; font-size: 1.8vmin; font-weight: 500; letter-spacing: .3em; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(42,32,22,.45); }
+  .ref { display: flex; justify-content: space-between; margin-top: 1.4vmin; font-size: 1.6vmin; letter-spacing: .06em; }
+  .was { margin-top: 3vmin; font-size: 1.6vmin; letter-spacing: .2em; text-transform: uppercase; }
+  .old { position: relative; align-self: flex-start; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 6.4vmin; line-height: 1.05; font-variation-settings: "opsz" 72; }
+  .old svg { position: absolute; left: -1vmin; top: 8%; width: calc(100% + 2vmin); height: 90%; overflow: visible; }
+  .now { margin-top: 1.8vmin; font-size: 1.6vmin; letter-spacing: .2em; text-transform: uppercase; }
+  .new { font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 10.6vmin; line-height: .95; letter-spacing: -.03em; font-variation-settings: "opsz" 144; }
+  .bars { margin-top: auto; height: 5.4vmin;
+    background: repeating-linear-gradient(90deg, #2A2016 0 .25vmin, transparent .25vmin .55vmin, #2A2016 .55vmin .95vmin, transparent .95vmin 1.2vmin, #2A2016 1.2vmin 1.35vmin, transparent 1.35vmin 1.9vmin, #2A2016 1.9vmin 2.1vmin, transparent 2.1vmin 2.3vmin); }
+  .digits { margin-top: .6vmin; display: flex; justify-content: space-between; font-size: 1.6vmin; letter-spacing: .1em; }
+  .stamp { position: absolute; right: -1.2vmin; top: 22vmin; width: 13vmin; height: 13vmin; transform: rotate(-12deg); }
+
+  .copy { position: absolute; left: 6vmin; width: 48vmin; top: calc(100% - var(--panel) + 7vmin); bottom: 6vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.8vmin; letter-spacing: .24em; text-transform: uppercase; display: flex; align-items: center; gap: 1.4vmin; }
+  .kick i { width: 1.6vmin; height: 1.6vmin; border-radius: 50%; background: #C4311F; }
+  h1 { margin: 3vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 300; font-size: 9vmin; line-height: .98; letter-spacing: -.03em; font-variation-settings: "opsz" 144; }
+  h1 em { font-weight: 400; }
+  .body { margin: 3vmin 0 0; font-family: "Fraunces", Georgia, serif; font-size: 2.6vmin; line-height: 1.4; color: #4A443B; max-width: 40vmin; }
+  .cta { margin-top: auto; align-self: flex-start; font-size: 2.1vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; padding-bottom: .8vmin; border-bottom: .3vmin solid #1E1B17; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 56vmin; --s: .84; }
+    .hang { right: 4vmin; }
+    .copy { top: calc(100% - var(--panel) + 6vmin); bottom: 5vmin; width: 52vmin; }
+    h1 { font-size: 8vmin; margin-top: 2.4vmin; }
+    .body { font-size: 2.4vmin; margin-top: 2.4vmin; }
+  }
+  /* square — photo left; the tag hangs from the top edge of the paper side */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --s: .78; }
+    .photo { width: 54%; height: 100%; }
+    .seam { left: 54%; top: 0; width: .35vmin; height: 100%; }
+    .hang { right: auto; left: calc(54% + (46% - 34vmin) / 2); top: -2vmin; }
+    .string { height: 8.5vmin; }
+    .tag { top: 4vmin; transform: rotate(-4deg) scale(var(--s)); }
+    .copy { left: calc(54% + 5vmin); width: auto; right: 4vmin; top: 56vmin; bottom: 5vmin; }
+    .kick { display: none; }
+    h1 { margin-top: 0; font-size: 6vmin; }
+    .body { font-size: 2.1vmin; margin-top: 1.6vmin; }
+    .cta { font-size: 1.9vmin; }
+  }
+  /* wide — copy and tag side by side on the paper */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --s: .9; }
+    .photo { width: 50%; }
+    .seam { left: 50%; }
+    .hang { left: auto; right: 6vmin; }
+    .copy { left: calc(50% + 6vmin); right: auto; width: 29vmin; top: 8vmin; bottom: 7vmin; }
+    .kick { display: flex; }
+    h1 { margin-top: 3vmin; font-size: 7.4vmin; }
+    .body { font-size: 2.3vmin; margin-top: 2.4vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     (each @keyframes carries an invisible outline-color so no effect is compositor-only: the frame-stepped
+      video renderer parallel tabs otherwise freeze transform/opacity-only animations) */
+  /* the markdown is re-marked: red pencil strikes €180 again, €119 lands, the −34% stamp is thumped on
+     and the tag swings from the knock on its eyelet, settling back to rest */
+  .old svg path { stroke-dasharray: 1 1; stroke-dashoffset: 0; }
+  .old svg path:first-child { animation: strike1 6s linear infinite; }
+  .old svg path:last-child { animation: strike2 6s linear infinite; }
+  @keyframes strike1 {
+    0%, 5% { outline-color: transparent; stroke-dashoffset: 0; opacity: 1; animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    9% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    12% { stroke-dashoffset: 1; opacity: 1; animation-timing-function: cubic-bezier(.5,.1,.3,1); }
+    19%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+  @keyframes strike2 {
+    0%, 5% { outline-color: transparent; stroke-dashoffset: 0; opacity: .7; animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    9% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    18% { stroke-dashoffset: 1; opacity: .7; animation-timing-function: cubic-bezier(.5,.1,.3,1); }
+    24%, 100% { stroke-dashoffset: 0; opacity: .7; }
+  }
+  .new { transform-origin: 0 80%; animation: newp 6s linear infinite; }
+  @keyframes newp {
+    0%, 7% { outline-color: transparent; transform: translateY(0) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    10% { transform: translateY(-1vmin) scale(1); opacity: 0; animation-timing-function: steps(1, end); }
+    22% { transform: translateY(2vmin) scale(1); opacity: 0; animation-timing-function: cubic-bezier(.2,.8,.3,1.25); }
+    29%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .stamp { animation: thump 6s linear infinite; }
+  @keyframes thump {
+    0%, 6% { outline-color: transparent; transform: rotate(-12deg) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    10% { transform: rotate(-12deg) scale(1.1); opacity: 0; animation-timing-function: steps(1, end); }
+    27% { transform: rotate(-2deg) scale(1.7); opacity: 0; animation-timing-function: cubic-bezier(.7,0,.95,.5); }
+    31% { transform: rotate(-14deg) scale(.93); opacity: 1; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    36%, 100% { transform: rotate(-12deg) scale(1); opacity: 1; }
+  }
+  /* pendulum: knocked at the stamp's impact, a damped swing around the eyelet (adds to the tag's own tilt) */
+  .tag { animation: swing 6s linear infinite; }
+  @keyframes swing {
+    0%, 31% { outline-color: transparent; rotate: 0deg; animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    37% { rotate: 7deg; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    47% { rotate: -5deg; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    57% { rotate: 3.2deg; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    67% { rotate: -1.8deg; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    77% { rotate: .8deg; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    87% { rotate: -.3deg; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    95%, 100% { rotate: 0deg; }
+  }
+  /* the string twitches with the knock */
+  .string { transform-origin: 50% 0; animation: twitch 6s linear infinite; }
+  @keyframes twitch {
+    0%, 31% { outline-color: transparent; transform: scaleY(1) skewX(0); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    35% { transform: scaleY(.94) skewX(-4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    45% { transform: scaleY(1) skewX(2deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    60%, 100% { transform: scaleY(1) skewX(0); }
+  }
+  /* "price drop" dot: a slow red pulse */
+  .kick i { animation: dot 3s linear infinite; }
+  @keyframes dot {
+    0%, 100% { outline-color: transparent; box-shadow: 0 0 0 0 rgba(196,49,31,0); transform: scale(1); }
+    8% { box-shadow: 0 0 0 0 rgba(196,49,31,.45); transform: scale(1.15); animation-timing-function: cubic-bezier(.2,.6,.3,1); }
+    40% { box-shadow: 0 0 0 1.4vmin rgba(196,49,31,0); transform: scale(1); }
+  }
+  /* photo: slow push anchored on the seam */
+  .photo { transform-origin: 50% 100%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { outline-color: transparent; transform: scale(1); } 50% { transform: scale(1.03); } }
+  @media (min-aspect-ratio: 9/10) { .photo { transform-origin: 100% 50%; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="seam"></div>
+  <div class="copy">
+    <div class="kick"><i></i>Price drop</div>
+    <h1><em>Marked down,</em><br>not out.</h1>
+    <p class="body">Selected pieces, newly reduced. Online and in store.</p>
+    <div class="cta">Shop the markdown</div>
+  </div>
+  <div class="hang">
+    <svg class="string" viewBox="0 0 8 6.5" preserveAspectRatio="none"><path d="M4 6.6 C2.6 4.4 2.1 2.2 2.4 0 M4 6.6 C5.4 4.4 5.9 2.2 5.6 0" fill="none" stroke="#3A3026" stroke-width=".22" stroke-linecap="round"/></svg>
+    <div class="tag">
+      <div class="eye"></div>
+      <div class="in">
+        <div class="brand">ATELIER NORD</div>
+        <div class="ref"><span>REF 0482</span><span>SIZE M</span></div>
+        <div class="was">Was</div>
+        <div class="old">€180<svg viewBox="0 0 100 40" preserveAspectRatio="none"><path pathLength="1" d="M2 30 C 30 22, 60 14, 98 8" fill="none" stroke="#C4311F" stroke-width="3.6" stroke-linecap="round"/><path pathLength="1" d="M6 34 C 36 26, 64 18, 96 13" fill="none" stroke="#C4311F" stroke-width="2" stroke-linecap="round" opacity=".7"/></svg></div>
+        <div class="now">Now</div>
+        <div class="new">€119</div>
+        <div class="bars"></div>
+        <div class="digits"><span>4</span><span>006381</span><span>333931</span></div>
+      </div>
+      <svg class="stamp" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="none" stroke="#C4311F" stroke-width="3"/><circle cx="50" cy="50" r="40" fill="none" stroke="#C4311F" stroke-width="1.2"/><text x="50" y="58" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-weight="600" font-size="26" fill="#C4311F">−34%</text></svg>
+    </div>
+  </div>
+</div>
+</body>
+</html>

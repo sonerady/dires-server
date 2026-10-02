@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Price Crash — clearance reported like the markets page: salmon newsprint, a ticker of falling brands, and a price chart that slides from €240 to a €72 close */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4DCC8; }
+  .banner { --panel: 86vmin; --tk: 5vmin; position: fixed; inset: 0; overflow: hidden; background: #F4DCC8; color: #1F1A16; font-family: "IBM Plex Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+
+  .ticker { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel)); height: var(--tk); background: #1F1A16; color: #F4DCC8; overflow: hidden; display: flex; align-items: center; }
+  .ticker div { white-space: nowrap; font-size: 1.8vmin; font-weight: 500; letter-spacing: .06em; padding-left: 3vmin; }
+  .ticker b { color: #FF8A7A; font-weight: 600; margin: 0 3.4vmin 0 1vmin; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; top: calc(100% - var(--panel) + var(--tk) + 3.6vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; padding-bottom: 1.2vmin; border-bottom: .3vmin solid #1F1A16; }
+  h1 { margin: 2.2vmin 0 0; font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 7.6vmin; line-height: 1; letter-spacing: -.02em; font-variation-settings: "opsz" 60; }
+  h1 em { font-weight: 400; color: #9E1B32; }
+
+  .chart { position: relative; flex: 1; min-height: 20vmin; margin: 3.4vmin 0 0; }
+  .chart .ln { stroke-width: .6vmin; }
+  .chart svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
+  .gl { position: absolute; left: 0; font-size: 1.6vmin; color: #6D5F54; line-height: 1; transform: translateY(-120%); }
+  .dot { position: absolute; right: -1.2vmin; top: calc(90% - 1.2vmin); width: 2.4vmin; height: 2.4vmin; border-radius: 50%; background: #9E1B32; box-shadow: 0 0 0 .8vmin rgba(158,27,50,.2); }
+  .lead { position: absolute; right: 0; top: 24%; bottom: 10%; border-right: 1px dashed #9E1B32; }
+  .note { position: absolute; right: 0; top: 20%; background: #9E1B32; color: #FFF3EA; padding: 1vmin 1.6vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .note b { display: block; font-family: "Source Serif 4", Georgia, serif; font-size: 4.4vmin; letter-spacing: -.02em; line-height: 1; margin-top: .3vmin; text-transform: none; }
+  .axis { display: flex; justify-content: space-between; font-size: 1.6vmin; color: #6D5F54; padding-top: 1vmin; border-top: 1px solid #1F1A16; margin-top: 1.4vmin; }
+
+  .foot { display: flex; justify-content: space-between; align-items: center; gap: 3vmin; margin-top: 3vmin; }
+  .foot p { margin: 0; font-family: "Source Serif 4", Georgia, serif; font-size: 2.4vmin; line-height: 1.3; }
+  .foot p b { font-weight: 600; }
+  .cta { flex: none; font-size: 1.9vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; background: #1F1A16; color: #F4DCC8; padding: 1.8vmin 2.6vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .panel { bottom: 4.4vmin; top: calc(100% - var(--panel) + var(--tk) + 3vmin); }
+    h1 { font-size: 6.6vmin; margin-top: 1.8vmin; }
+    .chart { margin-top: 2.4vmin; }
+    .foot { margin-top: 2.4vmin; }
+    .foot p { font-size: 2.2vmin; }
+  }
+  /* square / wide — ticker across the top, the markets page left, the look right */
+  @media (min-aspect-ratio: 9/10) {
+    .ticker { top: 0; }
+    .photo { left: auto; right: 0; top: var(--tk); width: 46%; height: calc(100% - var(--tk)); object-position: 50% 25%; }
+    .panel { left: 5vmin; right: calc(46% + 5vmin); top: calc(var(--tk) + 4vmin); bottom: 5vmin; }
+    .kick span:last-child { display: none; }
+    h1 { font-size: 6.2vmin; }
+    .chart { margin-top: 3vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; margin-top: 2.6vmin; }
+    .foot p { font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 64% 25%; }
+    .panel { left: 6vmin; right: calc(44% + 6vmin); top: calc(var(--tk) + 5vmin); bottom: 6vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { font-size: 7vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="ticker"><div>ATLR<b>▼ 70.0%</b>NORD<b>▼ 55.2%</b>ORO<b>▼ 48.8%</b>MAIS<b>▼ 62.5%</b>LINE<b>▼ 40.0%</b>ATLR<b>▼ 70.0%</b>NORD<b>▼ 55.2%</b>ORO<b>▼ 48.8%</b></div></div>
+  <div class="panel">
+    <div class="kick"><span>Markets · End of season</span><span>Close 28.09</span></div>
+    <h1>Prices hit a <em>season low.</em></h1>
+    <div class="chart">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9E1B32" stop-opacity=".22"/><stop offset="1" stop-color="#9E1B32" stop-opacity="0"/></linearGradient></defs>
+        <g stroke="#1F1A16" stroke-opacity=".22" stroke-width="1" vector-effect="non-scaling-stroke">
+          <line x1="0" y1="8" x2="100" y2="8" vector-effect="non-scaling-stroke"/>
+          <line x1="0" y1="37.3" x2="100" y2="37.3" vector-effect="non-scaling-stroke" stroke-dasharray="3 3"/>
+          <line x1="0" y1="66.6" x2="100" y2="66.6" vector-effect="non-scaling-stroke" stroke-dasharray="3 3"/>
+        </g>
+        <path d="M0 8 L6 12 L10 9 L16 20 L22 17 L28 30 L33 26 L40 40 L46 36 L52 50 L58 46 L64 58 L70 55 L76 68 L82 66 L88 74 L94 86 L100 90 L100 100 L0 100 Z" fill="url(#f)"/>
+        <path d="M0 8 L6 12 L10 9 L16 20 L22 17 L28 30 L33 26 L40 40 L46 36 L52 50 L58 46 L64 58 L70 55 L76 68 L82 66 L88 74 L94 86 L100 90" class="ln" fill="none" stroke="#9E1B32" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div class="gl" style="top:8%">€240 · Open</div>
+      <div class="gl" style="top:37.3%">€180</div>
+      <div class="gl" style="top:66.6%">€120</div>
+      <div class="lead"></div>
+      <div class="note">Close<b>€72 · −70%</b></div>
+      <div class="dot"></div>
+    </div>
+    <div class="axis"><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></div>
+    <div class="foot"><p><b>Outlet index:</b> down 70% on the season.</p><div class="cta">Buy the dip →</div></div>
+  </div>
+</div>
+</body>
+</html>

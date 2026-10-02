@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* The Selects — photographer's contact sheet: film rebate, sprocket holes, frame numbers, red grease pencil */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECEAE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECEAE4; color: #161514; font-family: "IBM Plex Mono", "Courier New", monospace; }
+  .sheet { position: absolute; inset: 0; padding: 4vmin 4.4vmin 4.4vmin; display: flex; flex-direction: column; gap: 2.4vmin; }
+
+  .head { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .head b { font-weight: 500; }
+
+  /* film rebate around a frame */
+  .film { position: relative; background: #151413; padding: 4.6vmin 1.6vmin; }
+  .film::before, .film::after { content: ""; position: absolute; left: 1vmin; right: 1vmin; height: 1.3vmin; background: repeating-linear-gradient(90deg, #ECEAE4 0 1.7vmin, transparent 1.7vmin 3.8vmin); opacity: .92; }
+  .film::before { top: .9vmin; }
+  .film::after { bottom: .9vmin; }
+
+  .big { flex: 1 1 auto; min-height: 0; display: flex; }
+  .big .win { position: relative; flex: 1; min-height: 0; }
+  .big img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .big .no { position: absolute; left: 3vmin; top: 2.5vmin; line-height: 1; font-size: 1.6vmin; color: #F0A43A; letter-spacing: .1em; }
+  .big .no2 { left: auto; right: 3vmin; }
+
+  .strip { position: relative; flex: none; height: 26vmin; display: flex; gap: 1.4vmin; padding-top: 3.9vmin; padding-bottom: 3.9vmin; }
+  .fr { position: relative; flex: 1; overflow: hidden; }
+  .fr img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .f1 img { object-position: 50% 20%; }
+  .f2 img { object-position: 50% 30%; transform: scale(1.7); transform-origin: 50% 30%; }
+  .f3 img { object-position: 50% 80%; transform: scale(1.35); transform-origin: 50% 75%; }
+  .num { position: absolute; top: 2.25vmin; line-height: 1; font-size: 1.6vmin; color: #F0A43A; letter-spacing: .08em; }
+  .n1 { left: 18%; } .n2 { left: 51%; } .n3 { left: 84%; }
+
+  /* grease pencil */
+  .loop { position: absolute; top: -2.6vmin; bottom: -2.6vmin; left: calc(33.3% - 2.8vmin); width: calc(33.3% + 5.6vmin); pointer-events: none; }
+  .loop::before, .loop::after { content: ""; position: absolute; inset: 0; border: .7vmin solid rgba(214,36,26,.92); border-radius: 50%; }
+  .loop::before { transform: rotate(-5deg); }
+  .loop::after { inset: .8vmin -.6vmin; transform: rotate(4deg); border-width: .45vmin; opacity: .8; }
+  .note { display: none; position: absolute; left: calc(66.6% + 2vmin); top: -8.6vmin; font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 5.4vmin; color: #D6241A; transform: rotate(-7deg); white-space: nowrap; line-height: 1; }
+
+  .copy { flex: none; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; padding-top: 3vmin; }
+  h1 { margin: 0; font-family: "Archivo Narrow", "Arial Narrow", sans-serif; font-weight: 700; font-size: 10vmin; line-height: .88; letter-spacing: -.02em; text-transform: uppercase; }
+  .sub { margin-top: 1.4vmin; font-size: 1.9vmin; letter-spacing: .04em; line-height: 1.4; }
+  .deal { text-align: right; flex: none; }
+  .deal .hand { font-family: "Caveat", "Bradley Hand", cursive; font-weight: 700; font-size: 6.4vmin; line-height: .9; color: #D6241A; transform: rotate(-4deg); }
+  .cta { margin-top: 1.6vmin; display: inline-block; background: #161514; color: #ECEAE4; padding: 1.3vmin 2.2vmin; font-size: 1.9vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  /* SHORTER PORTRAIT & SQUARE — enlargement left, strip + notes right */
+  @media (min-aspect-ratio: 7/10) {
+    .sheet { display: grid; grid-template-columns: 56% minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto; grid-template-areas: "big head" "big ." "big strip" "big copy"; column-gap: 4vmin; row-gap: 0; padding: 4vmin; }
+    .big { grid-area: big; }
+    .head { grid-area: head; flex-direction: column; gap: .6vmin; font-size: 1.7vmin; }
+    .strip { grid-area: strip; height: 22vmin; margin-top: 11vmin; }
+    .f3 { display: none; }
+    .n3 { display: none; }
+    .n1 { left: 22%; } .n2 { left: 72%; }
+    .loop { left: calc(50% - 2.4vmin); width: calc(50% + 4vmin); top: -2.2vmin; bottom: -2.2vmin; }
+    .note { display: block; left: auto; right: 0; top: -9vmin; font-size: 4.6vmin; }
+    .copy { grid-area: copy; flex-direction: column; align-items: flex-start; gap: 2.4vmin; padding-top: 5vmin; }
+    h1 { font-size: 8.4vmin; }
+    .sub { font-size: 1.7vmin; }
+    .deal { text-align: left; }
+    .deal .hand { font-size: 5.2vmin; }
+    .cta { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .sheet { grid-template-columns: 52% minmax(0, 1fr); }
+    .strip { height: 19vmin; margin-top: 9vmin; }
+    .copy { padding-top: 4vmin; gap: 1.8vmin; }
+    h1 { font-size: 7.4vmin; }
+    .deal .hand { font-size: 4.6vmin; }
+  }
+  /* WIDE — three frames in the strip again */
+  @media (min-aspect-ratio: 6/5) {
+    .sheet { grid-template-columns: 44% minmax(0, 1fr); padding: 4.4vmin 5vmin; column-gap: 5vmin; }
+    .head { flex-direction: row; font-size: 1.8vmin; }
+    .strip { height: 23vmin; margin-top: 11vmin; }
+    .f3, .n3 { display: block; }
+    .n1 { left: 18%; } .n2 { left: 51%; }
+    .loop { left: calc(33.3% - 2.8vmin); width: calc(33.3% + 5.6vmin); top: -2.6vmin; bottom: -2.6vmin; }
+    .note { right: auto; left: calc(66.6% + 2vmin); top: -9vmin; font-size: 5vmin; }
+    .copy { padding-top: 6vmin; flex-direction: row; align-items: flex-end; }
+    .deal { text-align: right; }
+    h1 { font-size: 9.6vmin; }
+    .sub { font-size: 1.8vmin; }
+    .deal .hand { font-size: 5.6vmin; }
+    .cta { font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design — on the light table: a flash, then the grease pencil marks the select ───────── */
+  @property --sweep { syntax: "<angle>"; inherits: false; initial-value: 360deg; }
+  /* the enlargement is "shot": a quick camera flash */
+  .big .win::after { content: ""; position: absolute; inset: 0; background: #FFFDF6; opacity: 0; animation: flash 6s linear infinite; }
+  @keyframes flash {
+    0%, 8% { opacity: 0; animation-timing-function: steps(1, end); }
+    9% { opacity: .7; animation-timing-function: cubic-bezier(.2,.6,.3,1); }
+    16%, 100% { opacity: 0; }
+  }
+  /* frame numbers flicker like a backlit rebate */
+  .num, .big .no { animation: amber 3s linear infinite; }
+  @keyframes amber { 0%, 100% { opacity: 1; } 8% { opacity: .55; } 10% { opacity: 1; } 12% { opacity: .7; } 14% { opacity: 1; } }
+  /* the red grease-pencil loop is wiped and drawn again around the select */
+  .loop { -webkit-mask: conic-gradient(from 200deg, #000 var(--sweep), transparent 0); mask: conic-gradient(from 200deg, #000 var(--sweep), transparent 0); animation: draw 6s linear infinite; }
+  @keyframes draw {
+    0%, 24% { --sweep: 360deg; opacity: 1; animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    28% { --sweep: 360deg; opacity: 0; animation-timing-function: steps(1, end); }
+    30% { --sweep: 0deg; opacity: 1; animation-timing-function: cubic-bezier(.45,.1,.35,1); }
+    46%, 100% { --sweep: 360deg; opacity: 1; }
+  }
+  /* the loupe lingers on the circled frame */
+  .f2 img { animation: loupe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes loupe { 0%, 30%, 100% { transform: scale(1.7); } 50%, 62% { transform: scale(1.82); } }
+  /* handwriting: "this one!" and the offer are scribbled again */
+  .note { animation: scrib 6s linear infinite; }
+  .deal .hand { animation: scrib 6s linear infinite; animation-delay: -5.1s; }
+  @keyframes scrib {
+    0%, 40% { clip-path: inset(-30% -10% -30% -10%); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+    43% { clip-path: inset(-30% -10% -30% -10%); opacity: 0; animation-timing-function: steps(1, end); }
+    44% { clip-path: inset(-30% 110% -30% -10%); opacity: 1; animation-timing-function: cubic-bezier(.4,.1,.4,1); }
+    56%, 100% { clip-path: inset(-30% -10% -30% -10%); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sheet">
+    <div class="head"><span>Roll 26 — <b>SS campaign</b></span><span>Sheet 03 / 12</span></div>
+    <div class="big film">
+      <div class="win"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <span class="no">▸ 14A</span><span class="no no2">14 ◂</span>
+    </div>
+    <div class="strip film">
+      <div class="fr f1"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="fr f2"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="fr f3"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <span class="num n1">15</span><span class="num n2">16</span><span class="num n3">17</span>
+      <div class="loop"></div>
+      <div class="note">this one!</div>
+    </div>
+    <div class="copy">
+      <div><h1>The<br>selects.</h1><div class="sub">The new campaign edit.<br>Out now, in store &amp; online.</div></div>
+      <div class="deal"><div class="hand">−25% this week</div><div class="cta">Code SELECT25 →</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

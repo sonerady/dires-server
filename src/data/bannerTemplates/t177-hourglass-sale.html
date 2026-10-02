@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Hourglass Sale — a 48-hour sale told by a drawn hourglass: most of the sand already fallen, a thin stream still running,
+     on a warm sand panel that the photo melts into. tall → photo above, hourglass beside the copy;
+     square → photo left, hourglass over the copy; wide → photo left, hourglass and copy side by side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E8DCC6; }
+  .banner { --panel: 66vmin; position: fixed; inset: 0; overflow: hidden; background: #E8DCC6; color: #2A211A; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--panel) + 6vmin); overflow: hidden; }
+  .shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .melt { position: absolute; left: 0; right: 0; bottom: 0; height: 16vmin; background: linear-gradient(to top, rgba(232,220,198,1.0) 0.0%, rgba(232,220,198,0.985) 7.69%, rgba(232,220,198,0.943) 15.38%, rgba(232,220,198,0.874) 23.08%, rgba(232,220,198,0.784) 30.77%, rgba(232,220,198,0.677) 38.46%, rgba(232,220,198,0.56) 46.15%, rgba(232,220,198,0.44) 53.85%, rgba(232,220,198,0.323) 61.54%, rgba(232,220,198,0.216) 69.23%, rgba(232,220,198,0.126) 76.92%, rgba(232,220,198,0.057) 84.62%, rgba(232,220,198,0.015) 92.31%, rgba(232,220,198,0.0) 100.0%); }
+  .top { position: absolute; left: 0; right: 0; top: 0; height: 16vmin; background: linear-gradient(to bottom, rgba(42,33,26,0.45) 0.0%, rgba(42,33,26,0.443) 7.69%, rgba(42,33,26,0.424) 15.38%, rgba(42,33,26,0.393) 23.08%, rgba(42,33,26,0.353) 30.77%, rgba(42,33,26,0.305) 38.46%, rgba(42,33,26,0.252) 46.15%, rgba(42,33,26,0.198) 53.85%, rgba(42,33,26,0.145) 61.54%, rgba(42,33,26,0.097) 69.23%, rgba(42,33,26,0.057) 76.92%, rgba(42,33,26,0.026) 84.62%, rgba(42,33,26,0.007) 92.31%, rgba(42,33,26,0.0) 100.0%); }
+  .brand { position: absolute; left: 5vmin; top: 4.6vmin; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 600; font-size: 3.4vmin; color: #FFF8EE; text-shadow: 0 .1vmin .8vmin rgba(0,0,0,.25); }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 7vmin); display: flex; gap: 5vmin; align-items: stretch; }
+  .glass { flex: none; width: 24vmin; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2.4vmin; }
+  .glass svg { width: 24vmin; height: 38vmin; display: block; }
+  .glass small { font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #7A6552; }
+  .copy { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .kick { font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #A94F2C; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(42,33,26,.35); }
+  h1 { margin: 2vmin 0 0; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; font-style: italic; font-size: 7vmin; line-height: .98; letter-spacing: -.01em; }
+  .pct { margin-top: 1.6vmin; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 13vmin; line-height: .85; letter-spacing: -.03em; color: #A94F2C; }
+  .left { margin-top: auto; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #6A5646; }
+  .left b { display: block; margin-top: .6vmin; font-size: 3.2vmin; font-weight: 500; letter-spacing: .08em; color: #2A211A; font-variant-numeric: tabular-nums; }
+  .cta { margin-top: 2.4vmin; align-self: flex-start; border: 1px solid #2A211A; padding: 1.8vmin 3vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 58vmin; }
+    .panel { bottom: 4.4vmin; height: calc(var(--panel) - 6vmin); }
+    .glass, .glass svg { width: 20vmin; }
+    .glass svg { height: 32vmin; }
+    h1 { font-size: 6vmin; margin-top: 1.6vmin; }
+    .pct { font-size: 11vmin; margin-top: 1.2vmin; }
+    .left b { font-size: 2.8vmin; }
+    .cta { margin-top: 1.8vmin; padding: 1.5vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .shot { right: auto; width: 54%; height: 100%; }
+    .melt { left: auto; top: 0; width: 14vmin; height: auto; background: linear-gradient(to left, rgba(232,220,198,1.0) 0.0%, rgba(232,220,198,0.985) 7.69%, rgba(232,220,198,0.943) 15.38%, rgba(232,220,198,0.874) 23.08%, rgba(232,220,198,0.784) 30.77%, rgba(232,220,198,0.677) 38.46%, rgba(232,220,198,0.56) 46.15%, rgba(232,220,198,0.44) 53.85%, rgba(232,220,198,0.323) 61.54%, rgba(232,220,198,0.216) 69.23%, rgba(232,220,198,0.126) 76.92%, rgba(232,220,198,0.057) 84.62%, rgba(232,220,198,0.015) 92.31%, rgba(232,220,198,0.0) 100.0%); }
+    .panel { left: calc(54% + 1vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; flex-direction: column; gap: 3vmin; }
+    .glass { width: auto; flex-direction: row; align-items: flex-end; justify-content: flex-start; gap: 2.4vmin; }
+    .glass svg { width: 16vmin; height: 26vmin; }
+    .glass small { padding-bottom: .4vmin; }
+    h1 { font-size: 5.6vmin; }
+    .pct { font-size: 10vmin; }
+    .left b { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 48%; }
+    .shot img { object-position: 65% 25%; }
+    .panel { left: calc(48% + 3vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; flex-direction: row; gap: 5vmin; }
+    .glass { flex-direction: column; align-items: center; justify-content: center; gap: 2.4vmin; width: 26vmin; }
+    .glass svg { width: 26vmin; height: 42vmin; }
+    h1 { font-size: 6.6vmin; }
+    .pct { font-size: 13vmin; }
+    .left b { font-size: 3.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="melt"></div><div class="top"></div></div>
+  <div class="brand">Maison Sable</div>
+  <div class="panel">
+    <div class="glass">
+      <svg viewBox="0 0 100 160" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs><clipPath id="bulb"><path d="M20 12 C20 52, 45 68, 47 80 C45 92, 20 108, 20 148 L80 148 C80 108, 55 92, 53 80 C55 68, 80 52, 80 12 Z"/></clipPath></defs>
+        <g clip-path="url(#bulb)">
+          <rect x="0" y="0" width="100" height="160" fill="#F3EBDD" opacity=".7"/>
+          <path d="M0 64 Q50 60 100 64 L100 80 L0 80 Z" fill="#A94F2C"/>
+          <path d="M0 148 L0 124 Q30 118 44 104 Q50 98 56 104 Q70 118 100 124 L100 148 Z" fill="#A94F2C"/>
+          <rect x="49.4" y="80" width="1.2" height="24" fill="#A94F2C"/>
+        </g>
+        <path d="M20 12 C20 52, 45 68, 47 80 C45 92, 20 108, 20 148 L80 148 C80 108, 55 92, 53 80 C55 68, 80 52, 80 12 Z" fill="none" stroke="#2A211A" stroke-width="1.4"/>
+        <path d="M27 20 C27 44, 38 58, 43 66" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>
+        <rect x="6" y="3" width="88" height="9" rx="1.5" fill="#2A211A"/>
+        <rect x="6" y="148" width="88" height="9" rx="1.5" fill="#2A211A"/>
+        <rect x="9" y="12" width="3.2" height="136" fill="#2A211A"/>
+        <rect x="87.8" y="12" width="3.2" height="136" fill="#2A211A"/>
+      </svg>
+      <small>Hour 41 of 48</small>
+    </div>
+    <div class="copy">
+      <div class="kick">The 48-hour sale</div>
+      <h1>Before the sand<br> runs out.</h1>
+      <div class="pct">−35%</div>
+      <div class="left">Time left<b>07 h 12 m 08 s</b></div>
+      <div class="cta">Shop the sale</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

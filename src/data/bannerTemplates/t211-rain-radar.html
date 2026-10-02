@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Rain Radar — a precipitation radar screen: a round scope with range rings, a sweep and a storm cell blooming
+     green → yellow → red, the offer read as rainfall intensity, and a playback scrubber stopped at NOW.
+     tall → photo above the night-blue console · square → photo left, console stacked · wide → photo left, console in two columns */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0B1622; }
+  .banner { --panel: 92vmin; position: fixed; inset: 0; overflow: hidden; background: #0B1622; color: #E6F1F5; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .mono { font-family: "JetBrains Mono", Menlo, monospace; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+  .con { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 4.4vmin 6vmin 5vmin;
+    display: grid; grid-template-columns: 44vmin 1fr; grid-template-rows: auto 1fr auto auto; column-gap: 5vmin;
+    grid-template-areas: "meta meta" "scope side" "time time" "foot foot";
+    background: linear-gradient(180deg, #0E1C2B, #0B1622 40%); }
+  .con::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: #4BE08A; opacity: .55; }
+
+  .meta { grid-area: meta; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #8FA9B8; }
+  .meta b { color: #E6F1F5; font-weight: 700; }
+  .meta b::before { content: ""; display: inline-block; width: 1.3vmin; height: 1.3vmin; margin-right: 1.1vmin; border-radius: 50%; background: #FF3B5C; box-shadow: 0 0 0 .5vmin rgba(255,59,92,.25); vertical-align: .05vmin; }
+
+  .scope { grid-area: scope; align-self: center; width: 44vmin; height: 44vmin; }
+
+  .side { grid-area: side; align-self: center; min-width: 0; }
+  .side .k { font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #4BE08A; }
+  .side .big { margin-top: 1vmin; font-weight: 900; font-stretch: 112%; font-size: 17vmin; line-height: .8; letter-spacing: -.04em; }
+  .side .big sup { font-size: .42em; font-weight: 800; letter-spacing: -.02em; vertical-align: top; position: relative; top: .08em; color: #FF3B5C; }
+  .side .off { display: block; margin-top: 1.4vmin; font-weight: 800; font-stretch: 75%; font-size: 5.2vmin; line-height: .95; text-transform: uppercase; letter-spacing: .01em; }
+  .side p { margin: 1.6vmin 0 0; font-size: 2.1vmin; line-height: 1.35; color: #A9BFCB; }
+  .legend { margin-top: 2.6vmin; }
+  .legend i { display: block; height: 1.2vmin; background: linear-gradient(90deg, #1F6E52, #4BE08A 25%, #F5D547 50%, #FF8A3D 72%, #FF3B5C 88%, #C23BFF); }
+  .legend span { display: flex; justify-content: space-between; margin-top: .9vmin; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #8FA9B8; }
+
+  .time { grid-area: time; margin-top: 3.4vmin; display: grid; grid-template-columns: 4.6vmin 1fr; align-items: center; gap: 2.4vmin; }
+  .play { width: 4.6vmin; height: 4.6vmin; border-radius: 50%; border: 1px solid #4BE08A; box-sizing: border-box; position: relative; }
+  .play::after { content: ""; position: absolute; left: 1.2vmin; top: 1.2vmin; width: 1.2vmin; height: 2vmin; border-left: .5vmin solid #4BE08A; border-right: .5vmin solid #4BE08A; box-sizing: border-box; }
+  .track { position: relative; }
+  .track .bar { position: relative; height: .5vmin; background: #23384A; }
+  .track .bar::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 50%; background: #4BE08A; }
+  .track .bar::after { content: ""; position: absolute; left: 50%; top: 50%; width: 2.6vmin; height: 2.6vmin; margin: -1.3vmin 0 0 -1.3vmin; border-radius: 50%; background: #E6F1F5; box-shadow: 0 0 0 .7vmin rgba(75,224,138,.3); }
+  .ticks { display: flex; justify-content: space-between; margin-top: 1.4vmin; font-size: 1.6vmin; letter-spacing: .06em; color: #8FA9B8; }
+  .ticks b { color: #E6F1F5; font-weight: 700; }
+
+  .foot { grid-area: foot; margin-top: 3.4vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .foot .code { font-size: 1.9vmin; line-height: 1.4; letter-spacing: .06em; color: #A9BFCB; }
+  .foot .code b { color: #F5D547; font-weight: 700; letter-spacing: .12em; }
+  .cta { flex: none; padding: 1.9vmin 3.2vmin; background: #4BE08A; color: #0B1622; font-weight: 800; font-stretch: 100%; font-size: 2vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .banner { --panel: 84vmin; }
+    .con { padding: 3.8vmin 6vmin 4.4vmin; grid-template-columns: 38vmin 1fr; }
+    .scope { width: 38vmin; height: 38vmin; }
+    .side .big { font-size: 15vmin; }
+    .side .off { font-size: 4.6vmin; }
+    .time, .foot { margin-top: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 70vmin; }
+    .con { padding: 3.2vmin 5.4vmin 3.6vmin; grid-template-columns: 32vmin 1fr; column-gap: 4vmin; }
+    .scope { width: 32vmin; height: 32vmin; }
+    .side .big { font-size: 13vmin; }
+    .side .off { font-size: 4vmin; margin-top: 1vmin; }
+    .side p { display: none; }
+    .legend { margin-top: 2vmin; }
+    .time, .foot { margin-top: 2.2vmin; }
+    .cta { padding: 1.6vmin 2.8vmin; }
+  }
+  /* square → photo left, console stacked on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .con { left: 50%; top: 0; height: auto; padding: 4.6vmin 4.4vmin 4.4vmin;
+      grid-template-columns: 1fr; grid-template-rows: auto auto 1fr auto auto;
+      grid-template-areas: "meta" "scope" "side" "time" "foot"; background: linear-gradient(180deg, #0E1C2B, #0B1622 50%); }
+    .con::before { top: 0; bottom: 0; right: auto; width: 1px; height: auto; }
+    .meta span:last-child { display: none; }
+    .scope { justify-self: start; margin-top: 2.6vmin; width: 30vmin; height: 30vmin; }
+    .side { align-self: end; margin-top: 2vmin; }
+    .side .big { font-size: 12vmin; }
+    .side .off { font-size: 3.6vmin; }
+    .legend { margin-top: 1.8vmin; }
+    .time { margin-top: 2.6vmin; grid-template-columns: 3.8vmin 1fr; gap: 1.8vmin; }
+    .play { width: 3.8vmin; height: 3.8vmin; }
+    .play::after { left: .9vmin; top: .9vmin; }
+    .foot { margin-top: 2.6vmin; flex-direction: column; align-items: stretch; gap: 1.8vmin; }
+    .cta { text-align: center; padding: 1.6vmin 2vmin; }
+  }
+  /* wide → photo left, console as two columns */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 50% 28%; }
+    .con { left: 42%; padding: 5vmin 5.6vmin 5vmin; column-gap: 5vmin;
+      grid-template-columns: 40vmin 1fr; grid-template-rows: auto 1fr auto auto;
+      grid-template-areas: "meta meta" "scope side" "time time" "foot foot"; }
+    .meta span:last-child { display: inline; }
+    .scope { align-self: center; margin-top: 0; width: 40vmin; height: 40vmin; }
+    .side { align-self: center; margin-top: 0; }
+    .side .big { font-size: 15vmin; }
+    .side .off { font-size: 4.4vmin; }
+    .side p { display: block; font-size: 1.9vmin; }
+    .time { margin-top: 3vmin; grid-template-columns: 4.2vmin 1fr; }
+    .foot { margin-top: 3vmin; flex-direction: row; align-items: center; }
+    .cta { padding: 1.7vmin 3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="con">
+    <div class="meta mono"><b>Live radar</b><span>Atelier Nord · 14:40</span></div>
+
+    <svg class="scope" viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <filter id="rrBlur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4.5"/></filter>
+        <clipPath id="rrClip"><circle cx="100" cy="100" r="97"/></clipPath>
+        <linearGradient id="rrSweep" x1="100" y1="100" x2="175" y2="30" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#4BE08A" stop-opacity=".05"/><stop offset="1" stop-color="#4BE08A" stop-opacity=".42"/>
+        </linearGradient>
+      </defs>
+      <circle cx="100" cy="100" r="97" fill="#0F2334"/>
+      <g clip-path="url(#rrClip)">
+        <path d="M-5 128 C30 118 52 142 84 130 S140 98 205 112" fill="none" stroke="#2C4A5D" stroke-width="1.2"/>
+        <path d="M-5 62 C28 70 44 48 78 54 S120 30 205 44" fill="none" stroke="#2C4A5D" stroke-width="1.2"/>
+        <g filter="url(#rrBlur)">
+          <path d="M42 62 C70 30 130 34 152 62 C176 92 164 132 138 150 C108 170 70 160 56 136 C42 114 22 90 42 62Z" fill="#1F9E63" opacity=".85"/>
+          <path d="M28 150 C40 138 62 144 62 160 C62 176 44 182 34 172 C24 164 22 156 28 150Z" fill="#1F9E63" opacity=".8"/>
+          <path d="M74 70 C95 54 132 60 140 82 C148 106 130 128 108 130 C86 132 68 118 67 100 C66 88 64 78 74 70Z" fill="#F5D547"/>
+          <path d="M90 82 C105 72 126 80 127 97 C128 113 113 121 101 119 C89 117 82 104 85 94Z" fill="#FF8A3D"/>
+          <path d="M101 91 C111 85 121 93 119 103 C117 112 105 113 100 107 C95 101 96 94 101 91Z" fill="#FF3B5C"/>
+        </g>
+        <path d="M100 100 L100 3 A97 97 0 0 1 184 52 Z" fill="url(#rrSweep)"/>
+        <line x1="100" y1="100" x2="184" y2="52" stroke="#4BE08A" stroke-width="1.4"/>
+      </g>
+      <g fill="none" stroke="#6FB7C9" stroke-opacity=".38" stroke-width="1">
+        <circle cx="100" cy="100" r="32"/><circle cx="100" cy="100" r="64"/><circle cx="100" cy="100" r="97" stroke-opacity=".7"/>
+        <path d="M100 3v194M3 100h194"/>
+      </g>
+      <circle cx="110" cy="101" r="13" fill="none" stroke="#E6F1F5" stroke-width="1.2" stroke-dasharray="3 2.4"/>
+      <text x="126" y="126" font-family="JetBrains Mono, Menlo, monospace" font-size="9" font-weight="700" fill="#E6F1F5" letter-spacing=".5">CELL 04</text>
+      <text x="104" y="68" font-family="JetBrains Mono, Menlo, monospace" font-size="7.5" fill="#8FA9B8">10 KM</text>
+      <text x="104" y="36" font-family="JetBrains Mono, Menlo, monospace" font-size="7.5" fill="#8FA9B8">20 KM</text>
+    </svg>
+
+    <div class="side">
+      <div class="k mono">Heavy showers of</div>
+      <div class="big">40<sup>%</sup></div>
+      <span class="off">off the rain edit</span>
+      <p>Moving in from the north. Expect it all week.</p>
+      <div class="legend"><i></i><span class="mono"><span>Light</span><span>Heavy</span></span></div>
+    </div>
+
+    <div class="time">
+      <span class="play"></span>
+      <div class="track"><div class="bar"></div><div class="ticks mono"><span>−2h</span><span>−1h</span><b>Now</b><span>+1h</span><span>+2h</span></div></div>
+    </div>
+
+    <div class="foot"><div class="code mono">Code <b>DOWNPOUR</b><br>Ends Sunday 23:59</div><div class="cta">Shop the edit</div></div>
+  </div>
+</div>
+</body>
+</html>

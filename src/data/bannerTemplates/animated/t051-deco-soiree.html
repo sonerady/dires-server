@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* 1920s Art Deco soirée — a stepped (ziggurat) photo window with a gold keyline, a sunburst fanning out from behind it.
+     tall: masthead band / photo / centred copy below · square & wide: copy left, photo rising from the bottom edge on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0D0F14; }
+  .banner { --s: 2.4vmin; --gold: #D4B26A; --pale: #F1E3C2; --ink: #0D0F14;
+    --pt: 17vmin; --pb: calc(100% - 58vmin); --pl: 12vmin; --pr: 12vmin; --cx: 50%;
+    position: fixed; inset: 0; overflow: hidden; background: var(--ink); color: var(--pale); font-family: "Josefin Sans", "Futura", "Century Gothic", Arial, sans-serif; }
+  /* sunburst: rays from the photo's bottom centre, clipped above that line */
+  .rays { position: absolute; inset: 0;
+    background: repeating-conic-gradient(from var(--ra) at var(--cx) var(--pb), rgba(212,178,106,.34) 0deg .55deg, transparent .55deg 5deg);
+    -webkit-mask-image: linear-gradient(180deg, transparent 12.5vmin, #000 30vmin, #000 var(--pb), transparent var(--pb)); mask-image: linear-gradient(180deg, transparent 12.5vmin, #000 30vmin, #000 var(--pb), transparent var(--pb)); }
+  .arc { position: absolute; left: var(--cx); top: var(--pb); border: .3vmin solid var(--gold); border-radius: 50%; transform: translate(-50%, -50%); opacity: .55;
+    -webkit-mask-image: linear-gradient(180deg, #000 50%, transparent 50%); mask-image: linear-gradient(180deg, #000 50%, transparent 50%); }
+  .a1 { width: 112vmin; height: 112vmin; } .a2 { width: 118vmin; height: 118vmin; opacity: .3; }
+  .stage { position: absolute; top: var(--pt); left: var(--pl); right: var(--pr); height: calc(var(--pb) - var(--pt)); }
+  .stage > * { position: absolute; clip-path: polygon(0 calc(var(--s) * 2), var(--s) calc(var(--s) * 2), var(--s) var(--s), calc(var(--s) * 2) var(--s), calc(var(--s) * 2) 0, calc(100% - var(--s) * 2) 0, calc(100% - var(--s) * 2) var(--s), calc(100% - var(--s)) var(--s), calc(100% - var(--s)) calc(var(--s) * 2), 100% calc(var(--s) * 2), 100% 100%, 0 100%); }
+  .o { inset: -1.9vmin; background: var(--gold); }
+  .g { inset: -1.3vmin; background: var(--ink); }
+  .stage img { left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .head { position: absolute; left: 0; right: 0; top: 0; height: 12.5vmin; background: var(--ink); display: flex; align-items: center; justify-content: center; gap: 3vmin; }
+  .head i { width: 11vmin; height: 1.1vmin; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); }
+  .head b { font-weight: 600; font-size: 2.3vmin; letter-spacing: .5em; margin-right: -.5em; text-transform: uppercase; color: var(--gold); }
+  .head span { font-size: 1.7vmin; letter-spacing: .3em; text-transform: uppercase; color: var(--pale); opacity: .75; }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: calc(var(--pb) + 5vmin); text-align: center; }
+  .k { font-size: 1.9vmin; font-weight: 700; letter-spacing: .42em; margin-right: -.42em; text-transform: uppercase; color: var(--gold); }
+  h1 { margin: 1.8vmin 0 0; font-family: "Poiret One", "Josefin Sans", Georgia, serif; font-weight: 400; font-size: 10vmin; line-height: .98; letter-spacing: .02em; }
+  h1 em { font-style: normal; color: var(--gold); }
+  .orn { display: block; width: 34vmin; height: 3.4vmin; margin: 2.6vmin auto 0; }
+  .deal { margin-top: 2.2vmin; display: flex; align-items: center; justify-content: center; gap: 2.6vmin; }
+  .deal b { font-family: "Poiret One", Georgia, serif; font-weight: 400; font-size: 9.5vmin; line-height: .9; color: var(--gold); }
+  .deal span { text-align: left; font-size: 2.2vmin; font-weight: 700; line-height: 1.35; letter-spacing: .22em; text-transform: uppercase; }
+  .meta { margin-top: 2vmin; font-size: 1.9vmin; letter-spacing: .16em; text-transform: uppercase; opacity: .85; }
+  .meta u { text-decoration: none; color: var(--gold); font-weight: 700; }
+  .cta { display: inline-block; margin-top: 2.8vmin; background: var(--gold); color: var(--ink); padding: 2vmin 5vmin 1.6vmin; font-size: 2.1vmin; font-weight: 700; letter-spacing: .32em; text-transform: uppercase; white-space: nowrap;
+    clip-path: polygon(1.4vmin 0, calc(100% - 1.4vmin) 0, 100% 50%, calc(100% - 1.4vmin) 100%, 1.4vmin 100%, 0 50%); }
+  /* shorter portrait: one-line title, smaller window */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pt: 16vmin; --pb: calc(100% - 45vmin); --pl: 20vmin; --pr: 20vmin; }
+    .copy { top: calc(var(--pb) + 4.6vmin); }
+    h1 { font-size: 7.4vmin; }
+    h1 br { display: none; }
+    .orn { display: none; }
+    .deal b { font-size: 8vmin; }
+    .cta { margin-top: 2.2vmin; }
+  }
+  /* square & wide: the window rises from the bottom edge on the right; copy on the left */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pt: 11vmin; --pb: 100%; --pl: auto; --pr: 6vmin; --cx: calc(100% - 6vmin - 19vmin); }
+    .stage { left: auto; width: 38vmin; }
+    .rays { -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 44%, #000 72%); mask-image: linear-gradient(90deg, transparent 0, transparent 44%, #000 72%); }
+    .arc { display: none; }
+    .head { background: none; left: 7vmin; right: auto; top: 6vmin; height: auto; justify-content: flex-start; gap: 2vmin; }
+    .head i:first-child { display: none; }
+    .head b { margin-right: 0; }
+    .copy { left: 7vmin; right: auto; width: calc(100% - 56vmin); top: 50%; transform: translateY(-46%); text-align: left; }
+    h1 { font-size: 8.2vmin; }
+    h1 br { display: inline; }
+    .meta { letter-spacing: .1em; }
+    .orn { display: block; margin-left: 0; width: 28vmin; }
+    .deal { justify-content: flex-start; }
+    .deal b { font-size: 8.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pt: 9vmin; --pr: 11vmin; --cx: calc(100% - 11vmin - 26vmin); }
+    .stage { width: 52vmin; }
+    .copy { left: 10vmin; width: calc(100% - 86vmin); }
+    .head { left: 10vmin; }
+    h1 { font-size: 9.6vmin; }
+    .meta { letter-spacing: .16em; }
+    .deal b { font-size: 10vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design — Jazz-age glamour: turning sunburst, gold catching the light ───────── */
+  @property --ra { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+  /* the sunburst turns slowly — exactly two ray periods (2 × 5°) per loop, so it wraps seamlessly */
+  .rays { animation: burst 8s linear infinite; }
+  @keyframes burst { from { --ra: 0deg; } to { --ra: 10deg; } }
+  /* the gold keyline catches a travelling glint (masked by the stepped clip-path of the window) */
+  .o { background: linear-gradient(115deg, #D4B26A 0%, #D4B26A 42%, #FFF3D0 50%, #D4B26A 58%, #D4B26A 100%) 100% 0 / 400% 100% no-repeat #D4B26A; animation: glint 8s linear infinite; }
+  @keyframes glint {
+    0%, 12% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    34%, 100% { background-position: 0% 0; }
+  }
+  /* the two arcs breathe in counterpoint */
+  .a1 { animation: arc1 8s cubic-bezier(.45,0,.55,1) infinite; }
+  .a2 { animation: arc2 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes arc1 { 0%, 100% { opacity: .55; } 50% { opacity: .2; } }
+  @keyframes arc2 { 0%, 100% { opacity: .3; } 50% { opacity: .6; } }
+  /* "Soirée" shimmers like gold leaf */
+  h1 em { background: linear-gradient(100deg, #D4B26A 0%, #D4B26A 40%, #FFF1CC 50%, #D4B26A 60%, #D4B26A 100%) 100% 0 / 400% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: leaf 8s linear infinite; }
+  @keyframes leaf {
+    0%, 36% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    54%, 100% { background-position: 0% 0; }
+  }
+  /* the ornament's diamond flares once */
+  .orn { overflow: visible; }
+  .orn path:nth-child(2) { transform-box: fill-box; transform-origin: 50% 50%; animation: gem 8s linear infinite; }
+  @keyframes gem {
+    0%, 50% { transform: scale(1) rotate(0deg); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    56% { transform: scale(1.5) rotate(90deg); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    66%, 100% { transform: scale(1) rotate(180deg); }
+  }
+  /* the discount rises a hair, the CTA gets a champagne sheen */
+  .deal b { animation: rise 8s linear infinite; }
+  @keyframes rise {
+    0%, 56% { transform: none; opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    60% { transform: translateY(-1vmin); opacity: 0; animation-timing-function: steps(1, end); }
+    61% { transform: translateY(1.2vmin); opacity: 0; animation-timing-function: cubic-bezier(.16,.8,.3,1); }
+    70%, 100% { transform: none; opacity: 1; }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-20deg); animation: sheen 8s linear infinite; }
+  @keyframes sheen {
+    0%, 74% { transform: translateX(-160%) skewX(-20deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    88%, 100% { transform: translateX(380%) skewX(-20deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="rays"></div>
+  <div class="arc a1"></div><div class="arc a2"></div>
+  <div class="stage"><div class="o"></div><div class="g"></div><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="head"><i></i><b>Atelier Nord</b><span>Est. MCMXXV</span><i></i></div>
+  <div class="copy">
+    <div class="k">The evening collection</div>
+    <h1>The Midnight<br> <em>Soirée</em></h1>
+    <svg class="orn" viewBox="0 0 200 20" fill="none" stroke="#D4B26A" stroke-width="1"><path d="M0 10H78M0 6H70M122 10H200M130 6H200"/><path d="M100 1l9 9-9 9-9-9z" fill="#D4B26A"/><path d="M84 10l6-6M84 10l6 6M116 10l-6-6M116 10l-6 6"/></svg>
+    <div class="deal"><b>25%</b><span>off<br>evening wear</span></div>
+    <div class="meta">Code <u>DECO25</u> · until Sunday, midnight</div>
+    <div class="cta">Reserve your look</div>
+  </div>
+</div>
+</body>
+</html>

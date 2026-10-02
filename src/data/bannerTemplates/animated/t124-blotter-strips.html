@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=Caveat:wght@500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Blotter Strips — a scent-bar counter: a fan of paper testing strips (mouillettes), each tip tinted
+     where it was sprayed, notes handwritten along the paper; one strip carries the offer stamp.
+     tall → photo above the counter, copy left + fan right; square → photo left, fan under the copy; wide → photo | copy | fan */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EADBD4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2A2230; font-family: "DM Mono", "Menlo", monospace;
+    background: radial-gradient(90% 70% at 70% 90%, #F1E5DF 0%, #EADBD4 60%, #E2D0C8 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 56%; object-fit: cover; object-position: 50% 22%; }
+
+  .copy { position: absolute; left: 6vmin; width: 48vmin; top: calc(56% + 5.5vmin); bottom: 5.5vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; letter-spacing: .22em; text-transform: uppercase; color: #6E5A62; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: .95; letter-spacing: -.02em; }
+  h1 i { color: #A0473C; }
+  p { margin: 2.6vmin 0 0; font-family: "Fraunces", Georgia, serif; font-size: 2.6vmin; line-height: 1.35; color: #4A3E48; }
+  .foot { margin-top: auto; font-size: 1.8vmin; line-height: 1.6; letter-spacing: .08em; text-transform: uppercase; color: #5A4A52; }
+  .foot b { display: inline-block; margin-top: .6vmin; padding: .7vmin 1.4vmin; background: #2A2230; color: #F4E9E3; font-weight: 500; letter-spacing: .14em; }
+
+  /* the fan of strips: all pivot on one point at the foot of the fan box */
+  .fan { position: absolute; left: 58vmin; right: 3vmin; top: calc(56% + 4.5vmin); bottom: 4vmin; --sw: 8.4vmin; --tip: 5.6vmin; }
+  .s { position: absolute; left: calc(50% - var(--sw) / 2); bottom: 0; width: var(--sw); height: 100%; transform-origin: 50% 96%;
+    clip-path: polygon(50% 0, 100% var(--tip), 100% 100%, 0 100%, 0 var(--tip));
+    background: linear-gradient(180deg, var(--ink) 0%, var(--ink2) 16%, rgba(255,255,255,0) 30%), linear-gradient(90deg, #F2EFEA, #FFFFFF 40%, #F6F3EE);
+    filter: drop-shadow(0 .6vmin .8vmin rgba(60,30,40,.18)); }
+  .s1 { transform: rotate(-17deg); --ink: rgba(214,160,72,.55); --ink2: rgba(214,160,72,.18); }
+  .s2 { transform: rotate(-6deg); --ink: rgba(120,150,96,.5); --ink2: rgba(120,150,96,.16); }
+  .s3 { transform: rotate(5deg); --ink: rgba(206,112,130,.5); --ink2: rgba(206,112,130,.16); }
+  .s4 { transform: rotate(16deg); --ink: rgba(150,128,190,.5); --ink2: rgba(150,128,190,.16); }
+  .s em { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%) rotate(-90deg); font-family: "Caveat", "Bradley Hand", cursive; font-style: normal; font-weight: 600; font-size: 5.2vmin; line-height: 1; color: #3A3050; white-space: nowrap; }
+  .s small { position: absolute; left: 50%; bottom: 20%; transform: translateX(-50%); font-size: 1.6vmin; font-weight: 500; letter-spacing: .1em; color: #8A7A84; }
+  .s4 em { top: 58%; color: #A0473C; }
+  .stamp { position: absolute; left: 50%; top: 24%; width: 6.4vmin; height: 6.4vmin; margin-left: -3.2vmin; border-radius: 50%; border: .35vmin solid #B23A2E; box-sizing: border-box; display: flex; align-items: center; justify-content: center; transform: rotate(-90deg); }
+  .stamp b { font-family: "DM Mono", monospace; font-weight: 500; font-size: 2vmin; letter-spacing: -.02em; color: #B23A2E; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 52%; object-position: 50% 24%; }
+    .copy { top: calc(52% + 4.6vmin); bottom: 4.6vmin; }
+    .fan { top: calc(52% + 3.6vmin); bottom: 3.4vmin; left: 60vmin; --sw: 6.6vmin; }
+    h1 { font-size: 8.6vmin; }
+    p { font-size: 2.4vmin; }
+    .s em { font-size: 4.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 45%; height: 100%; object-position: 50% 25%; }
+    .copy { left: calc(45% + 5.5vmin); width: auto; right: 5vmin; top: 6vmin; bottom: 5.5vmin; }
+    h1 { font-size: 7.6vmin; }
+    h1 br { display: none; }
+    p { max-width: 30vmin; font-size: 2.2vmin; }
+    .foot { max-width: 21vmin; font-size: 1.6vmin; }
+    .fan { left: calc(45% + 26vmin); right: 1vmin; top: 44vmin; bottom: 4vmin; --sw: 6vmin; --tip: 4.4vmin; }
+    .s em { font-size: 3.8vmin; }
+    .stamp { width: 5.6vmin; height: 5.6vmin; margin-left: -2.8vmin; }
+    .stamp b { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; }
+    .copy { left: calc(40% + 6vmin); right: auto; width: 44vmin; top: 7vmin; bottom: 7vmin; }
+    h1 { font-size: 8.6vmin; }
+    h1 br { display: inline; }
+    p { max-width: none; font-size: 2.4vmin; }
+    .foot { max-width: none; font-size: 1.8vmin; }
+    .fan { left: calc(40% + 52vmin); right: 3vmin; top: 7vmin; bottom: 6vmin; --sw: 7vmin; --tip: 5vmin; }
+    .s em { font-size: 4.4vmin; }
+    .stamp { width: 6.4vmin; height: 6.4vmin; margin-left: -3.2vmin; }
+  }
+  /* ── animated loop (6s) ── the fan of strips opens a touch and closes, then "this one" is lifted from the fan:
+     the −15% stamp re-strikes, the handwritten note rewrites itself, a sheen crosses the code */
+  .s1 { animation: bsS1 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .s2 { animation: bsS2 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .s3 { animation: bsS3 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bsS1 { 0%, 8%, 44%, 100% { rotate: 0deg; } 24%, 28% { rotate: -2.4deg; } }
+  @keyframes bsS2 { 0%, 10%, 44%, 100% { rotate: 0deg; } 25%, 29% { rotate: -1deg; } }
+  @keyframes bsS3 { 0%, 12%, 44%, 100% { rotate: 0deg; } 26%, 30% { rotate: 1deg; } }
+  .s4 { animation: bsS4 6s linear infinite; }
+  @keyframes bsS4 {
+    0%, 12% { rotate: 0deg; translate: 0 0; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    27% { rotate: 1.6deg; translate: 0 0; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    44% { rotate: 0deg; translate: 0 0; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    54%, 78% { rotate: 0deg; translate: 0 -2.2vmin; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    90%, 100% { rotate: 0deg; translate: 0 0; }
+  }
+  .stamp { animation: bsStamp 6s linear infinite; }
+  @keyframes bsStamp {
+    0%, 55% { scale: 1; opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    57.5% { scale: 1.45; opacity: 0; animation-timing-function: steps(1, end); }
+    58% { scale: 1.45; opacity: .2; animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    61.5% { scale: .92; opacity: 1; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    65%, 100% { scale: 1; opacity: 1; }
+  }
+  .s4 em { animation: bsWrite 6s linear infinite; }
+  @keyframes bsWrite {
+    0%, 60% { clip-path: inset(-20% -10% -20% -10%); opacity: 1; animation-timing-function: ease-in; }
+    63% { clip-path: inset(-20% -10% -20% -10%); opacity: 0; animation-timing-function: steps(1, end); }
+    63.5% { clip-path: inset(-20% 110% -20% -10%); opacity: 1; animation-timing-function: cubic-bezier(.35,.1,.45,1); }
+    78%, 100% { clip-path: inset(-20% -10% -20% -10%); opacity: 1; }
+  }
+  .foot b { position: relative; clip-path: inset(0); }
+  .foot b::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.28) 50%, rgba(255,255,255,0));
+    transform: translateX(-150%) skewX(-18deg); animation: bsSheen 6s linear infinite; }
+  @keyframes bsSheen { 0%, 80% { transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 94%, 100% { transform: translateX(420%) skewX(-18deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="kick">Scent bar · Studio Oro</div>
+    <h1>Try it on<br> <i>first.</i></h1>
+    <p>Four new notes on the counter. Test them all, keep the one that’s you.</p>
+    <div class="foot">Free samples with every order<br><b>Code TEST15 · 15% off</b></div>
+  </div>
+  <div class="fan">
+    <div class="s s1"><em>sunlit linen</em><small>ORO</small></div>
+    <div class="s s2"><em>fresh cut</em></div>
+    <div class="s s3"><em>soft rose</em></div>
+    <div class="s s4"><div class="stamp"><b>−15%</b></div><em>this one</em><small>ORO</small></div>
+  </div>
+</div>
+</body>
+</html>

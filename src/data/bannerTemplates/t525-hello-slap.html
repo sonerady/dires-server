@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500;62..125,700;62..125,900&family=Permanent+Marker&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Hello Slap — a green street utility cabinet covered in slaps: the photo stuck on as a die-cut sticker,
+     a red "HELLO my name is" sticker filled in with marker, and a parcel-label slap carrying the price.
+     tall / 3:4 → photo on top, slaps below · square / wide → photo left, slaps staggered right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #3D5B49; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #161616; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; --u: 1vmin;
+    background:
+      radial-gradient(circle at 3vmin 3vmin, #2A4032 0 .8vmin, rgba(255,255,255,.18) .9vmin 1vmin, transparent 1.2vmin),
+      radial-gradient(circle at calc(100% - 3vmin) 3vmin, #2A4032 0 .8vmin, rgba(255,255,255,.18) .9vmin 1vmin, transparent 1.2vmin),
+      radial-gradient(circle at 3vmin calc(100% - 3vmin), #2A4032 0 .8vmin, rgba(255,255,255,.18) .9vmin 1vmin, transparent 1.2vmin),
+      radial-gradient(circle at calc(100% - 3vmin) calc(100% - 3vmin), #2A4032 0 .8vmin, rgba(255,255,255,.18) .9vmin 1vmin, transparent 1.2vmin),
+      radial-gradient(30vmin 8vmin at 70% 40%, rgba(230,230,210,.14), transparent 70%),
+      radial-gradient(20vmin 5vmin at 20% 75%, rgba(20,30,20,.25), transparent 70%),
+      radial-gradient(70vmin 50vmin at 30% 20%, rgba(255,255,255,.08), transparent 70%),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.035) 0 .2vmin, transparent .2vmin 1.4vmin),
+      linear-gradient(180deg, #45654F, #3A5745); }
+
+  .photo { position: absolute; left: 6.4vmin; top: 6.4vmin; width: calc(100% - 12.8vmin); height: calc(100% - 70vmin); object-fit: cover; object-position: 50% 25%; display: block;
+    box-shadow: 0 0 0 1.4vmin #FBFAF6, .6vmin .9vmin 1.6vmin 1.4vmin rgba(0,0,0,.3); }
+
+  /* HELLO sticker */
+  .hello { position: absolute; left: 5vmin; bottom: 12vmin; width: calc(var(--u) * 54); background: #D9252B; border-radius: calc(var(--u) * 2.2); transform: rotate(-3deg);
+    box-shadow: .5vmin .8vmin 1.4vmin rgba(0,0,0,.3); color: #fff; padding-bottom: calc(var(--u) * 2.6); }
+  .hello .t { padding: calc(var(--u) * 2.2) calc(var(--u) * 3) calc(var(--u) * 1.2); display: flex; flex-direction: column; align-items: center; }
+  .hello .t b { display: inline-block; font-weight: 900; font-stretch: 112%; font-size: calc(var(--u) * 8.6); line-height: .9; letter-spacing: .02em; }
+  .hello .t span { display: inline-block; margin-top: calc(var(--u) * 1.6); font-weight: 700; font-size: max(1.7vmin, calc(var(--u) * 2.6)); letter-spacing: .04em; }
+  .hello .f { margin: 0 calc(var(--u) * 2); height: calc(var(--u) * 16); background: #FFFFFF; display: flex; align-items: center; justify-content: center; border-radius: calc(var(--u) * .4); }
+  h1 { margin: 0; font-family: "Permanent Marker", cursive; font-weight: 400; font-size: calc(var(--u) * 8.4); line-height: 1; color: #121212; transform: rotate(-2deg); white-space: nowrap; }
+
+  /* parcel-label slap */
+  .label { position: absolute; right: 5vmin; bottom: 6vmin; width: max(27vmin, calc(var(--u) * 35)); background: #FBFAF4; transform: rotate(1.2deg); box-shadow: .5vmin .8vmin 1.4vmin rgba(0,0,0,.3);
+    font-stretch: 80%; }
+  .label .h { background: #161616; color: #FBFAF4; font-weight: 900; font-size: max(1.6vmin, calc(var(--u) * 2)); letter-spacing: .14em; padding: calc(var(--u) * 1.2) calc(var(--u) * 2); text-transform: uppercase; }
+  .label .rows { padding: calc(var(--u) * 1.6) calc(var(--u) * 2) 0; font-size: max(1.6vmin, calc(var(--u) * 1.9)); line-height: 1.5; font-weight: 500; }
+  .label .rows b { font-weight: 900; display: inline-block; width: calc(var(--u) * 6.4); }
+  .label .p { padding: calc(var(--u) * .8) calc(var(--u) * 2) 0; display: flex; align-items: baseline; justify-content: space-between; gap: calc(var(--u) * 2); }
+  .label .p b { font-weight: 900; font-size: calc(var(--u) * 7.6); letter-spacing: -.02em; font-stretch: 90%; }
+  .label .p span { font-size: max(1.6vmin, calc(var(--u) * 1.9)); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #D9252B; }
+  .label .bar { margin: calc(var(--u) * 1) calc(var(--u) * 2) calc(var(--u) * 2); height: calc(var(--u) * 5);
+    background: repeating-linear-gradient(90deg, #161616 0 .3vmin, transparent .3vmin .6vmin, #161616 .6vmin 1.2vmin, transparent 1.2vmin 1.5vmin, #161616 1.5vmin 1.7vmin, transparent 1.7vmin 2.3vmin); }
+
+  .dot { display: none; position: absolute; width: 17vmin; height: 17vmin; border-radius: 50%; background: #F2D22E; transform: rotate(5deg); box-shadow: .4vmin .7vmin 1.2vmin rgba(0,0,0,.3);
+    flex-direction: column; align-items: center; justify-content: center; gap: 1.8vmin; }
+  .dot b { font-weight: 900; font-size: 5.4vmin; line-height: .9; letter-spacing: -.02em; }
+  .dot span { font-weight: 700; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .cab { position: absolute; left: 7vmin; bottom: 4vmin; font-weight: 900; font-size: 1.7vmin; letter-spacing: .3em; color: rgba(236,240,226,.55); text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --u: .78vmin; }
+    .photo { left: 6vmin; top: 6vmin; width: calc(100% - 12vmin); height: calc(100% - 55vmin); }
+    .hello { left: 6vmin; bottom: 9vmin; }
+    .label { right: 7vmin; bottom: 5.4vmin; }
+    .cab { bottom: 3.4vmin; }
+  }
+  /* square / wide — photo left, slaps staggered right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --u: .78vmin; }
+    .photo { left: 6vmin; top: 6vmin; width:  42%; height: calc(100% - 12vmin); }
+    .hello { left: auto; right: 5vmin; top: 6vmin; bottom: auto; }
+    .label { right: 6vmin; bottom: 7vmin; }
+    .dot { display: flex; right: 26vmin; top: 42vmin; }
+    .cab { left: auto; right: 6vmin; bottom: 3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --u: .9vmin; }
+    .photo { width: 46%; }
+    .hello { right: 6vmin; top: 7vmin; }
+    .dot { right: auto; left: calc(46% + 13vmin); top: 46vmin; width: 19vmin; height: 19vmin; }
+    .dot b { font-size: 6vmin; }
+    .label { right: 7vmin; bottom: 7vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="hello">
+    <div class="t"><b>HELLO</b><span>my name is</span></div>
+    <div class="f"><h1>Brand new.</h1></div>
+  </div>
+  <div class="label">
+    <div class="h">Priority drop · 2-28</div>
+    <div class="rows"><b>From</b>Kollektiv Nine<br><b>To</b>You, obviously</div>
+    <div class="p"><b>$58</b><span>Ships in 24h</span></div>
+    <div class="bar"></div>
+  </div>
+  <div class="dot"><b>−30%</b><span>code SLAP</span></div>
+  <div class="cab">Cab 07-B · Keep clear</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Dancing+Script:wght@600;700&family=DM+Sans:opsz,wght@9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+  /* Name Tape — hand-me-down honesty: woven cotton name tapes sewn inside on shirting stripe, three
+     earlier owners crossed out in biro and a fourth tape left blank for the next one.
+     tall / 3:4 → photo above the lining; square / wide → photo left, lining right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F6F8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1D2A44; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif;
+            background: #F4F6F8 repeating-linear-gradient(90deg, transparent 0 1.6vmin, rgba(92,124,176,.16) 1.6vmin 2vmin, transparent 2vmin 2.4vmin, rgba(92,124,176,.1) 2.4vmin 2.6vmin); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 94vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .lining { position: absolute; left: 0; right: 0; bottom: 0; height: 94vmin; box-sizing: border-box; padding: 5vmin 6vmin 0; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; color: #4B5A78; }
+  h1 { margin: 2vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: .98; letter-spacing: -.015em; }
+  h1 i { color: #C2362F; }
+
+  .tapes { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: 2.2vmin; padding: 2vmin 0; }
+  .tape { position: relative; align-self: flex-start; width: 58vmin; height: 8vmin; box-sizing: border-box; padding: 0 5vmin; display: flex; align-items: center; justify-content: center;
+          background: #FFFEFB repeating-linear-gradient(90deg, rgba(0,0,0,.035) 0 1px, transparent 1px .5vmin);
+          box-shadow: 0 .3vmin .6vmin rgba(29,42,68,.18); transform: rotate(var(--r)); }
+  /* stitched ends */
+  .tape::before, .tape::after { content: ""; position: absolute; top: .8vmin; bottom: .8vmin; width: .4vmin;
+          background: repeating-linear-gradient(180deg, #8D98AE 0 1vmin, transparent 1vmin 1.6vmin); }
+  .tape::before { left: 1.6vmin; } .tape::after { right: 1.6vmin; }
+  .tape b { position: relative; font-family: "Dancing Script", "Brush Script MT", cursive; font-weight: 700; font-size: 4.8vmin; line-height: 1; color: #C2362F; white-space: nowrap; }
+  .tape.x b svg { position: absolute; left: -2vmin; top: 12%; width: calc(100% + 4vmin); height: 80%; overflow: visible; }
+  .tape.t2 { margin-left: 16vmin; } .tape.t3 { margin-left: 6vmin; } .tape.t4 { margin-left: 22vmin; }
+  .tape.blank b { font-family: "DM Sans", sans-serif; font-weight: 500; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #8D98AE; }
+  .tape.blank { outline: .3vmin dashed #C2362F; outline-offset: .8vmin; }
+
+  .foot { flex: none; height: 12vmin; display: flex; justify-content: space-between; align-items: center; border-top: .3vmin solid #1D2A44; white-space: nowrap; }
+  .foot strong { font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 4.6vmin; }
+  .foot strong small { font-family: "DM Sans", sans-serif; font-weight: 700; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; margin-right: 1.4vmin; color: #4B5A78; vertical-align: .6vmin; }
+  .foot .cta { font-weight: 700; font-size: 2.1vmin; background: #C2362F; color: #FFF; padding: 1.6vmin 2.6vmin; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 78vmin); }
+    .lining { height: 78vmin; padding-top: 4.4vmin; }
+    h1 { font-size: 8vmin; }
+    .tapes { gap: 1.6vmin; }
+    .tape { width: 50vmin; height: 7vmin; }
+    .tape b { font-size: 4.2vmin; }
+    .tape.t2 { margin-left: 22vmin; } .tape.t3 { margin-left: 10vmin; } .tape.t4 { margin-left: 30vmin; }
+    .foot { height: 10vmin; }
+  }
+  /* square → photo left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 45%; height: 100%; object-position: 50% 25%; }
+    .lining { left: 45%; top: 0; height: auto; padding: 5vmin 4.6vmin 0; }
+    .kick span + span { display: none; }
+    h1 { font-size: 6.8vmin; }
+    .tape { width: 36vmin; height: 6.4vmin; padding: 0 3.6vmin; }
+    .tape b { font-size: 3.8vmin; }
+    .tape.t2 { margin-left: 6vmin; } .tape.t3 { margin-left: 2vmin; } .tape.t4 { margin-left: 9vmin; }
+    .foot { height: 10vmin; }
+    .foot strong { font-size: 3.8vmin; }
+    .foot strong small { display: none; }
+    .foot .cta { font-size: 1.8vmin; padding: 1.4vmin 2vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 30%; }
+    .lining { left: 44%; padding: 5vmin 6vmin 0; }
+    .kick span + span { display: inline; }
+    h1 { font-size: 8vmin; }
+    .tape { width: 42vmin; height: 7vmin; }
+    .tape b { font-size: 4.2vmin; }
+    .tape.t2 { margin-left: 14vmin; } .tape.t3 { margin-left: 5vmin; } .tape.t4 { margin-left: 20vmin; }
+    .foot strong { font-size: 4.2vmin; }
+    .foot strong small { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="lining">
+    <div class="kick"><span>Hand-me-down · Atelier Nord</span><span>Pre-loved edit</span></div>
+    <h1>Worn by three.<br><i>Ready for four.</i></h1>
+    <div class="tapes">
+      <div class="tape x t1" style="--r:-2deg"><b>Clara Moreau<svg viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 12 C20 8, 40 13, 60 9 S88 10, 100 7" fill="none" stroke="#2344A8" stroke-width="2.2" stroke-linecap="round" vector-effect="non-scaling-stroke" style="stroke-width:.4vmin"/></svg></b></div>
+      <div class="tape x t2" style="--r:1.5deg"><b>Jonas Berg<svg viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 9 C25 13, 50 7, 75 11 S95 9, 100 12" fill="none" stroke="#2344A8" stroke-width="2.2" stroke-linecap="round" vector-effect="non-scaling-stroke" style="stroke-width:.4vmin"/></svg></b></div>
+      <div class="tape x t3" style="--r:-1deg"><b>Aiyana Kaur<svg viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path d="M0 11 C18 7, 36 12, 58 9 S86 13, 100 8" fill="none" stroke="#2344A8" stroke-width="2.2" stroke-linecap="round" vector-effect="non-scaling-stroke" style="stroke-width:.4vmin"/></svg></b></div>
+      <div class="tape blank t4" style="--r:2deg"><b>Your name here</b></div>
+    </div>
+    <div class="foot"><strong><small>Pre-loved</small>from €25</strong><span class="cta">Add your name →</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;800;900&family=Overpass+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Camp Notice — the enamelled regulations plate screwed to a campground post: a yellow NOTICE header,
+     white recreation pictograms on forest-service green, numbered camp rules in highway-sign lettering (the
+     last rule is the offer), a quiet-hours strip, rivets and a little weathering. Bark-brown post behind.
+     tall → photo above, notice below · square/wide → photo left, notice right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2A211B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #2A211B; color: #F4F2EA; font-family: "Overpass", "Highway Gothic", "Arial Narrow", Arial, sans-serif; --g: #0F5238; --y: #F3C317; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 94vmin); object-fit: cover; object-position: 50% 20%; }
+  .post { position: absolute; left: 0; right: 0; bottom: 0; height: 94vmin; overflow: hidden;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 .3vmin, transparent .3vmin 2.2vmin, rgba(255,230,200,.04) 2.2vmin 2.6vmin, transparent 2.6vmin 4.4vmin), linear-gradient(180deg, #3A2D24, #2A211B); }
+  .plate { position: absolute; left: 4vmin; right: 4vmin; top: 4vmin; bottom: 4vmin; border-radius: 1.6vmin; overflow: hidden; display: flex; flex-direction: column;
+    background: linear-gradient(160deg, rgba(255,255,255,.07), transparent 40%, rgba(0,0,0,.12)), var(--g);
+    box-shadow: 0 1.2vmin 2vmin rgba(0,0,0,.55), inset 0 0 0 .5vmin #0B3F2B, inset 0 0 0 .9vmin rgba(244,242,234,.9); }
+  .wear { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .rv { position: absolute; width: 1.8vmin; height: 1.8vmin; border-radius: 50%; z-index: 2; background: radial-gradient(circle at 35% 30%, #F2F2EE, #9A9C98 55%, #5A5C58); box-shadow: 0 .2vmin .3vmin rgba(0,0,0,.5); }
+  .rv1 { left: 2vmin; top: 2vmin; } .rv2 { right: 2vmin; top: 2vmin; } .rv3 { left: 2vmin; bottom: 2vmin; } .rv4 { right: 2vmin; bottom: 2vmin; }
+  .head { position: relative; margin: .9vmin .9vmin 0; padding: 2.6vmin 5vmin 2.2vmin; background: var(--y); color: #111; display: flex; justify-content: space-between; align-items: flex-end; gap: 2vmin; border-radius: .8vmin .8vmin 0 0; }
+  .head b { font-weight: 900; font-size: 9.4vmin; line-height: .8; letter-spacing: .02em; }
+  .head small { font-family: "Overpass Mono", Menlo, monospace; font-weight: 700; font-size: 1.8vmin; line-height: 1.35; letter-spacing: .08em; text-transform: uppercase; text-align: right; white-space: nowrap; }
+  .body { position: relative; flex: 1; min-height: 0; padding: 3.4vmin 5vmin 3.4vmin; display: flex; flex-direction: column; justify-content: center; }
+  .pics { display: flex; gap: 2.6vmin; }
+  .pic { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1vmin; }
+  .pic svg { width: 100%; aspect-ratio: 1; max-width: 16vmin; display: block; }
+  .pic span { font-weight: 800; font-size: 2.2vmin; letter-spacing: .12em; text-transform: uppercase; }
+  .rules { margin: 4.4vmin 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2vmin; }
+  .rules li { display: flex; align-items: baseline; gap: 2.2vmin; padding-bottom: 2vmin; border-bottom: .25vmin solid rgba(244,242,234,.35); font-weight: 800; font-size: 4.8vmin; line-height: 1.1; }
+  .rules li i { flex: none; width: 5vmin; font-style: normal; font-weight: 900; color: var(--y); }
+  .rules li.hot { color: var(--y); border-bottom: 0; }
+  .foot { margin-bottom: .9vmin; display: flex; align-items: stretch; }
+  .foot span { flex: 1; display: flex; align-items: center; padding: 1.8vmin 5vmin; background: #F4F2EA; color: var(--g); font-family: "Overpass Mono", Menlo, monospace; font-weight: 700; font-size: 1.8vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .foot b { display: flex; align-items: center; padding: 0 4vmin; background: #111; color: var(--y); font-weight: 900; font-size: 2.8vmin; white-space: nowrap; }
+  .foot { margin-left: .9vmin; margin-right: .9vmin; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 84vmin); }
+    .post { height: 84vmin; }
+    .plate { top: 3.4vmin; bottom: 3.4vmin; }
+    .head { padding: 2.2vmin 5vmin 1.8vmin; }
+    .head b { font-size: 8.4vmin; }
+    .body { padding-top: 2.8vmin; }
+    .pic svg { max-width: 14vmin; }
+    .rules { margin-top: 3.4vmin; gap: 1.6vmin; }
+    .rules li { font-size: 4.3vmin; padding-bottom: 1.6vmin; }
+    .foot span { padding: 1.5vmin 5vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .post { height: 66vmin; }
+    .plate { top: 3vmin; bottom: 3vmin; }
+    .head { padding: 1.8vmin 4.4vmin 1.4vmin; }
+    .head b { font-size: 6.6vmin; }
+    .head small { font-size: 1.6vmin; }
+    .body { padding: 2.4vmin 4.4vmin 0; flex-direction: row; gap: 4vmin; }
+    .pics { flex-wrap: wrap; width: 32vmin; flex: none; gap: 1.6vmin; align-content: flex-start; }
+    .pic { flex: 0 0 calc(50% - .8vmin); }
+    .pic svg { max-width: 10vmin; }
+    .pic span { font-size: 1.6vmin; }
+    .rules { flex: 1; margin-top: 0; gap: 1.4vmin; justify-content: center; }
+    .rules li { font-size: 3.4vmin; padding-bottom: 1.4vmin; }
+    .body { align-items: center; padding-bottom: 2.4vmin; }
+    .foot span { padding: 1.3vmin 4.4vmin; font-size: 1.6vmin; }
+    .foot b { font-size: 2.4vmin; }
+  }
+  /* square / wide → photo left, notice right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .post { left: 50%; top: 0; height: auto; }
+    .plate { left: 3vmin; right: 3vmin; top: 3vmin; bottom: 3vmin; }
+    .head { padding: 2vmin 3.6vmin 1.6vmin; }
+    .head b { font-size: 6.4vmin; }
+    .head small { display: none; }
+    .body { padding: 2.6vmin 3.6vmin 2.6vmin; flex-direction: column; gap: 0; align-items: stretch; }
+    .pics { width: auto; flex-wrap: nowrap; gap: 1.4vmin; }
+    .pic { flex: 1; }
+    .pic svg { max-width: 10.4vmin; }
+    .pic span { font-size: 1.6vmin; letter-spacing: .06em; }
+    .rules { flex: none; margin-top: 5vmin; gap: 2.2vmin; }
+    .rules li { font-size: 3.7vmin; padding-bottom: 2.2vmin; gap: 1.4vmin; }
+    .rules li i { width: 3vmin; }
+    .foot { flex-direction: column; }
+    .foot span { padding: 1.1vmin 3.6vmin; font-size: 1.6vmin; letter-spacing: .02em; }
+    .foot b { padding: 1.2vmin 3.6vmin; font-size: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .post { left: 48%; }
+    .plate { left: 4vmin; right: 4vmin; top: 4vmin; bottom: 4vmin; }
+    .head { padding: 2.4vmin 4.6vmin 2vmin; }
+    .head b { font-size: 8vmin; }
+    .head small { display: block; font-size: 1.7vmin; }
+    .body { padding: 3vmin 4.6vmin 3vmin; }
+    .pics { gap: 2.4vmin; }
+    .pic svg { max-width: 12.4vmin; }
+    .pic span { font-size: 1.9vmin; letter-spacing: .12em; }
+    .rules { margin-top: 3.6vmin; gap: 1.6vmin; }
+    .rules li { font-size: 4vmin; padding-bottom: 1.6vmin; gap: 2vmin; }
+    .rules li i { width: 4vmin; }
+    .foot { flex-direction: row; }
+    .foot span { padding: 1.5vmin 4.6vmin; font-size: 1.7vmin; letter-spacing: .06em; }
+    .foot b { padding: 0 3.6vmin; font-size: 2.6vmin; }
+  }
+
+  /* ───────── motion (6s loop), t=0 = static design ─────────
+     constant: the campfire pictogram's flame flickers (1s)
+     0.5s a flashlight beam finds the plate and reads it top→bottom · 3.0s the rule numbers tick off one by one ·
+     4.1s rule 3 (the offer) flares retro-reflective yellow, the SAVE sign pops · 5.0s CTA flashes twice */
+  .plate::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; mix-blend-mode: soft-light;
+    background: radial-gradient(circle at 50% 50%, rgba(255,250,225,1) 0, rgba(255,250,225,.55) 12%, rgba(255,250,225,0) 26%) 0 0 / 200% 200% no-repeat;
+    background-position: 100% 0; opacity: 0; animation: torch 6s linear infinite; }
+  @keyframes torch {
+    0%, 8% { opacity: 0; background-position: 100% 5%; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    14% { opacity: 1; background-position: 85% 20%; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    30% { opacity: 1; background-position: 15% 40%; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    46% { opacity: 1; background-position: 70% 85%; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    56%, 100% { opacity: 0; background-position: 40% 100%; }
+  }
+  .flame { transform-box: fill-box; transform-origin: 50% 100%; animation: flick 1s linear infinite; }
+  @keyframes flick {
+    0%, 100% { transform: scale(1,1) skewX(0deg); }
+    22% { transform: scale(.96,1.08) skewX(-3deg); }
+    41% { transform: scale(1.03,.95) skewX(2deg); }
+    63% { transform: scale(.98,1.06) skewX(3deg); }
+    82% { transform: scale(1.02,.97) skewX(-1.5deg); }
+  }
+  .rules li i { display: inline-block; animation: tick 6s linear infinite; }
+  .rules li:nth-child(1) i { animation-delay: -.0s; }
+  .rules li:nth-child(2) i { animation-delay: -5.6s; }
+  .rules li:nth-child(3) i { animation-delay: -5.2s; }
+  @keyframes tick {
+    0%, 49% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1.4); }
+    52% { transform: scale(1.4); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    57%, 100% { transform: scale(1); }
+  }
+  .rules li.hot span { animation: reflect 6s linear infinite; }
+  @keyframes reflect {
+    0%, 67% { color: #F3C317; text-shadow: 0 0 0 rgba(243,195,23,0); animation-timing-function: steps(1, end); }
+    68% { color: #FFF6C4; text-shadow: 0 0 2.4vmin rgba(243,195,23,.95); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    71% { color: #F3C317; text-shadow: 0 0 1vmin rgba(243,195,23,.5); animation-timing-function: steps(1, end); }
+    72.5% { color: #FFF6C4; text-shadow: 0 0 2.4vmin rgba(243,195,23,.95); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    84%, 100% { color: #F3C317; text-shadow: 0 0 0 rgba(243,195,23,0); }
+  }
+  .pic:nth-child(4) svg { animation: savepop 6s linear infinite; }
+  @keyframes savepop {
+    0%, 69% { transform: scale(1) rotate(0deg); animation-timing-function: cubic-bezier(.2,.8,.3,1.4); }
+    73% { transform: scale(1.14) rotate(-5deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    79%, 100% { transform: scale(1) rotate(0deg); }
+  }
+  .foot b { animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 82% { color: #F3C317; animation-timing-function: steps(1, end); }
+    83%, 85% { color: #FFF6C4; animation-timing-function: steps(1, end); }
+    86%, 88% { color: #F3C317; animation-timing-function: steps(1, end); }
+    89%, 91% { color: #FFF6C4; animation-timing-function: steps(1, end); }
+    92%, 100% { color: #F3C317; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="post">
+    <div class="plate">
+      <svg class="wear" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true"><filter id="w"><feTurbulence type="fractalNoise" baseFrequency=".018 .05" numOctaves="4" seed="9"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 .95  0 0 0 -3.2 1.1"/></filter><rect width="100%" height="100%" filter="url(#w)" opacity=".1"/></svg>
+      <i class="rv rv1"></i><i class="rv rv2"></i><i class="rv rv3"></i><i class="rv rv4"></i>
+      <div class="head"><b>NOTICE</b><small>Campground rules<br>Site 26 · Fall season</small></div>
+      <div class="body">
+        <div class="pics">
+          <div class="pic"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="2" y="2" width="56" height="56" rx="7" fill="none" stroke="#F4F2EA" stroke-width="3"/><path d="M30 14 L48 46 H12 Z" fill="#F4F2EA"/><path d="M30 26 L37 46 H23 Z" fill="#0F5238"/><path d="M8 46 H52" stroke="#F4F2EA" stroke-width="3"/></svg><span>Pitch</span></div>
+          <div class="pic"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="2" y="2" width="56" height="56" rx="7" fill="none" stroke="#F4F2EA" stroke-width="3"/><path class="flame" d="M30 12 C38 22 42 28 40 36 C39 41 35 44 30 44 C25 44 21 41 20 36 C19 30 23 27 26 22 C27 27 29 29 31 29 C33 24 32 18 30 12 Z" fill="#F4F2EA"/><path d="M16 49 L44 42 M16 42 L44 49" stroke="#F4F2EA" stroke-width="3.4" stroke-linecap="round"/></svg><span>Warm</span></div>
+          <div class="pic"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="2" y="2" width="56" height="56" rx="7" fill="none" stroke="#F4F2EA" stroke-width="3"/><circle cx="32" cy="13" r="4.4" fill="#F4F2EA"/><path d="M30 20 L25 34 L20 48 M30 20 L33 33 L40 48 M30 22 L38 28 M27 23 L20 30" fill="none" stroke="#F4F2EA" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="31.5" y="18" width="8" height="12" rx="2" fill="#F4F2EA" transform="rotate(14 35 24)"/><path d="M42 22 L46 48" stroke="#F4F2EA" stroke-width="2.4" stroke-linecap="round"/></svg><span>Explore</span></div>
+          <div class="pic"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="2" y="2" width="56" height="56" rx="7" fill="#F3C317" stroke="#F3C317" stroke-width="3"/><circle cx="21" cy="21" r="6" fill="none" stroke="#111" stroke-width="3.6"/><circle cx="39" cy="39" r="6" fill="none" stroke="#111" stroke-width="3.6"/><path d="M42 16 L18 44" stroke="#111" stroke-width="4" stroke-linecap="round"/></svg><span>Save</span></div>
+        </div>
+        <ol class="rules">
+          <li><i>1</i><span>Layer up after sundown.</span></li>
+          <li><i>2</i><span>Leave only footprints.</span></li>
+          <li class="hot"><i>3</i><span>Take 30% off, code CAMP30.</span></li>
+        </ol>
+      </div>
+      <div class="foot"><span>Quiet hours 10 PM–6 AM · Ends Sun</span><b>Check in →</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

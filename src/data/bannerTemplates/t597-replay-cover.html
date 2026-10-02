@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;500;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Replay Cover — the cover of a finished live stream: the photo as the video frame, a player bar beneath it
+     (play button, scrubber with chapter ticks, running time) and a chapter list with timestamps, plus the still-valid live price.
+     tall / 3:4 → headline · frame · player · chapters stacked · square / wide → frame left, player + chapters right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #111418; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #111418; color: #F2F0EA; font-family: "JetBrains Mono", ui-monospace, monospace;
+    display: flex; flex-direction: column; padding: 5vmin 5.6vmin 5vmin; box-sizing: border-box; }
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(70vmin 50vmin at 0% 0%, rgba(255,122,69,.14), transparent 70%); }
+
+  .top { position: relative; flex: none; }
+  .meta { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; color: #8C929B; white-space: nowrap; }
+  .meta .rp { padding: .7vmin 1.4vmin; border: 1px solid #FF7A45; border-radius: .6vmin; color: #FF7A45; font-weight: 700; letter-spacing: .18em; }
+  .meta .d { margin-left: auto; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Unbounded", "Helvetica Neue", sans-serif; font-weight: 800; font-size: 6.6vmin; line-height: 1.02; letter-spacing: -.03em; }
+  h1 span { font-weight: 400; color: #FF7A45; }
+
+  .frame { position: relative; flex: 1 1 auto; min-height: 0; margin: 3.6vmin -5.6vmin 0; }
+  .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .rest { position: relative; flex: none; }
+  .player { display: flex; align-items: center; gap: 2.4vmin; margin-top: 3.2vmin; }
+  .play { flex: none; width: 7vmin; height: 7vmin; border-radius: 50%; background: #FF7A45; display: grid; place-items: center; }
+  .play svg { width: 2.8vmin; height: 2.8vmin; display: block; margin-left: .5vmin; }
+  .track { flex: 1 1 auto; min-width: 0; }
+  .bar { position: relative; height: .8vmin; border-radius: 99vmin; background: #2A2F36; }
+  .bar .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 44%; border-radius: 99vmin; background: #FF7A45; }
+  .bar .tick { position: absolute; top: -.6vmin; width: 2px; height: 2vmin; background: #F2F0EA; opacity: .55; }
+  .bar .knob { position: absolute; left: 44%; top: 50%; width: 2.4vmin; height: 2.4vmin; border-radius: 50%; background: #F2F0EA; transform: translate(-50%, -50%); box-shadow: 0 0 0 .6vmin rgba(255,122,69,.35); }
+  .time { margin-top: 1.6vmin; display: flex; justify-content: space-between; font-size: 1.7vmin; color: #8C929B; }
+  .time b { color: #F2F0EA; font-weight: 500; }
+
+  .chap { list-style: none; margin: 3vmin 0 0; padding: 0; }
+  .chap li { display: flex; align-items: baseline; gap: 2.4vmin; padding: 1.2vmin 0; border-top: 1px solid #252A31; font-size: 2vmin; white-space: nowrap; }
+  .chap li time { flex: none; width: 8vmin; color: #FF7A45; font-weight: 500; }
+  .chap li span { flex: 1 1 auto; min-width: 0; font-family: "Unbounded", sans-serif; font-weight: 400; font-size: 2vmin; }
+  .chap li em { font-style: normal; font-size: 1.6vmin; color: #8C929B; letter-spacing: .08em; text-transform: uppercase; }
+  .chap li.now span { font-weight: 600; }
+  .chap li.now em { color: #111418; background: #FF7A45; padding: .3vmin .9vmin; border-radius: .5vmin; }
+
+  .foot { margin-top: 3vmin; display: flex; align-items: center; gap: 3vmin; }
+  .offer { font-size: 1.7vmin; line-height: 1.5; color: #8C929B; }
+  .offer b { display: block; font-family: "Unbounded", sans-serif; font-weight: 600; font-size: 4vmin; line-height: 1.1; color: #F2F0EA; letter-spacing: -.02em; }
+  .offer b s { font-family: "JetBrains Mono", monospace; font-weight: 400; font-size: 2vmin; color: #6B717A; margin-left: 1vmin; letter-spacing: 0; }
+  .cta { margin-left: auto; flex: none; padding: 2.1vmin 3.4vmin; border-radius: 99vmin; background: #F2F0EA; color: #111418; font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 5.6vmin 4.4vmin; }
+    h1 { font-size: 5.6vmin; margin-top: 2vmin; }
+    .frame { margin-top: 3vmin; }
+    .player { margin-top: 2.6vmin; }
+    .play { width: 6vmin; height: 6vmin; }
+    .chap { margin-top: 2.2vmin; }
+    .chap li { padding: .9vmin 0; }
+    .foot { margin-top: 2.4vmin; }
+    .offer b { font-size: 3.4vmin; }
+  }
+  /* ── square: frame left, everything else right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .frame { position: absolute; left: 0; top: 0; bottom: 0; width: 46%; height: 100%; margin: 0; }
+    .top { position: absolute; left: calc(46% + 5vmin); right: 5vmin; top: 5vmin; }
+    .meta .d { display: none; }
+    h1 { font-size: 4.6vmin; }
+    .rest { position: absolute; left: calc(46% + 5vmin); right: 5vmin; bottom: 5vmin; }
+    .player { margin-top: 0; }
+    .play { width: 6vmin; height: 6vmin; }
+    .chap { margin-top: 2.4vmin; }
+    .chap li { gap: 1.6vmin; padding: .9vmin 0; font-size: 1.8vmin; }
+    .chap li time { width: 6.6vmin; }
+    .chap li span { font-size: 1.8vmin; }
+    .foot { flex-direction: column; align-items: stretch; gap: 2vmin; margin-top: 2.6vmin; }
+    .offer b { font-size: 3.4vmin; }
+    .cta { margin-left: 0; text-align: center; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .frame { width: 48%; }
+    .top { left: calc(48% + 6.4vmin); right: 6.4vmin; top: 6.4vmin; }
+    .meta .d { display: block; }
+    h1 { font-size: 5.4vmin; }
+    .rest { left: calc(48% + 6.4vmin); right: 6.4vmin; bottom: 6.4vmin; }
+    .chap li { gap: 2.4vmin; font-size: 2vmin; }
+    .chap li span { font-size: 2vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 3vmin; }
+    .cta { margin-left: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <div class="meta"><span class="rp">Replay</span><span>Highlights · 42 min</span><span class="d">Streamed Tue 24 Sep</span></div>
+    <h1>Missed the live? <span>Watch the replay.</span></h1>
+  </div>
+  <div class="frame"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="rest">
+    <div class="player">
+      <div class="play"><svg viewBox="0 0 20 22"><path d="M0 0l20 11L0 22z" fill="#111418"/></svg></div>
+      <div class="track">
+        <div class="bar"><i class="fill"></i><i class="tick" style="left:5%"></i><i class="tick" style="left:27%"></i><i class="tick" style="left:81%"></i><i class="knob"></i></div>
+        <div class="time"><b>18:42</b><span>42:10</span></div>
+      </div>
+    </div>
+    <ol class="chap">
+      <li><time>02:14</time><span>First look</span><em>intro</em></li>
+      <li><time>11:30</time><span>Styled three ways</span><em>fit</em></li>
+      <li class="now"><time>18:42</time><span>The live-only price</span><em>now</em></li>
+      <li><time>34:05</time><span>Your questions</span><em>Q&amp;A</em></li>
+    </ol>
+    <div class="foot">
+      <div class="offer">Live price still on for 24 h<b>$59<s>$84</s></b></div>
+      <div class="cta">Watch the replay ▸</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Eight Nights — Hanukkah as a gift calendar: eight slim spiral candles and a raised shamash stand on a silver
+     rail, each numbered for its night; a new gift unlocks every evening. Midnight blue, silver and flame.
+     tall → photo above the candle panel; square/wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E1A3A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(90vmin 50vmin at 50% 100%, #1B2C5C 0%, #0E1A3A 70%); color: #E9EFF8; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 82vmin); object-fit: cover; object-position: 50% 18%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100% - 82vmin); }
+  .row { position: absolute; left: 8vmin; right: 8vmin; top: 5vmin; height: 24vmin; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #AFC0DB; }
+  .row::before { content: ""; position: absolute; left: 50%; bottom: 0; width: 28vmin; height: 12vmin; margin-left: -14vmin; background: radial-gradient(closest-side, rgba(246,195,91,.18), rgba(246,195,91,0)); }
+  .c { position: relative; display: flex; flex-direction: column; align-items: center; width: 4vmin; }
+  .c i { width: 1.5vmin; height: 2.6vmin; border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%; background: radial-gradient(circle at 50% 70%, #FFF6D8 0 25%, #F6C35B 55%, #E48A2E 100%); box-shadow: 0 0 1.6vmin .4vmin rgba(246,195,91,.45); }
+  .c b { margin-top: .6vmin; width: 2vmin; height: 11vmin; background: repeating-linear-gradient(150deg, #DDE6F4 0 1vmin, #9FB3D6 1vmin 2vmin); box-shadow: inset -.4vmin 0 0 rgba(14,26,58,.18); }
+  .c.s b { height: 16vmin; background: repeating-linear-gradient(150deg, #F2F5FA 0 1vmin, #C8D4E8 1vmin 2vmin); }
+  .c span { position: absolute; top: 100%; margin-top: 1.2vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .06em; color: #AFC0DB; }
+  .c.s span { color: #F6C35B; }
+  .copy { position: absolute; left: 8vmin; right: 8vmin; top: 36vmin; bottom: 6vmin; display: flex; flex-direction: column; }
+  .k { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #AFC0DB; }
+  .k span:last-child { color: #F6C35B; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 12vmin; line-height: .9; letter-spacing: -.01em; }
+  h1 i { color: #F6C35B; }
+  .p { display: none; margin-top: 2vmin; font-size: 2.3vmin; line-height: 1.45; color: #C9D5E8; max-width: 60vmin; }
+  .tn { margin-top: auto; padding-top: 1.6vmin; border-top: 1px solid rgba(175,192,219,.4); display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; }
+  .tn span { font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #F6C35B; white-space: nowrap; }
+  .tn b { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; font-size: 3.4vmin; color: #E9EFF8; white-space: nowrap; }
+  .foot { margin-top: 2.8vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .foot .code { color: #C9D5E8; white-space: nowrap; }
+  .foot .code em { font-style: normal; color: #E9EFF8; border-bottom: 1px solid #F6C35B; padding-bottom: .4vmin; }
+  .foot .cta { background: #E9EFF8; color: #0E1A3A; padding: 1.5vmin 2.8vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 68vmin); }
+    .panel { top: calc(100% - 68vmin); }
+    .row { top: 3.4vmin; height: 20vmin; left: 10vmin; right: 10vmin; }
+    .c b { height: 9vmin; }
+    .c.s b { height: 13vmin; }
+    .copy { top: 30vmin; bottom: 4.4vmin; }
+    h1 { font-size: 10vmin; margin-top: 1.8vmin; }
+    .p { display: none; }
+    .tn { display: none; }
+    .foot { margin-top: auto; }
+  }
+  /* square / wide → photo left, panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 48%; top: 0; }
+    .row { left: 5vmin; right: 5vmin; top: 7vmin; height: 22vmin; }
+    .c { width: 3vmin; }
+    .c b { width: 1.7vmin; height: 10vmin; }
+    .c.s b { height: 14vmin; }
+    .copy { left: 5vmin; right: 5vmin; top: 36vmin; bottom: 6vmin; }
+    .k { flex-direction: column; gap: .8vmin; font-size: 1.7vmin; letter-spacing: .2em; }
+    h1 { font-size: 8.6vmin; }
+    .p { font-size: 2vmin; display: block; }
+    .tn { display: flex; flex-direction: column; gap: .6vmin; margin-top: 3vmin; }
+    .foot { margin-top: auto; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { left: 46%; }
+    .row { left: 8vmin; right: 8vmin; top: 8vmin; height: 24vmin; }
+    .c { width: 4vmin; }
+    .c b { width: 2vmin; height: 11vmin; }
+    .c.s b { height: 16vmin; }
+    .copy { left: 8vmin; right: 8vmin; top: 41vmin; bottom: 8vmin; }
+    .k { flex-direction: row; font-size: 1.8vmin; letter-spacing: .24em; }
+    h1 { font-size: 10.4vmin; }
+    .p { font-size: 2.2vmin; }
+    .tn { flex-direction: row; }
+    .foot { flex-direction: row; align-items: center; font-size: 1.9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="row">
+        <div class="c"><i></i><b></b><span>1</span></div>
+        <div class="c"><i></i><b></b><span>2</span></div>
+        <div class="c"><i></i><b></b><span>3</span></div>
+        <div class="c"><i></i><b></b><span>4</span></div>
+        <div class="c s"><i></i><b></b><span>✦</span></div>
+        <div class="c"><i></i><b></b><span>5</span></div>
+        <div class="c"><i></i><b></b><span>6</span></div>
+        <div class="c"><i></i><b></b><span>7</span></div>
+        <div class="c"><i></i><b></b><span>8</span></div>
+    </div>
+    <div class="copy">
+      <div class="k"><span>Hanukkah · 4—12 Dec</span><span>Up to 40% off</span></div>
+      <h1>Eight nights,<br><i>eight gifts.</i></h1>
+      <div class="p">A new offer lights up every evening.</div>
+      <div class="tn"><span>Tonight · Night 1</span><b>20% off new arrivals</b></div>
+      <div class="foot"><span class="code">Code <em>LIGHTS8</em></span><span class="cta">Tonight's gift</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

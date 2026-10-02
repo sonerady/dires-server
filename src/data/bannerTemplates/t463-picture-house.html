@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Picture House — the weekly programme card of a 1930s local cinema, letterpressed in plum and ochre on ivory board:
+     slab-serif house name, "week commencing" line, the collection billed as the feature "in glorious colour", and the
+     offer set as the prices of admission (stalls / circle / royal box) with dotted leaders and a pointing-hand footer.
+     tall / 3:4 → the photo is the screen above the card; square / wide → card left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1E8D4; }
+  .banner { --card: #F1E8D4; --plum: #3E1B35; --ochre: #B07A22; --pan: 88vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--card); color: var(--plum);
+    font-family: "Old Standard TT", "Georgia", "Times New Roman", serif; }
+  .ph { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--pan)); overflow: hidden; background: #1a1016; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .card { position: absolute; left: 0; right: 0; bottom: 0; height: var(--pan); box-sizing: border-box; padding: 5vmin 7vmin 4.6vmin;
+    display: flex; flex-direction: column; justify-content: space-between; text-align: center;
+    background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.35), transparent 70%), var(--card); border-top: 1.2vmin solid var(--plum); }
+  .card::before { content: ""; position: absolute; left: 0; right: 0; top: .9vmin; height: 1px; background: var(--ochre); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .12; mix-blend-mode: multiply; pointer-events: none; }
+
+  .wk { display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; padding-bottom: 1.2vmin; border-bottom: 1px solid var(--plum); }
+  .wk b { font-weight: 700; color: var(--ochre); }
+  .house { margin-top: 2.2vmin; }
+  .house b { display: block; font-family: "Alfa Slab One", "Rockwell", serif; font-weight: 400; font-size: 12.6vmin; line-height: .95; letter-spacing: .01em; white-space: nowrap; }
+  .house i { display: flex; align-items: center; justify-content: center; gap: 2vmin; margin-top: .8vmin; font-size: 3.6vmin; white-space: nowrap; }
+  .house i::before, .house i::after { content: "★ ★ ★"; font-style: normal; font-size: 1.6vmin; letter-spacing: .3em; color: var(--ochre); }
+  .cont { margin-top: 1.2vmin; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; }
+
+  .feat { padding: 2.2vmin 0 2vmin; border-top: .5vmin double var(--plum); border-bottom: .5vmin double var(--plum); border-width: .8vmin 0; }
+  .feat small { display: block; font-size: 1.8vmin; font-weight: 700; letter-spacing: .36em; padding-left: .36em; text-transform: uppercase; color: var(--ochre); }
+  .feat b { display: block; margin-top: 1vmin; font-family: "Alfa Slab One", "Rockwell", serif; font-weight: 400; font-size: 6vmin; line-height: 1; white-space: nowrap; }
+  .feat em { display: block; margin-top: .8vmin; font-size: 2.6vmin; }
+
+  .adm { text-align: left; }
+  .adm h2 { margin: 0 0 1vmin; text-align: center; font-size: 1.8vmin; font-weight: 700; letter-spacing: .3em; padding-left: .3em; text-transform: uppercase; }
+  .row { display: flex; align-items: baseline; gap: 1.4vmin; padding: .7vmin 0; font-size: 2.6vmin; white-space: nowrap; }
+  .row span:first-child { font-variant: small-caps; letter-spacing: .06em; }
+  .row i { flex: 1; border-bottom: .35vmin dotted rgba(62,27,53,.55); transform: translateY(-.6vmin); }
+  .row b { font-family: "Alfa Slab One", serif; font-weight: 400; font-size: 3.4vmin; color: var(--plum); }
+  .row small { font-size: 1.7vmin; font-style: italic; margin-left: .6vmin; }
+  .row.top b { color: var(--ochre); }
+
+  .foot { display: flex; justify-content: space-between; align-items: center; padding-top: 1.4vmin; border-top: 1px solid var(--plum); font-size: 1.9vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .foot b { font-family: "Alfa Slab One", serif; font-weight: 400; letter-spacing: .08em; }
+  .foot .hand { font-size: 2.6vmin; margin-right: .8vmin; vertical-align: -.2vmin; letter-spacing: 0; }
+
+  /* 3:4 · 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pan: 76vmin; }
+    .card { padding: 4vmin 7vmin 3.8vmin; }
+    .house { margin-top: 1.6vmin; }
+    .house b { font-size: 10.6vmin; }
+    .house i { font-size: 3vmin; }
+    .cont { display: none; }
+    .feat { padding: 1.6vmin 0 1.4vmin; }
+    .feat b { font-size: 5.4vmin; }
+    .row { padding: .4vmin 0; font-size: 2.4vmin; }
+    .row b { font-size: 3vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .ph { left: auto; right: 0; width: 52%; height: 100%; }
+    .card { top: 0; right: auto; width: 48%; height: 100%; padding: 4.6vmin 4.6vmin 4vmin; border-top: 0; border-right: 1.2vmin solid var(--plum); }
+    .card::before { top: 0; bottom: 0; left: auto; right: .9vmin; width: 1px; height: auto; }
+    .wk { font-size: 1.6vmin; letter-spacing: .1em; }
+    .house { margin-top: 1.8vmin; }
+    .house b { font-size: 7.4vmin; }
+    .house i { font-size: 2.6vmin; gap: 1.2vmin; }
+    .house i::before, .house i::after { content: "★"; }
+    .cont { font-size: 1.6vmin; letter-spacing: .08em; }
+    .feat { padding: 1.6vmin 0 1.4vmin; }
+    .feat small { font-size: 1.6vmin; letter-spacing: .24em; }
+    .feat b { font-size: 3.9vmin; }
+    .feat em { font-size: 2.1vmin; }
+    .adm h2 { font-size: 1.6vmin; letter-spacing: .2em; }
+    .row { padding: .8vmin 0; font-size: 2.2vmin; gap: 1vmin; }
+    .row b { font-size: 2.9vmin; }
+    .row small { display: none; }
+    .foot { font-size: 1.6vmin; letter-spacing: .06em; }
+    .foot .hand { font-size: 2.2vmin; margin-right: .4vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .ph { width: 56%; }
+    .card { width: 44%; padding: 5vmin 6vmin 4.6vmin; }
+    .wk { font-size: 1.7vmin; letter-spacing: .16em; }
+    .house b { font-size: 9.4vmin; }
+    .house i { font-size: 3vmin; }
+    .house i::before, .house i::after { content: "★ ★"; }
+    .cont { font-size: 1.7vmin; letter-spacing: .14em; }
+    .feat b { font-size: 4.8vmin; }
+    .feat em { font-size: 2.3vmin; }
+    .row { font-size: 2.3vmin; gap: 1.4vmin; }
+    .row b { font-size: 3vmin; }
+    .row small { display: inline; }
+    .foot { font-size: 1.8vmin; letter-spacing: .1em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="card">
+    <svg class="grain" aria-hidden="true"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="7"/><feColorMatrix values="0 0 0 0 .2  0 0 0 0 .1  0 0 0 0 .15  0 0 0 1.1 -.4"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
+    <div>
+      <div class="wk"><span>Programme</span><span>Week of <b>12 May</b></span></div>
+      <div class="house"><b>The Lyric</b><i>Picture House</i></div>
+      <div class="cont">Continuous from 10 a.m. daily</div>
+    </div>
+    <div class="feat"><small>Now showing</small><b>The Spring Edit</b><em>in glorious colour</em></div>
+    <div class="adm">
+      <h2>Prices of admission</h2>
+      <div class="row"><span>Stalls</span><i></i><b>−15%</b></div>
+      <div class="row"><span>Circle</span><i></i><b>−25%</b><small>over 150</small></div>
+      <div class="row top"><span>Royal box</span><i></i><b>−40%</b><small>members</small></div>
+    </div>
+    <div class="foot"><span><span class="hand">☞</span>Code <b>LYRIC</b></span><span>Book your seat</span></div>
+  </div>
+</div>
+</body>
+</html>

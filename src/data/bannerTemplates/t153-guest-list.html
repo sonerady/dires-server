@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Guest List — Friends & Family night at the door: a typed door list on a brass clipboard with "You +1"
+     marked in highlighter, and a velvet rope slung between two brass stanchions.
+     tall → photo above, oxblood panel below; square/wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2A0A11; }
+  .banner { --panel: 86vmin; --bw: 46vmin; position: fixed; inset: 0; overflow: hidden; background: #2A0A11; color: #F6EFE3; font-family: "Courier Prime", "Courier New", monospace; }
+  .room { position: absolute; left: 0; bottom: 0; width: 100%; height: var(--panel); overflow: hidden;
+    background: radial-gradient(ellipse 80% 60% at 50% 100%, #4A1220, rgba(74,18,32,0) 70%), #2A0A11; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 17vmin; height: calc(var(--panel) - 22vmin); display: flex; gap: 5vmin; align-items: center; }
+  .say { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+  .kick { font-size: 1.8vmin; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: #D9B769; }
+  h1 { margin: 2vmin 0 0; font-family: "Anton", Impact, "Arial Narrow", sans-serif; font-weight: 400; font-size: 11.6vmin; line-height: .95; text-transform: uppercase; letter-spacing: .005em; }
+  .deal { margin-top: 3vmin; padding-top: 1.8vmin; border-top: 1px solid rgba(246,239,227,.35); font-size: 2.1vmin; line-height: 1.5; }
+  .deal b { display: block; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 5vmin; line-height: 1.1; letter-spacing: .01em; color: #D9B769; }
+
+  /* clipboard */
+  .board { position: relative; flex: none; width: var(--bw); padding-top: 2vmin; transform: rotate(3deg); }
+  .clip { position: absolute; left: 50%; top: 0; width: 34%; height: 5.6vmin; margin-left: -17%; z-index: 2; border-radius: 1vmin 1vmin .5vmin .5vmin;
+    background: linear-gradient(180deg, #F2D68F, #B98B3A 55%, #8C6424); box-shadow: 0 .6vmin 1vmin rgba(0,0,0,.45); }
+  .clip::after { content: ""; position: absolute; left: 30%; right: 30%; top: 1vmin; height: 1.6vmin; border-radius: 1vmin; background: #2A0A11; opacity: .8; }
+  .paper { background: #F4EFE4; color: #1E1A17; padding: 5.4vmin 3.2vmin 3vmin; box-shadow: 0 2.6vmin 4.4vmin rgba(0,0,0,.55); }
+  .p-head { text-align: center; border-bottom: .3vmin double #1E1A17; padding-bottom: 1.2vmin; margin-bottom: .8vmin; }
+  .p-head b { display: block; font-size: 2.6vmin; letter-spacing: .24em; margin-right: -.24em; }
+  .p-head span { display: block; margin-top: 1vmin; font-size: 1.6vmin; letter-spacing: .06em; color: #5B524A; }
+  .row { display: flex; align-items: baseline; gap: 1vmin; padding: .75vmin 0; font-size: 1.9vmin; white-space: nowrap; }
+  .row i { font-style: normal; color: #8A8177; }
+  .row .l { flex: 1; min-width: 1vmin; border-bottom: .2vmin dotted rgba(30,26,23,.45); transform: translateY(-.5vmin); }
+  .tick { display: inline-block; width: .9vmin; height: 1.8vmin; margin: 0 .5vmin 0 .3vmin; border-right: .34vmin solid #1D46B0; border-bottom: .34vmin solid #1D46B0; transform: rotate(40deg) translateY(-.3vmin); }
+  .row.x .n { text-decoration: line-through; text-decoration-color: #1D46B0; text-decoration-thickness: .28vmin; color: #6E665E; }
+  .row.you { font-weight: 700; }
+  .row.you .n, .row.you .s { background: linear-gradient(100deg, rgba(247,226,90,0) 0, rgba(247,226,90,.9) .6vmin, rgba(247,226,90,.85) calc(100% - .6vmin), rgba(247,226,90,0) 100%); padding: .1vmin .7vmin; margin: 0 -.3vmin; }
+
+  /* velvet rope */
+  .rope { position: absolute; left: 0; right: 0; bottom: 0; height: 15vmin; }
+  .post { position: absolute; bottom: 2vmin; width: 2vmin; height: 10vmin; background: linear-gradient(90deg, #7A5520, #F2D68F 40%, #B98B3A 70%, #6E4B1B); }
+  .post::before { content: ""; position: absolute; left: 50%; top: -2.6vmin; width: 3.4vmin; height: 3.4vmin; margin-left: -1.7vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #FBE7B4, #C49640 55%, #6E4B1B); }
+  .post::after { content: ""; position: absolute; left: 50%; bottom: -1vmin; width: 9vmin; height: 1.8vmin; margin-left: -4.5vmin; border-radius: 50%; background: linear-gradient(180deg, #E4C27A, #7A5520); }
+  .post.a { left: 6vmin; }
+  .post.b { right: 6vmin; }
+  .sag { position: absolute; left: 7vmin; right: 7vmin; bottom: 5.4vmin; height: 7vmin; box-sizing: border-box; border: 1.7vmin solid transparent; border-bottom-color: #A31B31; border-radius: 0 0 50% 50% / 0 0 100% 100%; }
+  .sag::after { content: ""; position: absolute; left: -1.7vmin; right: -1.7vmin; top: -1.7vmin; bottom: -1.2vmin; box-sizing: border-box; border: .45vmin solid transparent; border-bottom-color: rgba(255,150,160,.35); border-radius: 0 0 50% 50% / 0 0 100% 100%; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 74vmin; --bw: 42vmin; }
+    .copy { bottom: 15vmin; height: calc(var(--panel) - 19vmin); }
+    h1 { font-size: 10vmin; }
+    .deal { margin-top: 2.2vmin; }
+    .deal b { font-size: 4.4vmin; }
+    .paper { padding: 4.6vmin 2.8vmin 2.4vmin; }
+    .row { padding: .5vmin 0; }
+    .rope { height: 13vmin; }
+    .post { height: 8.4vmin; }
+    .sag { bottom: 4.2vmin; height: 6vmin; }
+  }
+  /* square — photo left, door panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --bw: 38vmin; }
+    .room { left: auto; right: 0; width: 50%; height: 100%; }
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .copy { left: calc(50% + 5vmin); right: 5vmin; top: 5vmin; bottom: 15vmin; height: auto; flex-direction: column; align-items: stretch; gap: 3vmin; }
+    .say { flex: none; }
+    h1 { font-size: 7.4vmin; margin-top: 1.4vmin; }
+    .deal { margin-top: 1.8vmin; padding-top: 1.2vmin; font-size: 1.7vmin; }
+    .deal b { font-size: 3.6vmin; }
+    .board { align-self: center; }
+    .rope { left: 50%; height: 13vmin; }
+    .post { height: 8vmin; }
+    .post.a { left: 5vmin; } .post.b { right: 5vmin; }
+    .sag { left: 6vmin; right: 6vmin; bottom: 4vmin; height: 6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --bw: 36vmin; }
+    .room { width: 54%; }
+    .photo { width: 46%; }
+    .copy { left: calc(46% + 6vmin); right: 6vmin; top: 6vmin; bottom: 15vmin; flex-direction: row; align-items: center; gap: 4vmin; }
+    .say { flex: 1; }
+    h1 { font-size: 8.6vmin; }
+    .deal { margin-top: 2.4vmin; padding-top: 1.8vmin; font-size: 1.8vmin; }
+    .deal b { font-size: 4vmin; }
+    .rope { left: 46%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="room"></div>
+  <div class="copy">
+    <div class="say">
+      <div class="kick">Friends &amp; Family</div>
+      <h1>You're on<br>the list.</h1>
+      <div class="deal"><b>30% off everything</b>Fri 8 Nov · from 19:00<br>Bring a plus-one.</div>
+    </div>
+    <div class="board">
+      <div class="clip"></div>
+      <div class="paper">
+        <div class="p-head"><b>Door list</b><span>Fri 8 Nov · Studio Oro</span></div>
+        <div class="row x"><i>01</i><span class="n">M. Laurent</span><span class="l"></span><span>+1</span><span class="tick"></span></div>
+        <div class="row x"><i>02</i><span class="n">J. Okafor</span><span class="l"></span><span class="tick"></span></div>
+        <div class="row"><i>03</i><span class="n">S. Varga</span><span class="l"></span><span>+1</span></div>
+        <div class="row you"><i>04</i><span class="n">You</span><span class="l"></span><span class="s">+1</span></div>
+        <div class="row"><i>05</i><span class="n">R. Aydın</span><span class="l"></span></div>
+        <div class="row"><i>06</i><span class="n">T. Brandt</span><span class="l"></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="rope"><div class="sag"></div><div class="post a"></div><div class="post b"></div></div>
+</div>
+</body>
+</html>

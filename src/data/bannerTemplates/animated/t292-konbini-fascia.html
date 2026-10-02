@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Yusei+Magic&family=M+PLUS+1+Code:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Konbini Fascia — a Tokyo convenience store after dark: the backlit striped fascia, the shop window (the photo) on
+     its aluminium door track, a marker-lettered yellow POP card and a shelf-edge price label on the counter.
+     tall → fascia / window / POP + label · square & wide → fascia across, window left, POP + label right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F2EC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4F2EC; color: #111; font-family: "M PLUS 1 Code", "Courier New", monospace; }
+
+  /* backlit fascia */
+  .fascia { position: absolute; left: 0; right: 0; top: 0; height: 25vmin; background: radial-gradient(80% 140% at 50% 30%, #FFFFFF 0%, #F5F7FF 70%, #E6EBFA 100%); box-shadow: 0 .6vmin 2vmin rgba(23,71,201,.18); z-index: 2; }
+  .fascia::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6vmin; background: linear-gradient(180deg, #1747C9 0 42%, #FFC61A 42% 74%, #1747C9 74% 100%); }
+  .sign { position: absolute; left: 5vmin; right: 5vmin; top: 3.4vmin; height: 13vmin; display: flex; align-items: center; gap: 3vmin; }
+  .mark { flex: none; width: 13vmin; height: 13vmin; background: #1747C9; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: "Dela Gothic One", Impact, sans-serif; font-size: 6.4vmin; line-height: .9; box-shadow: inset 0 0 0 .7vmin #1747C9, inset 0 0 0 1.1vmin #FFC61A; }
+  .mark small { font-family: "M PLUS 1 Code", monospace; font-weight: 700; font-size: 1.6vmin; letter-spacing: .1em; margin-top: .6vmin; }
+  .name { min-width: 0; }
+  .name b { display: block; font-family: "Dela Gothic One", Impact, sans-serif; font-weight: 400; font-size: 7.2vmin; line-height: .95; color: #1747C9; letter-spacing: .01em; white-space: nowrap; }
+  .name span { display: block; margin-top: .8vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #3B4A73; white-space: nowrap; }
+  .open { margin-left: auto; flex: none; text-align: center; border: .4vmin solid #E8322B; color: #E8322B; padding: 1vmin 1.6vmin; font-weight: 700; font-size: 1.9vmin; letter-spacing: .1em; line-height: 1.25; }
+  .open b { display: block; font-family: "Dela Gothic One", Impact, sans-serif; font-weight: 400; font-size: 3.8vmin; letter-spacing: 0; }
+
+  /* the shop window + its door track */
+  .window { position: absolute; left: 0; right: 0; top: 25vmin; height: calc(100% - 83vmin); overflow: hidden; background: #222; }
+  .window img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .track { position: absolute; left: 0; right: 0; top: calc(25vmin + 100% - 83vmin); height: 4.4vmin; background: linear-gradient(180deg, #D8DBDF 0%, #F5F6F7 30%, #B9BDC3 62%, #9EA3AA 100%); display: flex; align-items: center; justify-content: space-between; padding: 0 5vmin; box-sizing: border-box; }
+  .track span { font-size: 1.6vmin; font-weight: 700; letter-spacing: .12em; color: #2E3238; white-space: nowrap; }
+  .track i { font-style: normal; background: #1F8F4E; color: #fff; padding: .3vmin 1vmin; margin-left: 1vmin; letter-spacing: .06em; }
+
+  /* counter */
+  .counter { position: absolute; left: 5vmin; right: 5vmin; bottom: 9vmin; height: 40vmin; display: flex; gap: 4vmin; align-items: flex-end; }
+  .pop { position: relative; flex: 1.45; min-width: 0; height: 38vmin; background: #FFE33B; transform: rotate(-2.4deg); box-shadow: 0 .8vmin 1.6vmin rgba(0,0,0,.16); padding: 5vmin 4vmin 3.4vmin; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-end; font-family: "Yusei Magic", "Marker Felt", cursive; }
+  .pop::before { content: ""; position: absolute; left: 50%; top: -1.8vmin; width: 11vmin; height: 3.6vmin; margin-left: -5.5vmin; background: rgba(255,255,255,.62); transform: rotate(3deg); box-shadow: 0 .2vmin .5vmin rgba(0,0,0,.1); }
+  .burst { position: absolute; right: -3vmin; top: -5vmin; width: 15vmin; height: 15vmin; background: #E8322B; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: "Dela Gothic One", Impact, sans-serif; font-size: 3.6vmin; line-height: 1; transform: rotate(-10deg);
+    clip-path: polygon(50% 0, 59% 13%, 75% 7%, 76% 24%, 93% 25%, 86% 41%, 100% 50%, 86% 59%, 93% 75%, 76% 76%, 75% 93%, 59% 87%, 50% 100%, 41% 87%, 25% 93%, 24% 76%, 7% 75%, 14% 59%, 0 50%, 14% 41%, 7% 25%, 24% 24%, 25% 7%, 41% 13%); }
+  .burst small { font-size: 2.2vmin; margin-top: .4vmin; }
+  .pop h1 { margin: 0; font-family: inherit; font-weight: 400; font-size: 8vmin; line-height: .92; color: #111; letter-spacing: -.01em; }
+  .pop h1 em { font-style: normal; color: #E8322B; }
+  .pop .kick { display: none; position: absolute; left: 3vmin; top: 3vmin; font-size: 2.4vmin; color: #E8322B; letter-spacing: .02em; }
+  .pop p { margin: 2.4vmin 0 0; font-size: 3vmin; line-height: 1.2; color: #111; }
+  .pop p u { text-decoration: none; background: linear-gradient(transparent 58%, rgba(232,50,43,.35) 58%); }
+
+  .label { flex: 1; min-width: 0; background: #fff; box-shadow: 0 .6vmin 1.4vmin rgba(0,0,0,.14); display: flex; flex-direction: column; }
+  .label .top { background: #E8322B; color: #fff; font-weight: 700; font-size: 1.8vmin; letter-spacing: .14em; padding: 1vmin 1.6vmin; text-transform: uppercase; }
+  .label .body { padding: 1.6vmin; }
+  .label .item { font-size: 1.8vmin; font-weight: 700; letter-spacing: .04em; line-height: 1.3; }
+  .label .price { font-family: "Dela Gothic One", Impact, sans-serif; font-size: 9.6vmin; line-height: 1; color: #E8322B; margin-top: .6vmin; letter-spacing: -.02em; }
+  .label .price small { font-size: 2.8vmin; margin-right: .4vmin; vertical-align: .5em; color: #111; }
+  .label .tax { font-size: 1.6vmin; color: #555; letter-spacing: .04em; }
+  .label .bar { height: 4.4vmin; margin-top: 1.4vmin; background: repeating-linear-gradient(90deg, #111 0 .25vmin, transparent .25vmin .55vmin, #111 .55vmin 1.1vmin, transparent 1.1vmin 1.4vmin, #111 1.4vmin 1.6vmin, transparent 1.6vmin 2.1vmin, #111 2.1vmin 2.6vmin, transparent 2.6vmin 2.9vmin); }
+  .label .sku { font-size: 1.6vmin; letter-spacing: .12em; margin-top: .6vmin; }
+
+  /* shelf edge */
+  .edge { position: absolute; left: 0; right: 0; bottom: 0; height: 5.4vmin; background: #1747C9; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 5vmin; box-sizing: border-box; font-weight: 700; font-size: 1.9vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .edge b { color: #FFC61A; font-weight: 700; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .fascia { height: 21vmin; }
+    .fascia::after { height: 5vmin; }
+    .sign { top: 2.8vmin; height: 11vmin; }
+    .mark { width: 11vmin; height: 11vmin; font-size: 5.4vmin; }
+    .name b { font-size: 6.6vmin; }
+    .window { top: 21vmin; height: calc(100% - 71vmin); }
+    .track { top: calc(21vmin + 100% - 71vmin); height: 3.8vmin; }
+    .counter { height: 34vmin; bottom: 8vmin; }
+    .pop { height: 32vmin; padding: 4vmin 3.4vmin 2.8vmin; }
+    .pop h1 { font-size: 7.4vmin; }
+    .pop p { font-size: 2.6vmin; }
+    .burst { width: 13vmin; height: 13vmin; font-size: 3.1vmin; }
+    .label .price { font-size: 8vmin; }
+    .label .bar { height: 3.4vmin; }
+    .edge { height: 5vmin; }
+  }
+  /* SQUARE — fascia across; window left, counter right */
+  @media (min-aspect-ratio: 9/10) {
+    .fascia { height: 19vmin; }
+    .fascia::after { height: 4.4vmin; }
+    .sign { left: 4vmin; right: 4vmin; top: 2.6vmin; height: 10vmin; gap: 2.4vmin; }
+    .mark { width: 10vmin; height: 10vmin; font-size: 5vmin; }
+    .mark small { font-size: 1.6vmin; }
+    .name b { font-size: 6.6vmin; }
+    .name span { font-size: 1.7vmin; }
+    .open { font-size: 1.7vmin; padding: .8vmin 1.3vmin; }
+    .open b { font-size: 3.2vmin; }
+    .window { top: 19vmin; width: 52%; right: auto; height: calc(100% - 28.4vmin); }
+    .track { top: auto; bottom: 5vmin; width: 52%; right: auto; height: 4.4vmin; padding: 0 2.4vmin; }
+    .track span:last-child { display: none; }
+    .counter { left: calc(52% + 5vmin); right: 4.4vmin; top: 25vmin; bottom: 9vmin; height: auto; flex-direction: column; align-items: stretch; gap: 3.4vmin; }
+    .pop { flex: 1 1 auto; height: auto; padding: 3.8vmin 3vmin 2.6vmin; }
+    .burst { width: 11vmin; height: 11vmin; font-size: 2.6vmin; left: auto; right: -2vmin; top: -3.6vmin; }
+    .burst small { font-size: 1.7vmin; }
+    .pop h1 { font-size: 6.2vmin; }
+    .pop .kick { display: block; }
+    .pop p { font-size: 2.3vmin; margin-top: 1.2vmin; }
+    .label { flex: none; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; }
+    .label .top { grid-column: 1 / -1; font-size: 1.6vmin; padding: .8vmin 1.4vmin; }
+    .label .body { padding: 1.2vmin 1.4vmin; }
+    .label .price { font-size: 7vmin; }
+    .label .code { padding: 1.2vmin 1.4vmin 1.2vmin 0; display: flex; flex-direction: column; justify-content: flex-end; }
+    .label .bar { height: 3.4vmin; margin-top: 0; }
+    .edge { height: 5vmin; font-size: 1.7vmin; padding: 0 4vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .fascia { height: 20vmin; }
+    .sign { left: 5vmin; right: 5vmin; }
+    .name b { font-size: 7.4vmin; }
+    .window { top: 20vmin; width: 54%; height: calc(100% - 29.4vmin); }
+    .track { width: 54%; }
+    .track span:last-child { display: inline; }
+    .counter { left: calc(54% + 6vmin); right: 6vmin; top: 28vmin; flex-direction: row; align-items: stretch; gap: 4vmin; }
+    .pop { flex: 1.3; padding: 5vmin 3.4vmin 3vmin; }
+    .burst { left: auto; right: -3vmin; top: -4vmin; width: 13vmin; height: 13vmin; font-size: 3vmin; }
+    .pop h1 { font-size: 7.2vmin; }
+    .pop p { font-size: 2.2vmin; white-space: nowrap; }
+    .label { flex: 1; display: flex; }
+    .label .code { padding: 0 1.4vmin 1.4vmin; margin-top: auto; }
+    .label .price { font-size: 7.6vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the POP card sways on its tape, the 24H box breathes a red glow ·
+     beats: 1.0s a glass reflection glides across the shop window · 1.9s the fascia tube stutters ·
+     3.0s the NEW burst punches · 4.1s a scanner laser reads the barcode → 4.7s the price punches */
+  .fascia { animation: tube 6s linear infinite; }
+  @keyframes tube {
+    0%, 31%, 32.2%, 33.4%, 34.4%, 100% { filter: brightness(1); }
+    31.4%, 31.8% { filter: brightness(.8); }
+    32.8%, 33.1% { filter: brightness(.87); }
+  }
+  .window::after { content: ""; position: absolute; top: -10%; bottom: -10%; left: 0; width: 38%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.1) 35%, rgba(255,255,255,.26) 50%, rgba(255,255,255,.1) 65%, rgba(255,255,255,0) 100%);
+    transform: translateX(-140%) skewX(-16deg); animation: glass 6s linear infinite; }
+  @keyframes glass { 0%, 16% { transform: translateX(-140%) skewX(-16deg); animation-timing-function: cubic-bezier(.45,0,.3,1); } 42%, 100% { transform: translateX(330%) skewX(-16deg); } }
+
+  .pop { transform-origin: 50% 0; animation: sway 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sway { 0%, 100% { transform: rotate(-2.4deg); } 25% { transform: rotate(-1.3deg); } 75% { transform: rotate(-3.5deg); } }
+  .burst { animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 48% { transform: rotate(-10deg) scale(1); animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    50% { transform: rotate(-16deg) scale(.86); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    54% { transform: rotate(4deg) scale(1.16); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    59% { transform: rotate(-13deg) scale(.97); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    64%, 100% { transform: rotate(-10deg) scale(1); }
+  }
+
+  .label .bar { position: relative; }
+  .label .bar::after { content: ""; position: absolute; left: -.8vmin; right: -.8vmin; top: 0; height: .5vmin; border-radius: .3vmin; background: #FF2A2A;
+    box-shadow: 0 0 .8vmin .2vmin rgba(255,42,42,.75); opacity: 0; animation: laser 6s linear infinite; }
+  @keyframes laser {
+    0%, 67% { opacity: 0; transform: translateY(0); }
+    68% { opacity: 1; transform: translateY(0); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    73% { opacity: 1; transform: translateY(3vmin); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    77.5% { opacity: 1; transform: translateY(0); }
+    78%, 100% { opacity: 0; transform: translateY(0); }
+  }
+  .label .price { transform-origin: 0% 80%; animation: price 6s linear infinite; }
+  @keyframes price {
+    0%, 78% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    81% { transform: scale(1.14); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    85% { transform: scale(.98); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    89%, 100% { transform: scale(1); }
+  }
+  .label .top { animation: beep 6s steps(1, end) infinite; }
+  @keyframes beep { 0%, 77.5% { background: #E8322B; } 78%, 80% { background: #1F8F4E; } 80.5%, 100% { background: #E8322B; } }
+
+  .open { animation: glow 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glow { 0%, 100% { box-shadow: 0 0 0 rgba(232,50,43,0); } 50% { box-shadow: 0 0 1.6vmin rgba(232,50,43,.45), inset 0 0 .8vmin rgba(232,50,43,.18); } }
+  .edge b { animation: blink 1.5s steps(1, end) infinite; }
+  @keyframes blink { 0%, 70% { color: #FFC61A; } 71%, 100% { color: #fff; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="fascia">
+    <div class="sign">
+      <div class="mark">24<small>HIBI</small></div>
+      <div class="name"><b>HIBI MART</b><span>Daily style store · 毎日</span></div>
+      <div class="open"><b>24H</b>OPEN</div>
+    </div>
+  </div>
+  <div class="window"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="track"><span>Store Nº 0826 <i>自動ドア</i></span><span>Auto door · Please wait</span></div>
+  <div class="counter">
+    <div class="pop">
+      <div class="burst">NEW<small>新発売</small></div>
+      <div class="kick">Today's pick ★</div>
+      <h1>Fresh drops, <em>daily.</em></h1>
+      <p>Any 2 pieces → <u>20% off</u></p>
+    </div>
+    <div class="label">
+      <div class="top">Weekly pick</div>
+      <div class="body"><div class="item">The New Edit · SS26</div><div class="price"><small>$</small>39</div><div class="tax">from · tax incl.</div></div>
+      <div class="code"><div class="bar"></div><div class="sku">CODE HIBI20</div></div>
+    </div>
+  </div>
+  <div class="edge"><span>Open 24/7 · <b>Shop now</b></span><span>Free returns</span></div>
+</div>
+</body>
+</html>

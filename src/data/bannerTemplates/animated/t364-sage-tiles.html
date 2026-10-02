@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;1,9..144,400&family=Inter+Tight:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Sage Tiles — a sample board of glazed tiles on a hairline grout grid: the photo takes a block of tiles,
+     the rest are sage values, each stamped with its code and name. The headline and the offer are just bigger tiles.
+     tall → 4 × 7 board, photo on top; square → 5 × 4, photo left; wide → 6 × 4, photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3F5EE; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3F5EE; color: #28321F; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .board { position: absolute; inset: 0; display: grid; gap: .9vmin;
+    grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(7, 1fr);
+    grid-template-areas: "p p p p" "p p p p" "p p p p" "p p p p" "h h t1 t2" "h h o o" "t3 t4 o o"; }
+  .photo { grid-area: p; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; display: block; min-height: 0; }
+  .tile { position: relative; box-sizing: border-box; padding: 2.2vmin; display: flex; flex-direction: column; justify-content: space-between; min-height: 0; overflow: hidden; }
+  .lab { font-size: 1.6vmin; line-height: 1.3; letter-spacing: .04em; }
+  .lab b { display: block; font-weight: 700; letter-spacing: .14em; }
+  .t1 { grid-area: t1; background: #B2C0A1; }
+  .t2 { grid-area: t2; background: #8DA07C; }
+  .t3 { grid-area: t3; background: #6A7E5A; color: #F3F5EE; }
+  .t4 { grid-area: t4; background: #2F3B27; color: #E7ECDF; }
+  .t1 .lab, .t2 .lab { color: #1F281A; }
+  .dot { width: 2.2vmin; height: 2.2vmin; border-radius: 50%; border: 1px solid currentColor; opacity: .7; }
+
+  .h { grid-area: h; background: #D6DECA; padding: 3vmin; }
+  .k { font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-style: italic; font-size: 8vmin; line-height: .92; letter-spacing: -.02em; }
+  .cta { font-size: 1.9vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .cta span { border-bottom: 1px solid currentColor; padding-bottom: .3vmin; }
+
+  .o { grid-area: o; background: #4A5A3E; color: #EEF2E8; padding: 3vmin; }
+  .o .n { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 13vmin; line-height: .8; letter-spacing: -.04em; }
+  .o .n sup { font-size: .38em; vertical-align: top; margin-left: .4vmin; letter-spacing: 0; }
+  .o p { margin: 0; font-size: 1.9vmin; line-height: 1.4; }
+  .o p b { display: inline-block; margin-top: .6vmin; font-weight: 700; letter-spacing: .16em; padding: .5vmin .9vmin; background: #EEF2E8; color: #2F3B27; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .board { grid-template-rows: repeat(6, 1fr); grid-template-areas: "p p p p" "p p p p" "p p p p" "h h t1 t2" "h h o o" "t3 t4 o o"; }
+    h1 { font-size: 7vmin; }
+    .o .n { font-size: 11vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .board { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr);
+      grid-template-areas: "p p p h h" "p p p h h" "p p p o t1" "p p p o t2"; }
+    .photo { object-position: 50% 22%; }
+    .t3, .t4 { display: none; }
+    .h { padding: 2.6vmin; }
+    h1 { font-size: 6.2vmin; }
+    .o { padding: 2.2vmin; }
+    .o .n { font-size: 8vmin; }
+    .o p { font-size: 1.7vmin; }
+    .o p b { padding: .4vmin .6vmin; letter-spacing: .1em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .board { grid-template-columns: repeat(6, 1fr);
+      grid-template-areas: "p p p h h t1" "p p p h h t2" "p p p t3 o o" "p p p t4 o o"; }
+    .t3, .t4 { display: flex; }
+    .h { padding: 3vmin; }
+    h1 { font-size: 7.4vmin; }
+    .o { padding: 3vmin; }
+    .o .n { font-size: 12vmin; }
+    .o p { font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     1.0s the swatch dots get "picked" one after another, lichen → forest ·
+     2.7s a glaze glint travels across the board, tile by tile, like light on wet ceramic ·
+     4.6s the 25% sinks into its tile and rises back up · 5.4s the CTA arrow nudges twice */
+  .tile::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: linear-gradient(115deg, rgba(255,255,255,0) 38%, rgba(255,255,255,.26) 50%, rgba(255,255,255,0) 62%);
+    background-size: 300% 100%; background-position: 100% 0;
+    animation: glint 6s cubic-bezier(.4,0,.3,1) infinite; }
+  .h::after { animation-delay: 0s; }
+  .t1::after { animation-delay: -.12s; }
+  .t2::after { animation-delay: -.24s; }
+  .o::after { animation-delay: -.3s; }
+  .t3::after { animation-delay: -.42s; }
+  .t4::after { animation-delay: -.54s; }
+  @keyframes glint {
+    0%, 44% { opacity: 0; background-position: 100% 0; }
+    45% { opacity: 1; background-position: 100% 0; }
+    60% { opacity: 1; background-position: 0 0; }
+    61%, 100% { opacity: 0; background-position: 0 0; }
+  }
+
+  .dot { animation: pick 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .t1 .dot { animation-delay: -.9s; }
+  .t2 .dot { animation-delay: -.6s; }
+  .t3 .dot { animation-delay: -.3s; }
+  @keyframes pick { 0%, 30%, 45%, 100% { background: rgba(0,0,0,0); opacity: .7; } 34%, 40% { background: currentColor; opacity: .9; } }
+
+  .o .n { animation: sink 6s cubic-bezier(.7,0,.25,1) infinite; }
+  @keyframes sink {
+    0%, 74%, 90%, 100% { transform: translateY(0); clip-path: inset(-20% -10% -20% -10%); }
+    80% { transform: translateY(140%); clip-path: inset(-20% -10% 120% -10%); }
+  }
+
+  .cta .ar { display: inline-block; font-style: normal; animation: nudge 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 88%, 100% { transform: translateX(0); } 91%, 96% { transform: translateX(.8vmin); } 93.5% { transform: translateX(0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="board">
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="tile h">
+      <div class="k">The Sage Edit</div>
+      <h1>Green,<br>tile by tile.</h1>
+      <div class="cta"><span>Shop sage</span> <i class="ar">→</i></div>
+    </div>
+    <div class="tile t1"><i class="dot"></i><div class="lab"><b>SG-02</b>Lichen</div></div>
+    <div class="tile t2"><i class="dot"></i><div class="lab"><b>SG-03</b>Sage</div></div>
+    <div class="tile t3"><i class="dot"></i><div class="lab"><b>SG-04</b>Laurel</div></div>
+    <div class="tile t4"><i class="dot"></i><div class="lab"><b>SG-06</b>Forest</div></div>
+    <div class="tile o">
+      <div class="n">25<sup>%</sup></div>
+      <p>Off all greens this week<br><b>SAGE25</b></p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

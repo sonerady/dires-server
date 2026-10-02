@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Line-Up Poster — the collection billed like a festival line-up: header strip, the look as poster art, then a strict
+     billing hierarchy (headliner → second tier → small print), alternating ink colours, star dividers, "tickets" footer.
+     tall → header / photo / billing · square & wide → billing left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1E6D2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F1E6D2; color: #0E3B36; font-family: "Big Shoulders Display", "Arial Narrow", Arial, sans-serif; text-transform: uppercase; }
+  .serif { font-family: "Instrument Serif", Georgia, serif; text-transform: none; }
+  .t { color: #E8472B; }
+
+  .head { position: absolute; left: 0; right: 0; top: 0; height: 8vmin; box-sizing: border-box; padding: 0 5vmin; display: flex; justify-content: space-between; align-items: center; font-size: 2.6vmin; font-weight: 800; letter-spacing: .14em; border-bottom: .5vmin solid #0E3B36; }
+  .head b { font-weight: 900; letter-spacing: .06em; font-size: 3.4vmin; }
+  .photo { position: absolute; left: 0; top: 8vmin; width: 100%; height: calc(50% - 8vmin); object-fit: cover; object-position: 50% 18%; }
+
+  .bill { position: absolute; left: 0; right: 0; top: 50%; bottom: 0; box-sizing: border-box; padding: 3.4vmin 5vmin 4.4vmin; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; border-top: .5vmin solid #0E3B36; }
+  .days { display: flex; gap: 2.4vmin; font-size: 2.6vmin; font-weight: 800; letter-spacing: .18em; }
+  .days span:nth-child(2) { color: #E8472B; }
+  .pres { font-size: 3vmin; font-style: italic; margin-bottom: -.6vmin; }
+  .head1 { font-size: 16.5vmin; font-weight: 900; line-height: .84; letter-spacing: -.005em; }
+  .tier2 { font-size: 6.4vmin; font-weight: 800; line-height: 1; letter-spacing: .01em; }
+  .tier2 i, .tier3 i { font-style: normal; color: #E8472B; font-size: .6em; vertical-align: .22em; margin: 0 .5em; }
+  .tier3 { font-size: 3.6vmin; font-weight: 600; letter-spacing: .06em; line-height: 1.25; }
+  .tier3 i { color: #0E3B36; }
+  .guest { font-size: 4.2vmin; line-height: 1; }
+  .guest b { font-family: "Big Shoulders Display", sans-serif; font-weight: 900; font-size: 1.5em; color: #E8472B; text-transform: uppercase; vertical-align: -.08em; margin-left: .15em; }
+  .tix { width: 100%; display: flex; justify-content: space-between; align-items: center; padding-top: 2vmin; border-top: 1px solid rgba(14,59,54,.45); font-size: 2.4vmin; font-weight: 800; letter-spacing: .12em; }
+  .tix .cta { background: #0E3B36; color: #F1E6D2; padding: 1.3vmin 2.6vmin; letter-spacing: .16em; }
+  .grp { display: flex; flex-direction: column; align-items: center; gap: 1.2vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .head { height: 7vmin; }
+    .photo { top: 7vmin; height: calc(47% - 7vmin); }
+    .bill { top: 47%; padding: 2.6vmin 5vmin 3.4vmin; }
+    .head1 { font-size: 14vmin; }
+    .tier2 { font-size: 5.4vmin; }
+    .tier3 { font-size: 3vmin; }
+    .guest { font-size: 3.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .head { right: 46%; height: 8vmin; padding: 0 4vmin; }
+    .photo { left: auto; right: 0; top: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .bill { top: 8vmin; right: 46%; border-top: .5vmin solid #0E3B36; padding: 4vmin 4vmin 4vmin; }
+    .head1 { font-size: 11vmin; }
+    .tier2 { font-size: 4.6vmin; }
+    .tier3 { font-size: 2.7vmin; }
+    .guest { font-size: 3.4vmin; }
+    .days { font-size: 2.2vmin; gap: 1.8vmin; }
+    .tix { font-size: 2vmin; }
+    .tix .cta { padding: 1.2vmin 2vmin; }
+    .tix .x { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .head { right: 42%; padding: 0 5vmin; }
+    .photo { width: 42%; object-position: 50% 30%; }
+    .bill { right: 42%; padding: 4vmin 5vmin 4.4vmin; }
+    .head1 { font-size: 15vmin; }
+    .tier2 { font-size: 5.8vmin; }
+    .tier3 { font-size: 3.2vmin; }
+    .guest { font-size: 4vmin; }
+    .days { font-size: 2.6vmin; }
+    .tix { font-size: 2.4vmin; }
+    .tix .x { display: inline; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static poster) — festival billing, stage-light rhythm ─────────
+     constant: the ✶ separators spin (3s per turn)
+     beats: 0.5–2.3s the days light up in turn Fri → Sat → Sun · 1.2s a red stage light sweeps across the headliner ·
+            3.4s the special guest "30% off" drops in with a kick · 4.7s CTA sheen + arrow nudge */
+  .days span { display: inline-block; }
+  .days span:nth-child(1) { animation: dayA 6s linear infinite; }
+  .days span:nth-child(3) { animation: dayC 6s linear infinite; }
+  .days span:nth-child(2) { animation: dayB 6s linear infinite; }
+  @keyframes dayA {
+    0%, 8% { color: #0E3B36; transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    11% { color: #E8472B; transform: translateY(-.5vmin); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    18% { color: #E8472B; transform: translateY(0); }
+    21%, 100% { color: #0E3B36; transform: translateY(0); }
+  }
+  @keyframes dayB {
+    0%, 18% { transform: translateY(0) scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    21% { transform: translateY(-.5vmin) scale(1.08); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    28%, 100% { transform: translateY(0) scale(1); }
+  }
+  @keyframes dayC {
+    0%, 28% { color: #0E3B36; transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    31% { color: #E8472B; transform: translateY(-.5vmin); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    38% { color: #E8472B; transform: translateY(0); }
+    41%, 100% { color: #0E3B36; transform: translateY(0); }
+  }
+  .head1 { background: linear-gradient(100deg, #0E3B36 0 40%, #E8472B 47%, #FF7A55 50%, #E8472B 53%, #0E3B36 60% 100%) 100% 0 / 320% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: stage 6s linear infinite; }
+  @keyframes stage {
+    0%, 20% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    46%, 100% { background-position: 0% 0; }
+  }
+  .tier2 i { display: inline-block; animation: spin 3s linear infinite; }
+  .tier2 i:nth-of-type(2) { animation-direction: reverse; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .guest b { display: inline-block; transform-origin: 50% 80%; animation: guest 6s linear infinite; }
+  @keyframes guest {
+    0%, 54% { transform: translateY(0) rotate(0) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    57% { transform: translateY(-2vmin) rotate(0) scale(.8); opacity: 0; animation-timing-function: steps(1, end); }
+    57.5% { transform: translateY(-3vmin) rotate(-6deg) scale(1.2); opacity: 0; animation-timing-function: cubic-bezier(.5,0,.9,.5); }
+    61% { transform: translateY(0) rotate(3deg) scale(1.12); opacity: 1; animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    64% { transform: translateY(0) rotate(-2deg) scale(.98); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    67%, 100% { transform: translateY(0) rotate(0) scale(1); opacity: 1; }
+  }
+  .tix .cta { position: relative; overflow: hidden; }
+  .tix .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.3), rgba(255,255,255,0));
+    transform: translateX(-150%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 76% { transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    89%, 100% { transform: translateX(420%) skewX(-18deg); }
+  }
+  .tix .cta i { font-style: normal; display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 84% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    87% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    90% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    93% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    96%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head"><b>Oro Fields ’26</b><span>The line-up</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="bill">
+    <div class="days"><span>Fri 03</span><span>Sat 04</span><span>Sun 05 July</span></div>
+    <div class="grp">
+      <div class="pres serif">Studio Oro presents</div>
+      <div class="head1">The Summer<br>Edit</div>
+    </div>
+    <div class="tier2">Linen<i>✶</i><span class="t">Swim</span><i>✶</i>Denim</div>
+    <div class="tier3">Sandals · <span class="t">Knits</span> · Totes · Shades<br>Shirts · <span class="t">Hats</span> · Shorts · Jewellery</div>
+    <div class="guest serif">+ special guest <b>30% off</b></div>
+    <div class="tix"><span>Code LINEUP30<span class="x"> · Ends Sun</span></span><span class="cta">Get tickets <i>→</i></span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Federant&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Metro Portal — a Guimard-style Paris métro entrance in cast iron: two verdigris stalks rise and bow over
+     like plant stems, each ending in an amber lamp bud; the enamel name-board hangs between them and the look
+     stands in the entrance. The offer is a cream métro ticket with its brown magnetic stripe.
+     tall → portal above, copy below · square & wide → copy left, portal right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6DAC3; }
+  .banner { --iron: #1F4234; --iron2: #3E6E57; --amber: #F0A63A; --cream: #F3E6C4; --ink: #22302A; --rust: #8C4A26;
+    --cl: 4vmin; --cw: 92vmin; --ct: 3vmin; --phb: 50vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Alegreya Sans", "Gill Sans", "Helvetica Neue", Arial, sans-serif;
+    background:
+      repeating-linear-gradient(180deg, rgba(120,98,66,0) 0 11.4vmin, rgba(120,98,66,.22) 11.4vmin calc(11.4vmin + 1px), rgba(255,255,255,.35) calc(11.4vmin + 1px) calc(11.4vmin + 2px), rgba(120,98,66,0) calc(11.4vmin + 2px) 11.8vmin),
+      radial-gradient(90% 70% at 50% 30%, #F1E8D6 0%, #E6DAC3 55%, #D8C8AB 100%); }
+
+  /* ironwork crest: stalks, lamps, name-board (fixed 84:26 proportion) */
+  .crest { position: absolute; left: var(--cl); top: var(--ct); width: var(--cw); height: calc(var(--cw) * .3095); overflow: visible; }
+  .crest svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .sign { position: absolute; left: calc(var(--cl) + var(--cw) * .1476); top: calc(var(--ct) + var(--cw) * .1786); width: calc(var(--cw) * .7048); height: calc(var(--cw) * .0762);
+    display: flex; align-items: center; justify-content: center; font-family: "Federant", "Didot", Georgia, serif; font-size: calc(var(--cw) * .05); line-height: 1; letter-spacing: .06em;
+    color: #F4D98E; white-space: nowrap; text-shadow: 0 .2vmin 0 rgba(0,0,0,.35); }
+
+  /* cast-iron posts under the crest */
+  .post { position: absolute; top: calc(var(--ct) + var(--cw) * .29); bottom: calc(var(--phb) - 4vmin); width: calc(var(--cw) * .024);
+    background: linear-gradient(90deg, #163226 0%, var(--iron2) 38%, #5E8C73 48%, var(--iron) 70%, #122A20 100%); }
+  .post.l { left: calc(var(--cl) + var(--cw) * .0714 - var(--cw) * .012); }
+  .post.r { left: calc(var(--cl) + var(--cw) * .9286 - var(--cw) * .012); }
+  .post::before { content: ""; position: absolute; left: -.8vmin; right: -.8vmin; bottom: 0; height: 4.2vmin; border-radius: .6vmin .6vmin 0 0;
+    background: linear-gradient(90deg, #163226, var(--iron2) 45%, #122A20); }
+  .post::after { content: ""; position: absolute; left: -.2vmin; right: -.2vmin; top: 22%; height: 1.6vmin; border-radius: 50%; background: linear-gradient(90deg, #163226, #6E9A7F 45%, #122A20); }
+
+  /* the entrance */
+  .door { position: absolute; left: calc(var(--cl) + var(--cw) * .1214); width: calc(var(--cw) * .757); top: calc(var(--ct) + var(--cw) * .325); bottom: var(--phb);
+    background: #2A2E2A; box-shadow: 0 0 0 .5vmin var(--iron), 0 0 0 .8vmin #C9B78F, 0 1.4vmin 2.4vmin rgba(40,30,15,.25); }
+  .door img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .step { position: absolute; left: calc(var(--cl) + var(--cw) * .04); width: calc(var(--cw) * .92); bottom: calc(var(--phb) - 4.6vmin); height: 1.4vmin;
+    background: linear-gradient(180deg, #CDBB98, #B3A07C); border-radius: .3vmin; box-shadow: 0 .4vmin .8vmin rgba(60,45,20,.2); }
+
+  /* copy */
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - var(--phb) + 4.4vmin); bottom: 2vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .k { font-size: 2vmin; font-weight: 700; letter-spacing: .32em; margin-right: -.32em; text-transform: uppercase; color: var(--iron2); white-space: nowrap; }
+  .k i { font-style: normal; color: var(--amber); padding: 0 .5em; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Federant", "Didot", Georgia, serif; font-weight: 400; font-size: 10.4vmin; line-height: 1; color: var(--iron); white-space: nowrap; }
+  h1 em { font-style: normal; color: var(--rust); }
+  .sub { margin-top: 1.2vmin; font-style: italic; font-size: 2.9vmin; color: #4A4A3C; text-wrap: balance; }
+  .row { margin-top: 3vmin; display: flex; align-items: center; justify-content: center; gap: 4vmin; }
+  .tix { position: relative; width: 36vmin; padding: 1.5vmin 2.4vmin 3.6vmin; box-sizing: border-box; transform: rotate(-3deg); text-align: left;
+    background: linear-gradient(160deg, #F7EDD2 0%, #EFE0B8 100%); border-radius: .5vmin; box-shadow: 0 .8vmin 1.6vmin rgba(60,45,20,.28);
+    display: grid; grid-template-columns: auto 1fr; column-gap: 2vmin; align-items: center; }
+  .tix::after { content: ""; position: absolute; left: 0; right: 0; bottom: .9vmin; height: 1.7vmin; background: linear-gradient(180deg, #5A3B22, #7A5634 50%, #5A3B22); }
+  .tix small { grid-column: 1 / 3; margin-bottom: 1vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--rust); white-space: nowrap; }
+  .tix b { font-family: "Federant", Georgia, serif; font-weight: 400; font-size: 7vmin; line-height: 1.05; color: var(--iron); white-space: nowrap; }
+  .tix span { font-size: 2vmin; font-weight: 700; line-height: 1.3; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .tix span u { text-decoration: none; color: var(--rust); }
+  .fine { margin-top: 3vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .22em; margin-right: -.22em; text-transform: uppercase; color: #5A5A48; white-space: nowrap; }
+
+  /* shorter portrait */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --cl: 13vmin; --cw: 74vmin; --ct: 2.6vmin; --phb: 41vmin; }
+    .copy { top: calc(100% - var(--phb) + 4.4vmin); }
+    h1 { font-size: 8.6vmin; margin-top: 1vmin; }
+    .sub { font-size: 2.6vmin; margin-top: .8vmin; }
+    .row { margin-top: 2.2vmin; }
+    .tix { width: 32vmin; padding-bottom: 3.2vmin; }
+    .tix b { font-size: 6vmin; }
+    .fine { margin-top: 2.2vmin; }
+  }
+  /* square: copy left, portal right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --cl: calc(100% - 57vmin); --cw: 54vmin; --ct: 4vmin; --phb: 8vmin; }
+    .copy { left: 6vmin; right: auto; width: calc(100% - 64vmin); top: 4vmin; bottom: 4vmin; align-items: flex-start; text-align: left; }
+    .k { font-size: 1.7vmin; letter-spacing: .2em; margin-right: 0; white-space: normal; line-height: 1.6; }
+    h1 { font-size: 6.6vmin; white-space: normal; line-height: 1.05; margin-top: 1.6vmin; }
+    .sub { font-size: 2.4vmin; margin-top: 1.4vmin; line-height: 1.3; }
+    .row { margin-top: 3.6vmin; margin-left: 1vmin; }
+    .tix { width: 30vmin; padding: 1.3vmin 2vmin 3.2vmin; column-gap: 1.6vmin; }
+    .tix b { font-size: 5.6vmin; }
+    .tix span { font-size: 1.7vmin; }
+    .tix small { font-size: 1.6vmin; letter-spacing: .14em; }
+    .fine { margin-top: 3.6vmin; font-size: 1.6vmin; letter-spacing: .14em; margin-right: 0; white-space: normal; line-height: 1.6; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --cl: calc(100% - 80vmin); --cw: 72vmin; --ct: 3.6vmin; --phb: 6.6vmin; }
+    .copy { left: 8vmin; width: calc(100% - 96vmin); align-items: center; text-align: center; }
+    .k { font-size: 1.9vmin; letter-spacing: .28em; margin-right: -.28em; white-space: nowrap; }
+    h1 { font-size: 8.4vmin; }
+    .sub { font-size: 2.7vmin; }
+    .row { margin-left: 0; }
+    .tix { width: 34vmin; padding: 1.5vmin 2.4vmin 3.6vmin; }
+    .tix b { font-size: 6.4vmin; }
+    .tix span { font-size: 1.9vmin; }
+    .fine { font-size: 1.7vmin; letter-spacing: .2em; margin-right: -.2em; white-space: nowrap; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     constant: the two amber lamp buds breathe like gaslight (3s), the look drifts closer in the entrance (≤1.03)
+     beats: 1.0s the ◆ signal blinks · 2.2s a gleam runs along the enamel name-board ·
+            3.6s the ticket dips into the validator and pops back out · 4.9s the lamps give a gas flicker */
+  .door { overflow: hidden; }
+  .door img { transform-origin: 50% 30%; animation: grow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes grow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .lamp { position: absolute; top: calc(var(--ct) + var(--cw) * .1119); width: calc(var(--cw) * .17); height: calc(var(--cw) * .17); margin: calc(var(--cw) * -.085) 0 0 calc(var(--cw) * -.085);
+    border-radius: 50%; pointer-events: none; opacity: 0; background: radial-gradient(circle, rgba(255,214,120,.75) 0%, rgba(246,184,76,.35) 30%, rgba(246,184,76,0) 68%);
+    animation: gas 3s cubic-bezier(.45,0,.55,1) infinite, flick 6s linear infinite; }
+  .lamp.l { left: calc(var(--cl) + var(--cw) * .2119); }
+  .lamp.r { left: calc(var(--cl) + var(--cw) * .7881); animation-delay: -.2s, 0s; }
+  @keyframes gas { 0%, 100% { opacity: 0; transform: scale(.85); } 50% { opacity: .9; transform: scale(1.05); } }
+  @keyframes flick { 0%, 81%, 82.5%, 83.6%, 100% { filter: none; } 81.5%, 83% { filter: brightness(.35); } }
+
+  .k i { display: inline-block; animation: blink 6s linear infinite; }
+  @keyframes blink { 0%, 16%, 18.5%, 20%, 22.5%, 100% { opacity: 1; } 16.5%, 18%, 20.5%, 22% { opacity: .15; } }
+
+  .sign::after { content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+    background: linear-gradient(105deg, transparent 42%, rgba(255,236,180,.28) 49%, rgba(255,250,225,.45) 50%, rgba(255,236,180,.28) 51%, transparent 58%) no-repeat;
+    background-size: 300% 100%; background-position: 120% 0; animation: gleam 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes gleam { 0%, 36% { background-position: 120% 0; } 56%, 100% { background-position: -20% 0; } }
+
+  .tix { animation: punch 6s cubic-bezier(.45,0,.3,1) infinite; }
+  @keyframes punch {
+    0%, 58%, 100% { transform: rotate(-3deg) translateY(0); }
+    63% { transform: rotate(0deg) translateY(1.6vmin); }
+    66% { transform: rotate(0deg) translateY(1.6vmin); }
+    71% { transform: rotate(-5deg) translateY(-1vmin); }
+    75% { transform: rotate(-2.4deg) translateY(.2vmin); }
+    78% { transform: rotate(-3deg) translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="door"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <i class="step" aria-hidden="true"></i>
+  <i class="post l" aria-hidden="true"></i>
+  <i class="post r" aria-hidden="true"></i>
+  <div class="crest" aria-hidden="true">
+    <svg viewBox="0 0 840 260" preserveAspectRatio="none">
+      <defs>
+        <radialGradient id="mpLamp" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#FFF1C2"/><stop offset=".35" stop-color="#F7C25A"/><stop offset="1" stop-color="#C9711E"/></radialGradient>
+        <radialGradient id="mpGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#F6B84C" stop-opacity=".45"/><stop offset="1" stop-color="#F6B84C" stop-opacity="0"/></radialGradient>
+        <linearGradient id="mpBoard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2C5443"/><stop offset="1" stop-color="#173528"/></linearGradient>
+        <g id="mpStalk">
+          <circle cx="178" cy="92" r="58" fill="url(#mpGlow)"/>
+          <path d="M60 262 V 132 C 60 70, 74 30, 118 18 C 154 8, 180 26, 178 58" fill="none" stroke="#1F4234" stroke-width="20" stroke-linecap="round"/>
+          <path d="M56 250 V 132 C 56 76, 66 40, 104 26" fill="none" stroke="#5E8C73" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+          <path d="M60 170 C 30 150, 20 112, 36 86 C 44 74, 58 76, 56 90" fill="none" stroke="#1F4234" stroke-width="7" stroke-linecap="round"/>
+          <path d="M36 86 C 22 78, 18 62, 28 52 C 38 60, 40 74, 36 86 Z" fill="#3E6E57" stroke="#1F4234" stroke-width="3"/>
+          <path d="M160 58 C 164 46, 192 46, 196 58 L 190 68 H 166 Z" fill="#1F4234"/>
+          <ellipse cx="178" cy="94" rx="17" ry="27" fill="url(#mpLamp)" stroke="#9C5A18" stroke-width="2"/>
+          <path d="M170 120 C 174 128, 182 128, 186 120" fill="none" stroke="#1F4234" stroke-width="5" stroke-linecap="round"/>
+          <path d="M60 158 H 114 M60 214 H 114" stroke="#1F4234" stroke-width="7"/>
+          <path d="M72 158 C 90 170, 90 202, 72 214" fill="none" stroke="#1F4234" stroke-width="5"/>
+          <circle cx="94" cy="186" r="6" fill="#3E6E57" stroke="#1F4234" stroke-width="3"/>
+        </g>
+      </defs>
+      <use href="#mpStalk"/>
+      <use href="#mpStalk" transform="translate(840 0) scale(-1 1)"/>
+      <rect x="112" y="140" width="616" height="84" rx="8" fill="url(#mpBoard)" stroke="#1F4234" stroke-width="6"/>
+      <rect x="124" y="150" width="592" height="64" rx="4" fill="none" stroke="#E6C77A" stroke-width="2.4" opacity=".85"/>
+      <path d="M392 140 C 404 124, 436 124, 448 140" fill="#1F4234"/>
+      <circle cx="420" cy="128" r="6" fill="#F0A63A" stroke="#1F4234" stroke-width="3"/>
+    </svg>
+  </div>
+  <i class="lamp l" aria-hidden="true"></i><i class="lamp r" aria-hidden="true"></i>
+  <div class="sign">Lune &amp; Lierre</div>
+  <div class="copy">
+    <div class="k">Station Nouveau<i>◆</i>Spring 2026</div>
+    <h1>Next stop, <em>Spring</em></h1>
+    <div class="sub">New arrivals on the platform every morning.</div>
+    <div class="row">
+      <div class="tix"><small>Ticket · valid till 30 Apr</small><b>25%</b><span>off<br>Code <u>METRO25</u></span></div>
+    </div>
+    <div class="fine">Doors open 9–20 · lunelierre.com</div>
+  </div>
+</div>
+</body>
+</html>

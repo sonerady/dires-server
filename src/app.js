@@ -352,13 +352,15 @@ app.use("/api/admin-dashboard", requireAdmin, adminMenuStyleRoutes);
 // Chrome eklentisinin clip ucu — token taşımadığı için requireAdmin ALTINDA DEĞİL
 // (Banner Stüdyosu ucuyla aynı model). Yalnız görsel kabul eder, veri döndürmez.
 app.use("/api/menu-styles", adminMenuStyleRoutes.clipRouter); // menuStyleClip
-startAsoCron();
+// DISABLE_BACKGROUND_WORKERS=1: yerelde yalnız API (canlıyla çakışan zamanlayıcı/kuyruk işçisi yok)
+const BACKGROUND_WORKERS = process.env.DISABLE_BACKGROUND_WORKERS !== "1";
+if (BACKGROUND_WORKERS) startAsoCron();
 
 // Social Studio — Instagram içerik otomasyonu (admin token ile korunur)
 const socialStudioRoutes = require("./routes/socialStudioRoutes");
 const { startSocialStudioScheduler } = require("./jobs/socialStudioScheduler");
 app.use("/api/social-studio", requireAdmin, socialStudioRoutes);
-startSocialStudioScheduler();
+if (BACKGROUND_WORKERS) startSocialStudioScheduler();
 app.use("/api", require("./routes/contentReportRoutes"));
 // 💳 Kredi iadesi — SimpleImageModal (ürün vs sonuç Gemini analizi, atomik iade)
 app.use("/api/credit-refund", require("./routes/creditRefundRoutes"));
@@ -393,6 +395,7 @@ app.use("/api/referenceJewelryBrowserV7", referenceJewelryBrowserRoutesV7);
 app.use("/api/style-profiles/admin", requireAdmin);
 app.use("/api/style-profiles", styleProfileRoutes);
 app.use("/api/refiner-style-profiles", refinerStyleProfileRoutes);
+app.use("/api/food-style-profiles", require("./routes/foodStyleProfileRoutes"));
 app.use("/api/style-inspiration", styleInspirationRoutes);
 app.use("/api/referenceBrowserWeb", requireBrowser, requireAuth, referenceBrowserRoutesWeb);
 app.use("/api/image-scraper", requireBrowser, imageScraperRoutes);
@@ -539,6 +542,12 @@ app.use("/api/product-studio-catalog", require("./routes/productStudioCatalogRou
 app.use("/api/admin-dashboard", requireAdmin, require("./routes/adminProductStudioRoutes"));
 app.use("/api/custom-studio", require("./routes/customStudioRoutes"));
 app.use("/api/custom-tool-generations", require("./routes/customToolGenerationRoutes"));
+// 🧩 Kolaj planlayıcı (yapay zekâ kolaj tarifi) — yeni, bağımsız uç
+app.use("/api/collage", require("./routes/collagePlanRoutes"));
+// 📚 Ürün kataloğu PDF — yapay zekâ planı (30 Eyl 2026, yeni bağımsız uç)
+app.use("/api/catalog-pdf", require("./routes/catalogPdfRoutes"));
+app.use("/api/business-profile", require("./routes/businessProfileRoutes")); // 🏪 Kolaj/PDF mağaza bilgileri (users.business_profile)
+app.use("/api", require("./routes/userExportRoutes")); // 📤 /api/exports/* (kullanıcı) + /api/admin-dashboard/user-exports* (requireAdmin, uç içinde)
 
 // Support routes
 const supportRoutes = require("./routes/supportRoutes");
@@ -553,9 +562,12 @@ app.use("/api/whats-new", whatsNewRoutes);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
-  require("./services/oneSignalMarketingScheduler").startOneSignalMarketingScheduler();
   const { supabaseAdmin, supabase } = require("./supabaseClient");
-  require("./services/generationRecovery").startGenerationRecovery(supabaseAdmin || supabase);
+  if (BACKGROUND_WORKERS) {
+    require("./services/oneSignalMarketingScheduler").startOneSignalMarketingScheduler();
+    require("./services/generationRecovery").startGenerationRecovery(supabaseAdmin || supabase);
+    require("./services/templateVideoCleanup").startTemplateVideoCleanup(supabaseAdmin || supabase);
+  } else console.log("⏸️ DISABLE_BACKGROUND_WORKERS=1 — zamanlayıcılar ve kuyruk işçileri kapalı");
   console.log(`Server is running on port ${PORT}`);
   console.log("🔄 Server reloaded with Refiner Download routes!");
   console.log(`Server is accessible at http://localhost:${PORT}`);

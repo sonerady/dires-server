@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,400;1,6..96,500&family=Archivo:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Step & Repeat — gala night: the press wall behind the red carpet, a black backdrop printed with staggered
+     monogram + "Gala Night" lockups, camera flashes popping on it, and a strip of red carpet carrying the offer.
+     tall → press wall on top, photo in the middle, carpet at the bottom; square/wide → wall + carpet left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0F0E0D; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F4EFE6; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; background: #0F0E0D; }
+  .photo { position: absolute; left: 0; top: 46vmin; width: 100%; height: calc(100% - 46vmin - 26vmin); object-fit: cover; object-position: 50% 22%; }
+
+  .wall { position: absolute; left: 0; right: 0; top: 0; height: 46vmin; overflow: hidden; background: #121110; }
+  .wall svg.rep { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* camera flashes */
+  .flash { position: absolute; width: 16vmin; height: 16vmin; margin: -8vmin 0 0 -8vmin; pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent, rgba(255,255,255,.9) 50%, transparent) 50% 50% / 100% .25vmin no-repeat,
+      linear-gradient(0deg, transparent, rgba(255,255,255,.9) 50%, transparent) 50% 50% / .25vmin 100% no-repeat,
+      radial-gradient(circle, #FFFFFF 0, rgba(255,255,255,.95) 3%, rgba(255,250,235,.55) 9%, rgba(255,245,225,.22) 20%, rgba(255,245,225,.07) 34%, transparent 50%); }
+  .f1 { left: 86%; top: 16%; }
+  .f2 { left: 8%; top: 84%; width: 11vmin; height: 11vmin; margin: -5.5vmin 0 0 -5.5vmin; }
+  .f3 { left: 94%; top: 78%; width: 8vmin; height: 8vmin; margin: -4vmin 0 0 -4vmin; }
+
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 50%; transform: translateY(-50%); text-align: center; }
+  .head small { display: inline-block; padding: .9vmin 1.8vmin; background: #0F0E0D; font-size: 1.7vmin; font-weight: 600; letter-spacing: .3em; margin-right: -.3em; text-transform: uppercase; color: #D8B66A; }
+  .head h1 { margin: 1.6vmin 0 0; font-family: "Bodoni Moda", Didot, Georgia, serif; font-style: italic; font-weight: 400; font-size: 12.4vmin; line-height: .92; letter-spacing: -.02em;
+    text-shadow: 0 0 3vmin #121110, 0 0 1.2vmin #121110; }
+
+  .carpet { position: absolute; left: 0; right: 0; bottom: 0; height: 26vmin; box-sizing: border-box; padding: 4.4vmin 7vmin 4.4vmin;
+    display: flex; flex-direction: column; justify-content: center; gap: 1.6vmin;
+    background: linear-gradient(90deg, rgba(0,0,0,.28), transparent 18%, transparent 82%, rgba(0,0,0,.28)), repeating-linear-gradient(90deg, rgba(0,0,0,.07) 0 1px, transparent 1px .5vmin), #A0111F; }
+  .carpet::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: .5vmin; background: #D8B66A; }
+  .carpet .row { display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; }
+  .carpet b { font-family: "Bodoni Moda", Didot, Georgia, serif; font-weight: 700; font-size: 6.4vmin; line-height: 1; white-space: nowrap; }
+  .carpet .ed { font-family: "Bodoni Moda", Didot, Georgia, serif; font-style: italic; font-size: 3.4vmin; white-space: nowrap; }
+  .carpet .meta { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; color: #F7DADA; }
+  .carpet .meta span:last-child { color: #F4EFE6; font-weight: 600; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { top: 38vmin; height: calc(100% - 38vmin - 22vmin); }
+    .wall { height: 38vmin; }
+    .head h1 { font-size: 10vmin; }
+    .carpet { height: 22vmin; padding: 3vmin 7vmin; gap: 1.2vmin; }
+    .carpet b { font-size: 5.4vmin; }
+    .carpet .ed { font-size: 3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; top: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .wall { right: 50%; height: auto; bottom: 30vmin; }
+    .head { left: 5vmin; right: 5vmin; }
+    .head h1 { font-size: 8.6vmin; }
+    .carpet { right: 50%; height: 30vmin; padding: 3.6vmin 5vmin; gap: 1.4vmin; }
+    .carpet .row { flex-direction: column; align-items: flex-start; gap: .8vmin; }
+    .carpet b { font-size: 6vmin; }
+    .carpet .ed { font-size: 2.8vmin; }
+    .carpet .meta { font-size: 1.6vmin; letter-spacing: .14em; }
+    .f1 { left: 84%; top: 14%; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .wall { right: 46%; bottom: 28vmin; }
+    .head { left: 7vmin; right: 7vmin; }
+    .head h1 { font-size: 12vmin; }
+    .carpet { right: 46%; height: 28vmin; padding: 3.6vmin 7vmin; }
+    .carpet .row { flex-direction: row; align-items: baseline; }
+    .carpet b { font-size: 6.4vmin; }
+    .carpet .ed { font-size: 3.2vmin; }
+    .carpet .meta { font-size: 1.8vmin; letter-spacing: .22em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="wall">
+    <svg class="rep" viewBox="0 0 100 100" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+      <defs>
+        <pattern id="sr" width="36" height="16" patternUnits="userSpaceOnUse" patternTransform="translate(-4 -3)">
+          <g fill="#3A332C" font-family="Bodoni Moda, Didot, Georgia, serif">
+            <circle cx="9" cy="5" r="3.4" fill="none" stroke="#3A332C" stroke-width=".35"/>
+            <text x="9" y="6.3" font-size="3.4" font-style="italic" text-anchor="middle">SO</text>
+            <text x="27" y="6.2" font-size="2.4" font-weight="700" letter-spacing=".5" text-anchor="middle">GALA NIGHT</text>
+            <text x="9" y="14.2" font-size="2.4" font-weight="700" letter-spacing=".5" text-anchor="middle">GALA NIGHT</text>
+            <circle cx="27" cy="13" r="3.4" fill="none" stroke="#3A332C" stroke-width=".35"/>
+            <text x="27" y="14.3" font-size="3.4" font-style="italic" text-anchor="middle">SO</text>
+          </g>
+        </pattern>
+      </defs>
+      <rect x="-50" y="-50" width="200" height="200" fill="url(#sr)"/>
+    </svg>
+    <div class="flash f1"></div><div class="flash f2"></div><div class="flash f3"></div>
+    <div class="head"><small>Arrivals from 7 pm</small><h1>Red carpet<br>ready.</h1></div>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="carpet">
+    <div class="row"><b>30% off</b><span class="ed">the Gala Edit</span></div>
+    <div class="meta"><span>Friday · one night only</span><span>Code GALA30</span></div>
+  </div>
+</div>
+</body>
+</html>

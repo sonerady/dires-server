@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Lift Pass — the offer printed on a plastic season pass, clipped by a coiled cord to a red woven lanyard
+     that runs along the photo's edge. The pass scales as one unit (--k). tall → photo above; square/wide → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6ECF1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #14233A; font-family: "JetBrains Mono", Menlo, monospace;
+    background: radial-gradient(circle at 20% 30%, rgba(255,255,255,.9) 0 .25vmin, transparent .3vmin) 0 0 / 5vmin 5vmin,
+                radial-gradient(circle at 70% 70%, rgba(255,255,255,.75) 0 .18vmin, transparent .22vmin) 0 0 / 3.4vmin 3.4vmin,
+                linear-gradient(180deg, #EEF2F5, #DCE4EB); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 76vmin); object-fit: cover; object-position: 50% 20%; }
+
+  /* woven lanyard */
+  .strap { position: absolute; left: 0; right: 0; top: calc(100% - 76vmin); height: 5vmin; overflow: hidden; background: #D8342A;
+    box-shadow: 0 .5vmin 1vmin rgba(20,35,58,.22); display: flex; align-items: center; }
+  .strap::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(0,0,0,.09) 0 .2vmin, transparent .2vmin .6vmin); }
+  .strap::after { content: ""; position: absolute; left: 0; right: 0; top: .5vmin; bottom: .5vmin; border-top: 1px dashed rgba(255,255,255,.55); border-bottom: 1px dashed rgba(255,255,255,.55); }
+  .strap span { position: relative; white-space: nowrap; color: #fff; font-weight: 700; font-size: 1.8vmin; letter-spacing: .3em; text-transform: uppercase; padding-left: 2vmin; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 71vmin; --k: 1vmin; }
+  .meta { position: absolute; left: 6vmin; right: 6vmin; top: 3vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .meta span:first-child { max-width: 30%; }
+  .meta span:last-child { text-align: right; max-width: 30%; }
+  .cord { position: absolute; left: 50%; top: 0; width: 4vmin; height: 10.5vmin; margin-left: -2vmin; }
+  .clip { position: absolute; left: 50%; top: 9.6vmin; width: 7vmin; height: 3.4vmin; margin-left: -3.5vmin; background: #1B1F26; border-radius: .8vmin .8vmin .4vmin .4vmin; box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.25); }
+  .clip::after { content: ""; position: absolute; left: 2vmin; right: 2vmin; top: .9vmin; height: 1.1vmin; border-radius: .6vmin; background: #E6ECF1; }
+
+  /* the pass */
+  .pass { position: absolute; left: 50%; top: 12.2vmin; width: calc(var(--k) * 66); height: calc(var(--k) * 41.5); margin-left: calc(var(--k) * -33);
+    background: linear-gradient(135deg, #FFFFFF 0%, #F6F8FA 60%, #EDF1F5 100%); border-radius: calc(var(--k) * 2.6); overflow: hidden;
+    box-shadow: 0 .4vmin .8vmin rgba(20,35,58,.14), 0 2.4vmin 4.6vmin rgba(20,35,58,.2); transform: rotate(-1.5deg); }
+  .pass .band { position: absolute; right: 0; top: 0; bottom: 0; width: calc(var(--k) * 12); background: #14233A; color: #fff; display: flex; align-items: flex-end; justify-content: center; padding-bottom: calc(var(--k) * 3.4); box-sizing: border-box; }
+  .pass .band b { writing-mode: vertical-rl; transform: rotate(180deg); font-family: "Archivo", "Arial Narrow", sans-serif; font-stretch: 62%; font-weight: 900; font-size: calc(var(--k) * 5.6); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .pass .peaks { position: absolute; left: 0; right: calc(var(--k) * 12); bottom: 0; height: calc(var(--k) * 15); }
+  .pass .in { position: absolute; left: calc(var(--k) * 4); right: calc(var(--k) * 15.5); top: calc(var(--k) * 3.4); bottom: calc(var(--k) * 3.2); display: flex; flex-direction: column; }
+  .pass .row { display: flex; justify-content: space-between; align-items: baseline; font-size: calc(var(--k) * 2.4); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .pass .row i { font-style: normal; color: #D8342A; }
+  .pass .brand { font-family: "Archivo", Arial, sans-serif; font-stretch: 112%; font-weight: 800; font-size: calc(var(--k) * 2.8); letter-spacing: .1em; }
+  .pass h1 { margin: calc(var(--k) * 2.4) 0 0; font-family: "Archivo", "Arial Narrow", sans-serif; font-stretch: 62%; font-weight: 900; font-size: calc(var(--k) * 20); line-height: .8; letter-spacing: -.01em; color: #D8342A; }
+  .pass h1 small { font-size: .42em; letter-spacing: 0; vertical-align: .95em; margin-left: .06em; }
+  .pass .sub { margin-top: calc(var(--k) * 1.6); font-size: calc(var(--k) * 2.4); font-weight: 500; letter-spacing: .04em; }
+  .pass .foot { margin-top: auto; display: flex; align-items: flex-end; gap: calc(var(--k) * 2.4); }
+  .chip { flex: none; width: calc(var(--k) * 6.6); height: calc(var(--k) * 5); border-radius: calc(var(--k) * .9); background: linear-gradient(135deg, #E9CF8B, #B8923F);
+    box-shadow: inset 0 0 0 calc(var(--k) * .25) rgba(90,62,10,.35); position: relative; }
+  .chip::before { content: ""; position: absolute; inset: 22% 30%; border: calc(var(--k) * .22) solid rgba(90,62,10,.45); border-radius: calc(var(--k) * .4); }
+  .bar { flex: 1; min-width: 0; }
+  .bar i { display: block; height: calc(var(--k) * 4.4); background: repeating-linear-gradient(90deg, #14233A 0 calc(var(--k) * .35), transparent calc(var(--k) * .35) calc(var(--k) * .8), #14233A calc(var(--k) * .8) calc(var(--k) * 1.5), transparent calc(var(--k) * 1.5) calc(var(--k) * 1.8), #14233A calc(var(--k) * 1.8) calc(var(--k) * 2), transparent calc(var(--k) * 2) calc(var(--k) * 2.9)); }
+  .bar span { display: block; margin-top: calc(var(--k) * .7); font-size: calc(var(--k) * 2.3); font-weight: 500; letter-spacing: .12em; white-space: nowrap; }
+  .holo { position: absolute; right: calc(var(--k) * 1.5); top: calc(var(--k) * 2.2); width: calc(var(--k) * 9); height: calc(var(--k) * 9); border-radius: 50%;
+    background: conic-gradient(from 20deg, #FFD6E8, #CDE8FF, #D6FFE9, #FFF3C4, #E6D2FF, #FFD6E8); box-shadow: 0 0 0 calc(var(--k) * .4) #fff, 0 .3vmin .6vmin rgba(20,35,58,.2); opacity: .95; }
+  .holo svg { position: absolute; inset: 18%; width: 64%; height: 64%; }
+
+  .hl { display: none; }
+  .cta { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; align-items: stretch; font-size: 2.1vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .cta .code { padding: 1.6vmin 2.2vmin; border: .3vmin solid #14233A; border-right: 0; white-space: nowrap; }
+  .cta .code em { font-style: normal; color: #D8342A; }
+  .cta .go { flex: 1; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; padding: 1.6vmin 2.4vmin; background: #14233A; color: #fff; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 70vmin); }
+    .strap { top: calc(100% - 70vmin); }
+    .panel { height: 65vmin; --k: .92vmin; }
+    .pass { top: 11.6vmin; }
+    .cta { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .strap { top: calc(100% - 64vmin); height: 4.4vmin; }
+    .panel { height: 59.6vmin; --k: .84vmin; }
+    .meta { top: 2.6vmin; }
+    .cord { height: 9vmin; }
+    .clip { top: 8.2vmin; }
+    .pass { top: 10.6vmin; }
+    .cta { bottom: 3.6vmin; font-size: 1.9vmin; }
+    .cta .code, .cta .go { padding-top: 1.3vmin; padding-bottom: 1.3vmin; }
+  }
+  /* square / wide → photo left, lanyard runs down the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 25%; }
+    .strap { top: 0; bottom: 0; left: 46%; right: auto; width: 4.6vmin; height: auto; justify-content: center; }
+    .strap::before { background: repeating-linear-gradient(0deg, rgba(0,0,0,.09) 0 .2vmin, transparent .2vmin .6vmin); }
+    .strap::after { top: 0; bottom: 0; left: .5vmin; right: .5vmin; border: 0; border-left: 1px dashed rgba(255,255,255,.55); border-right: 1px dashed rgba(255,255,255,.55); }
+    .strap span { writing-mode: vertical-rl; padding: 2vmin 0 0; align-self: flex-start; font-size: 1.7vmin; }
+    .panel { left: calc(46% + 4.6vmin); top: 0; height: auto; --k: .7vmin; }
+    .meta { left: 5vmin; right: 5vmin; top: 5vmin; flex-direction: column; gap: .8vmin; }
+    .meta span:first-child, .meta span:last-child { max-width: none; text-align: left; }
+    .cord { display: none; }
+    .clip { display: none; }
+    .photo { width: 44%; }
+    .strap { left: 44%; }
+    .panel { left: calc(44% + 4.6vmin); }
+    .hl { display: block; position: absolute; left: 5vmin; right: 4vmin; top: 12.5vmin; font-family: "Archivo", "Arial Narrow", sans-serif; font-stretch: 62%; font-weight: 900; font-size: 7.4vmin; line-height: .9; text-transform: uppercase; }
+    .hl em { font-style: normal; color: #D8342A; }
+    .pass { top: 38vmin; transform: rotate(-3deg); }
+    .cta { left: 5vmin; right: 5vmin; bottom: 5vmin; flex-direction: column; font-size: 1.8vmin; }
+    .cta .code { border-right: .3vmin solid #14233A; border-bottom: 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 50%; }
+    .strap { left: 50%; width: 5vmin; }
+    .panel { left: calc(50% + 5vmin); --k: .9vmin; }
+    .meta { left: 7vmin; right: 7vmin; top: 6vmin; flex-direction: row; }
+    .meta span:last-child { text-align: right; }
+    .hl { left: 7vmin; top: 12.5vmin; font-size: 8.6vmin; }
+    .hl br { display: none; }
+    .pass { top: 33vmin; transform: rotate(-2deg); }
+    .cta { left: 7vmin; right: 7vmin; bottom: 6vmin; flex-direction: row; font-size: 2vmin; }
+    .cta .code { border-right: 0; border-bottom: .3vmin solid #14233A; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="strap"><span>Atelier Nord ✱ All-mountain pass ✱ Atelier Nord ✱ All-mountain pass ✱ Atelier Nord ✱ All-mountain pass ✱ Atelier Nord ✱ All-mountain pass</span></div>
+  <div class="panel">
+    <svg class="cord" viewBox="0 0 20 60" preserveAspectRatio="none" aria-hidden="true"><path d="M10 0 C 18 4, 18 8, 10 10 S 2 16, 10 20 S 18 26, 10 30 S 2 36, 10 40 S 18 46, 10 50 S 2 56, 10 60" fill="none" stroke="#1B1F26" stroke-width="2.4"/></svg>
+    <div class="clip"></div>
+    <div class="meta"><span>Season pass</span><span>Alt. 1850 m</span></div>
+    <div class="hl">The slopes <br>are <em>open.</em></div>
+    <div class="pass">
+      <svg class="peaks" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 60 L0 42 L34 18 L52 30 L84 4 L118 34 L140 22 L176 44 L200 36 L200 60 Z" fill="#14233A" fill-opacity=".06"/>
+        <path d="M0 60 L0 50 L40 32 L70 46 L104 24 L150 52 L200 44 L200 60 Z" fill="#14233A" fill-opacity=".07"/>
+      </svg>
+      <div class="band"><b>Day pass</b></div>
+      <div class="holo"><svg viewBox="0 0 40 40" aria-hidden="true"><g stroke="#14233A" stroke-opacity=".55" stroke-width="2" stroke-linecap="round" fill="none"><path d="M20 4v32M6 12l28 16M6 28l28-16"/><path d="M16 7l4 4 4-4M16 33l4-4 4 4"/></g></svg></div>
+      <div class="in">
+        <div class="row"><span class="brand">Atelier Nord</span><span><i>●</i> 26/27</span></div>
+        <h1>30<small>%</small></h1>
+        <div class="sub">Off the winter edit</div>
+        <div class="foot">
+          <div class="chip"></div>
+          <div class="bar"><i></i><span>Valid 12.12 — 06.01</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cta"><span class="code">Code <em>PASS30</em></span><span class="go">Shop the edit <span>→</span></span></div>
+  </div>
+</div>
+</body>
+</html>

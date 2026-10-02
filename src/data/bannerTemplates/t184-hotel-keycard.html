@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Hotel Keycard — a bottle-green, gold-foiled room key sliding out of its paper sleeve; the sleeve is printed with
+     the welcome, stay dates (the sale window), a late-checkout offer and the key code. Thumb-notch cut on the sleeve.
+     tall → photo above, key + sleeve below; square / wide → key + sleeve left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E9E1D3; }
+  .banner { --bg: #E9E1D3; --pap: #FAF6EE; --grn: #1D3A2E; --gold: #D2B26E; --ink: #22261F; --mute: #7B7568;
+    position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 78vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 78vmin; }
+  .card { position: absolute; left: 50%; top: 3.4vmin; width: 62vmin; height: 39vmin; margin-left: -31vmin; transform: rotate(-4deg); border-radius: 2.4vmin; box-sizing: border-box; padding: 3.2vmin 3.8vmin; color: var(--gold);
+    background: linear-gradient(118deg, rgba(255,255,255,0) 30%, rgba(255,255,255,.09) 44%, rgba(255,255,255,0) 58%), radial-gradient(120% 120% at 20% 0%, #28503F 0%, var(--grn) 55%, #142A21 100%);
+    box-shadow: 0 1.2vmin 2.6vmin rgba(20,30,20,.3); }
+  .card::after { content: ""; position: absolute; inset: 1.2vmin; border: 1px solid rgba(210,178,110,.45); border-radius: 1.6vmin; }
+  .ct { display: flex; justify-content: space-between; align-items: center; font-family: "Cormorant", Georgia, serif; font-weight: 600; font-size: 2.3vmin; letter-spacing: .34em; text-transform: uppercase; white-space: nowrap; }
+  .ct svg { width: 3.6vmin; height: 3.6vmin; }
+  .room { margin-top: 1.4vmin; display: flex; align-items: baseline; gap: 1.6vmin; font-family: "Cormorant", Georgia, serif; }
+  .room i { font-style: italic; font-weight: 500; font-size: 4.2vmin; }
+  .room b { font-weight: 500; font-size: 12vmin; line-height: .9; letter-spacing: -.01em; }
+  .sleeve { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 46vmin; box-sizing: border-box; padding: 6.4vmin 5vmin 4.4vmin; display: flex; flex-direction: column; background: var(--pap);
+    -webkit-mask: radial-gradient(circle at 50% 0, transparent 4.6vmin, #000 4.7vmin); mask: radial-gradient(circle at 50% 0, transparent 4.6vmin, #000 4.7vmin);
+    box-shadow: 0 1vmin 2vmin rgba(40,30,20,.14); }
+  .sleeve::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.2vmin; background: linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,0)); }
+  .crest { display: flex; align-items: center; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .26em; text-transform: uppercase; color: var(--mute); white-space: nowrap; }
+  .crest::before, .crest::after { content: ""; flex: 1; height: 1px; background: rgba(34,38,31,.25); }
+  .h { margin-top: 2.6vmin; text-align: center; font-family: "Cormorant", Georgia, serif; font-weight: 500; font-size: 6.8vmin; line-height: 1; letter-spacing: -.005em; }
+  .h i { color: #7A5A22; }
+  .note { margin: 1.8vmin auto 0; max-width: 60vmin; text-align: center; font-size: 2vmin; line-height: 1.45; color: var(--mute); }
+  .stay { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid rgba(34,38,31,.22); border-bottom: 1px solid rgba(34,38,31,.22); }
+  .stay div { padding: 1.6vmin 0 1.5vmin; text-align: center; font-weight: 700; font-size: 2.3vmin; white-space: nowrap; }
+  .stay div + div { border-left: 1px solid rgba(34,38,31,.22); }
+  .stay small { display: block; margin-bottom: .6vmin; font-weight: 400; font-size: 1.6vmin; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+  .stay .hl { color: #9A3B24; }
+  .foot { margin-top: 2vmin; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .foot b { font-weight: 700; letter-spacing: .2em; }
+  .foot span:last-child { font-weight: 700; color: var(--grn); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 72vmin); }
+    .panel { height: 72vmin; }
+    .card { top: 4vmin; width: 58vmin; height: 36.6vmin; margin-left: -29vmin; }
+    .room b { font-size: 11vmin; }
+    .sleeve { left: 8vmin; right: 8vmin; bottom: 4.4vmin; height: 44vmin; padding-top: 6vmin; }
+    .card { top: 3vmin; }
+    .note { display: none; }
+    .h { font-size: 6.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 50%; width: 50%; height: 100%; object-position: 50% 24%; }
+    .panel { right: 50%; top: 0; height: 100%; }
+    .card { top: 6vmin; width: 40vmin; height: 25.2vmin; margin-left: -20vmin; padding: 2.4vmin 2.8vmin; border-radius: 1.8vmin; }
+    .card::after { inset: .9vmin; border-radius: 1.2vmin; }
+    .ct { font-size: 1.7vmin; letter-spacing: .24em; }
+    .ct svg { width: 2.8vmin; height: 2.8vmin; }
+    .room { margin-top: .6vmin; }
+    .room i { font-size: 3.2vmin; }
+    .room b { font-size: 8.4vmin; }
+    .sleeve { left: 5vmin; right: 5vmin; bottom: 5vmin; height: 68vmin; padding: 6.4vmin 4vmin 3.6vmin; }
+    .h { font-size: 6.8vmin; line-height: 1.02; margin-top: auto; }
+    .note { display: block; font-size: 1.8vmin; margin-top: 2vmin; }
+    .stay { grid-template-columns: 1fr; border-bottom: 0; }
+    .stay div { display: flex; justify-content: space-between; align-items: baseline; padding: 1.2vmin 0; text-align: left; font-size: 2.1vmin; border-bottom: 1px solid rgba(34,38,31,.22); }
+    .stay div + div { border-left: 0; }
+    .stay small { margin: 0; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1vmin; font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 50%; width: 50%; }
+    .panel { right: 50%; }
+    .card { top: 6vmin; width: 52vmin; height: 32.8vmin; margin-left: -26vmin; padding: 3vmin 3.4vmin; border-radius: 2.2vmin; }
+    .ct { font-size: 2vmin; letter-spacing: .3em; }
+    .ct svg { width: 3.2vmin; height: 3.2vmin; }
+    .room i { font-size: 3.8vmin; }
+    .room b { font-size: 10vmin; }
+    .sleeve { left: 6vmin; right: 6vmin; bottom: 6vmin; height: 64vmin; padding: 6.6vmin 5vmin 4vmin; }
+    .h { font-size: 7.4vmin; line-height: 1; margin-top: auto; }
+    .note { display: block; font-size: 2vmin; margin-top: 2.2vmin; max-width: 50vmin; }
+    .stay { grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid rgba(34,38,31,.22); }
+    .stay div { display: block; text-align: center; padding: 1.6vmin 0 1.5vmin; font-size: 2.2vmin; border-bottom: 0; }
+    .stay div + div { border-left: 1px solid rgba(34,38,31,.22); }
+    .stay small { margin-bottom: .6vmin; }
+    .foot { flex-direction: row; align-items: center; font-size: 1.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="card">
+      <div class="ct"><span>Hôtel Solène</span><svg viewBox="0 0 24 24" fill="none" stroke="#D2B26E" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M7 8.5a5 5 0 0 1 0 7M10.5 6a8.5 8.5 0 0 1 0 12M14 3.5a12 12 0 0 1 0 17"/></svg></div>
+      <div class="room"><i>Suite</i><b>27</b></div>
+    </div>
+    <div class="sleeve">
+      <div class="crest">Welcome, guest</div>
+      <div class="h">Check in to <i>the resort edit.</i></div>
+      <div class="note">Stay a little longer. The new season is open online and in store.</div>
+      <div class="stay">
+        <div><small>Check-in</small>12 June</div>
+        <div><small>Check-out</small>30 June</div>
+        <div class="hl"><small>Late checkout</small>−20%</div>
+      </div>
+      <div class="foot"><span>Key code <b>SUITE20</b></span><span>Reserve your look →</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,300..500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Visible Mend — sashiko on indigo: a quiet cross-stitch ground, running-stitch rules instead of hairlines
+     and a woven darn patch in rust thread. A repair café offer: the first mend is free.
+     tall / 3:4 → photo above the indigo cloth; square / wide → cloth left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1E2A45; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #1E2A45; color: #F1EADB; font-family: "DM Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 82vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .cloth { position: absolute; left: 0; right: 0; bottom: 0; height: 82vmin; box-sizing: border-box; padding: 6vmin 6vmin 0; display: flex; flex-direction: column; }
+  .ground { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* running stitch along the seam */
+  .cloth::before { content: ""; position: absolute; left: 3vmin; right: 3vmin; top: 2.2vmin; height: .45vmin;
+                   background: repeating-linear-gradient(90deg, #F1EADB 0 2.2vmin, transparent 2.2vmin 3.6vmin); opacity: .9; }
+  .cloth > *:not(.ground) { position: relative; }
+
+  .kick { display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; color: #BFC6D6; }
+  .kick b { font-weight: 500; color: #E07B4F; }
+  .hd { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; margin-top: auto; padding-top: 3vmin; }
+  .note { margin-bottom: 3vmin !important; }
+  h1 { margin: 0; font-family: "Newsreader", Georgia, serif; font-weight: 400; font-size: 12.4vmin; line-height: .92; letter-spacing: -.025em; }
+  h1 i { font-weight: 300; color: #F4C6A6; }
+
+  /* woven darn: rust warp, cream weft, over-under */
+  .darn { flex: none; width: 22vmin; height: 22vmin; transform: rotate(5deg); margin-bottom: 1vmin; }
+
+  .note { margin: 3.6vmin 0 0; max-width: 66vmin; font-family: "Newsreader", Georgia, serif; font-size: 3vmin; line-height: 1.35; color: #D9D4C8; }
+  .stitch { flex: none; height: .45vmin; margin-top: auto; background: repeating-linear-gradient(90deg, #E07B4F 0 2.2vmin, transparent 2.2vmin 3.6vmin); }
+  .foot { flex: none; height: 15vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .offer strong { display: block; font-family: "Newsreader", Georgia, serif; font-weight: 500; font-size: 5.2vmin; line-height: 1; letter-spacing: -.01em; }
+  .offer span { display: block; margin-top: 1vmin; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #BFC6D6; white-space: nowrap; }
+  .cta { flex: none; font-size: 1.9vmin; letter-spacing: .1em; text-transform: uppercase; padding: 1.8vmin 2.6vmin; border: .3vmin dashed #F1EADB; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 68vmin); }
+    .cloth { height: 68vmin; padding-top: 5vmin; }
+    h1 { font-size: 10.4vmin; }
+    .darn { width: 18vmin; height: 18vmin; }
+    .note { margin-top: 2.6vmin; font-size: 2.6vmin; }
+    .foot { height: 12vmin; }
+    .offer strong { font-size: 4.4vmin; }
+  }
+  /* square → cloth left, photo right; the seam stitch turns vertical */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .cloth { top: 0; right: 50%; height: auto; padding: 5vmin 5vmin 0 5vmin; }
+    .cloth::before { left: auto; right: 2.2vmin; top: 3vmin; bottom: 3vmin; width: .45vmin; height: auto;
+                     background: repeating-linear-gradient(180deg, #F1EADB 0 2.2vmin, transparent 2.2vmin 3.6vmin); }
+    .kick span + span { display: none; }
+    .hd { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .darn { order: -1; width: 14vmin; height: 14vmin; margin: 0 0 0 .6vmin; }
+    h1 { font-size: 9vmin; }
+    .note { font-size: 2.3vmin; margin-top: 2.4vmin; max-width: 40vmin; }
+    .foot { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2vmin; height: 19vmin; }
+    .offer strong { font-size: 4.2vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 50% 30%; }
+    .cloth { right: 48%; padding: 6vmin 6vmin 0 6vmin; }
+    .kick span + span { display: inline; }
+    .hd { flex-direction: row; align-items: flex-end; }
+    .darn { order: 0; width: 17vmin; height: 17vmin; }
+    h1 { font-size: 10.6vmin; }
+    .note { font-size: 2.5vmin; max-width: 52vmin; }
+    .foot { flex-direction: row; align-items: center; justify-content: space-between; height: 14vmin; }
+    .offer strong { font-size: 4.6vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     beats: 0.9s the seam thread is pulled out and re-sewn stitch by stitch (stepped wipe) · 2.4s the darn gets a tug and its cream weft
+            slides one stitch through the rust warp (dash offset travels exactly one 12-unit repeat) · 3.6s the rust running stitch above the
+            offer is re-sewn the same way · the "open" dot of the repair café breathes (3s) · CTA nudges after the last stitch */
+  .cloth::before { animation: seam 6s linear infinite; }
+  @keyframes seam {
+    0%, 14% { clip-path: inset(-1vmin 0 -1vmin 0); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    19% { clip-path: inset(-1vmin 0 -1vmin 100%); }
+    19.1% { clip-path: inset(-1vmin 100% -1vmin 0); animation-timing-function: steps(14, end); }
+    44%, 100% { clip-path: inset(-1vmin 0 -1vmin 0); }
+  }
+  @keyframes seamv {
+    0%, 14% { clip-path: inset(0 -1vmin 0 -1vmin); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    19% { clip-path: inset(100% -1vmin 0 -1vmin); }
+    19.1% { clip-path: inset(0 -1vmin 100% -1vmin); animation-timing-function: steps(14, end); }
+    44%, 100% { clip-path: inset(0 -1vmin 0 -1vmin); }
+  }
+  @media (min-aspect-ratio: 9/10) { .cloth::before { animation-name: seamv; } }
+  .stitch { animation: seam 6s linear infinite; animation-delay: -3.2s; }
+
+  .darn { animation: tug 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes tug { 0%, 38% { transform: rotate(5deg); } 44% { transform: rotate(8.5deg) scale(1.03); } 54% { transform: rotate(3.6deg); } 62%, 100% { transform: rotate(5deg); } }
+  .darn .wa { animation: weftA 6s cubic-bezier(.5,0,.3,1) infinite; }
+  .darn .wb { animation: weftB 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes weftA { 0%, 40% { stroke-dashoffset: -6px; } 60%, 100% { stroke-dashoffset: -18px; } }
+  @keyframes weftB { 0%, 40% { stroke-dashoffset: 0px; } 60%, 100% { stroke-dashoffset: 12px; } }
+
+  .kick b { display: inline-block; animation: dot 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes dot { 0%, 100% { opacity: 1; transform: none; } 50% { opacity: .35; transform: scale(.8); } }
+  .cta { animation: nudge 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 80%, 92%, 100% { transform: none; } 85% { transform: translateX(.9vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cloth">
+    <svg class="ground" viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <pattern id="juji" width="24" height="24" patternUnits="userSpaceOnUse">
+          <path d="M12 7v10M7 12h10" stroke="#F1EADB" stroke-width="1" stroke-linecap="round" opacity=".1"/>
+          <path d="M0 0h3M21 0h3M0 24h3M21 24h3M0 0v3M24 0v3M0 21v3M24 21v3" stroke="#F1EADB" stroke-width="1" opacity=".06"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#juji)"/>
+    </svg>
+    <div class="kick"><span><b>●</b> Repair café</span><span>Every Saturday · 10–16h</span></div>
+    <div class="hd">
+      <h1>Mended,<br><i>not ended.</i></h1>
+      <svg class="darn" viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M8 14c10-6 22 2 34-3s26 1 40-2c6 12-2 24 4 36s-2 24 2 38c-14 4-26-3-38 2s-26-2-40 3c-4-12 3-24-2-36s3-26 0-38z" fill="#16203A" stroke="#F1EADB" stroke-width="1.2" stroke-dasharray="4 3"/>
+        <g stroke-linecap="butt">
+          <g stroke="#E07B4F" stroke-width="5.2">
+            <path d="M22 18v66M34 16v70M46 17v68M58 16v70M70 17v68M82 19v64" stroke-dasharray="7 5"/>
+          </g>
+          <g stroke="#F1EADB" stroke-width="5.2">
+            <path class="wa" d="M18 24h68M18 48h68M18 72h68" stroke-dasharray="7 5" stroke-dashoffset="-6"/>
+            <path class="wb" d="M18 36h68M18 60h68" stroke-dasharray="7 5"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <p class="note">Bring back any piece you bought from us. We darn, patch and re-stitch it by hand.</p>
+    <div class="stitch"></div>
+    <div class="foot">
+      <div class="offer"><strong>First mend free</strong><span>Maison Ilse · all stores</span></div>
+      <span class="cta">Book a slot →</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

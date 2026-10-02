@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Early Access — the head start as a diagram: a giant expanded "48h" and a launch timeline where the
+     members' window is drawn as a solid cobalt bar before the public date.
+     tall → photo above, bone panel below; square/wide → panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1EFE9; }
+  .banner { --panel: 80vmin; position: fixed; inset: 0; overflow: hidden; background: #F1EFE9; color: #111214; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .seam { position: absolute; left: 0; right: 0; bottom: var(--panel); height: 1.2vmin; background: #2B3BFF; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.4vmin; border-bottom: .3vmin solid #111214; font-family: "Martian Mono", "Courier New", monospace; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .hero { display: flex; align-items: flex-end; gap: 3vmin; margin-top: 3vmin; }
+  .big { font-stretch: 125%; font-weight: 900; font-size: 30vmin; line-height: .78; letter-spacing: -.05em; color: #2B3BFF; white-space: nowrap; }
+  .big span { font-size: .5em; letter-spacing: -.02em; }
+  .aside { padding-bottom: .6vmin; font-stretch: 100%; font-weight: 800; font-size: 4.6vmin; line-height: .98; letter-spacing: -.02em; text-transform: uppercase; }
+  .aside small { display: block; margin-top: 1.2vmin; font-weight: 400; font-size: 2vmin; letter-spacing: 0; text-transform: none; line-height: 1.35; color: #3C3D42; }
+
+  /* timeline */
+  .tl { position: relative; height: 13vmin; margin: auto 0; }
+  .rail { position: absolute; left: 0; right: 0; top: 4.3vmin; border-top: .3vmin dashed rgba(17,18,20,.45); }
+  .bar { position: absolute; left: 0; width: 58%; top: 3.6vmin; height: 1.6vmin; background: #2B3BFF; }
+  .bar b { position: absolute; left: 50%; bottom: 2.4vmin; transform: translateX(-50%); font-family: "Martian Mono", monospace; font-weight: 500; font-size: 1.6vmin; letter-spacing: .06em; text-transform: uppercase; color: #2B3BFF; white-space: nowrap; }
+  .dot { position: absolute; top: 2.8vmin; width: 3.2vmin; height: 3.2vmin; margin-left: -1.6vmin; border-radius: 50%; box-sizing: border-box; }
+  .dot.a { left: 1.6vmin; background: #2B3BFF; box-shadow: 0 0 0 .7vmin #F1EFE9, 0 0 0 1vmin #2B3BFF; }
+  .dot.b { left: 58%; background: #F1EFE9; border: .4vmin solid #111214; }
+  .lab { position: absolute; top: 7.8vmin; font-size: 1.8vmin; line-height: 1.3; white-space: nowrap; }
+  .lab b { display: block; font-weight: 800; font-size: 2.4vmin; text-transform: uppercase; letter-spacing: -.01em; }
+  .lab.a { left: 0; color: #2B3BFF; }
+  .lab.b { left: 58%; margin-left: -1.6vmin; color: #3C3D42; }
+  .lab.b b { color: #111214; }
+
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 2vmin; border-top: 1px solid rgba(17,18,20,.3); }
+  .foot p { margin: 0; font-size: 1.9vmin; line-height: 1.4; color: #3C3D42; }
+  .cta { flex: none; background: #111214; color: #F1EFE9; padding: 1.9vmin 3vmin; font-weight: 700; font-size: 2vmin; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+  .cta::after { content: " →"; color: #8E98FF; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 68vmin; }
+    .copy { bottom: 4.5vmin; height: calc(var(--panel) - 9vmin); }
+    .hero { margin-top: 2.4vmin; }
+    .big { font-size: 25vmin; }
+    .aside { font-size: 4vmin; }
+    .aside small { font-size: 1.8vmin; }
+  }
+  /* square — panel left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 50%; width: 50%; height: 100%; }
+    .seam { left: calc(50% - 1.2vmin); right: auto; top: 0; bottom: 0; width: 1.2vmin; height: auto; }
+    .copy { left: 5vmin; right: auto; width: calc(50% - 10.2vmin); top: 5vmin; bottom: 5vmin; height: auto; }
+    .top { font-size: 1.6vmin; letter-spacing: .04em; }
+    .top span:last-child { display: none; }
+    .hero { flex-direction: column; align-items: flex-start; gap: 2vmin; margin-top: 3vmin; }
+    .big { font-size: 21vmin; }
+    .aside { font-size: 4vmin; }
+    .aside br { display: none; }
+    .aside small { font-size: 1.8vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .foot p { font-size: 1.7vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.6vmin 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 52%; width: 48%; }
+    .seam { left: calc(52% - 1.2vmin); }
+    .copy { left: 6vmin; width: calc(52% - 13.2vmin); top: 6vmin; bottom: 6vmin; }
+    .hero { flex-direction: row; align-items: flex-end; gap: 3vmin; margin-top: 3.4vmin; }
+    .top span:last-child { display: inline; }
+    .big { font-size: 22vmin; }
+    .aside { font-size: 3.4vmin; }
+    .aside br { display: inline; }
+    .aside small { font-size: 1.7vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="seam"></div>
+  <div class="copy">
+    <div class="top"><span>Members' early access</span><span>Drop 04 / Winter</span></div>
+    <div class="hero">
+      <div class="big">48<span>h</span></div>
+      <div class="aside">Before <br>everyone <br>else.<small>The new drop opens to members first.</small></div>
+    </div>
+    <div class="tl">
+      <div class="rail"></div>
+      <div class="bar"><b>Members only</b></div>
+      <div class="dot a"></div><div class="dot b"></div>
+      <div class="lab a"><b>Tue 09:00</b>You shop</div>
+      <div class="lab b"><b>Thu 09:00</b>Everyone</div>
+    </div>
+    <div class="foot"><p>Sign in with your member account.<br>Sizes go fast.</p><div class="cta">Shop first</div></div>
+  </div>
+</div>
+</body>
+</html>

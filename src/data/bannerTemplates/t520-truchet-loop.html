@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,500;0,700;0,900;1,500&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Truchet Loop — a field of Truchet tiles: every square carries two quarter-circle bands, turned at random,
+     so the lines knot into endless loops (a few run in tomato). Photo and copy slab interlock on the pattern:
+     photo flush to one edge, slab flush to the other. tall & 3:4: photo top-right, slab bottom-left · square & wide: photo right, slab bottom-left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E9D8; }
+  .banner { --s: 12.5vmin; --w: 1.9vmin; --ground: #F3E9D8; --line: #1F3A5F; --hot: #E4572E; --slab: #1F3A5F;
+    position: fixed; inset: 0; overflow: hidden; background: var(--ground); color: var(--ground); font-family: "Red Hat Display", "Helvetica Neue", Arial, sans-serif; }
+  .tiles { position: absolute; left: 0; top: 0; display: grid; grid-template-columns: repeat(14, var(--s)); grid-auto-rows: var(--s); }
+  .tiles i { --k: var(--line); display: block;
+    background:
+      radial-gradient(circle at var(--p1), transparent 0 calc(var(--s) / 2 - var(--w)), var(--k) calc(var(--s) / 2 - var(--w)) calc(var(--s) / 2 + var(--w)), transparent calc(var(--s) / 2 + var(--w))),
+      radial-gradient(circle at var(--p2), transparent 0 calc(var(--s) / 2 - var(--w)), var(--k) calc(var(--s) / 2 - var(--w)) calc(var(--s) / 2 + var(--w)), transparent calc(var(--s) / 2 + var(--w))); }
+  .tiles .a { --p1: 0 0; --p2: 100% 100%; }
+  .tiles .b { --p1: 100% 0; --p2: 0 100%; }
+  .tiles .c { --k: var(--hot); }
+  .photo { position: absolute; left: var(--s); top: var(--s); width: calc(100% - var(--s)); height: calc(100% - 85vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .slab { position: absolute; left: 0; bottom: 10vmin; width: calc(100% - var(--s)); height: 50vmin; box-sizing: border-box; background: var(--slab);
+    padding: 4.6vmin 5vmin 4.4vmin 6vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-family: "Red Hat Mono", monospace; font-size: 1.7vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #C9D3E0; }
+  .kick span:last-child { color: var(--hot); }
+  h1 { margin: 2.6vmin 0 0; font-weight: 900; font-size: 10vmin; line-height: .9; letter-spacing: -.04em; }
+  h1 em { font-style: italic; font-weight: 500; color: #F2A541; }
+  .sub { margin-top: 2.2vmin; font-size: 2.1vmin; line-height: 1.42; color: #D6DDE7; max-width: 58vmin; }
+  .row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .price { font-size: 2vmin; font-weight: 500; white-space: nowrap; }
+  .price b { font-weight: 900; font-size: 5.2vmin; letter-spacing: -.03em; margin-right: 1vmin; color: var(--ground); }
+  .cta { padding: 1.7vmin 3vmin; border-radius: 99vmin; background: var(--hot); color: #fff; font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { top: 8vmin; height: calc(100% - 58vmin); }
+    .slab { bottom: 6vmin; height: 36vmin; padding: 3.4vmin 4.4vmin 3.4vmin 5vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 1.8vmin; }
+    .sub { margin-top: 1.6vmin; font-size: 1.9vmin; }
+    .price b { font-size: 4.4vmin; }
+  }
+  /* square & wide: photo flush top-right, slab flush bottom-left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; top: 0; width: 52%; height: calc(100% - 10vmin); }
+    .slab { left: 0; bottom: 0; width: calc(48% - 6vmin); height: 74vmin; padding: 4vmin 3.6vmin 4vmin 5vmin; }
+    .kick { flex-direction: column; gap: .6vmin; }
+    h1 { font-size: 7.4vmin; }
+    .sub { font-size: 1.8vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 60% 30%; }
+    .slab { width: calc(52% - 8vmin); height: 70vmin; padding: 4.4vmin 4.6vmin 4.4vmin 6vmin; }
+    .kick { flex-direction: row; }
+    h1 { font-size: 8.6vmin; }
+    .sub { font-size: 2vmin; }
+    .row { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="tiles"><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="a c"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="a c"></i><i class="a c"></i><i class="a c"></i><i class="b"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="a"></i><i class="a c"></i><i class="a"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="a c"></i><i class="a c"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a c"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="a"></i><i class="a c"></i><i class="a c"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a c"></i><i class="b c"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="a c"></i><i class="a c"></i><i class="a"></i><i class="a"></i><i class="a c"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="a"></i><i class="b c"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i><i class="b"></i><i class="a"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="a"></i><i class="a c"></i></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="slab">
+    <div class="kick"><span>Knotwork Goods</span><span>Loop 02</span></div>
+    <h1>Loop <br><em>the look.</em></h1>
+    <div class="sub">Endless combinations from a few good pieces. Turn one, and the whole look changes.</div>
+    <div class="row">
+      <div class="price"><b>2 for €80</b>mix &amp; match</div>
+      <div class="cta">Start looping →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

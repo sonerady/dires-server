@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800;900&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Era Strips — vintage sorted by decade: the piece shown clean, then four narrow crops of it printed
+     the way each decade saw it (warm '70s, loud '80s, grainy b/w '90s, cool '00s), each with its year tab.
+     tall / 3:4 → photo on top, decade strips below; square / wide → photo left, strips right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #17130F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #17130F; color: #F2E7D2; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; box-sizing: border-box; padding: 5vmin 6vmin 0; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: #BCAE95; white-space: nowrap; }
+  .kick b { font-weight: 600; color: #E0A93A; }
+  h1 { margin: 2vmin 0 0; font-family: "Big Shoulders Display", "Arial Narrow", sans-serif; font-weight: 900; font-size: 13vmin; line-height: .84; letter-spacing: -.005em; text-transform: uppercase; }
+  h1 span { color: #E0A93A; }
+
+  .strips { flex: 1; min-height: 0; margin-top: 3.6vmin; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.6vmin; }
+  .s { display: flex; flex-direction: column; min-height: 0; }
+  .s .crop { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+  .s img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .s1 img { object-position: 42% 35%; filter: sepia(.55) saturate(1.35) contrast(.95) brightness(1.02) hue-rotate(-8deg); }
+  .s2 img { object-position: 50% 40%; filter: saturate(1.9) contrast(1.15) hue-rotate(-12deg); }
+  .s3 img { object-position: 54% 30%; filter: grayscale(1) contrast(1.35) brightness(.98); }
+  .s4 img { object-position: 60% 45%; filter: saturate(.7) brightness(1.08) hue-rotate(14deg) contrast(1.05); }
+  .s b { flex: none; display: flex; justify-content: space-between; align-items: baseline; margin-top: 1.2vmin; padding-top: 1vmin; border-top: .35vmin solid var(--c);
+         font-family: "Big Shoulders Display", sans-serif; font-weight: 800; font-size: 5.4vmin; line-height: .9; color: var(--c); }
+  .s b small { font-family: "Work Sans", sans-serif; font-weight: 500; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; color: #BCAE95; }
+  .s1 { --c: #E0A93A; } .s2 { --c: #F06CA0; } .s3 { --c: #F2E7D2; } .s4 { --c: #7FB6D8; }
+
+  .foot { flex: none; height: 12vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; white-space: nowrap; }
+  .foot strong { font-family: "Big Shoulders Display", sans-serif; font-weight: 900; font-size: 7vmin; line-height: 1; color: #E0A93A; }
+  .foot span { font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; color: #BCAE95; }
+  .foot .cta { color: #F2E7D2; font-weight: 600; font-size: 2vmin; border-bottom: .3vmin solid #E0A93A; padding-bottom: .3vmin; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 74vmin); }
+    .panel { height: 74vmin; padding-top: 4.4vmin; }
+    h1 { font-size: 10.6vmin; }
+    .strips { margin-top: 2.8vmin; }
+    .s b { font-size: 4.4vmin; }
+    .foot { height: 10vmin; }
+    .foot strong { font-size: 5.8vmin; }
+  }
+  /* square → photo left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 46%; top: 0; height: auto; padding: 5vmin 4.6vmin 0; }
+    .kick span + span { display: none; }
+    h1 { font-size: 9.4vmin; }
+    .strips { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 2vmin 1.8vmin; margin-top: 3vmin; }
+    .s b { font-size: 3.8vmin; margin-top: .8vmin; padding-top: .7vmin; }
+    .foot { height: 10vmin; }
+    .foot strong { font-size: 5vmin; }
+    .foot .when { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; object-position: 50% 30%; }
+    .panel { left: 42%; padding: 5.4vmin 5.4vmin 0; }
+    .kick span + span { display: inline; }
+    h1 { font-size: 10vmin; }
+    .strips { grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; gap: 1.6vmin; }
+    .s b { font-size: 4.2vmin; }
+    .foot strong { font-size: 5.8vmin; }
+    .foot .when { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><span><b>Vintage week</b> · Rerun Archive</span><span>6 – 12 Oct</span></div>
+    <h1>Four decades.<br><span>One rail.</span></h1>
+    <div class="strips">
+      <div class="s s1"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><b>’70s<small>Warm</small></b></div>
+      <div class="s s2"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><b>’80s<small>Loud</small></b></div>
+      <div class="s s3"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><b>’90s<small>Raw</small></b></div>
+      <div class="s s4"><div class="crop"><img src="{{PRODUCT_IMAGE}}" alt=""></div><b>’00s<small>Cool</small></b></div>
+    </div>
+    <div class="foot"><strong>Up to −40%</strong><span class="when">Vintage only</span><span class="cta">Shop by decade →</span></div>
+  </div>
+</div>
+</body>
+</html>

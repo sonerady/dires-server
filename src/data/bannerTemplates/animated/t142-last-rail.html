@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Last Rail — end of season on a showroom wall: a chrome rail, the look hung from a clip hanger, the rest of the rail already empty and tagged sold */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCD6CC; }
+  .banner { --rt: 8vmin; --panel: 52vmin; --pl: 6vmin; --pw: 64vmin; position: fixed; inset: 0; overflow: hidden; color: #1C1A17; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #E3DED5 0%, #DCD6CC 60%, #D3CCC1 100%); }
+
+  /* rail + wall brackets */
+  .rail { position: absolute; left: 0; right: 0; top: var(--rt); height: 1.5vmin; background: linear-gradient(180deg, #F7F7F4 0%, #C9C9C4 35%, #8B8B86 70%, #B4B4AF 100%); box-shadow: 0 1.2vmin 1.6vmin -.6vmin rgba(40,30,20,.35); z-index: 3; }
+  .bracket { position: absolute; top: 0; width: 1.4vmin; height: calc(var(--rt) + 1.5vmin); background: linear-gradient(90deg, #6F6E6A, #A9A8A3 50%, #6F6E6A); z-index: 3; }
+  .bracket.l { left: 3vmin; } .bracket.r { right: 3vmin; }
+
+  /* a clip hanger: hook, bar, two clips */
+  .hanger { position: absolute; top: calc(var(--rt) - 1.4vmin); height: 12vmin; z-index: 4; }
+  .hook { position: absolute; left: calc(50% - 2.5vmin); top: 0; width: 5vmin; height: 8vmin; overflow: visible; }
+  .bar { position: absolute; left: 0; right: 0; top: 7.6vmin; height: 1.3vmin; border-radius: .65vmin; background: linear-gradient(180deg, #EDEDEA 0%, #B7B7B2 45%, #7E7E79 100%); }
+  .clip { position: absolute; top: 7.4vmin; width: 3.2vmin; height: 4.6vmin; background: linear-gradient(90deg, #5B5A56, #9C9B96 45%, #56554F); border-radius: .3vmin .3vmin .15vmin .15vmin; }
+  .clip::after { content: ""; position: absolute; left: 0; right: 0; top: 1.6vmin; height: 1px; background: rgba(0,0,0,.45); }
+  .clip.a { left: 2.4vmin; } .clip.b { right: 2.4vmin; }
+
+  .main { left: var(--pl); width: var(--pw); }
+  .photo { position: absolute; left: var(--pl); width: var(--pw); top: calc(var(--rt) + 9.6vmin); height: calc(100% - var(--rt) - 9.6vmin - var(--panel)); object-fit: cover; object-position: 50% 20%; box-shadow: 0 2.4vmin 4vmin -1vmin rgba(40,30,20,.35); z-index: 2; }
+
+  /* the empty end of the rail */
+  .e1 { left: calc(var(--pl) + var(--pw) + 4vmin); width: 20vmin; transform: rotate(-3deg); transform-origin: 50% 1vmin; }
+  .e2 { left: calc(var(--pl) + var(--pw) + 9vmin); width: 20vmin; transform: rotate(2deg); transform-origin: 50% 1vmin; }
+  .sold { position: absolute; top: 8.6vmin; width: 7.6vmin; }
+  .sold i { display: block; width: 1px; margin: 0 auto; background: #5E554A; }
+  .sold span { display: block; background: #F4F0E8; padding: 1.2vmin 0 1vmin; text-align: center; font-size: 1.6vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; box-shadow: 0 .5vmin 1vmin rgba(40,30,20,.18); position: relative; }
+  .sold span::before { content: ""; position: absolute; left: calc(50% - .5vmin); top: .4vmin; width: 1vmin; height: 1vmin; border-radius: 50%; background: #DCD6CC; }
+  .e1 .sold { left: 3vmin; } .e1 .sold i { height: 7vmin; }
+  .e2 .sold { right: 3vmin; } .e2 .sold i { height: 13vmin; }
+  .e2 .sold span { transform: rotate(4deg); }
+
+  .label { position: absolute; right: 4.4vmin; bottom: calc(var(--panel) + 3vmin); writing-mode: vertical-rl; transform: rotate(180deg); font-size: 1.6vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: #6E665B; white-space: nowrap; }
+
+  /* copy */
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5.6vmin; height: calc(var(--panel) - 11vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; padding-bottom: 1.6vmin; border-bottom: 1px solid #1C1A17; }
+  .kick span { font-weight: 500; }
+  .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; margin-top: 2.6vmin; }
+  h1 { margin: 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 14vmin; line-height: .86; letter-spacing: -.02em; }
+  h1 em { font-style: italic; }
+  .off { text-align: right; white-space: nowrap; }
+  .off small { display: block; font-size: 1.7vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; margin-bottom: .6vmin; }
+  .off b { font-weight: 800; font-size: 10vmin; line-height: .9; letter-spacing: -.05em; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 2.2vmin; line-height: 1.4; color: #4A443C; }
+  .cta { flex: none; font-size: 2vmin; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; padding-bottom: .8vmin; border-bottom: .35vmin solid #1C1A17; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --rt: 6vmin; --panel: 46vmin; --pw: 60vmin; }
+    .copy { bottom: 4.6vmin; height: calc(var(--panel) - 9vmin); }
+    h1 { font-size: 11vmin; }
+    .off b { font-size: 8.6vmin; }
+    .row { margin-top: 2vmin; }
+    .foot p { font-size: 2vmin; }
+  }
+  /* square — the look hangs full length on the left, copy under the empty hangers */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --rt: 6vmin; --panel: 0vmin; --pl: 5vmin; --pw: 44%; }
+    .photo { object-position: 50% 24%; }
+    .e1 { left: calc(var(--pl) + var(--pw) + 6vmin); }
+    .e2 { left: calc(var(--pl) + var(--pw) + 13vmin); }
+    .label { display: none; }
+    .e1, .e2 { width: 22vmin; }
+    .copy { left: calc(var(--pl) + var(--pw) + 6vmin); right: 5vmin; top: 46vmin; bottom: 5vmin; height: auto; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    h1 { font-size: 9.4vmin; }
+    .off { text-align: left; }
+    .off b { font-size: 9vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .foot p { font-size: 1.9vmin; }
+    .cta { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pl: 6vmin; --pw: 42%; }
+    .e1 { left: calc(var(--pl) + var(--pw) + 8vmin); width: 24vmin; }
+    .e2 { left: calc(var(--pl) + var(--pw) + 16vmin); width: 24vmin; }
+    .copy { left: calc(var(--pl) + var(--pw) + 8vmin); right: 6vmin; top: 40vmin; bottom: 6vmin; }
+    .row { flex-direction: row; align-items: flex-end; }
+    h1 { font-size: 10vmin; }
+    .off { text-align: right; }
+    .off b { font-size: 9.4vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .label { display: block; bottom: auto; top: calc(var(--rt) + 6vmin); }
+  }
+  /* ───────── motion (6s loop, t=0 = the static wall) ─────────
+     constant: the look sways a hair on its hanger (3s, pivoting at the rail); a specular glint runs the chrome rail
+     beats: 0.6s the two empty hangers swing — as if the piece was just taken — and settle by 3.4s, SOLD tags trailing ·
+            3.2s −60% is re-stamped · 4.8s the CTA underline is redrawn */
+  .photo { transform-origin: 50% -9.6vmin; animation: sway 3s cubic-bezier(.45,0,.55,1) infinite; }
+  .hanger.main { transform-origin: 50% 1.4vmin; animation: sway 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sway { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(.5deg); } 75% { transform: rotate(-.5deg); } }
+
+  .rail { overflow: hidden; }
+  .rail::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 44%, rgba(255,255,255,.95) 50%, rgba(255,255,255,0) 56%) 100% 0 / 400% 100% no-repeat;
+    animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 50% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.35,1); }
+    72% { background-position: 0% 0; animation-timing-function: steps(1, end); }
+    72.5%, 100% { background-position: 100% 0; }
+  }
+
+  .e1 { animation: swing1 6s linear infinite; }
+  @keyframes swing1 {
+    0%, 10% { transform: rotate(-3deg); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    18% { transform: rotate(-10deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    28% { transform: rotate(3deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    38% { transform: rotate(-7deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    47% { transform: rotate(-.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    55% { transform: rotate(-4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    60%, 100% { transform: rotate(-3deg); }
+  }
+  .e2 { animation: swing2 6s linear infinite; }
+  @keyframes swing2 {
+    0%, 12% { transform: rotate(2deg); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    21% { transform: rotate(8deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    31% { transform: rotate(-3deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    41% { transform: rotate(5.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: rotate(.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    57% { transform: rotate(2.8deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    62%, 100% { transform: rotate(2deg); }
+  }
+  .sold { transform-origin: 50% 0; animation: trail 6s linear infinite; }
+  @keyframes trail {
+    0%, 14% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    23% { transform: rotate(5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    33% { transform: rotate(-4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    43% { transform: rotate(2.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    53% { transform: rotate(-1deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    62%, 100% { transform: rotate(0deg); }
+  }
+
+  .off b { display: inline-block; transform-origin: 100% 60%; animation: stamp 6s linear infinite; }
+  @keyframes stamp {
+    0%, 50% { transform: scale(1); opacity: 1; animation-timing-function: cubic-bezier(.55,0,.9,.4); }
+    53.5% { transform: scale(.8); opacity: 0; animation-timing-function: steps(1, end); }
+    54% { transform: scale(1.18); opacity: 1; animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    58% { transform: scale(.97); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    62%, 100% { transform: scale(1); opacity: 1; }
+  }
+
+  .cta { position: relative; border-bottom-color: transparent; }
+  .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.35vmin; height: .35vmin; background: #1C1A17; transform-origin: 100% 50%; animation: redraw 6s linear infinite; }
+  @keyframes redraw {
+    0%, 78% { transform: scaleX(1); transform-origin: 100% 50%; animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    84% { transform: scaleX(0); transform-origin: 100% 50%; animation-timing-function: steps(1, end); }
+    84.5% { transform: scaleX(0); transform-origin: 0 50%; animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    94%, 100% { transform: scaleX(1); transform-origin: 0 50%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="bracket l"></div><div class="bracket r"></div>
+  <div class="rail"></div>
+
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="hanger main">
+    <svg class="hook" viewBox="0 0 10 16"><path d="M5 16 L5 7 C5 1.2 11.4 .4 11.4 4.6" fill="none" stroke="#8A8984" stroke-width="1.1" stroke-linecap="round"/></svg>
+    <div class="bar"></div><div class="clip a"></div><div class="clip b"></div>
+  </div>
+
+  <div class="hanger e1">
+    <svg class="hook" viewBox="0 0 10 16"><path d="M5 16 L5 7 C5 1.2 11.4 .4 11.4 4.6" fill="none" stroke="#8A8984" stroke-width="1.1" stroke-linecap="round"/></svg>
+    <div class="bar"></div><div class="clip a"></div><div class="clip b"></div>
+    <div class="sold"><i></i><span>Sold</span></div>
+  </div>
+  <div class="hanger e2">
+    <svg class="hook" viewBox="0 0 10 16"><path d="M5 16 L5 7 C5 1.2 11.4 .4 11.4 4.6" fill="none" stroke="#8A8984" stroke-width="1.1" stroke-linecap="round"/></svg>
+    <div class="bar"></div><div class="clip a"></div><div class="clip b"></div>
+    <div class="sold"><i></i><span>Sold</span></div>
+  </div>
+
+  <div class="label">Rail 12 — End of season</div>
+
+  <div class="copy">
+    <div class="kick">Final reduction<span>Rail 12</span></div>
+    <div class="row">
+      <h1>The last <em>rail.</em></h1>
+      <div class="off"><small>Everything on it</small><b>−60%</b></div>
+    </div>
+    <div class="foot"><p>What's left is all there is.<br>No restocks.</p><div class="cta">Shop the rail</div></div>
+  </div>
+</div>
+</body>
+</html>

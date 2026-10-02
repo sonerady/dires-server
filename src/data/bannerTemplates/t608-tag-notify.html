@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Hanken+Grotesk:wght@400;500;700;800&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Tag Notify — "tag us to be featured": a big serif hashtag on a peach-to-lilac wash and a stack of frosted
+     lock-screen style notifications (repost, you're featured, credit ready) — generic, no platform marks.
+     tall / 3:4 → hashtag, photo, notification stack · square / wide → hashtag + stack left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1E4DE; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #231B29; box-sizing: border-box;
+    background: linear-gradient(160deg, #F6E3D8 0%, #EEDFE4 45%, #DCD6F0 100%);
+    font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column; padding: 5.4vmin 6vmin 5vmin; }
+  .banner::before { content: ""; position: absolute; left: -20vmin; bottom: -20vmin; width: 80vmin; height: 80vmin; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,255,255,.55), transparent 65%); }
+
+  .head { position: relative; flex: none; }
+  .kick { display: inline-flex; align-items: center; gap: 1.2vmin; padding: .9vmin 1.8vmin; border-radius: 99vmin; background: #231B29; color: #F6E3D8;
+    font-size: 1.7vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .kick i { width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #FF7A59; }
+  h1 { margin: 2vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .9; letter-spacing: -.03em; white-space: nowrap; }
+  h1 i { display: inline-block; line-height: .9; color: #6B3FA0; }
+  .sub { margin-top: 1.8vmin; max-width: 70vmin; font-size: 2.1vmin; line-height: 1.4; color: #4F4453; }
+  .sub b { color: #231B29; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 3.4vmin; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+
+  .stack { position: relative; flex: none; display: flex; flex-direction: column; gap: 1.2vmin; margin-top: 3vmin; }
+  .note { display: grid; grid-template-columns: auto 1fr auto; column-gap: 2vmin; align-items: center; padding: 1.7vmin 2.2vmin; border-radius: 2.6vmin;
+    background: rgba(255,255,255,.74); box-shadow: 0 1vmin 3vmin rgba(60,30,80,.12), inset 0 0 0 1px rgba(255,255,255,.9); }
+  .note .ic { grid-row: 1 / 3; width: 5vmin; height: 5vmin; border-radius: 1.3vmin; background: linear-gradient(145deg, #7E52B8, #4D2A7C);
+    display: flex; align-items: center; justify-content: center; font-family: "DM Serif Display", Georgia, serif; font-size: 3vmin; color: #FFF; }
+  .note .ttl { font-size: 1.9vmin; font-weight: 800; white-space: nowrap; }
+  .note .tm { font-size: 1.6vmin; color: #7B7080; white-space: nowrap; }
+  .note .msg { grid-column: 2 / 4; font-size: 1.9vmin; color: #3D3342; white-space: nowrap; }
+  .note.n2 { margin: 0 1.6vmin; opacity: .92; }
+  .note.n3 { margin: 0 3.2vmin; opacity: .8; }
+  .note.n3 .ic { background: linear-gradient(145deg, #FF9A6B, #F0624A); }
+
+  .foot { position: relative; flex: none; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; margin-top: 2.6vmin; font-size: 1.7vmin; letter-spacing: .06em; color: #5E5463; white-space: nowrap; }
+  .foot b { font-weight: 800; color: #231B29; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.6vmin 6vmin 4.2vmin; }
+    h1 { font-size: 11vmin; margin-top: 1.6vmin; }
+    .sub { margin-top: 1.2vmin; font-size: 1.9vmin; }
+    .photo { margin-top: 2.8vmin; }
+    .stack { margin-top: 2.4vmin; gap: 1vmin; }
+    .note { padding: 1.3vmin 2vmin; }
+    .note .ic { width: 4.4vmin; height: 4.4vmin; font-size: 2.6vmin; }
+    .note.n3 { display: none; }
+    .foot { margin-top: 2vmin; }
+  }
+  /* ── square / wide: hashtag + notifications left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: grid; padding: 5vmin; column-gap: 5vmin; grid-template-columns: 1fr 45%;
+      grid-template-rows: auto 1fr auto; grid-template-areas: "head photo" "stack photo" "foot photo"; }
+    .head { grid-area: head; }
+    .photo { grid-area: photo; margin: 0; }
+    .stack { grid-area: stack; align-self: center; margin: 3vmin 0; }
+    .foot { grid-area: foot; margin: 0; flex-direction: column; align-items: flex-start; gap: .6vmin; }
+    h1 { font-size: 8.6vmin; }
+    .sub { font-size: 1.8vmin; }
+    .note { padding: 1.3vmin 1.6vmin; column-gap: 1.6vmin; }
+    .note .ttl, .note .msg { font-size: 1.7vmin; }
+    .note .tm { font-size: 1.6vmin; }
+    .note.n3 { display: grid; }
+    .note.n2 { margin: 0 1vmin; } .note.n3 { margin: 0 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { padding: 6vmin 7vmin; column-gap: 7vmin; grid-template-columns: 1fr 42%; }
+    h1 { font-size: 11vmin; }
+    .sub { font-size: 2vmin; }
+    .note { padding: 1.6vmin 2.2vmin; column-gap: 2vmin; }
+    .note .ttl, .note .msg { font-size: 1.9vmin; }
+    .note.n2 { margin: 0 2vmin; } .note.n3 { margin: 0 4vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div class="kick"><i></i>Tag us · get featured</div>
+    <h1>#On<i>Tallis</i></h1>
+    <div class="sub">Tag <b>@tallis.studio</b> in your look — we repost our favourites every Friday.</div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="stack">
+    <div class="note"><span class="ic">T</span><span class="ttl">tallis.studio</span><span class="tm">now</span><span class="msg">reposted your look ♥</span></div>
+    <div class="note n2"><span class="ic">T</span><span class="ttl">You’re this week’s feature</span><span class="tm">2m</span><span class="msg">2,140 people saw your post</span></div>
+    <div class="note n3"><span class="ic">$</span><span class="ttl">$50 credit unlocked</span><span class="tm">5m</span><span class="msg">thanks for styling it your way</span></div>
+  </div>
+  <div class="foot"><span>Featured looks earn a <b>$50 credit</b></span><span>New picks every Friday</span></div>
+</div>
+</body>
+</html>

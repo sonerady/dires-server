@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Y2K chrome — iridescent pastel field with a wireframe grid, the photo in an aqua "window", liquid-chrome headline,
+     a glossy bubble pill, a loading bar and twinkling sparkles. tall: window on top, copy below · square & wide: window left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D9CCFF; }
+  .banner { --ink: #1F1A4D; --vio: #6B5BD6;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "IBM Plex Mono", "Courier New", monospace;
+    background: radial-gradient(circle at 12% 88%, rgba(255,196,232,.95) 0, rgba(255,196,232,0) 42%), radial-gradient(circle at 92% 70%, rgba(170,236,255,.9) 0, rgba(170,236,255,0) 45%), radial-gradient(circle at 80% 8%, rgba(255,240,190,.8) 0, rgba(255,240,190,0) 35%), linear-gradient(160deg, #D6C8FF 0%, #C4E3FF 50%, #FFD3EE 100%); }
+  .grid { position: absolute; inset: 0; background: linear-gradient(rgba(107,91,214,.16) 1px, transparent 1px) 0 0 / 6vmin 6vmin, linear-gradient(90deg, rgba(107,91,214,.16) 1px, transparent 1px) 0 0 / 6vmin 6vmin;
+    -webkit-mask-image: linear-gradient(180deg, transparent 30%, #000 100%); mask-image: linear-gradient(180deg, transparent 30%, #000 100%); }
+  .win { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; height: calc(100% - 6vmin - 76vmin); box-shadow: 0 2vmin 5vmin rgba(60,40,140,.25); }
+  .bar { position: absolute; left: 0; right: 0; top: 0; height: 5.4vmin; display: flex; align-items: center; justify-content: space-between; padding: 0 1.8vmin; box-sizing: border-box;
+    background: linear-gradient(180deg, #F4F8FF 0%, #BFD2FF 48%, #93B0F5 52%, #C7D8FF 100%); border: 1px solid rgba(60,60,140,.35); font-size: 1.8vmin; font-weight: 600; }
+  .bar i { display: inline-block; width: 1.9vmin; height: 1.9vmin; margin-left: .9vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0 18%, #FF8FCB 45%, #D6419A 100%); }
+  .bar i + i { background: radial-gradient(circle at 35% 30%, #fff 0 18%, #FFE27A 45%, #D9A21B 100%); }
+  .bar i + i + i { background: radial-gradient(circle at 35% 30%, #fff 0 18%, #8FF0C8 45%, #1FA876 100%); }
+  .win img { position: absolute; left: 0; top: 5.4vmin; width: 100%; height: calc(100% - 5.4vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .spk { position: absolute; width: 7vmin; height: 7vmin; filter: drop-shadow(0 0 1.2vmin rgba(255,255,255,.95)); }
+  .s1 { right: 3vmin; top: calc(100% - 74vmin); } .s2 { left: 3vmin; bottom: 7vmin; width: 5vmin; height: 5vmin; } .s3 { right: 10vmin; bottom: 20vmin; width: 4vmin; height: 4vmin; }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; bottom: 6vmin; }
+  .k { font-size: 1.9vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--vio); }
+  h1 { margin: 1.6vmin 0 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 900; font-size: 14vmin; line-height: .98; letter-spacing: -.03em; text-transform: uppercase;
+    background: linear-gradient(180deg, #F7F9FF 0%, #BAC6DA 28%, #6F7C95 45%, #1F2638 50%, #4A5670 55%, #C9D3E4 70%, #FFFFFF 82%, #8E9AB0 100%); background-size: 100% 1em; background-repeat: repeat-y;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(.22vmin 0 0 #1F1A4D) drop-shadow(-.22vmin 0 0 #1F1A4D) drop-shadow(0 .22vmin 0 #1F1A4D) drop-shadow(0 -.22vmin 0 #1F1A4D) drop-shadow(0 .6vmin 0 #8C7BF0) drop-shadow(0 1.4vmin 2vmin rgba(60,40,140,.3)); }
+  .row { margin-top: 3vmin; display: flex; align-items: center; gap: 3vmin; }
+  .pill { position: relative; flex: none; padding: 1.8vmin 3.6vmin; border-radius: 99vmin; background: linear-gradient(180deg, #FF9BD2 0%, #F2439C 100%); color: #fff; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 900; font-size: 3.4vmin; letter-spacing: -.01em; box-shadow: inset 0 -.6vmin 1vmin rgba(140,0,80,.35), 0 1vmin 2vmin rgba(242,67,156,.35); white-space: nowrap; }
+  .pill::before { content: ""; position: absolute; left: 12%; right: 12%; top: .5vmin; height: 42%; border-radius: 99vmin; background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.05)); }
+  .pill small { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.8vmin; letter-spacing: .08em; margin-left: .8vmin; text-transform: uppercase; }
+  .code { font-size: 2vmin; line-height: 1.45; }
+  .code b { display: inline-block; margin-top: .4vmin; background: var(--ink); color: #fff; padding: .3vmin 1.2vmin; letter-spacing: .12em; }
+  .load { margin-top: 3.2vmin; font-size: 1.8vmin; }
+  .load div { margin-top: 1vmin; height: 3.2vmin; box-sizing: border-box; padding: .5vmin; border: 1px solid rgba(31,26,77,.6); background: rgba(255,255,255,.55); }
+  .load div i { display: block; height: 100%; width: 93%; background: repeating-linear-gradient(90deg, #6B5BD6 0 1.8vmin, transparent 1.8vmin 2.3vmin); }
+  .load span { float: right; font-weight: 600; }
+  .foot { margin-top: 2vmin; font-size: 1.6vmin; opacity: .8; }
+  @media (min-aspect-ratio: 7/10) {
+    .win { left: 14vmin; right: 14vmin; height: calc(100% - 6vmin - 66vmin); }
+    h1 { font-size: 12vmin; }
+    .load { margin-top: 2.6vmin; }
+    .s1 { top: calc(100% - 64vmin); right: 4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .win { left: 5vmin; right: auto; top: 5vmin; width: 46vmin; height: calc(100% - 10vmin); }
+    .copy { left: 57vmin; right: 4vmin; bottom: auto; top: 50%; transform: translateY(-50%); }
+    h1 { font-size: 6.4vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .pill { font-size: 3vmin; padding: 1.6vmin 3vmin; }
+    .s1 { right: 4vmin; top: 5vmin; } .s2 { left: auto; right: 34vmin; bottom: 3vmin; } .s3 { right: 4vmin; bottom: 5vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .win { width: 58vmin; left: 6vmin; top: 6vmin; height: calc(100% - 12vmin); }
+    .copy { left: 73vmin; right: 7vmin; }
+    h1 { font-size: 8.4vmin; }
+    .row { flex-direction: row; align-items: center; gap: 3vmin; }
+    .s1 { right: 8vmin; top: 6vmin; } .s2 { right: 60vmin; bottom: 4vmin; left: auto; } .s3 { right: 5vmin; bottom: 8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="grid"></div>
+  <div class="win"><div class="bar"><span>new_drop.jpg</span><span><i></i><i></i><i></i></span></div><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <svg class="spk s1" viewBox="0 0 20 20"><path d="M10 0C11 7 13 9 20 10 13 11 11 13 10 20 9 13 7 11 0 10 7 9 9 7 10 0z" fill="#fff"/></svg>
+  <svg class="spk s2" viewBox="0 0 20 20"><path d="M10 0C11 7 13 9 20 10 13 11 11 13 10 20 9 13 7 11 0 10 7 9 9 7 10 0z" fill="#fff"/></svg>
+  <svg class="spk s3" viewBox="0 0 20 20"><path d="M10 0C11 7 13 9 20 10 13 11 11 13 10 20 9 13 7 11 0 10 7 9 9 7 10 0z" fill="#fff"/></svg>
+  <div class="copy">
+    <div class="k">✦ Studio Oro · Y2K capsule</div>
+    <h1>Digital<br>Dream</h1>
+    <div class="row"><div class="pill">35% <small>off</small></div><div class="code">the whole capsule<br>with code <b>Y2K35</b></div></div>
+    <div class="load">Loading your new wardrobe… <span>99%</span><div><i></i></div></div>
+    <div class="foot">© 2000—2026 · best viewed on any screen</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Family Tree — the family edit drawn as an engraved genealogy chart: monogram roundels for the grandparents
+     ("the originals"), the product photo as generation II ("the look"), and three small roundels for the minis,
+     joined by hairline connectors. The photo node flexes with the frame. tall → title on top, tree below;
+     square/wide → title column left, tree right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EFE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4EFE4; color: #22211F; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .paper { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(255,255,255,.55), transparent 70%); }
+
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; text-align: center; }
+  .k { font-size: 1.7vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; }
+  .k::after { content: ""; display: block; width: 10vmin; margin: 1.8vmin auto 0; border-top: 1px solid #7A2331; }
+  h1 { margin: 2vmin 0 0; font-family: "Cormorant Garamond", Garamond, Georgia, serif; font-weight: 500; font-size: 12vmin; line-height: .92; letter-spacing: -.015em; }
+  h1 i { color: #7A2331; }
+  .p { display: none; margin-top: 3vmin; font-family: "Cormorant Garamond", serif; font-size: 2.8vmin; line-height: 1.3; }
+
+  .tree { position: absolute; left: 6vmin; right: 6vmin; top: 39vmin; bottom: 20vmin; display: flex; flex-direction: column; align-items: center; }
+  .gen { font-size: 1.6vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: #7A2331; white-space: nowrap; }
+  .gp { position: relative; display: flex; gap: 14vmin; margin-top: 1.6vmin; }
+  .gp::before { content: ""; position: absolute; left: 10vmin; right: 10vmin; top: 5vmin; border-top: 1px solid #22211F; }
+  .gp::after { content: ""; position: absolute; left: 50%; top: 5vmin; height: calc(100% - 5vmin + 2vmin); border-left: 1px solid #22211F; }
+  .node { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .node i { display: flex; align-items: center; justify-content: center; width: 10vmin; height: 10vmin; border-radius: 50%; border: 1px solid #22211F; background: #F4EFE4; box-shadow: inset 0 0 0 .6vmin #F4EFE4, inset 0 0 0 calc(.6vmin + 1px) rgba(34,33,31,.4);
+    font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; font-size: 4.6vmin; line-height: 1; color: #22211F; }
+  .node span { margin-top: 1vmin; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .node span b { font-weight: 500; color: #7A2331; }
+
+  .look { position: relative; flex: 1; min-height: 0; width: 60vmin; margin-top: 2vmin; }
+  .look img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .look .tag { position: absolute; left: 100%; top: 50%; margin-left: 1.4vmin; writing-mode: vertical-rl; transform: translateY(-50%); font-size: 1.6vmin; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  .look .tag b { font-weight: 500; color: #7A2331; }
+  .stem { height: 2.4vmin; border-left: 1px solid #22211F; }
+  .kids { position: relative; display: flex; gap: 8vmin; padding-top: 2.4vmin; }
+  .kids::before { content: ""; position: absolute; left: 4vmin; right: 4vmin; top: 0; border-top: 1px solid #22211F; }
+  .kids .node::before { content: ""; position: absolute; left: 50%; top: -2.4vmin; height: 2.4vmin; border-left: 1px solid #22211F; }
+  .kids .node i { width: 8vmin; height: 8vmin; font-size: 3.6vmin; }
+
+  .foot { position: absolute; left: 7vmin; right: 7vmin; bottom: 5.4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(34,33,31,.35); }
+  .offer { font-family: "Cormorant Garamond", serif; font-size: 3vmin; line-height: 1.15; }
+  .offer b { font-weight: 600; color: #7A2331; }
+  .cta { flex: none; font-size: 1.8vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; background: #22211F; color: #F4EFE4; padding: 1.8vmin 2.8vmin; white-space: nowrap; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .head { top: 5vmin; }
+    h1 { font-size: 10vmin; margin-top: 1.6vmin; }
+    .tree { top: 32vmin; bottom: 18vmin; }
+    .look { width: 56vmin; }
+  }
+  /* 3:4 / 4:5 → title left, tree right */
+  @media (min-aspect-ratio: 7/10) {
+    .head { left: 6vmin; right: auto; width: 34vmin; top: 7vmin; text-align: left; }
+    .k::after { margin-left: 0; }
+    h1 { font-size: 8.6vmin; margin-top: 2.4vmin; }
+    .p { display: block; }
+    .tree { left: 42vmin; right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    .look { width: 44vmin; }
+    .look .tag { display: none; }
+    .gp { gap: 12vmin; }
+    .kids { gap: 6vmin; }
+    .foot { left: 6vmin; right: auto; width: 32vmin; bottom: 6vmin; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .offer { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .head { width: 36vmin; top: 6vmin; }
+    h1 { font-size: 7.8vmin; }
+    .tree { left: 46vmin; right: 4vmin; }
+    .look { width: 38vmin; }
+    .foot { width: 34vmin; bottom: 5vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .head { left: 8vmin; width: 52vmin; top: 9vmin; }
+    h1 { font-size: 10vmin; }
+    .tree { left: auto; right: 10vmin; width: 70vmin; top: 5vmin; bottom: 5vmin; }
+    .look { width: 46vmin; }
+    .look .tag { display: block; }
+    .foot { left: 8vmin; width: 52vmin; bottom: 8vmin; flex-direction: row; align-items: flex-end; }
+    .offer { font-size: 3vmin; }
+  }
+
+  /* ───────── motion (6 s loop · t=0 = static design) — restrained, engraved-paper pace ─────────
+     0.9 s the bloodline lights up top → bottom: grandparents' roundels ink in burgundy, the connectors flush
+     burgundy, the photo node brightens, then Ada → Leo → Mia ink in; all fade back by 3.3 s ·
+     3.7 s "in the family." wipes out & back · 4.8 s the rule under the kicker redraws and a glint crosses the CTA */
+  @keyframes inkNode {
+    0%, 100% { background: #F4EFE4; color: #22211F; transform: scale(1); box-shadow: inset 0 0 0 .6vmin #F4EFE4, inset 0 0 0 calc(.6vmin + 1px) rgba(34,33,31,.4); }
+    4% { background: #7A2331; color: #F4EFE4; transform: scale(1.1); box-shadow: inset 0 0 0 .6vmin #7A2331, inset 0 0 0 calc(.6vmin + 1px) rgba(244,239,228,.6); }
+    8%, 26% { background: #7A2331; color: #F4EFE4; transform: scale(1); box-shadow: inset 0 0 0 .6vmin #7A2331, inset 0 0 0 calc(.6vmin + 1px) rgba(244,239,228,.6); }
+    34% { background: #F4EFE4; color: #22211F; transform: scale(1); box-shadow: inset 0 0 0 .6vmin #F4EFE4, inset 0 0 0 calc(.6vmin + 1px) rgba(34,33,31,.4); }
+  }
+  .node i { animation: inkNode 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .gp .node:nth-child(1) i { animation-delay: -5.1s; }
+  .gp .node:nth-child(2) i { animation-delay: -5.0s; }
+  .kids .node:nth-child(1) i { animation-delay: -4.2s; }
+  .kids .node:nth-child(2) i { animation-delay: -4.05s; }
+  .kids .node:nth-child(3) i { animation-delay: -3.9s; }
+
+  @keyframes inkLine { 0%, 100% { border-color: #22211F; } 5%, 24% { border-color: #7A2331; } 32% { border-color: #22211F; } }
+  .gp::before, .gp::after { animation: inkLine 6s cubic-bezier(.3,0,.3,1) infinite; animation-delay: -4.9s; }
+  .stem { animation: inkLine 6s cubic-bezier(.3,0,.3,1) infinite; animation-delay: -4.5s; }
+  .kids::before, .kids .node::before { animation: inkLine 6s cubic-bezier(.3,0,.3,1) infinite; animation-delay: -4.35s; }
+
+  .look img { animation: lift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes lift { 0%, 20%, 50%, 100% { filter: brightness(1) saturate(1); } 30% { filter: brightness(1.08) saturate(1.08); } }
+
+  h1 i { display: inline-block; animation: wipe 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes wipe {
+    0%, 61%, 100% { clip-path: inset(-12% -4% -20% 0); transform: translateY(0); opacity: 1; }
+    66% { clip-path: inset(-12% 104% -20% 0); transform: translateY(0); opacity: 1; }
+    67% { clip-path: inset(-12% -4% -20% 100%); transform: translateY(1vmin); opacity: 0; }
+    68% { clip-path: inset(-12% -4% -20% 0); transform: translateY(1vmin); opacity: 0; }
+    77% { clip-path: inset(-12% -4% -20% 0); transform: translateY(0); opacity: 1; }
+  }
+
+  .k::after { animation: rule 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes rule { 0%, 79%, 100% { clip-path: inset(-2px 0 -2px 0); } 83% { clip-path: inset(-2px 50% -2px 50%); } 92% { clip-path: inset(-2px 0 -2px 0); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 45%; pointer-events: none;
+    background: linear-gradient(100deg, transparent 20%, rgba(244,239,228,.35) 50%, transparent 80%);
+    transform: translateX(-120%); animation: glint 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes glint { 0%, 82%, 100% { transform: translateX(-120%); } 96% { transform: translateX(330%); } 96.1% { transform: translateX(-120%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="paper"></div>
+  <div class="head">
+    <div class="k">The Family Edit · Est. 1961</div>
+    <h1>It runs<br><i>in the family.</i></h1>
+    <div class="p">Three generations, one wardrobe — matching sizes from 2Y to XXL.</div>
+  </div>
+  <div class="tree">
+    <div class="gen">I · The originals</div>
+    <div class="gp">
+      <div class="node"><i>N</i><span>Nana <b>'61</b></span></div>
+      <div class="node"><i>G</i><span>Grandpa <b>'59</b></span></div>
+    </div>
+    <div class="look">
+      <img src="{{PRODUCT_IMAGE}}" alt="">
+      <div class="tag">II · <b>The look</b>, SS27</div>
+    </div>
+    <div class="stem"></div>
+    <div class="kids">
+      <div class="node"><i>A</i><span>Ada</span></div>
+      <div class="node"><i>L</i><span>Leo</span></div>
+      <div class="node"><i>M</i><span>Mia</span></div>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="offer">Every generation, one look.<br><b>20% off</b> with FAMILY20</div>
+    <div class="cta">Shop the family</div>
+  </div>
+</div>
+</body>
+</html>

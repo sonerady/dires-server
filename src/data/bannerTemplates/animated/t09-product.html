@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Product Card — responsive: tall photo → photo card on top, details below; square/wide → photo left, details right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5F2ED; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F5F2ED; color: #1B1B1B; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .shot { position: absolute; left: 4vmin; right: 4vmin; top: 4vmin; height: 60%; overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+  .new { position: absolute; left: 7vmin; top: 7vmin; background: #C8553D; color: #fff; border-radius: 99vmin; padding: 1.1vmin 2.4vmin; font-size: 2vmin; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+  .col { position: absolute; left: 6vmin; right: 6vmin; top: calc(60% + 8vmin); bottom: 5vmin; display: flex; flex-direction: column; }
+  .stars { font-size: 2vmin; font-weight: 500; color: #555; }
+  .stars b { color: #1B1B1B; letter-spacing: .12em; }
+  .head { margin-top: 1.4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 4vmin; }
+  h1 { margin: 0; font-weight: 800; font-size: 5.8vmin; line-height: .98; letter-spacing: -.035em; }
+  .price { flex: none; text-align: right; }
+  .price b { display: block; font-weight: 800; font-size: 7vmin; letter-spacing: -.04em; line-height: 1; }
+  .price s { font-size: 2.6vmin; color: #8A8A8A; }
+  .d { margin-top: 1.6vmin; font-size: 2.2vmin; line-height: 1.45; color: #555; }
+  .opts { margin-top: 2.6vmin; display: flex; gap: 6vmin; }
+  .lab { font-size: 1.6vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #777; }
+  .sw { display: flex; gap: 1.4vmin; margin-top: 1.3vmin; }
+  .sw i { width: 3.8vmin; height: 3.8vmin; border-radius: 50%; }
+  .sw i:first-child { box-shadow: 0 0 0 .5vmin #F5F2ED, 0 0 0 .8vmin #1B1B1B; }
+  .sizes { display: flex; gap: 1.1vmin; margin-top: 1.3vmin; }
+  .sizes span { width: 5.6vmin; height: 4.6vmin; border-radius: 1.1vmin; border: .22vmin solid #D9D4CC; display: flex; align-items: center; justify-content: center; font-size: 1.9vmin; font-weight: 700; background: #fff; }
+  .sizes span.on { border-color: #1B1B1B; }
+  .cta { margin-top: auto; background: #1B1B1B; color: #fff; border-radius: 99vmin; padding: 2.4vmin 0; text-align: center; font-size: 2.4vmin; font-weight: 800; letter-spacing: .06em; }
+  .note { margin-top: 1.4vmin; text-align: center; font-size: 1.7vmin; color: #666; }
+  @media (min-aspect-ratio: 7/10) {
+    .shot { height: 52%; }
+    .col { top: calc(52% + 7vmin); }
+    .d { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .shot { left: 3.5vmin; top: 3.5vmin; bottom: 3.5vmin; right: auto; height: auto; width: 55%; }
+    .col { left: calc(55% + 9vmin); right: 4.5vmin; top: 6vmin; bottom: 6vmin; }
+    .head { display: block; }
+    .price { text-align: left; margin-top: 2.6vmin; display: flex; align-items: baseline; gap: 1.6vmin; }
+    .d { display: block; }
+    .opts { display: block; }
+    .opts > div + div { margin-top: 2.4vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* photo: slow breathing push-in */
+  .shot img { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+  /* colour picker: the selection ring hops cream → terracotta → olive → cream */
+  .sw i { box-shadow: 0 0 0 .5vmin rgba(245,242,237,0), 0 0 0 .5vmin rgba(27,27,27,0); }
+  .sw i:nth-child(1) { animation: sw1 6s linear infinite; }
+  .sw i:nth-child(2) { animation: sw2 6s linear infinite; }
+  .sw i:nth-child(3) { animation: sw3 6s linear infinite; }
+  @keyframes sw1 {
+    0%, 14% { box-shadow: 0 0 0 .5vmin #F5F2ED, 0 0 0 .8vmin #1B1B1B; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    18%, 56% { box-shadow: 0 0 0 0 rgba(245,242,237,0), 0 0 0 .22vmin #D9D4CC; animation-timing-function: cubic-bezier(.3,.7,.3,1); }
+    60%, 100% { box-shadow: 0 0 0 .5vmin #F5F2ED, 0 0 0 .8vmin #1B1B1B; }
+  }
+  @keyframes sw2 {
+    0%, 14% { box-shadow: 0 0 0 .5vmin rgba(245,242,237,0), 0 0 0 .5vmin rgba(27,27,27,0); animation-timing-function: cubic-bezier(.3,.7,.3,1); }
+    18%, 32% { box-shadow: 0 0 0 .5vmin #F5F2ED, 0 0 0 .8vmin #1B1B1B; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    36%, 100% { box-shadow: 0 0 0 .5vmin rgba(245,242,237,0), 0 0 0 .5vmin rgba(27,27,27,0); }
+  }
+  @keyframes sw3 {
+    0%, 32% { box-shadow: 0 0 0 .5vmin rgba(245,242,237,0), 0 0 0 .5vmin rgba(27,27,27,0); animation-timing-function: cubic-bezier(.3,.7,.3,1); }
+    36%, 52% { box-shadow: 0 0 0 .5vmin #F5F2ED, 0 0 0 .8vmin #1B1B1B; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    56%, 100% { box-shadow: 0 0 0 .5vmin rgba(245,242,237,0), 0 0 0 .5vmin rgba(27,27,27,0); }
+  }
+  /* size picker: M → L and back */
+  .sizes span:nth-child(2) { animation: szM 6s linear infinite; }
+  .sizes span:nth-child(3) { animation: szL 6s linear infinite; }
+  @keyframes szM { 0%, 62% { border-color: #1B1B1B; } 65%, 86% { border-color: #D9D4CC; } 89%, 100% { border-color: #1B1B1B; } }
+  @keyframes szL {
+    0%, 62% { border-color: #D9D4CC; transform: scale(1); }
+    64% { border-color: #1B1B1B; transform: scale(1.08); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    68%, 86% { border-color: #1B1B1B; transform: scale(1); }
+    89%, 100% { border-color: #D9D4CC; transform: scale(1); }
+  }
+  /* add to bag: a press + a sheen crossing the pill */
+  .cta { position: relative; overflow: hidden; animation: press 6s linear infinite; }
+  @keyframes press {
+    0%, 70% { transform: scale(1); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    72.5% { transform: scale(.965); animation-timing-function: cubic-bezier(.2,.8,.3,1.2); }
+    77%, 100% { transform: scale(1); }
+  }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 26%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.07) 30%, rgba(255,255,255,.28) 50%, rgba(255,255,255,.07) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 73% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    88%, 100% { transform: translateX(480%) skewX(-18deg); }
+  }
+  /* stars: a soft light glint travels across the rating */
+  .stars b { background: linear-gradient(90deg, #1B1B1B 0 40%, #C8553D 50%, #1B1B1B 60% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; color: transparent; animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 4% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    16%, 100% { background-position: 0% 0; }
+  }
+  /* NEW IN pill: a small pop that settles right at the loop point */
+  .new { transform-origin: 0% 50%; animation: pop 6s linear infinite; }
+  @keyframes pop {
+    0%, 90% { transform: scale(1); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    93% { transform: scale(1.1) rotate(-3deg); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    97%, 100% { transform: scale(1) rotate(0deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="new">New in</div>
+  <div class="col">
+    <div class="stars"><b>★★★★★</b> 4.9 (312)</div>
+    <div class="head">
+      <h1>Embroidered Maxi Dress</h1>
+      <div class="price"><b>$129</b><s>$159</s></div>
+    </div>
+    <div class="d">Hand-stitched cotton voile, tie waist, tiered hem.</div>
+    <div class="opts">
+      <div><div class="lab">Colour</div><div class="sw"><i style="background:#F3EBDA"></i><i style="background:#D9765B"></i><i style="background:#7C8B5A"></i></div></div>
+      <div><div class="lab">Size</div><div class="sizes"><span>S</span><span class="on">M</span><span>L</span><span>XL</span></div></div>
+    </div>
+    <div class="cta">Add to bag</div>
+    <div class="note">Free shipping &amp; 30-day returns</div>
+  </div>
+</div>
+</body>
+</html>

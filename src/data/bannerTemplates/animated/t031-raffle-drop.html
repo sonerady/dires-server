@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Raffle Drop — limited release draw: flip-clock countdown + perforated raffle ticket.
+     tall → photo above a black panel; 3:4 and wider → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0E0E0E; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0E0E0E; color: #EDEAE3; font-family: "Archivo", "Arial Narrow", Arial, sans-serif; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 62vmin); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .shot::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 16vmin; background: linear-gradient(0deg, rgba(14,14,14,0.55) 0%, rgba(14,14,14,0.542) 7.7%, rgba(14,14,14,0.519) 15.4%, rgba(14,14,14,0.481) 23.1%, rgba(14,14,14,0.431) 30.8%, rgba(14,14,14,0.372) 38.5%, rgba(14,14,14,0.308) 46.2%, rgba(14,14,14,0.242) 53.8%, rgba(14,14,14,0.178) 61.5%, rgba(14,14,14,0.119) 69.2%, rgba(14,14,14,0.069) 76.9%, rgba(14,14,14,0.031) 84.6%, rgba(14,14,14,0.008) 92.3%, rgba(14,14,14,0) 100%); }
+  .tag { position: absolute; left: 4vmin; top: 4vmin; display: flex; align-items: center; gap: 1.4vmin; background: #FF4F00; color: #0E0E0E; padding: 1.2vmin 2vmin; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 800; font-size: 2vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .tag i { width: 1.5vmin; height: 1.5vmin; border-radius: 50%; background: #0E0E0E; box-shadow: 0 0 0 .5vmin rgba(14,14,14,.25); }
+  .count { position: absolute; right: 4vmin; top: 4vmin; text-align: right; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 700; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; color: #0E0E0E; background: #EDEAE3; padding: 1.2vmin 1.8vmin; line-height: 1.35; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 62vmin; display: flex; flex-direction: column; background: #0E0E0E; }
+  .strip { flex: none; height: 5.4vmin; background: #FF4F00; color: #0E0E0E; overflow: hidden; display: flex; align-items: center; white-space: nowrap; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 800; font-size: 2vmin; letter-spacing: .16em; }
+  .strip span { padding-left: 3vmin; }
+  .inner { flex: 1; min-height: 0; padding: 3.6vmin 5vmin 5vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; gap: 3vmin; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 500; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #9C988F; }
+  .meta b { color: #EDEAE3; font-weight: 700; }
+  h1 { margin: 1.6vmin 0 0; font-weight: 900; font-stretch: 62%; font-size: 13.4vmin; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; white-space: nowrap; }
+  h1 em { font-style: normal; color: #FF4F00; }
+  .clock { margin-top: 3.4vmin; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.8vmin; }
+  .clock div { display: flex; flex-direction: column; align-items: stretch; }
+  .clock b { position: relative; display: block; height: 11vmin; line-height: 11vmin; text-align: center; background: #EDEAE3; color: #0E0E0E; font-weight: 800; font-stretch: 75%; font-size: 8.6vmin; letter-spacing: -.01em; }
+  .clock b::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: .3vmin; background: #0E0E0E; opacity: .85; }
+  .clock b::after { content: ""; position: absolute; left: -.6vmin; right: -.6vmin; top: calc(50% - .9vmin); height: 1.8vmin; background: linear-gradient(90deg, #0E0E0E 0 1.2vmin, transparent 1.2vmin calc(100% - 1.2vmin), #0E0E0E calc(100% - 1.2vmin)); }
+  .clock small { margin-top: 1.1vmin; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 700; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: #FF4F00; }
+  .steps { display: none; margin: 4vmin 0 0; padding: 0; list-style: none; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 500; font-size: 1.8vmin; letter-spacing: .06em; text-transform: uppercase; color: #C9C5BC; }
+  .steps li { display: flex; gap: 1.8vmin; padding: 1.5vmin 0; border-top: 1px solid #34322E; }
+  .steps li:last-child { border-bottom: 1px solid #34322E; }
+  .steps b { color: #FF4F00; font-weight: 800; }
+  .ticket { margin-top: auto; display: flex; height: 9vmin; }
+  .stub { position: relative; flex: none; width: 34%; background: #EDEAE3; color: #0E0E0E; display: flex; flex-direction: column; justify-content: center; padding: 0 2.6vmin; font-family: "JetBrains Mono", Menlo, monospace; font-weight: 800; font-size: 2.3vmin; letter-spacing: .06em; box-sizing: border-box;
+    border-right: .45vmin dashed #0E0E0E;
+    -webkit-mask: radial-gradient(circle at 100% 0, transparent 1.4vmin, #000 1.5vmin) top / 100% 51% no-repeat, radial-gradient(circle at 100% 100%, transparent 1.4vmin, #000 1.5vmin) bottom / 100% 51% no-repeat;
+            mask: radial-gradient(circle at 100% 0, transparent 1.4vmin, #000 1.5vmin) top / 100% 51% no-repeat, radial-gradient(circle at 100% 100%, transparent 1.4vmin, #000 1.5vmin) bottom / 100% 51% no-repeat; }
+  .stub small { font-weight: 500; font-size: 1.6vmin; letter-spacing: .22em; text-transform: uppercase; color: #6B675F; }
+  .go { flex: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 3.4vmin; background: #FF4F00; color: #0E0E0E; font-weight: 900; font-stretch: 80%; font-size: 3.6vmin; letter-spacing: .06em; text-transform: uppercase;
+    -webkit-mask: radial-gradient(circle at 0 0, transparent 1.4vmin, #000 1.5vmin) top / 100% 51% no-repeat, radial-gradient(circle at 0 100%, transparent 1.4vmin, #000 1.5vmin) bottom / 100% 51% no-repeat;
+            mask: radial-gradient(circle at 0 0, transparent 1.4vmin, #000 1.5vmin) top / 100% 51% no-repeat, radial-gradient(circle at 0 100%, transparent 1.4vmin, #000 1.5vmin) bottom / 100% 51% no-repeat; }
+  .go span { font-size: 4.4vmin; font-weight: 700; }
+
+  /* 3:4 / 4:5 → side by side, tall narrow panel */
+  @media (min-aspect-ratio: 7/10) {
+    .shot { right: auto; bottom: 0; height: auto; width: 57%; }
+    .shot::after { display: none; }
+    .count { right: calc(43% + 3vmin); }
+    .panel { left: 57%; top: 0; height: auto; }
+    .strip { font-size: 1.7vmin; height: 5vmin; }
+    .inner { padding: 4vmin 4vmin 4vmin; }
+    .meta { flex-direction: column; gap: .8vmin; font-size: 1.6vmin; }
+    h1 { margin-top: 3vmin; font-size: 11vmin; white-space: normal; }
+    .clock { grid-template-columns: repeat(2, 1fr); gap: 1.6vmin 1.6vmin; margin-top: 4vmin; }
+    .clock b { height: 10.5vmin; line-height: 10.5vmin; font-size: 8.4vmin; }
+    .steps { display: block; }
+    .ticket { flex-direction: column; height: auto; }
+    .stub { width: 100%; height: 8vmin; border-right: 0; border-bottom: .45vmin dashed #0E0E0E;
+      -webkit-mask: radial-gradient(circle at 0 100%, transparent 1.4vmin, #000 1.5vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 100%, transparent 1.4vmin, #000 1.5vmin) right / 51% 100% no-repeat;
+              mask: radial-gradient(circle at 0 100%, transparent 1.4vmin, #000 1.5vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 100%, transparent 1.4vmin, #000 1.5vmin) right / 51% 100% no-repeat; }
+    .go { height: 8.4vmin; font-size: 3.2vmin; padding: 0 2.8vmin;
+      -webkit-mask: radial-gradient(circle at 0 0, transparent 1.4vmin, #000 1.5vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 0, transparent 1.4vmin, #000 1.5vmin) right / 51% 100% no-repeat;
+              mask: radial-gradient(circle at 0 0, transparent 1.4vmin, #000 1.5vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 0, transparent 1.4vmin, #000 1.5vmin) right / 51% 100% no-repeat; }
+  }
+  /* square → shorter panel: one-line clock */
+  @media (min-aspect-ratio: 9/10) {
+    .shot { width: 52%; }
+    .count { right: calc(48% + 3vmin); }
+    .panel { left: 52%; }
+    .inner { padding: 3.4vmin 4vmin 4vmin; }
+    .meta { font-size: 1.6vmin; }
+    h1 { margin-top: 2.4vmin; font-size: 10vmin; }
+    .clock { grid-template-columns: repeat(4, 1fr); gap: 1.2vmin; margin-top: 3vmin; }
+    .clock b { height: 8.4vmin; line-height: 8.4vmin; font-size: 6.2vmin; }
+    .clock small { font-size: 1.6vmin; letter-spacing: .12em; }
+    .steps { margin-top: 3.4vmin; font-size: 1.7vmin; }
+    .steps li { padding: 1.3vmin 0; }
+    .stub { height: 7vmin; font-size: 2vmin; }
+    .go { height: 7.4vmin; font-size: 2.9vmin; }
+  }
+  /* wide → photo keeps 56%, roomier panel */
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 56%; }
+    .count { right: calc(44% + 3vmin); }
+    .panel { left: 56%; }
+    .inner { padding: 4vmin 5vmin 5vmin; }
+    .meta { flex-direction: row; justify-content: space-between; }
+    h1 { font-size: 12vmin; }
+    .clock b { height: 10vmin; line-height: 10vmin; font-size: 7.6vmin; }
+    .ticket { flex-direction: row; }
+    .stub { width: 36%; height: 8.4vmin; border-bottom: 0; border-right: .45vmin dashed #0E0E0E;
+      -webkit-mask: radial-gradient(circle at 100% 0, transparent 1.4vmin, #000 1.5vmin) top / 100% 51% no-repeat, radial-gradient(circle at 100% 100%, transparent 1.4vmin, #000 1.5vmin) bottom / 100% 51% no-repeat;
+              mask: radial-gradient(circle at 100% 0, transparent 1.4vmin, #000 1.5vmin) top / 100% 51% no-repeat, radial-gradient(circle at 100% 100%, transparent 1.4vmin, #000 1.5vmin) bottom / 100% 51% no-repeat; }
+    .go { height: 8.4vmin;
+      -webkit-mask: radial-gradient(circle at 0 0, transparent 1.4vmin, #000 1.5vmin) top / 100% 51% no-repeat, radial-gradient(circle at 0 100%, transparent 1.4vmin, #000 1.5vmin) bottom / 100% 51% no-repeat;
+              mask: radial-gradient(circle at 0 0, transparent 1.4vmin, #000 1.5vmin) top / 100% 51% no-repeat, radial-gradient(circle at 0 100%, transparent 1.4vmin, #000 1.5vmin) bottom / 100% 51% no-repeat; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* strip: the raffle rules crawl exactly one phrase per loop (4 identical units → -25%) */
+  .strip .run { display: flex; width: max-content; padding-left: 3vmin; animation: crawl 6s linear infinite; }
+  .strip .run i { font-style: normal; white-space: pre; }
+  @keyframes crawl { from { transform: translateX(0); } to { transform: translateX(-25%); } }
+  /* flip clock: the seconds really count down, one split-flap roll per second (09 → 04, then the card rolls round to 09 to close the loop) */
+  .clock b .win { position: relative; z-index: 0; display: block; height: 100%; overflow: hidden; }
+  .clock b::before, .clock b::after { z-index: 1; }
+  .clock b .reel { display: block; animation: roll 6s linear infinite; }
+  .clock b .reel i { display: block; font-style: normal; height: 11vmin; }
+  @media (min-aspect-ratio: 7/10) { .clock b .reel i { height: 10.5vmin; } }
+  @media (min-aspect-ratio: 9/10) { .clock b .reel i { height: 8.4vmin; } }
+  @media (min-aspect-ratio: 6/5) { .clock b .reel i { height: 10vmin; } }
+  @keyframes roll {
+    0%, 12.5% { transform: translateY(0); animation-timing-function: cubic-bezier(.7,0,.2,1.25); }
+    16.667%, 29.17% { transform: translateY(-14.2857%); animation-timing-function: cubic-bezier(.7,0,.2,1.25); }
+    33.333%, 45.83% { transform: translateY(-28.5714%); animation-timing-function: cubic-bezier(.7,0,.2,1.25); }
+    50%, 62.5% { transform: translateY(-42.8571%); animation-timing-function: cubic-bezier(.7,0,.2,1.25); }
+    66.667%, 79.17% { transform: translateY(-57.1429%); animation-timing-function: cubic-bezier(.7,0,.2,1.25); }
+    83.333%, 95.83% { transform: translateY(-71.4286%); animation-timing-function: cubic-bezier(.7,0,.2,1.25); }
+    100% { transform: translateY(-85.7143%); }
+  }
+  /* the seconds card jolts on each flap */
+  .clock div:last-child b { animation: jolt 1s linear infinite; }
+  @keyframes jolt {
+    0%, 70% { transform: translateY(0); }
+    80% { transform: translateY(.3vmin); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    92%, 100% { transform: translateY(0); }
+  }
+  /* raffle-open dot: a live pulse */
+  .tag i { animation: live 2s linear infinite; }
+  @keyframes live {
+    0% { box-shadow: 0 0 0 .5vmin rgba(14,14,14,.25); }
+    30% { box-shadow: 0 0 0 1.1vmin rgba(14,14,14,0); animation-timing-function: steps(1, end); }
+    31%, 50% { box-shadow: 0 0 0 0 rgba(14,14,14,.3); animation-timing-function: cubic-bezier(.2,.6,.3,1); }
+    100% { box-shadow: 0 0 0 .5vmin rgba(14,14,14,.25); }
+  }
+  /* ticket: a sheen runs across ENTER NOW, the arrow pushes */
+  .go { position: relative; overflow: hidden; }
+  .go::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.34) 50%, rgba(255,255,255,0)); transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 40% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    56%, 100% { transform: translateX(420%) skewX(-18deg); }
+  }
+  .go span { display: inline-block; animation: nudge 3s linear infinite; }
+  @keyframes nudge {
+    0%, 76% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    84% { transform: translateX(1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    92%, 100% { transform: translateX(0); }
+  }
+  /* photo: a slow push-in */
+  .shot img { animation: push 6s linear infinite; }
+  @keyframes push {
+    0% { transform: scale(1); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: scale(1.03); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    100% { transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="tag"><i></i>Raffle open</div>
+  <div class="count">Drop 07<br>300 pieces</div>
+  <div class="panel">
+    <div class="strip"><span class="run"><i>ONLINE RAFFLE ✳ 10.03 — 12.03 ✳ ONE ENTRY PER PERSON ✳ </i><i>ONLINE RAFFLE ✳ 10.03 — 12.03 ✳ ONE ENTRY PER PERSON ✳ </i><i>ONLINE RAFFLE ✳ 10.03 — 12.03 ✳ ONE ENTRY PER PERSON ✳ </i><i>ONLINE RAFFLE ✳ 10.03 — 12.03 ✳ ONE ENTRY PER PERSON ✳ </i></span></div>
+    <div class="inner">
+      <div class="meta"><span>Limited release</span><span><b>Winners</b> notified 13.03</span></div>
+      <h1>Enter the <em>draw</em></h1>
+      <div class="clock">
+        <div><b>02</b><small>Days</small></div>
+        <div><b>14</b><small>Hrs</small></div>
+        <div><b>36</b><small>Min</small></div>
+        <div><b><span class="win"><span class="reel"><i>09</i><i>08</i><i>07</i><i>06</i><i>05</i><i>04</i><i>09</i></span></span></b><small>Sec</small></div>
+      </div>
+      <ol class="steps">
+        <li><b>01</b>Sign in &amp; pick your size</li>
+        <li><b>02</b>One entry per person</li>
+        <li><b>03</b>Winners pay within 24 h</li>
+      </ol>
+      <div class="ticket">
+        <div class="stub"><small>Ticket</small>Nº 004127</div>
+        <div class="go">Enter now <span>→</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

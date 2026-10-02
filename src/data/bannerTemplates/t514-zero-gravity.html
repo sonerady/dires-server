@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;800&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Zero Gravity — a Suprematist canvas: tilted black, red and yellow planes drift on raw linen white,
+     a red sun sinks off the edge and the offer rides a slanted black bar. Photo stays upright and clean.
+     tall & 3:4: photo top-left, drifting shapes in the side strip, copy below · square & wide: photo right, shapes above the copy */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE8DE; }
+  .banner { --k: #141312; --r: #CF2F1F; --y: #EDB720; --b: #23408E; --w: #ECE8DE;
+    position: fixed; inset: 0; overflow: hidden; background: var(--w); color: var(--k); font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .s { position: absolute; display: block; }
+  .sun { width: 46vmin; height: 46vmin; right: -10vmin; bottom: -12vmin; border-radius: 50%; background: var(--r); }
+  .sq { width: 15vmin; height: 15vmin; right: 7vmin; top: 9vmin; background: var(--k); transform: rotate(-14deg); }
+  .y1 { width: 21vmin; height: 3.4vmin; right: 3vmin; top: 33vmin; background: var(--y); transform: rotate(-14deg); }
+  .b1 { width: 5vmin; height: 5vmin; right: 20vmin; top: 42vmin; background: var(--b); transform: rotate(-14deg); }
+  .l1 { width: .5vmin; height: 34vmin; right: 13vmin; top: 22vmin; background: var(--k); transform: rotate(32deg); }
+  .r1 { width: 11vmin; height: 1.8vmin; right: 6vmin; top: 52vmin; background: var(--r); transform: rotate(-14deg); }
+  .photo { position: absolute; left: 0; top: 0; width: 70%; height: calc(100% - 70vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .copy { position: absolute; left: 6vmin; top: calc(100% - 70vmin + 6vmin); bottom: 5.4vmin; width: 60vmin; display: flex; flex-direction: column; align-items: flex-start; }
+  .kick { font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #4A4640; white-space: nowrap; }
+  h1 { margin: 2vmin 0 0; font-family: "Unbounded", "Helvetica Neue", sans-serif; font-weight: 800; font-size: 11vmin; line-height: .92; letter-spacing: -.04em; }
+  .tag { margin-top: 6vmin; margin-left: -1vmin; padding: 1.4vmin 3vmin 1.4vmin 2.6vmin; background: var(--k); color: var(--w); transform: rotate(-6deg); transform-origin: left center;
+    font-family: "Unbounded", sans-serif; font-size: 2.4vmin; font-weight: 700; white-space: nowrap; }
+  .tag b { color: var(--y); font-weight: 800; }
+  .sub { margin-top: 4.4vmin; font-size: 2.1vmin; line-height: 1.42; max-width: 46vmin; color: #3A3732; }
+  .foot { margin-top: auto; display: flex; flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+  .cta { font-size: 2.2vmin; font-weight: 700; white-space: nowrap; border-bottom: .5vmin solid var(--r); padding-bottom: .6vmin; }
+  .fine { font-size: 1.6vmin; color: #5B5750; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 68%; height: calc(100% - 55vmin); }
+    .sun { width: 36vmin; height: 36vmin; right: -8vmin; bottom: -10vmin; }
+    .copy { top: calc(100% - 55vmin + 4.4vmin); bottom: 4.4vmin; width: 64vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 1.4vmin; }
+    h1 br { display: none; }
+    .tag { margin-top: 4.2vmin; font-size: 2.2vmin; }
+    .sub { margin-top: 3.4vmin; font-size: 1.9vmin; max-width: 52vmin; }
+    .foot { flex-direction: row; align-items: baseline; gap: 3vmin; }
+    .sq { width: 12vmin; height: 12vmin; top: 7vmin; }
+    .y1 { top: 26vmin; width: 18vmin; }
+    .l1 { top: 16vmin; height: 26vmin; }
+    .b1 { top: 34vmin; }
+    .r1 { top: 42vmin; }
+  }
+  /* square & wide: photo right, the planes drift above the copy on the left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 52%; height: 100%; }
+    .sun { right: auto; left: -9vmin; bottom: auto; top: -11vmin; width: 36vmin; height: 36vmin; }
+    .sq { right: auto; left: 28vmin; top: 7vmin; width: 10vmin; height: 10vmin; }
+    .y1 { right: auto; left: 20vmin; top: 22vmin; width: 18vmin; height: 2.8vmin; }
+    .l1 { right: auto; left: 40vmin; top: 2vmin; height: 26vmin; }
+    .b1 { right: auto; left: 7vmin; top: 28vmin; width: 4vmin; height: 4vmin; }
+    .r1 { display: none; }
+    .copy { left: 5vmin; top: 36vmin; bottom: 5vmin; width: calc(48% - 8vmin); }
+    h1 { font-size: 6.6vmin; margin-top: 1.4vmin; }
+    h1 br { display: inline; }
+    .tag { margin-top: 4.4vmin; font-size: 2vmin; }
+    .sub { margin-top: 3.2vmin; font-size: 1.8vmin; max-width: 38vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 60% 30%; }
+    .sun { left: -10vmin; top: -14vmin; width: 48vmin; height: 48vmin; }
+    .sq { left: 42vmin; top: 8vmin; width: 13vmin; height: 13vmin; }
+    .y1 { left: 30vmin; top: 26vmin; width: 22vmin; height: 3.2vmin; }
+    .l1 { left: 58vmin; top: 3vmin; height: 30vmin; }
+    .b1 { left: 10vmin; top: 36vmin; }
+    .r1 { display: block; right: auto; left: 60vmin; top: 36vmin; }
+    .copy { left: 6vmin; top: 40vmin; bottom: 5.4vmin; width: calc(52% - 12vmin); }
+    h1 { font-size: 8vmin; }
+    h1 br { display: none; }
+    .tag { font-size: 2.3vmin; }
+    .sub { font-size: 2vmin; max-width: 50vmin; }
+    .foot { flex-direction: row; align-items: baseline; gap: 3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <i class="s sun"></i>
+  <i class="s l1"></i><i class="s sq"></i><i class="s y1"></i><i class="s b1"></i><i class="s r1"></i>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="kick">Studio Nulla — new forms</div>
+    <h1>Zero <br>gravity.</h1>
+    <div class="tag"><b>−30%</b> weightless week</div>
+    <div class="sub">Light layers that barely touch the skin. Cut clean, built to move.</div>
+    <div class="foot">
+      <div class="cta">Shop new forms →</div>
+      <div class="fine">Code FORM30 · until Sunday</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

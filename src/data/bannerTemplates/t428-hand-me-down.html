@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Sedgwick+Ave&display=swap" rel="stylesheet">
+<style>
+  /* Hand-Me-Down — built to last, told by the sewn-in name tape: a cotton label ruled for names, where each owner
+     is written in laundry marker and struck through when it's passed on (Tom '19, Ella '22, Noah '26).
+     tall → photo above an oatmeal panel, headline left + label right; square/wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E7DFCF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E7DFCF; color: #1E2744; font-family: "Libre Caslon Text", Georgia, serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 72vmin); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 62vmin; }
+
+  .k { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(30,39,68,.35); }
+  h1 { position: absolute; left: 0; width: 48vmin; top: 7vmin; margin: 0; font-weight: 400; font-size: 8.4vmin; line-height: 1; letter-spacing: -.025em; }
+  h1 i { color: #B3362E; }
+
+  /* the name tape */
+  .tape { position: absolute; right: 0; top: 6.4vmin; width: 38vmin; box-sizing: border-box; padding: 3.2vmin 3.6vmin 2.6vmin; background: #FBF9F3; transform: rotate(3deg);
+    background-image: repeating-linear-gradient(90deg, rgba(30,39,68,.035) 0 1px, transparent 1px .45vmin);
+    box-shadow: 0 .7vmin 1.6vmin rgba(30,39,68,.18); }
+  .tape::before, .tape::after { content: ""; position: absolute; left: 0; right: 0; height: 1.1vmin; background: repeating-linear-gradient(90deg, #B3362E 0 .5vmin, #C9564D .5vmin .8vmin); }
+  .tape::before { top: 0; } .tape::after { bottom: 0; }
+  .st { position: absolute; top: 1.8vmin; bottom: 1.8vmin; width: 0; border-left: .3vmin dashed rgba(30,39,68,.4); }
+  .st.l { left: 1.4vmin; } .st.r { right: 1.4vmin; }
+  .tape small { display: block; font-size: 1.6vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #B3362E; }
+  .nm { position: relative; display: flex; align-items: baseline; justify-content: space-between; gap: 1vmin; margin-top: 1vmin; padding: .4vmin 0 .5vmin; border-bottom: 1px solid rgba(30,39,68,.3); font-family: "Sedgwick Ave", "Marker Felt", cursive; font-size: 4.4vmin; line-height: 1.05; white-space: nowrap; }
+  .nm span { font-size: 2.4vmin; opacity: .75; }
+  .nm.x::after { content: ""; position: absolute; left: -1vmin; right: -.6vmin; top: 42%; height: .5vmin; background: #1E2744; border-radius: .3vmin; transform: rotate(-3deg); opacity: .9; }
+  .nm.x { color: #56607C; }
+  .nm.now { color: #1E2744; }
+
+  .p { position: absolute; left: 0; width: 46vmin; top: 38vmin; font-size: 2.5vmin; line-height: 1.45; }
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 2.3vmin; line-height: 1.35; }
+  .offer b { color: #B3362E; }
+  .cta { flex: none; background: #1E2744; color: #FBF9F3; padding: 1.9vmin 3vmin; font-size: 1.9vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .photo { height: calc(100% - 64vmin); }
+    .panel { height: 55vmin; bottom: 4.4vmin; }
+    h1 { top: 6vmin; font-size: 7.6vmin; }
+    .tape { top: 5.6vmin; width: 36vmin; padding-top: 2.8vmin; }
+    .nm { font-size: 4vmin; margin-top: .6vmin; }
+    .p { top: 33vmin; font-size: 2.3vmin; }
+  }
+  /* 3:4 / 4:5 → photo left */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 26%; }
+    .panel { left: calc(50% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .k span:last-child { display: none; }
+    h1 { width: auto; right: 0; top: 7vmin; font-size: 7.4vmin; }
+    .tape { top: 42vmin; right: 1vmin; width: 36vmin; }
+    .p { top: auto; bottom: 18vmin; width: auto; right: 0; font-size: 2.1vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.2vmin; }
+    .offer { font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; }
+    .panel { left: calc(48% + 5vmin); }
+    h1 { font-size: 6.4vmin; }
+    .tape { top: 27vmin; width: 34vmin; padding: 2.6vmin 3.2vmin 2.2vmin; }
+    .nm { font-size: 3.6vmin; margin-top: .5vmin; }
+    .nm span { font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .panel { left: calc(44% + 7vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; }
+    .k span:last-child { display: inline; }
+    h1 { width: 36vmin; right: auto; top: 8vmin; font-size: 7.4vmin; }
+    .tape { top: 8vmin; right: 0; width: 30vmin; }
+    .p { display: block; top: auto; bottom: 14vmin; width: 42vmin; font-size: 2.2vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .offer { font-size: 2.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="k"><span>Built to last · Family basics</span><span>Nº 3 owner</span></div>
+    <h1>Made to be <i>handed down.</i></h1>
+    <div class="tape">
+      <i class="st l"></i><i class="st r"></i>
+      <small>This belongs to</small>
+      <div class="nm x">Tom <span>'19</span></div>
+      <div class="nm x">Ella <span>'22</span></div>
+      <div class="nm now">Noah <span>'26</span></div>
+    </div>
+    <div class="p">Double-stitched seams and fabric that softens, never thins. Worn by one, loved by the next.</div>
+    <div class="foot">
+      <div class="offer">Any 2 family basics <b>€60</b><br>Free repairs, for every owner</div>
+      <div class="cta">Shop built to last</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

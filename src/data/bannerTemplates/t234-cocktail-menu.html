@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Cocktail Hour — the reception's signature-drinks card, printed cream on bottle green: double rules, a garnish pick
+     with two olives as the divider, and three "signatures" whose prices are the offers, set with dotted leaders.
+     tall → photo above the menu; square/wide → menu left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #173628; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F2EADA; font-family: "Libre Caslon Text", "Big Caslon", Georgia, serif; background: #173628; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 86vmin); object-fit: cover; object-position: 50% 22%; }
+  .menu { position: absolute; left: 0; right: 0; bottom: 0; height: 86vmin; box-sizing: border-box; padding: 5vmin 8vmin 5vmin; display: flex; flex-direction: column; justify-content: space-between;
+    background: radial-gradient(80% 60% at 50% 0%, rgba(255,255,255,.06), transparent 70%), #173628; }
+  .rule { height: .9vmin; border-top: 1px solid rgba(242,234,218,.8); border-bottom: 1px solid rgba(242,234,218,.8); }
+  .top { display: flex; justify-content: space-between; margin-top: 1.4vmin; font-size: 1.7vmin; letter-spacing: .28em; text-transform: uppercase; white-space: nowrap; }
+  .head { text-align: center; }
+  .head h1 { margin: 0; font-family: "Libre Caslon Display", "Big Caslon", Georgia, serif; font-weight: 400; font-size: 13.4vmin; line-height: .95; letter-spacing: -.01em; white-space: nowrap; }
+  .head p { margin: 1.2vmin 0 0; font-style: italic; font-size: 2.6vmin; color: #D9CDB4; }
+  .pick { display: block; width: 44vmin; height: 4vmin; margin: 2.4vmin auto 0; overflow: visible; }
+
+  .items { display: flex; flex-direction: column; gap: 2.8vmin; }
+  .it .row { display: flex; align-items: baseline; gap: 1.4vmin; }
+  .it b { font-weight: 700; font-size: 2.4vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .it .dots { flex: 1; min-width: 3vmin; height: .8vmin; background: radial-gradient(circle, #F2EADA .16vmin, transparent .22vmin) 0 50% / 1.1vmin .8vmin repeat-x; opacity: .8; }
+  .it .pr { font-family: "Libre Caslon Display", Georgia, serif; font-size: 4.2vmin; line-height: 1; white-space: nowrap; color: #F6C9A8; }
+  .it p { margin: .6vmin 0 0; font-style: italic; font-size: 2.3vmin; color: #D9CDB4; }
+
+  .foot { display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; margin-top: 1.6vmin; font-size: 1.8vmin; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+  .foot b { font-weight: 700; color: #F6C9A8; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 74vmin); }
+    .menu { height: 74vmin; padding: 4vmin 9vmin 4vmin; }
+    .head h1 { font-size: 10vmin; }
+    .head p { font-size: 2.2vmin; margin-top: .8vmin; }
+    .pick { margin-top: 1.4vmin; height: 3.4vmin; }
+    .items { gap: 1.8vmin; }
+    .it b { font-size: 2.1vmin; }
+    .it .pr { font-size: 3.6vmin; }
+    .it p { font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .menu { top: 0; right: 46%; height: auto; padding: 5vmin 5vmin 5vmin; }
+    .top { font-size: 1.6vmin; letter-spacing: .16em; }
+    .head h1 { font-size: 7.4vmin; }
+    .head p { font-size: 2vmin; }
+    .pick { width: 30vmin; height: 3vmin; margin-top: 1.4vmin; }
+    .items { gap: 2vmin; }
+    .it b { font-size: 1.8vmin; letter-spacing: .12em; }
+    .it .pr { font-size: 3vmin; }
+    .it p { font-size: 1.8vmin; }
+    .foot { font-size: 1.6vmin; letter-spacing: .1em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; object-position: 50% 30%; }
+    .menu { right: 45%; padding: 6vmin 8vmin 6vmin; }
+    .top { font-size: 1.7vmin; letter-spacing: .28em; }
+    .head h1 { font-size: 11vmin; }
+    .head p { font-size: 2.4vmin; }
+    .pick { width: 40vmin; height: 3.6vmin; margin-top: 1.8vmin; }
+    .items { gap: 2.2vmin; }
+    .it b { font-size: 2.2vmin; letter-spacing: .2em; }
+    .it .pr { font-size: 3.8vmin; }
+    .it p { font-size: 2.1vmin; }
+    .foot { font-size: 1.8vmin; letter-spacing: .22em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="menu">
+    <div>
+      <div class="rule"></div>
+      <div class="top"><span>Studio Oro</span><span>Signatures</span></div>
+    </div>
+    <div class="head">
+      <h1>Cocktail Hour</h1>
+      <p>served from six · Friday to Sunday</p>
+      <svg class="pick" viewBox="0 0 440 40" aria-hidden="true">
+        <path d="M0 20 H150 M290 20 H440" stroke="#F2EADA" stroke-width="1.4" opacity=".6"/>
+        <path d="M160 20 H 282" stroke="#F2EADA" stroke-width="2.2"/>
+        <path d="M282 20 l 10 -6 v 12 z" fill="#F2EADA"/>
+        <ellipse cx="196" cy="20" rx="15" ry="12" fill="#7E8B3A"/><circle cx="189" cy="18" r="4" fill="#C8412F"/>
+        <ellipse cx="236" cy="20" rx="15" ry="12" fill="#7E8B3A"/><circle cx="229" cy="18" r="4" fill="#C8412F"/>
+        <circle cx="160" cy="20" r="4" fill="#F2EADA"/>
+      </svg>
+    </div>
+    <div class="items">
+      <div class="it"><div class="row"><b>The Toast</b><span class="dots"></span><span class="pr">20% off</span></div><p>sparkling, sharp — the new occasion edit</p></div>
+      <div class="it"><div class="row"><b>First Dance</b><span class="dots"></span><span class="pr">3 for 2</span></div><p>light on its feet, made to move all night</p></div>
+      <div class="it"><div class="row"><b>Last Train</b><span class="dots"></span><span class="pr">Free</span></div><p>straight up — next-day delivery</p></div>
+    </div>
+    <div>
+      <div class="rule"></div>
+      <div class="foot"><span>Ask the bar</span><b>Code TOAST20</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

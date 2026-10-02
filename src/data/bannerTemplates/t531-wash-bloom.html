@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@400;500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Wash Bloom — the photo laid onto cold-press paper over soft watercolour washes that bloom past its edges:
+     rose, lilac and sage pools with darker "tide-line" rims, granulation specks and a few stray drops.
+     tall → copy above, photo below · square / wide → copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F7F2E8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3B3140; font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(ellipse at 30% 20%, #FBF7EF 0%, #F5EFE3 70%, #EFE6D6 100%); }
+
+  /* watercolour pools = inline SVG shapes run through one filter: turbulent edge, darker tide-line rim, granulated fill */
+  .defs { position: absolute; width: 0; height: 0; }
+  .pool { position: absolute; overflow: visible; }
+  .drop { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(208,104,126,.26), rgba(200,94,118,.6) 84%, rgba(200,94,118,0)); }
+
+  .stage { position: absolute; left: 8vmin; right: 8vmin; top: 62vmin; bottom: 12vmin; }
+  .stage .rose { left: -11vmin; top: -9vmin; width: 66%; height: 60%; }
+  .stage .lilac { right: -11vmin; bottom: -9vmin; width: 74%; height: 48%; }
+  .stage .sage { right: -9vmin; top: 22%; width: 40%; height: 30%; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block;
+    box-shadow: 0 .4vmin 1.4vmin rgba(60,40,50,.14); }
+
+  .bloom-top { position: absolute; right: -10vmin; top: -12vmin; width: 52vmin; height: 44vmin; }
+  .d1 { right: 30vmin; top: 30vmin; width: 2.2vmin; height: 2.2vmin; }
+  .d2 { right: 24vmin; top: 34vmin; width: 1.2vmin; height: 1.2vmin; }
+
+  .copy { position: absolute; left: 8vmin; right: 8vmin; top: 7vmin; }
+  .kick { font-size: 1.7vmin; font-weight: 500; letter-spacing: .26em; text-transform: uppercase; color: #7C5A6A; white-space: nowrap; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 300; font-size: 15vmin; line-height: .86; letter-spacing: -.02em; }
+  h1 i { font-weight: 400; color: #9C4A63; }
+  .sub { margin-top: 2.6vmin; max-width: 60vmin; font-size: 2.4vmin; line-height: 1.45; color: #57495A; }
+  .buy { margin-top: 3vmin; display: flex; align-items: baseline; gap: 3vmin; flex-wrap: wrap; }
+  .price { font-family: "Cormorant Garamond", Georgia, serif; font-size: 4.6vmin; font-style: italic; white-space: nowrap; }
+  .price small { font-family: "Jost", sans-serif; font-style: normal; font-size: 1.7vmin; letter-spacing: .16em; text-transform: uppercase; margin-right: 1vmin; color: #7C5A6A; }
+  .cta { position: relative; font-size: 2vmin; font-weight: 500; letter-spacing: .08em; white-space: nowrap; padding: .6vmin .4vmin; }
+  .cta::after { content: ""; position: absolute; left: -1vmin; right: -1.4vmin; bottom: -.6vmin; height: 1.3vmin; z-index: -1; border-radius: 40% 60% 50% 50%;
+    background: linear-gradient(90deg, rgba(208,104,126,.12), rgba(208,104,126,.5) 20%, rgba(190,90,112,.42) 80%, rgba(208,104,126,.08)); filter: blur(.15vmin); }
+  .fine { position: absolute; left: 8vmin; right: 8vmin; bottom: 4.4vmin; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; color: #7D6E78; display: flex; justify-content: space-between; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .copy { top: 6vmin; }
+    h1 { font-size: 12vmin; }
+    .sub { font-size: 2.1vmin; }
+    .stage { top: 54vmin; bottom: 10.5vmin; left: 12vmin; right: 12vmin; }
+    .fine { bottom: 3.8vmin; }
+  }
+  /* ── square-ish: copy left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .copy { top: 8vmin; left: 6vmin; right: auto; width: 38vmin; }
+    h1 { font-size: 10.4vmin; }
+    .sub { font-size: 1.9vmin; }
+    .buy { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .stage { left: 49vmin; right: 7vmin; top: 8vmin; bottom: 8vmin; }
+    .stage .rose { width: 80%; height: 50%; }
+    .stage .sage { right: auto; left: -9vmin; top: 60%; width: 40%; height: 26%; }
+    .bloom-top { right: auto; left: -14vmin; top: auto; bottom: -16vmin; width: 50vmin; height: 40vmin; }
+    .d1 { right: auto; left: 40vmin; top: 5vmin; } .d2 { right: auto; left: 44vmin; top: 3vmin; }
+    .fine { left: 6vmin; right: auto; width: 38vmin; bottom: 5vmin; flex-direction: column; gap: .8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .copy { left: 8vmin; width: 50vmin; top: 9vmin; }
+    h1 { font-size: 12.4vmin; }
+    .sub { font-size: 2.1vmin; }
+    .buy { flex-direction: row; align-items: baseline; }
+    .stage { left: 66vmin; right: 8vmin; top: 8vmin; bottom: 8vmin; }
+    .stage .sage { left: -10vmin; }
+    .bloom-top { left: -10vmin; bottom: -18vmin; width: 60vmin; }
+    .d1 { left: 56vmin; top: 6vmin; } .d2 { left: 60vmin; top: 3.6vmin; }
+    .fine { left: 8vmin; width: 50vmin; flex-direction: row; bottom: 6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <filter id="wc" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.016" numOctaves="4" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="34" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feMorphology in="shape" operator="erode" radius="2.2" result="inner"/>
+      <feComposite in="shape" in2="inner" operator="out" result="edge"/>
+      <feGaussianBlur in="edge" stdDeviation=".8" result="edgeSoft"/>
+      <feComponentTransfer in="edgeSoft" result="rim"><feFuncA type="linear" slope=".6"/></feComponentTransfer>
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="3" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .9 0 0 0 -.16" result="ga"/>
+      <feComposite in="shape" in2="ga" operator="in" result="fill"/>
+      <feGaussianBlur in="fill" stdDeviation=".35" result="fillSoft"/>
+      <feMerge><feMergeNode in="fillSoft"/><feMergeNode in="rim"/></feMerge>
+    </filter></defs></svg>
+  <svg class="pool bloom-top" viewBox="0 0 200 170" preserveAspectRatio="none"><g filter="url(#wc)" fill="#9C84D2"><ellipse cx="96" cy="80" rx="74" ry="56"/><ellipse cx="140" cy="116" rx="40" ry="30"/></g></svg>
+  <i class="drop d1"></i><i class="drop d2"></i>
+  <div class="stage">
+    <svg class="pool rose" viewBox="0 0 200 180" preserveAspectRatio="none"><g filter="url(#wc)" fill="#E07C95"><ellipse cx="92" cy="84" rx="72" ry="60"/><ellipse cx="146" cy="120" rx="34" ry="30"/><circle cx="40" cy="140" r="14"/></g></svg>
+    <svg class="pool lilac" viewBox="0 0 200 150" preserveAspectRatio="none"><g filter="url(#wc)" fill="#9C84D2"><ellipse cx="108" cy="78" rx="76" ry="50"/><ellipse cx="56" cy="100" rx="36" ry="28"/></g></svg>
+    <svg class="pool sage" viewBox="0 0 160 140" preserveAspectRatio="none"><g filter="url(#wc)" fill="#86B596"><ellipse cx="80" cy="70" rx="56" ry="48"/></g></svg>
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  </div>
+  <div class="copy">
+    <div class="kick">Maison Lavis · Spring 27</div>
+    <h1>Soft<br><i>as water.</i></h1>
+    <div class="sub">Pieces washed in pale colour — light enough to layer, made to last.</div>
+    <div class="buy">
+      <div class="price"><small>From</small>$58</div>
+      <div class="cta">Discover the edit →</div>
+    </div>
+  </div>
+  <div class="fine"><span>Free returns · 30 days</span><span>New season</span></div>
+</div>
+</body>
+</html>

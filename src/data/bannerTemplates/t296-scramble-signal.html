@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800&family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+  /* Scramble Signal — the big Shibuya-style scramble: zebra stripes on grainy asphalt, the headline painted as a
+     stretched road marking, and a pedestrian signal with the green walker lit and an LED countdown for the offer.
+     tall → photo above, crossing + asphalt below · square & wide → photo left, crossing column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2B2C2F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F1EFE8; font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    background: radial-gradient(120% 90% at 70% 100%, #34363A 0%, #2B2C2F 55%, #232427 100%); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .55; mix-blend-mode: overlay; }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 82vmin); overflow: hidden; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+
+  /* zebra crossing */
+  .zebra { position: absolute; left: 0; right: 0; top: calc(100% - 82vmin); height: 12vmin; background: repeating-linear-gradient(90deg, transparent 0 2.5vmin, rgba(241,239,232,.93) 2.5vmin 9.5vmin, transparent 9.5vmin 14vmin); }
+
+  .street { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 63vmin; display: grid; grid-template-columns: minmax(0, 1fr) 25vmin; grid-template-rows: auto 1fr auto; column-gap: 5vmin; }
+  .kick { grid-column: 1; font-weight: 700; font-size: 2.2vmin; letter-spacing: .22em; text-transform: uppercase; color: #FFCB2E; display: flex; align-items: center; gap: 1.4vmin; }
+  .kick i { width: 2.4vmin; height: 2.4vmin; border: .4vmin solid #FFCB2E; transform: rotate(45deg); box-sizing: border-box; flex: none; }
+  .road { grid-column: 1; align-self: end; }
+  .road h1 { margin: 0; font-weight: 800; font-size: 16vmin; line-height: .72; letter-spacing: .01em; text-transform: uppercase; transform: scaleY(1.55); transform-origin: 0 100%; color: rgba(241,239,232,.95); }
+  .road h1 + h1 { margin-top: 8vmin; }
+  .road p { margin: 3vmin 0 0; font-weight: 500; font-size: 3.4vmin; line-height: 1.15; color: #D9D6CE; }
+  .road p b { font-weight: 800; color: #F1EFE8; }
+
+  /* pedestrian signal */
+  .signal { grid-column: 2; grid-row: 1 / 3; align-self: start; display: flex; flex-direction: column; align-items: center; }
+  .box { width: 100%; background: linear-gradient(180deg, #3E4044, #2A2B2E); border-radius: 1.6vmin; padding: 2vmin; box-sizing: border-box; box-shadow: 0 1vmin 2vmin rgba(0,0,0,.4), inset 0 .2vmin 0 rgba(255,255,255,.12); display: grid; grid-template-columns: 1fr auto; grid-template-rows: 1fr 1fr; gap: 1.6vmin; }
+  .lamp { aspect-ratio: 1 / 1; border-radius: 1vmin; background: #111214; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 .4vmin 1vmin rgba(0,0,0,.8); }
+  .lamp svg { width: 72%; height: 72%; }
+  .stop svg { fill: #4A1E1A; }
+  .go svg { fill: #3DFFA0; filter: drop-shadow(0 0 1vmin rgba(61,255,160,.8)); }
+  .go { background: radial-gradient(circle, #10301F 0%, #111214 75%); }
+  .bars { grid-column: 2; grid-row: 1 / 3; width: 3.4vmin; display: flex; flex-direction: column; gap: .7vmin; padding: .8vmin; background: #111214; border-radius: .8vmin; }
+  .bars i { flex: 1; background: #3A2A10; border-radius: .3vmin; }
+  .bars i.on { background: #FFB21F; box-shadow: 0 0 .8vmin rgba(255,178,31,.8); }
+  .led { margin-top: 1.6vmin; width: 100%; background: #111214; border-radius: 1vmin; padding: 1.4vmin 1vmin 1.2vmin; box-sizing: border-box; text-align: center; font-family: "DotGothic16", "Courier New", monospace; color: #FFB21F; text-shadow: 0 0 .9vmin rgba(255,178,31,.7); }
+  .led b { display: block; font-weight: 400; font-size: 7vmin; line-height: 1; }
+  .led span { display: block; font-size: 1.8vmin; margin-top: .6vmin; letter-spacing: .08em; }
+  .pole { width: 2vmin; height: 6vmin; background: linear-gradient(90deg, #505257, #6A6C71 40%, #3A3B3F); }
+  .plate { display: none; margin-top: 1.6vmin; background: #1E4FA8; color: #fff; font-family: "DotGothic16", "Courier New", monospace; font-size: 1.8vmin; padding: .6vmin 1.2vmin; border: .3vmin solid #fff; border-radius: .6vmin; white-space: nowrap; }
+
+  .foot { grid-column: 1 / -1; margin-top: 3.4vmin; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; padding-top: 2vmin; border-top: 1px solid rgba(241,239,232,.3); font-weight: 700; font-size: 2.2vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .foot b { background: #F1EFE8; color: #2B2C2F; padding: 1vmin 1.8vmin; font-weight: 800; letter-spacing: .12em; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 71vmin); }
+    .zebra { top: calc(100% - 71vmin); height: 10vmin; }
+    .street { height: 55vmin; bottom: 4vmin; grid-template-columns: minmax(0, 1fr) 22vmin; }
+    .road h1 { font-size: 14vmin; }
+    .road h1 + h1 { margin-top: 7vmin; }
+    .road p { font-size: 3vmin; margin-top: 2.4vmin; }
+    .led b { font-size: 6vmin; }
+    .plate { display: none; }
+    .foot { margin-top: 2.6vmin; padding-top: 1.6vmin; }
+  }
+  /* SQUARE — photo left, crossing column right (zebra runs down the seam) */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; width: 46%; height: 100%; }
+    .zebra { left: 46%; right: auto; top: 0; width: 9vmin; height: 100%; background: repeating-linear-gradient(0deg, transparent 0 2.5vmin, rgba(241,239,232,.93) 2.5vmin 8.5vmin, transparent 8.5vmin 12vmin); }
+    .street { left: calc(46% + 14vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; grid-template-columns: minmax(0, 1fr) 16vmin; column-gap: 3vmin; }
+    .kick { font-size: 1.8vmin; letter-spacing: .16em; align-self: start; }
+    .kick i { width: 2vmin; height: 2vmin; }
+    .road h1 { font-size: 12.4vmin; }
+    .road h1 + h1 { margin-top: 6.6vmin; }
+    .road p { font-size: 2.6vmin; margin-top: 2vmin; }
+    .box { padding: 1.2vmin; gap: 1vmin; border-radius: 1.2vmin; }
+    .bars { width: 2.4vmin; padding: .5vmin; gap: .5vmin; }
+    .led { padding: 1vmin .6vmin; margin-top: 1.2vmin; }
+    .led b { font-size: 4.6vmin; }
+    .led span { font-size: 1.6vmin; }
+    .signal { grid-row: 1 / 3; }
+    .foot { font-size: 1.8vmin; letter-spacing: .1em; margin-top: 2.4vmin; padding-top: 1.6vmin; }
+    .foot b { padding: .9vmin 1.4vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .zebra { left: 48%; width: 10vmin; }
+    .street { left: calc(48% + 16vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; grid-template-columns: minmax(0, 1fr) 20vmin; column-gap: 5vmin; }
+    .road h1 { font-size: 16vmin; }
+    .road h1 + h1 { margin-top: 8.4vmin; }
+    .road p { font-size: 3vmin; }
+    .led b { font-size: 5.6vmin; }
+    .foot { font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="3" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .5 0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="zebra"></div>
+  <div class="street">
+    <div class="kick"><i></i>Scramble sale · all ways, all at once</div>
+    <div class="road"><h1>Cross</h1><h1>over.</h1><p>To the new season — <b>25% off</b> everything new in.</p></div>
+    <div class="signal">
+      <div class="box">
+        <div class="lamp stop"><svg viewBox="0 0 24 24"><circle cx="12" cy="3.6" r="2.6"/><path d="M8.2 7.4h7.6l1 8.2h-2.2l-.4-4.2v11.8h-2.7v-7.4h-1v7.4H7.8V11.4l-.4 4.2H5.2z"/></svg></div>
+        <div class="lamp go"><svg viewBox="0 0 24 24"><circle cx="13.4" cy="3.4" r="2.4"/><path d="M11.4 6.8l3.6.4 1.8 4.6 3 1.6-.9 1.7-3.6-1.8-.6-1.6-.9 3.9 3.3 3.6.9 4.4-2.3.4-.8-3.9-3-2.7-1.3 3.8-3.6 2.7-1.4-1.7 3-2.3 2.2-8.6-1.4 1.5-.6 3.2-2.1-.4.8-4z"/></svg></div>
+        <div class="bars"><i></i><i></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+      </div>
+      <div class="led"><b>48H</b><span>CODE SCRAMBLE25</span></div>
+      <div class="pole"></div>
+    </div>
+    <div class="foot"><span>Walk in, any direction</span><b>Shop now →</b></div>
+  </div>
+</div>
+</body>
+</html>

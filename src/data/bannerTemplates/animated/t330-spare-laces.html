@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@600;700&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Spare Laces — the little header card of spare laces that comes in the box: euro-slot hanger,
+     two bundles of flat woven laces wrapped round its waist (one bone, one black) with an aglet
+     tail poking out. Gift-with-purchase copy on lilac, a handwritten "yours, free" note.
+     tall → photo above, card + copy below; 3:4 and wider → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #CFC3E8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #CFC3E8; color: #17151C; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 82vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 82vmin; }
+  /* the card */
+  .card { position: absolute; right: 7vmin; top: 7vmin; width: 36vmin; height: 64vmin; transform: rotate(5deg); }
+  .face { position: absolute; inset: 0; background: #FBF9F4; box-shadow: 0 1.4vmin 2.6vmin rgba(40,28,70,.28); display: flex; flex-direction: column; align-items: center; text-align: center; padding: 8vmin 2.6vmin 2.6vmin; box-sizing: border-box; }
+  .face::before { content: ""; position: absolute; left: 50%; top: 2.4vmin; width: 9vmin; height: 2.6vmin; margin-left: -4.5vmin; border-radius: 1.3vmin; background: #CFC3E8; box-shadow: inset 0 .3vmin .4vmin rgba(0,0,0,.25); }
+  .face::after { content: ""; position: absolute; left: 50%; top: 2.4vmin; width: 3.2vmin; height: 3.2vmin; margin-left: -1.6vmin; border-radius: 50%; background: #CFC3E8; transform: translateY(-.3vmin); }
+  .brand { font-family: "Bebas Neue", Impact, sans-serif; font-size: 3.2vmin; letter-spacing: .3em; line-height: 1; padding-left: .3em; }
+  .ttl { margin-top: 1vmin; font-family: "Bebas Neue", Impact, sans-serif; font-size: 6.6vmin; line-height: .88; }
+  .spec { margin-top: auto; width: 100%; border-top: 1px solid #17151C; padding-top: 1.2vmin; display: flex; justify-content: space-between; font-size: 1.6vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .gwp { margin-top: 2vmin; width: 100%; background: #17151C; color: #FBF9F4; padding: 1vmin 0; font-family: "Bebas Neue", Impact, sans-serif; font-size: 2.8vmin; letter-spacing: .14em; }
+  /* lace bundles wrapped round the card */
+  .wrap { position: absolute; left: -1.6vmin; right: -1.6vmin; display: flex; flex-direction: column; gap: .35vmin; }
+  .wrap i { display: block; height: 1.9vmin; border-radius: .95vmin; box-shadow: 0 .25vmin .35vmin rgba(0,0,0,.25); }
+  .w1 { top: 43%; }
+  .w1 i { background: repeating-linear-gradient(60deg, #EFE9DC 0 .45vmin, #D9D1C0 .45vmin .7vmin); }
+  .w2 { top: 60%; }
+  .w2 i { background: repeating-linear-gradient(60deg, #2A2730 0 .45vmin, #111016 .45vmin .7vmin); }
+  .tail { position: absolute; left: 68%; top: 50%; width: 1.9vmin; height: calc(50% + 6vmin); transform-origin: 50% 0; transform: rotate(-12deg); border-radius: .95vmin .95vmin 0 0; background: repeating-linear-gradient(150deg, #EFE9DC 0 .45vmin, #D9D1C0 .45vmin .7vmin); box-shadow: 0 .25vmin .35vmin rgba(0,0,0,.25); z-index: -1; }
+  .tail::after { content: ""; position: absolute; left: .15vmin; right: .15vmin; bottom: -3.4vmin; height: 3.6vmin; border-radius: .2vmin .2vmin .6vmin .6vmin; background: linear-gradient(90deg, #8E8A94, #E8E6EC 45%, #7E7A84); }
+  .face, .wrap { z-index: 1; }
+  /* copy */
+  .copy { position: absolute; left: 5vmin; top: 5vmin; bottom: 5vmin; width: 48vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Bebas Neue", Impact, sans-serif; font-weight: 400; font-size: 12.4vmin; line-height: .86; letter-spacing: .005em; }
+  h1 span { color: #FBF9F4; -webkit-text-stroke: .3vmin #17151C; }
+  .offer { margin-top: 2.6vmin; font-size: 2.2vmin; font-weight: 500; line-height: 1.45; }
+  .offer b { font-weight: 800; }
+  .note { margin-top: 1.4vmin; font-family: "Caveat", cursive; font-weight: 700; font-size: 4.4vmin; line-height: 1; color: #5B2FB0; transform: rotate(-4deg); transform-origin: left center; white-space: nowrap; }
+  .cta { margin-top: auto; align-self: flex-start; display: flex; align-items: center; gap: 1.6vmin; background: #17151C; color: #FBF9F4; padding: 1.9vmin 3vmin; border-radius: 8vmin; font-weight: 800; font-size: 2.3vmin; letter-spacing: .04em; white-space: nowrap; }
+
+  /* 3:4 / 4:5 → photo left, panel right: copy on top, card below */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 52%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 52%; top: 0; height: auto; }
+    .copy { left: 4vmin; right: 4vmin; width: auto; top: 4.4vmin; bottom: 4vmin; }
+    h1 { font-size: 9.4vmin; }
+    .offer { font-size: 1.9vmin; margin-top: 2vmin; }
+    .note { position: absolute; left: 0; bottom: 24vmin; margin: 0; font-size: 3.2vmin; }
+    .card { right: 4vmin; left: auto; top: auto; bottom: 8vmin; width: 25vmin; height: 45vmin; transform: rotate(6deg); }
+    .face { padding: 5.6vmin 1.6vmin 1.6vmin; }
+    .face::before { top: 1.6vmin; width: 6vmin; height: 1.8vmin; margin-left: -3vmin; }
+    .face::after { top: 1.6vmin; width: 2.2vmin; height: 2.2vmin; margin-left: -1.1vmin; }
+    .brand { font-size: 2.2vmin; }
+    .ttl { font-size: 4.2vmin; }
+    .spec { font-size: 1.6vmin; letter-spacing: 0; }
+    .spec span:last-child { display: none; }
+    .spec { justify-content: center; }
+    .gwp { font-size: 2vmin; }
+    .wrap { left: -1.2vmin; right: -1.2vmin; gap: .25vmin; }
+    .wrap i { height: 1.3vmin; }
+    .tail { width: 1.3vmin; height: calc(50% + 4vmin); }
+    .tail::after { bottom: -2.4vmin; height: 2.6vmin; }
+    .cta { margin-top: 3vmin; font-size: 2vmin; padding: 1.6vmin 2.2vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .panel { left: 50%; }
+    h1 { font-size: 8.4vmin; }
+    .card { right: 4vmin; bottom: 6vmin; width: 21vmin; height: 38vmin; }
+    .note { bottom: 18vmin; font-size: 3.6vmin; }
+    .cta { margin-top: 2.4vmin; }
+    .ttl { font-size: 3.6vmin; }
+    .brand { font-size: 1.9vmin; }
+    .gwp { font-size: 1.8vmin; }
+    .spec { font-size: 1.6vmin; }
+  }
+  /* wide → copy left, card right, both roomy */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 50% 30%; }
+    .panel { left: 48%; }
+    .copy { left: 5vmin; right: auto; width: 38vmin; top: 5vmin; bottom: 5vmin; }
+    h1 { font-size: 10.6vmin; }
+    .offer { font-size: 2vmin; }
+    .note { position: static; margin-top: 2vmin; font-size: 4vmin; }
+    .cta { position: static; margin-top: auto; font-size: 2.2vmin; padding: 1.8vmin 2.8vmin; }
+    .card { left: auto; right: 6vmin; top: 12vmin; bottom: auto; width: 28vmin; height: 52vmin; transform: rotate(5deg); }
+    .face { padding: 7vmin 2vmin 2vmin; }
+    .face::before { top: 2vmin; width: 7.4vmin; height: 2.2vmin; margin-left: -3.7vmin; }
+    .face::after { top: 2vmin; width: 2.8vmin; height: 2.8vmin; margin-left: -1.4vmin; }
+    .brand { font-size: 2.6vmin; }
+    .ttl { font-size: 5.4vmin; }
+    .spec span:last-child { display: inline; }
+    .spec { justify-content: space-between; }
+    .gwp { font-size: 2.4vmin; }
+    .wrap { left: -1.4vmin; right: -1.4vmin; gap: .3vmin; }
+    .wrap i { height: 1.6vmin; }
+    .tail { width: 1.6vmin; height: calc(50% + 5vmin); }
+    .tail::after { bottom: -3vmin; height: 3.2vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* constant: photo breathes in
+     beats: 0.5s the lace card gets knocked and swings on its hanger, damping out; the aglet tail lags behind ·
+     3.2s the handwritten "yours, free →" rewrites itself · 4.4s a sheen crosses the GIFT band ·
+     5.0s the CTA arrow nudges twice */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .sw { position: absolute; inset: 0; transform-origin: 50% 3.6vmin; animation: swing 6s linear infinite; }
+  @keyframes swing {
+    0%, 8% { transform: rotate(0); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    14% { transform: rotate(-3.4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    23% { transform: rotate(2.4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    32% { transform: rotate(-1.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    41% { transform: rotate(.8deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: rotate(-.3deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    58%, 100% { transform: rotate(0); }
+  }
+  .tail { animation: sway 6s linear infinite; }
+  @keyframes sway {
+    0%, 10% { transform: rotate(-12deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    17% { transform: rotate(-7deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    26% { transform: rotate(-16deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    35% { transform: rotate(-9.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    44% { transform: rotate(-13.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    53% { transform: rotate(-11.4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    62%, 100% { transform: rotate(-12deg); }
+  }
+
+  .note { animation: write 6s linear infinite; }
+  @keyframes write {
+    0%, 52% { clip-path: inset(-20% -5% -20% -5%); opacity: 1; animation-timing-function: ease-in; }
+    54.5% { clip-path: inset(-20% -5% -20% -5%); opacity: 0; animation-timing-function: steps(1, end); }
+    55% { clip-path: inset(-20% 105% -20% -5%); opacity: 1; animation-timing-function: cubic-bezier(.4,.1,.5,1); }
+    68%, 100% { clip-path: inset(-20% -5% -20% -5%); opacity: 1; }
+  }
+
+  .gwp { position: relative; overflow: hidden; }
+  .gwp::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.28) 50%, rgba(255,255,255,0) 100%);
+    transform: translateX(-120%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 72% { transform: translateX(-120%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    84%, 100% { transform: translateX(380%) skewX(-18deg); }
+  }
+  .cta span { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 82% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    85% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    91% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    94%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="copy">
+      <div class="kick">Gift with purchase</div>
+      <h1>Something extra <span>in every box.</span></h1>
+      <p class="offer">Free spare laces with <b>every order over €80</b>, while stocks last.</p>
+      <div class="note">yours, free →</div>
+      <div class="cta">Shop the drop <span>→</span></div>
+    </div>
+    <div class="card"><div class="sw">
+      <div class="tail"></div>
+      <div class="face">
+        <div class="brand">Studio Oro</div>
+        <div class="ttl">Spare<br>laces</div>
+        <div class="spec"><span>2 pairs · 120 cm</span><span>Flat</span></div>
+        <div class="gwp">Gift · Nº 0426</div>
+      </div>
+      <div class="wrap w1"><i></i><i></i><i></i><i></i></div>
+      <div class="wrap w2"><i></i><i></i><i></i><i></i></div>
+    </div></div>
+  </div>
+</div>
+</body>
+</html>

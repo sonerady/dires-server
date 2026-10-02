@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Special+Elite&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Stamp Diary — a squared-paper diary page decorated with rubber stamps: the headline pressed letter by letter
+     with an alphabet stamp set (each block a little crooked, ink uneven), a round "hand-picked" seal with its text
+     running around the rim, a red date stamp, a double-ruled price stamp and a boxed CTA, all with speckled ink.
+     tall → letters / photo / stamps · 3:4 & square → photo left, letters + stamps right · wide → photo left, stamps right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5F1E6; }
+  .banner { --s: 11vmin; position: fixed; inset: 0; overflow: hidden; color: #26336B; font-family: "Special Elite", "Courier New", monospace;
+    background:
+      linear-gradient(90deg, rgba(110,150,200,.22) 1px, transparent 1px) 0 0 / 4vmin 4vmin,
+      linear-gradient(0deg, rgba(110,150,200,.22) 1px, transparent 1px) 0 0 / 4vmin 4vmin,
+      #F7F3E9; }
+  .defs { position: absolute; width: 0; height: 0; }
+  .ink { filter: url(#ink); }
+
+  /* alphabet stamps */
+  .letters { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; display: flex; flex-wrap: wrap; gap: 1.6vmin 3.4vmin; }
+  .word { display: flex; gap: .6vmin; }
+  .word b { display: flex; align-items: center; justify-content: center; width: var(--s); height: var(--s); box-sizing: border-box; border: .45vmin solid currentColor; border-radius: .6vmin;
+    font-family: "Alfa Slab One", Georgia, serif; font-weight: 400; font-size: calc(var(--s) * .66); line-height: 1; }
+  .word b:nth-child(3n+1) { transform: rotate(-3deg) translateY(.4vmin); }
+  .word b:nth-child(3n+2) { transform: rotate(2deg); opacity: .86; }
+  .word b:nth-child(3n) { transform: rotate(-1deg) translateY(-.5vmin); }
+
+  .photo { position: absolute; left: 7vmin; top: 33vmin; width: calc(100% - 14vmin); height: calc(100% - 85vmin); object-fit: cover; object-position: 50% 30%; display: block;
+    box-shadow: 0 .5vmin 1.4vmin rgba(40,40,60,.2); }
+
+  .stamps { position: absolute; left: 7vmin; right: 7vmin; bottom: 6vmin; height: 44vmin; display: flex; align-items: center; justify-content: space-between; gap: 4vmin; }
+  .seal { flex: none; width: 34vmin; height: 34vmin; color: #26336B; }
+  .seal svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .seal text { font-family: "Special Elite", monospace; fill: currentColor; }
+  .col { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+  .date { color: #C0392B; border: .4vmin solid currentColor; border-radius: 1vmin; padding: .8vmin 2vmin; transform: rotate(3deg); text-align: center; }
+  .date small { display: block; font-size: 1.6vmin; letter-spacing: .2em; border-bottom: .3vmin solid currentColor; padding-bottom: .4vmin; margin-bottom: .5vmin; }
+  .date span { display: block; font-size: 3.4vmin; letter-spacing: .06em; white-space: nowrap; }
+  .price { color: #26336B; border: .45vmin double currentColor; outline: .35vmin solid currentColor; outline-offset: .6vmin; padding: .6vmin 2.4vmin; margin: .6vmin; transform: rotate(-2deg); }
+  .price small { display: block; font-size: 1.7vmin; letter-spacing: .2em; margin-bottom: .8vmin; }
+  .price span { display: block; font-family: "Alfa Slab One", Georgia, serif; font-size: 7.4vmin; line-height: 1.05; }
+  .cta { font-size: 2.2vmin; letter-spacing: .12em; color: #F7F3E9; background: #26336B; padding: 1.2vmin 2.4vmin; white-space: nowrap; }
+  .fine { font-size: 1.6vmin; color: #6B7196; white-space: nowrap; }
+
+  /* ── 3:4 & square — photo left, letters + stamps right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --s: 5.6vmin; }
+    .photo { left: 6vmin; top: 6vmin; width: 50vmin; height: calc(100% - 12vmin); }
+    .letters { left: 61vmin; right: 3vmin; top: 7vmin; gap: 1.6vmin; }
+    .word { gap: .4vmin; }
+    .word b { border-width: .35vmin; }
+    .stamps { left: 61vmin; right: 4vmin; top: 30vmin; bottom: 6vmin; height: auto; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 2vmin; }
+    .seal { width: 22vmin; height: 22vmin; align-self: center; }
+    .col { flex: none; gap: 1.8vmin; }
+    .date span { font-size: 2.8vmin; }
+    .price span { font-size: 5.6vmin; }
+    .cta { font-size: 1.9vmin; }
+    .fine { white-space: normal; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --s: 5vmin; }
+    .photo { left: 5vmin; top: 5vmin; width: 46vmin; height: calc(100% - 10vmin); }
+    .letters { left: 56vmin; top: 5vmin; }
+    .stamps { left: 56vmin; top: 23vmin; bottom: 5vmin; flex-direction: row; align-items: center; }
+    .seal { width: 16vmin; height: 16vmin; align-self: flex-start; margin-top: 2vmin; }
+    .col { flex: 1; gap: 1.6vmin; }
+    .date { padding: .6vmin 1.4vmin; }
+    .date span { font-size: 2.4vmin; }
+    .price span { font-size: 5vmin; }
+    .cta { font-size: 1.7vmin; padding: 1vmin 1.8vmin; }
+  }
+  /* ── wide — photo left, letters + stamps right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --s: 7.4vmin; }
+    .photo { left: 6vmin; top: 6vmin; width: 56vmin; height: calc(100% - 12vmin); }
+    .letters { left: 70vmin; right: 5vmin; top: 7vmin; gap: 2vmin 3vmin; }
+    .word { gap: .6vmin; }
+    .stamps { left: 70vmin; right: 5vmin; top: 36vmin; bottom: 6vmin; flex-direction: row; align-items: center; gap: 4vmin; }
+    .seal { width: 28vmin; height: 28vmin; align-self: center; margin-top: 0; }
+    .col { gap: 2.2vmin; }
+    .date span { font-size: 3vmin; }
+    .price span { font-size: 6.4vmin; }
+    .cta { font-size: 2vmin; padding: 1.2vmin 2.2vmin; }
+  }
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     first ~0.7s calm · 0.75–2.5s the headline is re-stamped letter by letter, H → D: each block lifts off and is
+     pressed back with a slight bounce · 2.9s the round seal is pressed down · 3.6s the red RECEIVED date is
+     re-stamped · 4.3s the price stamp thumps · 5.0s the CTA arrow nudges */
+  .word b:nth-child(3n+1) { animation: press1 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes press1 {
+    0%, 35% { opacity: 1; transform: rotate(-3deg) translateY(.4vmin) scale(1); }
+    36.5% { opacity: 0; transform: rotate(-5deg) translateY(.4vmin) scale(1.3); }
+    37.5% { opacity: 0; transform: rotate(-5deg) translateY(.4vmin) scale(1.3); }
+    39.5% { opacity: 1; transform: rotate(-3deg) translateY(.4vmin) scale(.93); }
+    41.5%, 100% { opacity: 1; transform: rotate(-3deg) translateY(.4vmin) scale(1); }
+  }
+  .word b:nth-child(3n+2) { animation: press2 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes press2 {
+    0%, 35% { opacity: 0.86; transform: rotate(2deg) scale(1); }
+    36.5% { opacity: 0; transform: rotate(5deg) scale(1.3); }
+    37.5% { opacity: 0; transform: rotate(5deg) scale(1.3); }
+    39.5% { opacity: 0.86; transform: rotate(2deg) scale(.93); }
+    41.5%, 100% { opacity: 0.86; transform: rotate(2deg) scale(1); }
+  }
+  .word b:nth-child(3n) { animation: press3 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes press3 {
+    0%, 35% { opacity: 1; transform: rotate(-1deg) translateY(-.5vmin) scale(1); }
+    36.5% { opacity: 0; transform: rotate(-4deg) translateY(-.5vmin) scale(1.3); }
+    37.5% { opacity: 0; transform: rotate(-4deg) translateY(-.5vmin) scale(1.3); }
+    39.5% { opacity: 1; transform: rotate(-1deg) translateY(-.5vmin) scale(.93); }
+    41.5%, 100% { opacity: 1; transform: rotate(-1deg) translateY(-.5vmin) scale(1); }
+  }
+  .letters .word:nth-child(1) b:nth-child(1) { animation-delay: -1.35s; }
+  .letters .word:nth-child(1) b:nth-child(2) { animation-delay: -1.20s; }
+  .letters .word:nth-child(1) b:nth-child(3) { animation-delay: -1.05s; }
+  .letters .word:nth-child(1) b:nth-child(4) { animation-delay: -0.90s; }
+  .letters .word:nth-child(2) b:nth-child(1) { animation-delay: -0.75s; }
+  .letters .word:nth-child(2) b:nth-child(2) { animation-delay: -0.60s; }
+  .letters .word:nth-child(2) b:nth-child(3) { animation-delay: -0.45s; }
+  .letters .word:nth-child(2) b:nth-child(4) { animation-delay: -0.30s; }
+  .letters .word:nth-child(2) b:nth-child(5) { animation-delay: -0.15s; }
+  .letters .word:nth-child(2) b:nth-child(6) { animation-delay: 0.00s; }
+
+  .seal { animation: seal 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes seal { 0%, 47%, 58%, 100% { transform: scale(1); opacity: 1; } 49.5% { transform: scale(1.06) rotate(-2deg); opacity: .55; } 52.5% { transform: scale(.96) rotate(.5deg); opacity: 1; } 55% { transform: scale(1.01); } }
+
+  .date { animation: date 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes date {
+    0%, 58% { opacity: 1; transform: rotate(3deg) scale(1); }
+    59.5%, 60.5% { opacity: 0; transform: rotate(-3deg) scale(1.35); }
+    63% { opacity: 1; transform: rotate(3.5deg) scale(.93); }
+    65.5%, 100% { opacity: 1; transform: rotate(3deg) scale(1); }
+  }
+
+  .price { animation: thump 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes thump { 0%, 70%, 79%, 100% { transform: rotate(-2deg) scale(1); } 72.5% { transform: rotate(-3.5deg) scale(1.07); } 75.5% { transform: rotate(-1.6deg) scale(.97); } }
+
+  .cta .ar { display: inline-block; animation: nudge 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 82%, 94%, 100% { transform: translateX(0); } 87% { transform: translateX(.8vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 1.75" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in" result="speck"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" seed="3" result="w"/>
+      <feDisplacementMap in="speck" in2="w" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs></svg>
+
+  <div class="letters ink" aria-label="Hand picked">
+    <span class="word"><b>H</b><b>A</b><b>N</b><b>D</b></span>
+    <span class="word"><b>P</b><b>I</b><b>C</b><b>K</b><b>E</b><b>D</b></span>
+  </div>
+
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="stamps">
+    <div class="seal ink">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs><path id="rim" d="M27.1,87.2 A74,74 0 0,1 172.9,87.2"/></defs>
+        <circle cx="100" cy="100" r="96" fill="none" stroke="currentColor" stroke-width="5"/>
+        <circle cx="100" cy="100" r="60" fill="none" stroke="currentColor" stroke-width="2.5"/>
+        <text font-size="15"><textPath href="#rim" textLength="200" lengthAdjust="spacing">HAND-PICKED · LORNE &amp; CO</textPath></text>
+        <path d="M34,128 L40,140 M166,128 L160,140" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path d="M70,176 Q100,188 130,176" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+        <text x="100" y="116" text-anchor="middle" font-size="16" letter-spacing="2">Nº</text>
+        <text x="100" y="153" text-anchor="middle" font-size="34" font-family="Alfa Slab One, Georgia, serif">580</text>
+      </svg>
+    </div>
+    <div class="col">
+      <div class="date ink"><small>RECEIVED</small><span>25 SEP 2026</span></div>
+      <div class="price ink"><small>ONLY</small><span>$110</span></div>
+      <div class="cta">SHOP THE PICK <span class="ar">→</span></div>
+      <div class="fine">Free shipping over $80 · 30-day returns</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

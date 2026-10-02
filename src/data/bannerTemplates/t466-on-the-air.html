@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Monoton&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+  /* On the Air — a 1930s wireless broadcast poster: a lattice radio mast on a midnight field sends concentric
+     tangerine waves across the sky, "TUNE IN" in inline radio-age caps, the station's call sign and wavelength,
+     and the offer announced as tonight's programme. tall / 3:4 → broadcast panel above the photo;
+     square / wide → panel left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0F1A33; }
+  .banner { --night: #0F1A33; --cream: #F3E9D2; --tan: #EE7F35; --pan: 76vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--night); color: var(--cream);
+    font-family: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif; }
+  .ph { position: absolute; left: 0; right: 0; bottom: 0; height: calc(100% - var(--pan)); overflow: hidden; }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .panel { position: absolute; left: 0; right: 0; top: 0; height: var(--pan); overflow: hidden; box-sizing: border-box; padding: 6vmin 6vmin 5vmin;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: radial-gradient(circle at 80% 30%, rgba(46,70,122,.75), transparent 60%), radial-gradient(circle, rgba(243,233,210,.1) 0 .14vmin, transparent .2vmin) 0 0 / 3.2vmin 3.2vmin, var(--night);
+    border-bottom: 1vmin solid var(--tan); }
+  .hz { display: none; position: absolute; left: 0; right: 0; height: 1px; background: rgba(243,233,210,.4); }
+  .tower { position: absolute; right: 2vmin; bottom: 0; width: 36vmin; height: 64vmin; overflow: visible; }
+
+  .top { position: relative; display: flex; justify-content: space-between; align-items: center; font-size: 2.2vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; }
+  .top b { color: var(--tan); font-weight: 700; }
+  .top .call { display: inline-flex; align-items: center; justify-content: center; height: 4.4vmin; padding: 0 1.4vmin; margin-right: 1.4vmin; border: .3vmin solid var(--cream); letter-spacing: .2em; }
+  .copy { position: relative; }
+  .copy .when { font-size: 3.2vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--tan); }
+  h1 { margin: 1.4vmin 0 0; font-family: "Monoton", "Impact", sans-serif; font-weight: 400; font-size: 17vmin; line-height: 1.02; letter-spacing: .02em; }
+  h1 span { display: block; white-space: nowrap; }
+  .show { margin-top: 1.6vmin; font-style: italic; font-weight: 500; font-size: 5.4vmin; line-height: 1; white-space: nowrap; }
+  .deal { position: relative; display: flex; align-items: stretch; gap: 0; white-space: nowrap; border-top: 1px solid rgba(243,233,210,.45); padding-top: 2vmin; }
+  .deal div { padding-right: 3vmin; margin-right: 3vmin; border-right: 1px solid rgba(243,233,210,.45); font-size: 1.9vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .deal div:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
+  .deal b { display: block; margin-top: .4vmin; font-size: 5.2vmin; line-height: 1; font-weight: 700; letter-spacing: .04em; color: var(--cream); }
+  .deal .big b { color: var(--tan); }
+
+  /* 3:4 · 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pan: 66vmin; }
+    .panel { padding: 5vmin 6vmin 4.4vmin; }
+    .tower { width: 32vmin; height: 56vmin; }
+    h1 { font-size: 14.4vmin; margin-top: 1vmin; }
+    .show { font-size: 4.6vmin; margin-top: 1.2vmin; }
+    .copy .when { font-size: 2.8vmin; }
+    .deal { padding-top: 1.6vmin; }
+    .deal b { font-size: 4.6vmin; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .ph { left: auto; top: 0; width: 50%; height: 100%; }
+    .panel { right: auto; width: 50%; height: 100%; padding: 6vmin 5vmin 5vmin; border-bottom: 0; border-right: 1vmin solid var(--tan); }
+    .panel { justify-content: flex-start; }
+    .copy { margin-top: auto; }
+    .tower { right: 3vmin; top: 8vmin; bottom: auto; width: 30vmin; height: 34vmin; }
+    .hz { display: block; top: 42vmin; }
+    .top { font-size: 1.7vmin; letter-spacing: .18em; }
+    .top .call { height: 3.6vmin; padding: 0 1vmin; margin-right: 1vmin; }
+    .top > span:last-child { display: none; }
+    .copy .when { font-size: 2.4vmin; letter-spacing: .18em; }
+    h1 { font-size: 11.4vmin; margin-top: 1vmin; }
+    .show { font-size: 3.8vmin; margin-top: 1.2vmin; }
+    .deal { margin-top: 3vmin; padding-top: 1.6vmin; }
+    .deal div { padding-right: 2vmin; margin-right: 2vmin; font-size: 1.6vmin; letter-spacing: .12em; }
+    .deal b { font-size: 4vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .ph { width: 48%; }
+    .panel { width: 52%; padding: 6vmin 6vmin 5.4vmin 7vmin; }
+    .panel { justify-content: space-between; }
+    .copy { margin-top: 0; }
+    .hz { display: none; }
+    .tower { right: 1vmin; top: auto; bottom: 0; width: 32vmin; height: 58vmin; }
+    .top { font-size: 1.9vmin; letter-spacing: .26em; }
+    .top > span:last-child { display: inline; }
+    .copy .when { font-size: 2.8vmin; }
+    h1 { font-size: 14vmin; }
+    .show { font-size: 4.8vmin; }
+    .deal { margin-top: 0; }
+    .deal div { padding-right: 3vmin; margin-right: 3vmin; font-size: 1.8vmin; letter-spacing: .18em; }
+    .deal b { font-size: 4.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="panel">
+    <i class="hz"></i>
+    <svg class="tower" viewBox="0 0 200 360" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+      <g fill="none" stroke="#EE7F35" stroke-linecap="round">
+        <path d="M78 66 A 30 30 0 0 0 78 114 M122 66 A 30 30 0 0 1 122 114" stroke-width="3.2" opacity=".95"/>
+        <path d="M64 50 A 52 52 0 0 0 64 130 M136 50 A 52 52 0 0 1 136 130" stroke-width="2.8" opacity=".75"/>
+        <path d="M48 32 A 76 76 0 0 0 48 148 M152 32 A 76 76 0 0 1 152 148" stroke-width="2.4" opacity=".55"/>
+        <path d="M30 12 A 102 102 0 0 0 30 168 M170 12 A 102 102 0 0 1 170 168" stroke-width="2" opacity=".38"/>
+        <path d="M10 -8 A 130 130 0 0 0 10 188 M190 -8 A 130 130 0 0 1 190 188" stroke-width="1.6" opacity=".22"/>
+      </g>
+      <g stroke="#F3E9D2" fill="none" stroke-width="2.2" stroke-linejoin="round">
+        <path d="M100 96 L 64 360 M100 96 L 136 360"/>
+        <path d="M95 132 L 105 132 M91 162 L 109 162 M87 196 L 113 196 M82 234 L 118 234 M77 274 L 123 274 M71 318 L 129 318" stroke-width="1.8"/>
+        <path d="M95 132 L 109 162 L 87 196 L 118 234 L 77 274 L 129 318 L 64 360 M105 132 L 91 162 L 113 196 L 82 234 L 123 274 L 71 318 L 136 360" stroke-width="1.2" opacity=".85"/>
+        <path d="M100 96 L 100 70" stroke-width="2.6"/>
+      </g>
+      <circle cx="100" cy="90" r="6.5" fill="#EE7F35"/>
+      <circle cx="100" cy="90" r="14" fill="#EE7F35" opacity=".25"/>
+    </svg>
+    <div class="top"><span><span class="call">ATN</span>Station</span><span><b>361 m</b> · 830 kc</span></div>
+    <div class="copy">
+      <div class="when">Tonight · 8 p.m.</div>
+      <h1><span>Tune</span><span>In</span></h1>
+      <div class="show">The Spring Broadcast</div>
+    </div>
+    <div class="deal"><div class="big">Listeners save<b>−30%</b></div><div>Code<b>TUNEIN30</b></div></div>
+  </div>
+</div>
+</body>
+</html>

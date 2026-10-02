@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Letter Grid — one letter per cell: the message is set like movable type in a hairline grid,
+     the photo takes a block of cells. Paper, ink and one chartreuse cell for the number.
+     TALL / 7-10 → 4 columns, photo 3×4 cells · SQUARE → 5 columns · WIDE → 7 columns, letters in rows */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #151515; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #151515; color: #151515; font-family: "Unbounded", "Arial Black", sans-serif;
+    display: grid; gap: 1px; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr) 25vmin 13vmin; }
+  .c { background: #ECE8DF; display: flex; align-items: center; justify-content: center; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+  .L { font-weight: 800; font-size: 15vmin; line-height: 1; letter-spacing: -.02em; }
+  .inv { background: #151515; color: #ECE8DF; }
+  .lime { background: #D7F24A; }
+  .c sup { position: absolute; left: 1.4vmin; top: 1.2vmin; font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.6vmin; font-weight: 400; letter-spacing: .04em; line-height: 1; }
+  .mono { font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .04em; text-transform: uppercase; line-height: 1.5; }
+
+  .ph { grid-area: 1 / 1 / 5 / 4; position: relative; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .n { grid-area: 1 / 4; } .e { grid-area: 2 / 4; } .w { grid-area: 3 / 4; }
+  .info { grid-area: 4 / 4; flex-direction: column; align-items: flex-start; justify-content: space-between; padding: 1.8vmin; }
+  .info b { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 3vmin; line-height: 1; text-transform: none; letter-spacing: -.02em; }
+  .d3 { grid-area: 5 / 1; } .d0 { grid-area: 5 / 2; } .pc { grid-area: 5 / 3; }
+  .off { grid-area: 5 / 4; flex-direction: column; justify-content: center; gap: .8vmin; }
+  .off b { font-weight: 800; font-size: 4.4vmin; line-height: 1; letter-spacing: -.02em; }
+  .code { grid-area: 6 / 1 / 7 / 3; justify-content: flex-start; padding: 0 3vmin; }
+  .code b { font-weight: 600; }
+  .cta { grid-area: 6 / 3 / 7 / 5; justify-content: space-between; padding: 0 3vmin; }
+  .cta b { font-weight: 800; font-size: 2.6vmin; letter-spacing: -.01em; }
+
+  /* SHORTER PORTRAIT keeps the same grid — the rows simply get shorter */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { grid-template-rows: repeat(4, 1fr) 22vmin 12vmin; }
+    .L { font-size: 13vmin; }
+  }
+  /* SQUARE — 5 columns: photo 3 wide, letters in pairs to the right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(4, 1fr) 12vmin; }
+    .L { font-size: 12vmin; }
+    .ph { grid-area: 1 / 1 / 5 / 4; }
+    .n { grid-area: 1 / 4; } .e { grid-area: 1 / 5; } .w { grid-area: 2 / 4; } .info { grid-area: 2 / 5; padding: 1.4vmin; }
+    .info b { font-size: 2.4vmin; }
+    .d3 { grid-area: 3 / 4; } .d0 { grid-area: 3 / 5; } .pc { grid-area: 4 / 4; } .off { grid-area: 4 / 5; }
+    .off b { font-size: 3.4vmin; }
+    .code { grid-area: 5 / 1 / 6 / 4; }
+    .cta { grid-area: 5 / 4 / 6 / 6; padding: 0 2.2vmin; }
+    .cta b { font-size: 2.2vmin; }
+    .c sup { left: 1.1vmin; top: 1vmin; }
+  }
+  /* WIDE — 7 columns: photo 3 wide, the word and the number read as two rows */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: repeat(7, 1fr); grid-template-rows: 1fr 1fr 13vmin; }
+    .L { font-size: 15vmin; }
+    .ph { grid-area: 1 / 1 / 4 / 4; }
+    .n { grid-area: 1 / 4; } .e { grid-area: 1 / 5; } .w { grid-area: 1 / 6; } .info { grid-area: 1 / 7; padding: 1.8vmin; }
+    .info b { font-size: 3vmin; }
+    .d3 { grid-area: 2 / 4; } .d0 { grid-area: 2 / 5; } .pc { grid-area: 2 / 6; } .off { grid-area: 2 / 7; }
+    .off b { font-size: 4.2vmin; }
+    .code { grid-area: 3 / 4 / 4 / 6; padding: 0 2.6vmin; }
+    .cta { grid-area: 3 / 6 / 4 / 8; padding: 0 2.6vmin; }
+    .cta b { font-size: 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="c n"><sup>01</sup><span class="L">N</span></div>
+  <div class="c e"><sup>02</sup><span class="L">E</span></div>
+  <div class="c w inv"><sup>03</sup><span class="L">W</span></div>
+  <div class="c info mono"><span>Just in</span><b>SS26</b></div>
+  <div class="c d3 inv"><span class="L">3</span></div>
+  <div class="c d0"><span class="L">0</span></div>
+  <div class="c pc lime"><span class="L">%</span></div>
+  <div class="c off mono"><b>off</b><span>New in</span></div>
+  <div class="c code mono"><span>Code <b>GRID30</b> · till Sunday</span></div>
+  <div class="c cta inv mono"><b>Shop now</b><b>→</b></div>
+</div>
+</body>
+</html>

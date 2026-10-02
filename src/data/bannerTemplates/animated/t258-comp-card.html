@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* Comp Card — a model agency's composite card ("new faces" board) turned into a new-in drop:
+     the hero shot, two digitals, the name set in wide-spaced caps and the agency stats line rewritten as the drop's stats.
+     tall → hero above, name, digitals + stats below · square → hero left, card right · wide → hero, digitals column, card */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FAF9F6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FAF9F6; color: #121212; font-family: "Jost", "Futura", "Helvetica Neue", Arial, sans-serif; }
+  .ts { font-family: "Tenor Sans", "Optima", "Gill Sans", sans-serif; }
+
+  .hero { position: absolute; left: 0; top: 0; width: 100%; height: 62%; object-fit: cover; object-position: 50% 20%; }
+  .agency { position: absolute; left: 0; right: 0; top: 0; height: 9vmin; display: flex; align-items: center; justify-content: space-between; padding: 0 5vmin; box-sizing: border-box; background: #FAF9F6; font-size: 1.7vmin; letter-spacing: .3em; text-transform: uppercase; }
+  .agency b { font-family: "Tenor Sans", sans-serif; font-weight: 400; font-size: 2.6vmin; letter-spacing: .5em; margin-right: -.5em; }
+  .hero { top: 9vmin; height: calc(62% - 9vmin); }
+
+  .card { position: absolute; left: 5vmin; right: 5vmin; top: calc(62% + 3.6vmin); bottom: 4.4vmin; display: grid; grid-template-columns: 44% 1fr; grid-template-rows: auto 1fr auto; column-gap: 4vmin; row-gap: 3vmin; }
+  .name { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; }
+  .name h1 { margin: 0; font-family: "Tenor Sans", sans-serif; font-weight: 400; font-size: 8.6vmin; line-height: 1; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  .name span { font-size: 1.8vmin; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+
+  .digi { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4vmin; min-height: 0; }
+  .digi div { position: relative; overflow: hidden; min-height: 0; }
+  .digi img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+  .digi .c1 img { object-position: 50% 26%; transform: scale(1.7); transform-origin: 50% 26%; }
+  .digi .c2 img { object-position: 50% 80%; transform: scale(1.5); transform-origin: 50% 78%; }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr; align-content: space-between; column-gap: 3vmin; row-gap: 1.4vmin; min-height: 0; }
+  .st { border-top: 1px solid #121212; padding-top: .9vmin; }
+  .st i { display: block; font-style: normal; font-size: 1.6vmin; letter-spacing: .22em; text-transform: uppercase; color: #6E6B64; }
+  .st b { display: block; margin-top: .3vmin; font-weight: 400; font-size: 3.4vmin; line-height: 1.05; white-space: nowrap; }
+  .st.hot b { color: #B0231A; }
+  .blurb { display: none; }
+
+  .foot { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; border-top: 1px solid #121212; padding-top: 1.4vmin; font-size: 1.7vmin; letter-spacing: .22em; text-transform: uppercase; }
+  .foot b { font-weight: 500; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .hero { height: calc(58% - 9vmin); }
+    .card { top: calc(58% + 3vmin); bottom: 4vmin; row-gap: 2.4vmin; }
+    .name h1 { font-size: 7.6vmin; }
+    .st b { font-size: 3vmin; }
+    .stats { row-gap: 1vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .agency { height: 8vmin; }
+    .hero { top: 8vmin; height: calc(56% - 8vmin); }
+    .card { top: calc(56% + 3vmin); bottom: 3.6vmin; grid-template-columns: 38% 1fr; row-gap: 2vmin; }
+    .name h1 { font-size: 6.6vmin; }
+    .stats { grid-template-columns: 1fr 1fr 1fr; }
+    .st b { font-size: 2.8vmin; }
+  }
+  /* square — hero left, the card's reverse right */
+  @media (min-aspect-ratio: 9/10) {
+    .agency { left: 50%; right: 0; height: 10vmin; padding: 0 4.4vmin; }
+    .hero { top: 0; width: 50%; height: 100%; object-position: 50% 22%; }
+    .card { left: calc(50% + 4.4vmin); right: 4.4vmin; top: 10vmin; bottom: 4.4vmin; grid-template-columns: 1fr; grid-template-rows: auto 1fr auto auto; row-gap: 2.4vmin; }
+    .name { flex-direction: column; align-items: flex-start; gap: .8vmin; }
+    .name h1 { font-size: 6vmin; letter-spacing: .2em; }
+    .digi { gap: 1.2vmin; }
+    .stats { grid-template-columns: 1fr 1fr 1fr; row-gap: 1.2vmin; column-gap: 2vmin; }
+    .st b { font-size: 2.6vmin; }
+    .foot { font-size: 1.6vmin; letter-spacing: .16em; }
+  }
+  /* wide — hero, a column of digitals, then the card */
+  @media (min-aspect-ratio: 6/5) {
+    .hero { width: 38%; }
+    .agency { left: 38%; padding: 0 5vmin; }
+    .card { left: calc(38% + 4.4vmin); right: 5vmin; top: 10vmin; bottom: 5vmin; grid-template-columns: 24vmin 1fr; grid-template-rows: auto 1fr auto; column-gap: 4.4vmin; row-gap: 3vmin; }
+    .name { flex-direction: row; align-items: baseline; }
+    .name h1 { font-size: 9vmin; letter-spacing: .24em; }
+    .digi { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    .stats { grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr auto auto; align-content: stretch; row-gap: 3.2vmin; column-gap: 3vmin; }
+    .blurb { display: block; grid-column: 1 / -1; margin: 0 0 4vmin; font-family: "Tenor Sans", sans-serif; font-size: 3.4vmin; line-height: 1.3; max-width: 60vmin; }
+    .st b { font-size: 5vmin; font-weight: 300; }
+    .st { padding-top: 1.2vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     the two digitals drift slowly (Ken Burns, 6s) · 0.8s / 1.1s a studio strobe fires on each digital ·
+     2.2s the stats line is re-typed cell by cell · 4s the −20% offer pops · 4.9s the arrow nudges twice */
+  .digi .c1 img, .digi .c2 img { animation: drift1 6s linear infinite; }
+  .digi .c2 img { animation-name: drift2; }
+  @keyframes drift1 {
+    0%, 100% { transform: scale(1.7); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: scale(1.8) translateX(-1.5%); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+  }
+  @keyframes drift2 {
+    0%, 100% { transform: scale(1.5); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: scale(1.6) translateX(1.5%); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+  }
+  .digi div::after { content: ""; position: absolute; inset: 0; background: #fff; opacity: 0; animation: strobe 6s linear infinite; }
+  .digi .c1::after { animation-delay: -2.16s; }
+  .digi .c2::after { animation-delay: -1.86s; }
+  @keyframes strobe {
+    0%, 50% { opacity: 0; animation-timing-function: steps(1, end); }
+    50.2% { opacity: .78; animation-timing-function: cubic-bezier(.1,.6,.3,1); }
+    56%, 100% { opacity: 0; }
+  }
+  .st { animation: retype 6s linear infinite; }
+  .st:nth-of-type(1) { animation-delay: -.96s; }
+  .st:nth-of-type(2) { animation-delay: -.78s; }
+  .st:nth-of-type(3) { animation-delay: -.6s; }
+  .st:nth-of-type(4) { animation-delay: -.42s; }
+  .st:nth-of-type(5) { animation-delay: -.24s; }
+  .st:nth-of-type(6) { animation-delay: -.06s; }
+  @keyframes retype {
+    0%, 50% { clip-path: inset(-1px -4% -20% 0); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    52.5% { clip-path: inset(-1px -4% -20% 0); opacity: 0; animation-timing-function: steps(1, end); }
+    53% { clip-path: inset(-1px 104% -20% 0); opacity: 1; animation-timing-function: cubic-bezier(.3,.3,.3,1); }
+    61%, 100% { clip-path: inset(-1px -4% -20% 0); opacity: 1; }
+  }
+  .st.hot b { transform-origin: 0 80%; animation: hot 6s linear infinite; }
+  @keyframes hot {
+    0%, 66% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    69.5% { transform: scale(1.22); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    73.5% { transform: scale(.96); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    77% { transform: scale(1.02); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    80%, 100% { transform: scale(1); }
+  }
+  .foot .ar { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 81% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    84% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    87% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    90% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    93%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="hero" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="agency"><b>Oro</b><span>New faces · SS27</span></div>
+  <div class="card">
+    <div class="name"><h1>New in</h1><span>Board Nº 27</span></div>
+    <div class="digi">
+      <div class="c1"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="c2"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    </div>
+    <div class="stats">
+      <p class="blurb">Thirty-six new pieces, signed to the board this week — first pick goes to members.</p>
+      <div class="st"><i>Pieces</i><b>36</b></div>
+      <div class="st"><i>Sizes</i><b>XS–XL</b></div>
+      <div class="st"><i>Colours</i><b>04</b></div>
+      <div class="st"><i>From</i><b>€49</b></div>
+      <div class="st"><i>Drop</i><b>10.10</b></div>
+      <div class="st hot"><i>Offer</i><b>−20%</b></div>
+    </div>
+    <div class="foot"><span>Code <b>FACES20</b></span><span>Shop the board <span class="ar">→</span></span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  /* Red Dot — white-cube gallery opening. Airy light title, one hung work, and the tiny red "sold" sticker
+     beside its number: the first hang went fast. tall → title, work, caption stacked; square/wide → work left, poster text right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FBFBF9; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FBFBF9; color: #141414; font-family: "Albert Sans", "Helvetica Neue", Arial, sans-serif; }
+  .head { position: absolute; left: 8vmin; right: 8vmin; top: 7vmin; }
+  h1 { margin: 0; font-weight: 300; font-size: 10.4vmin; line-height: .92; letter-spacing: -.035em; }
+  .dates { margin-top: 2vmin; display: flex; justify-content: space-between; font-size: 2.2vmin; letter-spacing: .04em; color: #555; }
+  .work { position: absolute; left: 8vmin; top: calc(7vmin + 24vmin); width: calc(100% - 16vmin); height: calc(100% - 60vmin); object-fit: cover; object-position: 50% 16%; }
+  .cap { position: absolute; left: 8vmin; right: 8vmin; bottom: 7vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 4vmin; }
+  .lab { font-size: 2.4vmin; line-height: 1.5; color: #333; }
+  .lab b { font-weight: 600; color: #141414; }
+  .lab .no { display: flex; align-items: center; gap: 1.4vmin; font-size: 2vmin; letter-spacing: .12em; text-transform: uppercase; color: #141414; margin-bottom: .8vmin; }
+  /* the sticker: a small matte red dot with a faint highlight */
+  .dot { width: 2.6vmin; height: 2.6vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F0544A, #D22A20 60%, #B81F17); box-shadow: 0 .15vmin .3vmin rgba(0,0,0,.18); flex: none; }
+  .right { text-align: right; }
+  .note { font-size: 2.4vmin; color: #333; line-height: 1.45; }
+  .cta { display: inline-block; white-space: nowrap; margin-top: 1.6vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; padding-bottom: .5vmin; border-bottom: 1px solid #141414; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .head { top: 6vmin; }
+    h1 { font-size: 9vmin; }
+    .work { top: calc(6vmin + 21vmin); height: calc(100% - 52vmin); left: 12vmin; width: calc(100% - 24vmin); }
+    .cap { bottom: 5.4vmin; }
+    .lab, .note { font-size: 2.1vmin; }
+    .lab .no { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .work { left: 8vmin; top: 8vmin; width: 50%; height: calc(100% - 16vmin); object-position: 50% 22%; }
+    .head { left: calc(50% + 15vmin); right: 7vmin; top: 8vmin; }
+    h1 { font-size: 8.4vmin; }
+    .dates { flex-direction: column; gap: .6vmin; margin-top: 2.6vmin; }
+    .cap { left: calc(50% + 15vmin); right: 7vmin; bottom: 8vmin; flex-direction: column; align-items: flex-start; gap: 3.4vmin; }
+    .right { text-align: left; }
+    .lab, .note { font-size: 2.1vmin; }
+    .cta { letter-spacing: .16em; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .work { left: 9vmin; top: 9vmin; width: 54%; height: calc(100% - 18vmin); object-position: 60% 25%; }
+    .head { left: calc(54% + 18vmin); right: 9vmin; top: 9vmin; }
+    h1 { font-size: 9.4vmin; }
+    .cap { left: calc(54% + 18vmin); right: 9vmin; bottom: 9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1>New<br>Arrivals</h1>
+    <div class="dates"><span>25.09 — 19.10.2026</span><span>Online &amp; in store</span></div>
+  </div>
+  <img class="work" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cap">
+    <div class="lab">
+      <div class="no"><span class="dot"></span>Nº 01 — Sold</div>
+      <b>The First Hang</b>, 2026<br>Restocked this week
+    </div>
+    <div class="right">
+      <div class="note">Only a few left.</div>
+      <div class="cta">View the collection</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

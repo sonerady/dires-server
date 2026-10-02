@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Elsie+Swash+Caps:wght@400;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+  /* Notions Card — a Victorian haberdasher's button card: punched hang-hole, printed swash title,
+     the look behind a stitched window, a grosgrain ribbon with pearl buttons sewn on in red thread.
+     tall → title / window / ribbon + buttons / fine print · square & wide → window left, card copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6DCCA; }
+  .banner { --navy: #1F2C45; --blue: #BCCBD9; --thread: #9B2433; --rib: #A8414A;
+    position: fixed; inset: 0; overflow: hidden; font-family: "Cormorant Garamond", "Garamond", Georgia, serif; color: var(--navy);
+    background:
+      repeating-linear-gradient(90deg, rgba(120,90,60,.05) 0 1px, transparent 1px .5vmin),
+      radial-gradient(120% 90% at 50% 30%, #EFE6D6 0%, #E4D8C3 60%, #D6C7AD 100%); }
+  .card { position: absolute; inset: 5vmin 6vmin; background:
+      radial-gradient(60% 40% at 25% 15%, rgba(255,255,255,.35), rgba(255,255,255,0)),
+      repeating-linear-gradient(0deg, rgba(31,44,69,.03) 0 1px, transparent 1px .4vmin),
+      linear-gradient(170deg, #C7D4E1 0%, #BCCBD9 55%, #AFBFCF 100%);
+    box-shadow: 0 1.4vmin 3vmin rgba(60,45,25,.3), 0 .2vmin .4vmin rgba(60,45,25,.3); }
+  .card::before { content: ""; position: absolute; inset: 2vmin; border: 1px solid rgba(31,44,69,.55); outline: .35vmin solid rgba(31,44,69,.8); outline-offset: .6vmin; }
+  /* euro-slot hang hole */
+  .hole { position: absolute; left: 50%; top: 3.4vmin; width: 11vmin; height: 3vmin; transform: translateX(-50%); border-radius: 3vmin; background: #E4D8C3; box-shadow: inset 0 .4vmin .6vmin rgba(60,45,25,.35); z-index: 2; }
+
+  .in { position: absolute; inset: 9vmin 6vmin 5vmin; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .pre { font-size: 1.9vmin; font-weight: 700; letter-spacing: .38em; margin-right: -.38em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: .6vmin 0 0; font-family: "Elsie Swash Caps", "Didot", Georgia, serif; font-weight: 900; font-size: 12vmin; line-height: 1; white-space: nowrap; color: var(--navy); }
+  .sub { font-style: italic; font-size: 2.8vmin; margin-top: .2vmin; }
+
+  .win { position: relative; flex: 1; min-height: 0; width: 100%; margin-top: 3vmin; }
+  .win img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+  .win::after { content: ""; position: absolute; inset: -1.4vmin; border: .3vmin dashed var(--thread); }
+
+  /* grosgrain ribbon with sewn buttons */
+  .rib { position: relative; width: calc(100% + 12vmin); margin-top: 4vmin; height: 12vmin; flex: none; display: flex; align-items: center; justify-content: center; gap: 4.4vmin;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px .45vmin), linear-gradient(180deg, #8E323A 0%, #B04C55 22%, #A8414A 50%, #8A2F37 100%);
+    box-shadow: 0 .5vmin .8vmin rgba(40,20,20,.3); }
+  .rib::before, .rib::after { content: ""; position: absolute; left: 0; right: 0; height: .5vmin; background: repeating-linear-gradient(90deg, rgba(255,230,220,.55) 0 1.2vmin, transparent 1.2vmin 2vmin); }
+  .rib::before { top: 1vmin; } .rib::after { bottom: 1vmin; }
+  .btn { position: relative; width: 8.4vmin; height: 8.4vmin; flex: none; border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, #E3DACB 0 52%, rgba(0,0,0,0) 54%), radial-gradient(circle at 34% 28%, #FFFFFF 0%, #F2ECE2 30%, #DCD2C2 70%, #C3B6A2 100%);
+    box-shadow: 0 .5vmin .8vmin rgba(40,20,20,.4), inset 0 0 0 .5vmin rgba(255,255,255,.5), inset 0 .3vmin .6vmin rgba(255,255,255,.6); }
+  .btn.s { width: 6.6vmin; height: 6.6vmin; }
+  .btn::before { content: ""; position: absolute; inset: calc(31% - .6vmin); background:
+      radial-gradient(circle at .6vmin .6vmin, #5E5244 0 .5vmin, transparent .56vmin), radial-gradient(circle at calc(100% - .6vmin) .6vmin, #5E5244 0 .5vmin, transparent .56vmin),
+      radial-gradient(circle at .6vmin calc(100% - .6vmin), #5E5244 0 .5vmin, transparent .56vmin), radial-gradient(circle at calc(100% - .6vmin) calc(100% - .6vmin), #5E5244 0 .5vmin, transparent .56vmin); }
+  .btn::after { content: ""; position: absolute; top: 31%; bottom: 31%; left: calc(31% - .6vmin); right: calc(31% - .6vmin);
+    background: linear-gradient(90deg, transparent .36vmin, var(--thread) .36vmin .84vmin, transparent .84vmin calc(100% - .84vmin), var(--thread) calc(100% - .84vmin) calc(100% - .36vmin), transparent calc(100% - .36vmin)); }
+
+  .deal { margin-top: 3.4vmin; display: flex; align-items: center; justify-content: center; gap: 3vmin; white-space: nowrap; }
+  .deal b { font-family: "Elsie Swash Caps", Georgia, serif; font-weight: 900; font-size: 8vmin; line-height: .9; color: var(--thread); }
+  .deal span { text-align: left; font-size: 2.3vmin; font-weight: 700; line-height: 1.35; letter-spacing: .16em; text-transform: uppercase; }
+  .fine { margin-top: 2.4vmin; display: flex; gap: 2.4vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; margin-right: -.2em; text-transform: uppercase; white-space: nowrap; opacity: .85; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .card { inset: 4.4vmin 9vmin; }
+    .in { inset: 8.4vmin 5vmin 4.4vmin; }
+    h1 { font-size: 9vmin; }
+    .rib { height: 10vmin; margin-top: 3.4vmin; }
+    .btn { width: 7vmin; height: 7vmin; } .btn.s { width: 5.6vmin; height: 5.6vmin; }
+    .deal { margin-top: 2.4vmin; }
+    .deal b { font-size: 6.6vmin; }
+    .fine { margin-top: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .card { inset: 5vmin 5vmin; }
+    .hole { left: auto; right: 7vmin; transform: none; top: 5vmin; }
+    .in { display: grid; grid-template-columns: 48% minmax(0, 1fr); grid-template-rows: 1fr auto auto auto auto auto 1fr; column-gap: 5vmin; inset: 5vmin 5vmin 5vmin 5vmin; justify-items: center; }
+    .win { grid-column: 1; grid-row: 1 / 8; align-self: stretch; justify-self: stretch; width: auto; margin: 1.4vmin 0 1.4vmin 1.4vmin; }
+    .pre, h1, .sub, .rib, .deal, .fine { grid-column: 2; }
+    .pre { grid-row: 2; font-size: 1.7vmin; letter-spacing: .26em; margin-right: -.26em; }
+    h1 { grid-row: 3; font-size: 8vmin; white-space: normal; line-height: .95; }
+    .sub { grid-row: 4; font-size: 2.5vmin; }
+    .rib { grid-row: 5; justify-self: stretch; width: auto; margin: 3.4vmin -5vmin 0 0; height: 10vmin; gap: 1.8vmin; }
+    .btn { width: 6.2vmin; height: 6.2vmin; } .btn.s { width: 5vmin; height: 5vmin; }
+    .deal { grid-row: 6; margin-top: 3vmin; flex-direction: column; gap: 1vmin; }
+    .deal span { text-align: center; font-size: 2vmin; }
+    .deal b { font-size: 7.4vmin; }
+    .fine { grid-row: 7; align-self: start; margin-top: 2.4vmin; flex-direction: column; gap: .4vmin; font-size: 1.6vmin; letter-spacing: .16em; margin-right: 0; }
+  }
+  @media (min-aspect-ratio: 9/10) { .fine .dot { display: none; } }
+  @media (min-aspect-ratio: 6/5) {
+    .fine .dot { display: inline; }
+    .card { inset: 5vmin 7vmin; }
+    .in { grid-template-columns: 46% minmax(0, 1fr); column-gap: 7vmin; inset: 5vmin 6vmin; }
+    h1 { font-size: 9vmin; white-space: nowrap; }
+    .sub { font-size: 2.8vmin; }
+    .rib { margin-right: -6vmin; height: 11vmin; gap: 3.6vmin; }
+    .btn { width: 7.8vmin; height: 7.8vmin; } .btn.s { width: 6.2vmin; height: 6.2vmin; }
+    .deal { flex-direction: row; gap: 2.6vmin; }
+    .deal span { text-align: left; }
+    .fine { flex-direction: row; gap: 2vmin; font-size: 1.7vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     constant: the card sways gently from its hang-hole · photo breathes behind the stitched window (≤1.03)
+     beats: 1.4s a light glides along the grosgrain ribbon · 2.2s the pearl buttons twirl one after another on their thread ·
+            4.3s the "30% off" price gives a sewn-on tug */
+  .card { transform-origin: 50% 4.9vmin; animation: sway 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sway { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(.35deg); } 75% { transform: rotate(-.35deg); } }
+  @media (min-aspect-ratio: 9/10) { .card { transform-origin: calc(100% - 7.5vmin) 6.5vmin; } }
+
+  .win .ph { position: absolute; inset: 0; overflow: hidden; }
+  .win img { transform-origin: 50% 30%; animation: grow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes grow { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .rib { background:
+      linear-gradient(100deg, transparent 40%, rgba(255,225,215,.22) 48%, rgba(255,225,215,.34) 50%, rgba(255,225,215,.22) 52%, transparent 60%) no-repeat,
+      repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px .45vmin), linear-gradient(180deg, #8E323A 0%, #B04C55 22%, #A8414A 50%, #8A2F37 100%);
+    background-size: 300% 100%, auto, auto; background-position: 120% 0, 0 0, 0 0;
+    animation: gloss 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes gloss { 0%, 22% { background-position: 120% 0, 0 0, 0 0; } 48%, 100% { background-position: -20% 0, 0 0, 0 0; } }
+
+  .btn { animation: twirl 6s cubic-bezier(.55,0,.25,1) infinite; }
+  .btn:nth-child(2) { animation-delay: -5.85s; }
+  .btn:nth-child(3) { animation-delay: -5.7s; }
+  .btn:nth-child(4) { animation-delay: -5.55s; }
+  .btn:nth-child(5) { animation-delay: -5.4s; }
+  @keyframes twirl {
+    0%, 36%, 100% { transform: translateY(0) rotate(0); }
+    41% { transform: translateY(-1.1vmin) rotate(200deg); }
+    47% { transform: translateY(.2vmin) rotate(372deg); }
+    50% { transform: translateY(0) rotate(360deg); }
+    50.01%, 99.99% { transform: translateY(0) rotate(0); }
+  }
+
+  .deal b { display: inline-block; transform-origin: 50% 60%; animation: tug 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes tug { 0%, 70%, 82%, 100% { transform: scale(1) rotate(0); } 73% { transform: scale(1.1) rotate(-2deg); } 77% { transform: scale(.98) rotate(1deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="card">
+    <i class="hole"></i>
+    <div class="in">
+      <div class="pre">Hartley's · Haberdashers</div>
+      <h1>Notions Sale</h1>
+      <div class="sub">Everything for the new season, sewn up.</div>
+      <div class="win"><div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div></div>
+      <div class="rib" aria-hidden="true"><i class="btn"></i><i class="btn s"></i><i class="btn"></i><i class="btn s"></i><i class="btn"></i></div>
+      <div class="deal"><b>30% off</b><span>Code BUTTON30<br>Until 15 Oct</span></div>
+      <div class="fine"><span>Fast colours</span><span class="dot">·</span><span>Superior finish</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

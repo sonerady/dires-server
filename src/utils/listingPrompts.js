@@ -231,7 +231,7 @@ All text values MUST be written in ${lang}. Keep every string short enough to si
 
 Seller notes:
 """
-${String(details || "").trim()}
+${String(details || "").trim() || "(none — the seller left no notes. Write only what is visible in the photograph: name the product by what it visibly is, keep specs, dimensions, materials and box contents empty, and build features from visible shape, color, pattern and construction only.)"}
 """
 ${contentInputsBlock({ contentImageCount, contentDocs })}
 Return exactly this shape:

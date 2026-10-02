@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Job Traveller — the route card that rides with a bundle down the line, held by a steel bulldog clip on a stack of
+     rust duck canvas: every operation (cut, sew, rivet, press, inspect) signed off with a round QC stamp, "ship" marked
+     today in yellow, and a strip of gummed piece-rate coupons down the side, the first two already torn off.
+     tall / 3:4 → photo above the canvas; square / wide → photo left, card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #7E4326; }
+  .banner { --P: 88vmin; --k: .76vmin; position: fixed; inset: 0; overflow: hidden; color: #FBF1E2; font-family: "JetBrains Mono", Menlo, monospace;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.035) 0 .25vmin, rgba(0,0,0,0) .25vmin .8vmin),
+      repeating-linear-gradient(-45deg, rgba(0,0,0,.05) 0 .25vmin, rgba(0,0,0,0) .25vmin 1vmin),
+      radial-gradient(120% 80% at 30% 20%, #8C4D2C 0%, #7E4326 55%, #6A361D 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--P)); object-fit: cover; object-position: 50% 22%; display: block; }
+  /* folded canvas edge + bar-tack */
+  .hem { position: absolute; left: 0; right: 0; top: calc(100% - var(--P)); height: 3vmin; z-index: 2; background: linear-gradient(180deg, #5E311B 0%, #7A4124 60%, #6A361D 100%); box-shadow: 0 .5vmin 1vmin rgba(0,0,0,.35); }
+  .hem::after { content: ""; position: absolute; left: 0; right: 0; bottom: .8vmin; border-top: .3vmin dashed rgba(251,241,226,.7); }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--P) - 3vmin); box-sizing: border-box; padding: 4.6vmin 6vmin 4.4vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; color: #F0CDB4; white-space: nowrap; }
+  h1 { margin: 1.8vmin 0 0; font-family: "Anton", Impact, "Arial Narrow", sans-serif; font-weight: 400; font-size: 12vmin; line-height: .95; letter-spacing: .005em; text-transform: uppercase; }
+  h1 em { font-style: normal; color: #FFD24A; }
+  .lede { margin: 2.6vmin 0 0; font-size: 2.2vmin; line-height: 1.45; color: #F6E0CE; max-width: 80vmin; }
+  .lede b { color: #FFD24A; font-weight: 800; }
+  .stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 4.6vmin 0 1vmin; }
+
+  /* the route card */
+  .card { position: relative; display: flex; width: calc(var(--k) * 94); color: #1C2226; transform: rotate(-1.6deg); filter: drop-shadow(0 calc(var(--k) * 1.2) calc(var(--k) * 1.2) rgba(40,15,5,.45)); }
+  .main { flex: 1; min-width: 0; background: #DCE5E8; padding: calc(var(--k) * 4.6) calc(var(--k) * 3) calc(var(--k) * 2.6); }
+  .hd { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: calc(var(--k) * .45) solid #1C2226; padding-bottom: calc(var(--k) * 1); }
+  .hd h2 { margin: 0; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: calc(var(--k) * 4.4); line-height: 1; letter-spacing: .03em; text-transform: uppercase; }
+  .hd span { font-size: max(1.6vmin, calc(var(--k) * 1.7)); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; text-align: right; line-height: 1.35; }
+  .op { display: grid; grid-template-columns: calc(var(--k) * 5.4) 1fr calc(var(--k) * 12); align-items: center; height: max(3.6vmin, calc(var(--k) * 5)); border-bottom: 1px solid rgba(28,34,38,.35);
+    font-size: max(1.7vmin, calc(var(--k) * 2.1)); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .op i { font-style: normal; color: #6A7479; font-weight: 400; }
+  .op .ok { justify-self: center; position: relative; padding: .22em .6em; border-radius: 50%; border: max(1px, calc(var(--k) * .3)) solid rgba(58,52,150,.85); box-sizing: border-box; white-space: nowrap;
+    display: flex; align-items: center; justify-content: center; font-size: max(1.6vmin, calc(var(--k) * 1.6)); font-weight: 800; line-height: 1; color: rgba(58,52,150,.9); letter-spacing: 0; transform: rotate(calc(var(--r, -12deg) * .3)); }
+  .op .ok::before { content: ""; position: absolute; inset: .12em; border-radius: 50%; border: 1px solid rgba(58,52,150,.6); }
+  .op.ship { font-weight: 800; }
+  .op.ship b { justify-self: stretch; text-align: center; background: #FFD24A; padding: calc(var(--k) * .6) 0; font-weight: 800; box-shadow: 0 0 0 calc(var(--k) * .3) #FFD24A; transform: rotate(-1.5deg); }
+  .sig { margin-top: calc(var(--k) * 1.6); display: flex; justify-content: space-between; font-size: max(1.6vmin, calc(var(--k) * 1.6)); letter-spacing: .08em; text-transform: uppercase; color: #4B555A; }
+
+  /* piece-rate coupons (gummed, perforated) */
+  .cps { flex: none; width: calc(var(--k) * 13); display: flex; flex-direction: column; }
+  .cp { flex: 1; min-height: 0; box-sizing: border-box; padding: calc(var(--k) * 1) calc(var(--k) * 1.4); border-top: calc(var(--k) * .35) dotted #7B878C; border-left: calc(var(--k) * .4) dotted #7B878C; display: flex; flex-direction: column; justify-content: center;
+    background: #E9EEEF; font-size: max(1.6vmin, calc(var(--k) * 1.6)); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; line-height: 1.3; }
+  .cp b { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: calc(var(--k) * 2.8); letter-spacing: .03em; }
+  .cp.gone { background: transparent; border-top-color: transparent; visibility: hidden; }
+  .cp.torn { clip-path: polygon(0 10%, 12% 0, 25% 9%, 38% 1%, 52% 10%, 66% 0, 80% 8%, 92% 1%, 100% 9%, 100% 100%, 0 100%); border-top: 0; padding-top: calc(var(--k) * 2); }
+
+  /* steel bulldog clip */
+  .clip { position: absolute; left: 50%; top: calc(var(--k) * -2.6); width: calc(var(--k) * 16); height: calc(var(--k) * 6.4); margin-left: calc(var(--k) * -8); z-index: 3;
+    background: linear-gradient(180deg, #E8ECEE 0%, #A9B1B5 45%, #6E777C 100%); border-radius: calc(var(--k) * .8) calc(var(--k) * .8) calc(var(--k) * .3) calc(var(--k) * .3); box-shadow: 0 calc(var(--k) * .5) calc(var(--k) * .8) rgba(0,0,0,.45); }
+  .clip::before { content: ""; position: absolute; left: 50%; top: calc(var(--k) * -3.2); width: calc(var(--k) * 9); height: calc(var(--k) * 4.2); margin-left: calc(var(--k) * -4.5); border: calc(var(--k) * .6) solid #9AA3A8; border-bottom: 0; border-radius: calc(var(--k) * 1.6) calc(var(--k) * 1.6) 0 0; box-sizing: border-box; }
+  .clip::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: calc(var(--k) * 1.4); height: calc(var(--k) * .4); background: rgba(0,0,0,.25); }
+
+  .foot { margin-top: 2vmin; display: flex; justify-content: space-between; align-items: center; white-space: nowrap; }
+  .cta { font-family: "Anton", Impact, sans-serif; font-size: 3.2vmin; letter-spacing: .08em; text-transform: uppercase; color: #1C2226; background: #FFD24A; padding: 1.2vmin 2.4vmin; }
+  .code { font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; color: #F0CDB4; }
+  .code b { color: #FBF1E2; font-weight: 800; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --P: 74vmin; --k: .6vmin; }
+    .stage { padding-top: 5.2vmin; }
+    .panel { padding: 3.8vmin 6vmin 3.6vmin; }
+    h1 { font-size: 9.8vmin; margin-top: 1.4vmin; }
+    .lede { font-size: 2vmin; }
+    .cta { font-size: 2.8vmin; padding: 1vmin 2vmin; }
+  }
+  /* square → photo left */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --k: .56vmin; }
+    .photo { width: 46%; height: 100%; object-position: 50% 24%; }
+    .hem { top: 0; bottom: 0; left: 46%; right: auto; width: 3vmin; height: auto; background: linear-gradient(90deg, #5E311B 0%, #7A4124 60%, #6A361D 100%); }
+    .hem::after { left: auto; right: .8vmin; top: 0; bottom: 0; border-top: 0; border-left: .3vmin dashed rgba(251,241,226,.7); }
+    .panel { left: calc(46% + 3vmin); top: 0; height: auto; padding: 5vmin 4.6vmin 4.6vmin; }
+    .meta span:last-child { display: none; }
+    h1 { font-size: 9.4vmin; line-height: .92; }
+    h1 em { display: block; }
+    .lede { font-size: 1.85vmin; }
+    .cps { display: none; }
+    .op { grid-template-columns: calc(var(--k) * 6) 1fr calc(var(--k) * 14); }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .cta { font-size: 2.6vmin; }
+  }
+  /* wide → same stack, card larger */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --k: .72vmin; }
+    .photo { width: 44%; object-position: 50% 30%; }
+    .hem { left: 44%; }
+    .panel { left: calc(44% + 3vmin); padding: 5.6vmin 6vmin 5vmin; }
+    .meta span:last-child { display: inline; }
+    h1 { font-size: 10.4vmin; }
+    h1 em { display: inline; }
+    .lede { font-size: 2vmin; }
+    .cps { display: flex; }
+    .op { grid-template-columns: calc(var(--k) * 5.4) 1fr calc(var(--k) * 12); }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="hem"></div>
+  <div class="panel">
+    <div class="meta"><span>Atelier Nord Works · Line 3</span><span>Lot 26 · First run</span></div>
+    <h1>Off the <em>line.</em></h1>
+    <p class="lede">First run, signed off. <b>20% off</b> while the batch lasts.</p>
+    <div class="stage">
+      <div class="card">
+        <div class="clip"></div>
+        <div class="main">
+          <div class="hd"><h2>Route card</h2><span>Bundle 0431<br>Qty 24</span></div>
+          <div class="op"><i>01</i><span>Cut</span><span class="ok" style="--r:-14deg">QC 07</span></div>
+          <div class="op"><i>02</i><span>Sew</span><span class="ok" style="--r:9deg">QC 07</span></div>
+          <div class="op"><i>03</i><span>Rivet</span><span class="ok" style="--r:-4deg">QC 12</span></div>
+          <div class="op"><i>04</i><span>Press</span><span class="ok" style="--r:16deg">QC 12</span></div>
+          <div class="op"><i>05</i><span>Inspect</span><span class="ok" style="--r:-20deg">QC 01</span></div>
+          <div class="op ship"><i>06</i><span>Ship</span><b>Today</b></div>
+          <div class="sig"><span>Foreman · A.N.</span><span>Wk 40</span></div>
+        </div>
+        <div class="cps">
+          <div class="cp gone"><b>01</b>Cut</div>
+          <div class="cp gone"><b>02</b>Sew</div>
+          <div class="cp torn"><b>03</b>Rivet</div>
+          <div class="cp"><b>04</b>Press</div>
+          <div class="cp"><b>05</b>Insp.</div>
+          <div class="cp"><b>06</b>Ship</div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span class="code">Code <b>FIRSTRUN</b></span><span class="cta">Shop the first run →</span></div>
+  </div>
+</div>
+</body>
+</html>

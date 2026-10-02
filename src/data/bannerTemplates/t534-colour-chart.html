@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=DM+Mono:wght@400;500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Colour Chart — a hand-painted pigment card: six brushed swatches running from full masstone to a
+     watery tint, each with its pigment code, beside the photo; the offer reads like the card's footer.
+     tall → photo top, chart below · square / wide → photo left, chart right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EFE6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2B2724; font-family: "DM Mono", "Courier New", monospace;
+    background: linear-gradient(180deg, #F7F3EC 0%, #F1EBE0 100%); }
+  .defs { position: absolute; width: 0; height: 0; }
+
+  .top { position: absolute; left: 7vmin; right: 7vmin; top: 4.6vmin; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin;
+    font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; color: #6E655C; white-space: nowrap; }
+  .top b { font-family: "Young Serif", Georgia, serif; font-weight: 400; font-size: 2.6vmin; letter-spacing: 0; text-transform: none; color: #2B2724; }
+
+  .photo { position: absolute; left: 7vmin; top: 10vmin; width: calc(100% - 14vmin); height: calc(100% - 82vmin); object-fit: cover; object-position: 50% 30%; display: block; }
+
+  .card { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; height: 66vmin; display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Young Serif", Georgia, serif; font-weight: 400; font-size: 9vmin; line-height: .98; letter-spacing: -.02em; }
+  .sub { margin-top: 1.6vmin; font-size: 1.9vmin; line-height: 1.5; color: #5A524B; }
+  .chart { margin-top: 3.4vmin; display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 3vmin; row-gap: 2.4vmin; }
+  .sw svg { display: block; width: 100%; height: 8.6vmin; overflow: visible; }
+  .sw p { margin: .9vmin 0 0; font-size: 1.6vmin; line-height: 1.3; color: #4A433D; white-space: nowrap; }
+  .sw p b { font-weight: 500; color: #2B2724; }
+  .foot { margin-top: auto; padding-top: 2vmin; border-top: 1px solid rgba(43,39,36,.28); display: flex; justify-content: space-between; align-items: center; gap: 2vmin; }
+  .offer { font-size: 1.8vmin; color: #4A433D; white-space: nowrap; }
+  .offer b { font-family: "Young Serif", Georgia, serif; font-weight: 400; font-size: 4.4vmin; color: #2B2724; margin-right: 1.2vmin; }
+  .cta { padding: 1.6vmin 2.8vmin; background: #2B2724; color: #F4EFE6; font-size: 1.8vmin; font-weight: 500; letter-spacing: .06em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 76vmin); }
+    .card { height: 61vmin; bottom: 4.6vmin; }
+    h1 { font-size: 8vmin; }
+    .chart { margin-top: 2.8vmin; }
+    .sw svg { height: 7.4vmin; }
+  }
+  /* ── square-ish: photo left, chart right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .top { left: 52vmin; right: 5vmin; top: 5vmin; flex-direction: column; gap: .6vmin; }
+    .photo { left: 0; top: 0; width: 46vmin; height: 100%; }
+    .card { left: 52vmin; right: 5vmin; top: 14vmin; bottom: 5vmin; height: auto; }
+    h1 { font-size: 6.4vmin; }
+    .sub { font-size: 1.7vmin; }
+    .chart { margin-top: 3.4vmin; column-gap: 1.8vmin; row-gap: 3vmin; }
+    .sw svg { height: 9vmin; }
+    .sw p { font-size: 1.6vmin; white-space: normal; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .offer b { font-size: 3.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .top { left: 74vmin; right: 7vmin; top: 6vmin; flex-direction: row; }
+    .photo { width: 66vmin; }
+    .card { left: 74vmin; right: 7vmin; top: 13vmin; bottom: 6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .sub { font-size: 1.9vmin; }
+    .chart { column-gap: 2.6vmin; row-gap: 3.6vmin; margin-top: 4.4vmin; }
+    .sw svg { height: 11vmin; }
+    .sw p { white-space: nowrap; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <filter id="edge" x="-6%" y="-20%" width="112%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04 0.12" numOctaves="3" seed="9" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.5" numOctaves="2" seed="4" result="s"/>
+      <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -1.6 0 0 0 1.75" result="sm"/>
+      <feComposite in="d" in2="sm" operator="in"/>
+    </filter>
+    <linearGradient id="g1"><stop offset="0" stop-color="#C2345A"/><stop offset=".5" stop-color="#C2345A" stop-opacity=".92"/><stop offset="1" stop-color="#C2345A" stop-opacity=".22"/></linearGradient>
+    <linearGradient id="g2"><stop offset="0" stop-color="#C98B2E"/><stop offset=".5" stop-color="#C98B2E" stop-opacity=".92"/><stop offset="1" stop-color="#C98B2E" stop-opacity=".22"/></linearGradient>
+    <linearGradient id="g3"><stop offset="0" stop-color="#2E3F9A"/><stop offset=".5" stop-color="#2E3F9A" stop-opacity=".92"/><stop offset="1" stop-color="#2E3F9A" stop-opacity=".22"/></linearGradient>
+    <linearGradient id="g4"><stop offset="0" stop-color="#1E6B5C"/><stop offset=".5" stop-color="#1E6B5C" stop-opacity=".92"/><stop offset="1" stop-color="#1E6B5C" stop-opacity=".22"/></linearGradient>
+    <linearGradient id="g5"><stop offset="0" stop-color="#8E4424"/><stop offset=".5" stop-color="#8E4424" stop-opacity=".92"/><stop offset="1" stop-color="#8E4424" stop-opacity=".22"/></linearGradient>
+    <linearGradient id="g6"><stop offset="0" stop-color="#2A2624"/><stop offset=".5" stop-color="#2A2624" stop-opacity=".9"/><stop offset="1" stop-color="#2A2624" stop-opacity=".18"/></linearGradient>
+  </defs></svg>
+
+  <div class="top"><b>Pigmenta Studio</b><span>Colour chart Nº 4 · hand-painted</span></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="card">
+    <h1>Mixed by hand.</h1>
+    <div class="sub">Six new shades, each blended in small batches.</div>
+    <div class="chart">
+      <div class="sw"><svg viewBox="0 0 120 50" preserveAspectRatio="none" aria-hidden="true"><rect x="3" y="4" width="114" height="42" fill="url(#g1)" filter="url(#edge)"/></svg><p><b>PR122</b> Rose madder</p></div>
+      <div class="sw"><svg viewBox="0 0 120 50" preserveAspectRatio="none" aria-hidden="true"><rect x="3" y="4" width="114" height="42" fill="url(#g2)" filter="url(#edge)"/></svg><p><b>PY42</b> Yellow ochre</p></div>
+      <div class="sw"><svg viewBox="0 0 120 50" preserveAspectRatio="none" aria-hidden="true"><rect x="3" y="4" width="114" height="42" fill="url(#g3)" filter="url(#edge)"/></svg><p><b>PB29</b> Ultramarine</p></div>
+      <div class="sw"><svg viewBox="0 0 120 50" preserveAspectRatio="none" aria-hidden="true"><rect x="3" y="4" width="114" height="42" fill="url(#g4)" filter="url(#edge)"/></svg><p><b>PG7</b> Viridian</p></div>
+      <div class="sw"><svg viewBox="0 0 120 50" preserveAspectRatio="none" aria-hidden="true"><rect x="3" y="4" width="114" height="42" fill="url(#g5)" filter="url(#edge)"/></svg><p><b>PBr7</b> Burnt sienna</p></div>
+      <div class="sw"><svg viewBox="0 0 120 50" preserveAspectRatio="none" aria-hidden="true"><rect x="3" y="4" width="114" height="42" fill="url(#g6)" filter="url(#edge)"/></svg><p><b>PBk9</b> Ivory black</p></div>
+    </div>
+    <div class="foot">
+      <div class="offer"><b>$45</b>any two shades −15%</div>
+      <div class="cta">Choose your shade →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

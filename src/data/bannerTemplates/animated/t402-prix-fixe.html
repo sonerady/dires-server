@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Prix Fixe — a bistro's set-menu card on a bordeaux tablecloth: every size from XS to 4XL listed
+     on dotted leaders, and every line ends in the same price. "One price, every size." — service compris.
+     tall → photo above, the menu card on the cloth below · square / wide → photo left, menu card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #5E1826; }
+  .banner { --panel: max(74vmin, 43%); position: fixed; inset: 0; overflow: hidden; color: #5E1826; font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+    background: #5E1826 repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1.2vmin, transparent 1.2vmin 2.4vmin); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+  .card { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); box-sizing: border-box; padding: 4vmin 5vmin 3.6vmin;
+    background: #F6EFE1; box-shadow: 0 1.2vmin 3vmin rgba(30,4,10,.4); display: flex; flex-direction: column; text-align: center; }
+  .card::before { content: ""; position: absolute; inset: 1.6vmin; border: 1px solid rgba(94,24,38,.55); outline: 1px solid rgba(94,24,38,.55); outline-offset: -.8vmin; pointer-events: none; }
+  .top { display: flex; justify-content: space-between; font-weight: 500; font-size: 1.7vmin; letter-spacing: .24em; text-transform: uppercase; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Cormorant Garamond", Garamond, Georgia, serif; font-style: italic; font-weight: 400; font-size: 12vmin; line-height: .9; letter-spacing: -.01em; }
+  .sub { margin-top: 1vmin; display: flex; align-items: center; justify-content: center; gap: 2vmin; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 3.4vmin; }
+  .sub::before, .sub::after { content: "✦"; font-size: 1.8vmin; color: #A8586A; }
+  .menu { list-style: none; margin: 2.8vmin 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(4, auto); column-gap: 5vmin; row-gap: 1.3vmin; text-align: left; }
+  .menu li { display: flex; align-items: baseline; gap: 1.2vmin; font-family: "Cormorant Garamond", Georgia, serif; }
+  .menu b { font-weight: 600; font-size: 3.6vmin; line-height: 1; }
+  .menu i { flex: 1; min-width: 2vmin; border-bottom: .32vmin dotted rgba(94,24,38,.6); transform: translateY(-.6vmin); }
+  .menu span { font-weight: 500; font-size: 3.2vmin; line-height: 1; }
+  .note { margin-top: 2.4vmin; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 2.6vmin; color: #7E3A48; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 2vmin; border-top: 1px solid rgba(94,24,38,.35); }
+  .foot small { font-weight: 500; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; text-align: left; line-height: 1.5; }
+  .cta { flex: none; background: #5E1826; color: #F6EFE1; padding: 1.7vmin 2.8vmin; font-weight: 600; font-size: 2vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .card { left: 6vmin; right: 6vmin; bottom: 4vmin; height: calc(var(--panel) - 8vmin); padding: 3.4vmin 5vmin 3vmin; }
+    h1 { font-size: 10.4vmin; }
+    .menu { margin-top: 2.2vmin; row-gap: 1vmin; }
+    .menu b { font-size: 3.2vmin; }
+    .menu span { font-size: 2.9vmin; }
+    .note { margin-top: 1.8vmin; }
+  }
+  /* square → photo left, the card right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; }
+    .card { left: calc(50% + 4vmin); right: 4vmin; top: 4vmin; bottom: 4vmin; height: auto; padding: 4vmin 4.4vmin 3.4vmin; }
+    .top { font-size: 1.6vmin; letter-spacing: .18em; }
+    h1 { margin-top: 2vmin; font-size: 10.6vmin; }
+    .sub { font-size: 3vmin; }
+    .menu { grid-template-columns: 1fr; grid-auto-flow: row; grid-template-rows: none; row-gap: 1.9vmin; margin-top: 3.4vmin; }
+    .menu b { font-size: 3.3vmin; }
+    .menu span { font-size: 3vmin; }
+    .note { display: none; }
+    .foot { flex-direction: column; gap: 1.6vmin; }
+    .foot small { text-align: center; font-size: 1.6vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 50% 28%; }
+    .card { left: calc(46% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; padding: 4.4vmin 6vmin 3.6vmin; }
+    .top { font-size: 1.7vmin; letter-spacing: .24em; }
+    h1 { font-size: 13vmin; }
+    .sub { font-size: 3.4vmin; }
+    .menu { grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(4, auto); column-gap: 5vmin; row-gap: 1.6vmin; margin-top: 3.4vmin; }
+    .menu b { font-size: 3.6vmin; }
+    .menu span { font-size: 3.2vmin; }
+    .note { display: block; margin-top: 2.6vmin; }
+    .foot { flex-direction: row; }
+    .foot small { text-align: left; font-size: 1.7vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static menu card) ─────────
+     constant: the photo breathes in very slowly (edge nearest the card stays put) ·
+     1.6s → 2.8s the menu is "re-written" line by line, XS to 4XL: each dotted leader is drawn across and
+     the same €89 is set down at its end — the point of the concept · 4.3s the ✦ ornaments turn once ·
+     5.1s a soft light sweep crosses the CTA */
+  .photo { transform-origin: 50% 100%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @media (min-aspect-ratio: 9/10) { .photo { transform-origin: 0% 50%; } }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .menu i { animation: lead 6s cubic-bezier(.65,0,.35,1) infinite; }
+  .menu span { animation: price 6s cubic-bezier(.2,.7,.3,1) infinite; }
+  .menu li:nth-child(1) > * { animation-delay: -1.05s; }
+  .menu li:nth-child(2) > * { animation-delay: -.9s; }
+  .menu li:nth-child(3) > * { animation-delay: -.75s; }
+  .menu li:nth-child(4) > * { animation-delay: -.6s; }
+  .menu li:nth-child(5) > * { animation-delay: -.45s; }
+  .menu li:nth-child(6) > * { animation-delay: -.3s; }
+  .menu li:nth-child(7) > * { animation-delay: -.15s; }
+  .menu li:nth-child(8) > * { animation-delay: 0s; }
+  .menu b { animation: none; }
+  @keyframes lead {
+    0%, 44% { clip-path: inset(-50% 0 -50% 0); }
+    45% { clip-path: inset(-50% 100% -50% 0); }
+    53%, 100% { clip-path: inset(-50% 0 -50% 0); }
+  }
+  @keyframes price {
+    0%, 44% { opacity: 1; transform: translateY(0); }
+    45%, 51% { opacity: 0; transform: translateY(-1.2vmin); }
+    57%, 100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .sub::before, .sub::after { display: inline-block; animation: star 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes star { 0%, 70% { transform: rotate(0deg) scale(1); } 78% { transform: rotate(180deg) scale(1.35); } 86%, 100% { transform: rotate(360deg) scale(1); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(246,239,225,.4) 50%, transparent 65%) no-repeat;
+    background-size: 250% 100%; background-position: 120% 0; animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 84% { background-position: 120% 0; } 97%, 100% { background-position: -20% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="card">
+    <div class="top"><span>Maison Oro</span><span>Menu du jour</span></div>
+    <h1>Prix fixe</h1>
+    <div class="sub">One price, every size.</div>
+    <ul class="menu">
+      <li><b>XS</b><i></i><span>€89</span></li>
+      <li><b>S</b><i></i><span>€89</span></li>
+      <li><b>M</b><i></i><span>€89</span></li>
+      <li><b>L</b><i></i><span>€89</span></li>
+      <li><b>XL</b><i></i><span>€89</span></li>
+      <li><b>2XL</b><i></i><span>€89</span></li>
+      <li><b>3XL</b><i></i><span>€89</span></li>
+      <li><b>4XL</b><i></i><span>€89</span></li>
+    </ul>
+    <div class="note">Same cloth, same cut, same care — no size surcharge.</div>
+    <div class="foot"><small>Service compris<br>Free size swaps</small><span class="cta">Reserve your size</span></div>
+  </div>
+</div>
+</body>
+</html>

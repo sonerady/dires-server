@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Box Breath — a breathwork guide card: the four-count "box" drawn as the graphic (inhale · hold · exhale · hold
+     around the square, a soft dot travelling the top edge), the offer held quietly in its centre.
+     tall → photo above, sage panel below · 3:4 and wider → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E7EBE3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E7EBE3; color: #24302A; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .12; mix-blend-mode: multiply; pointer-events: none; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; box-sizing: border-box; padding: 4.6vmin 6vmin 5.4vmin; display: flex; flex-direction: column; }
+
+  .head { display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(36,48,42,.45); font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .head span:last-child { color: #5E6B63; font-weight: 500; }
+  h1 { margin: 3.2vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 300; font-size: 10.6vmin; line-height: .94; letter-spacing: -.03em; }
+  h1 i { font-style: italic; color: #A75F43; }
+
+  .row { margin-top: auto; display: flex; align-items: center; gap: 6vmin; }
+  /* the breathing box, labels sit outside each side */
+  .boxwrap { position: relative; flex: none; width: 31vmin; height: 31vmin; margin: 3.4vmin; }
+  .box { position: absolute; inset: 0; border: .32vmin solid #24302A; }
+  .box::before, .box::after { content: ""; position: absolute; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #24302A; }
+  .box::before { left: -.87vmin; bottom: -.87vmin; }
+  .box::after { right: -.87vmin; bottom: -.87vmin; }
+  .trail { position: absolute; left: -.16vmin; top: -.16vmin; width: 72%; height: .64vmin; margin-top: -.16vmin; background: linear-gradient(90deg, rgba(167,95,67,0), rgba(167,95,67,.35) 40%, #A75F43); }
+  .dot { position: absolute; left: 72%; top: -1.6vmin; width: 3.2vmin; height: 3.2vmin; margin-left: -1.6vmin; border-radius: 50%; background: #A75F43; box-shadow: 0 0 0 1.2vmin rgba(167,95,67,.18), 0 0 0 2.6vmin rgba(167,95,67,.08); }
+  .c0 { position: absolute; left: -.87vmin; top: -.87vmin; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #24302A; }
+  .c1 { position: absolute; right: -.87vmin; top: -.87vmin; width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #24302A; }
+  .lb { position: absolute; font-size: 1.6vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .lb b { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 400; font-size: 2.2vmin; letter-spacing: 0; text-transform: none; margin-left: .6vmin; color: #A75F43; }
+  .lt { left: -.4vmin; top: -3.8vmin; }
+  .lbm { left: 0; right: 0; bottom: -3.8vmin; text-align: center; }
+  .lr { right: -2.2vmin; top: 50%; transform: translate(50%, -50%) rotate(90deg); }
+  .ll { left: -2.2vmin; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); }
+  .inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .inner small { font-size: 1.6vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #5E6B63; }
+  .inner strong { font-family: "Fraunces", Georgia, serif; font-weight: 300; font-size: 9.6vmin; line-height: 1; letter-spacing: -.04em; margin: .6vmin 0 .4vmin; }
+  .inner em { font-family: "Fraunces", Georgia, serif; font-size: 2.3vmin; }
+
+  .side { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2.6vmin; }
+  .side p { margin: 0; font-size: 2vmin; line-height: 1.5; color: #3E4A43; }
+  .code { align-self: flex-start; padding: 1vmin 1.8vmin; border: 1px dashed #24302A; font-size: 1.7vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .code b { font-weight: 800; }
+  .cta { align-self: flex-start; display: flex; align-items: center; gap: 1.6vmin; padding: 1.9vmin 3vmin; border-radius: 99vmin; background: #24302A; color: #E7EBE3; font-size: 2vmin; font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
+  .dates { font-size: 1.6vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: #5E6B63; }
+
+  /* 2:3 — shorter panel */
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 72vmin); }
+    .panel { height: 72vmin; padding-top: 4vmin; padding-bottom: 4.6vmin; }
+    h1 { font-size: 9.4vmin; margin-top: 2.6vmin; }
+    .boxwrap { width: 27vmin; height: 27vmin; }
+    .inner strong { font-size: 8.4vmin; }
+    .side { gap: 2.2vmin; }
+  }
+  /* ── 3:4 / 4:5 → photo left, panel right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .panel { left: 50%; top: 0; height: auto; padding: 6vmin 5vmin 5.4vmin 5.4vmin; }
+    .head span:last-child { display: none; }
+    h1 { font-size: 8.4vmin; margin-top: 4vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .boxwrap { width: 28vmin; height: 28vmin; margin: 4vmin 3.4vmin 4.4vmin; }
+    .inner strong { font-size: 8.6vmin; }
+    .side { width: 100%; gap: 2.2vmin; }
+    .side p { font-size: 1.9vmin; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .panel { left: 46%; padding: 5vmin 5vmin 5vmin 5.4vmin; }
+    h1 { font-size: 7.6vmin; margin-top: 3vmin; }
+    .row { gap: 1.6vmin; }
+    .boxwrap { width: 24vmin; height: 24vmin; margin: 3.8vmin 3.4vmin 4.2vmin; }
+    .inner strong { font-size: 7.2vmin; }
+    .inner em { font-size: 2vmin; }
+    .side p { display: none; }
+    .side { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 1.8vmin 2vmin; }
+    .dates { order: 3; width: 100%; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 70% 30%; }
+    .panel { left: 46%; padding: 6vmin 6vmin 6vmin 6.4vmin; }
+    .head span:last-child { display: inline; }
+    h1 { font-size: 9.6vmin; margin-top: 3.6vmin; }
+    .row { flex-direction: row; align-items: center; gap: 5vmin; }
+    .boxwrap { width: 30vmin; height: 30vmin; margin: 3.6vmin 3.4vmin; }
+    .inner strong { font-size: 9vmin; }
+    .side { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 2.4vmin; }
+    .side p { display: block; font-size: 1.9vmin; }
+    .dates { order: 0; width: auto; }
+  }
+
+  /* ───────── motion (8 s loop · t=0 = static design) — one slow box breath ─────────
+     the dot travels the whole square once, easing into each corner like a count: top = inhale, right = hold,
+     bottom = exhale, left = hold; the live side's label warms to terracotta, the trail fades as the dot leaves the top
+     edge and is drawn back in behind it on the final inhale; the −20% gently swells on the in-breath and settles on
+     the out-breath, the dot's halo breathes, "Dress slow." dissolves and returns slowly, the CTA arrow nudges */
+  .boxwrap { --bw: 31vmin; }
+  @media (min-aspect-ratio: 3/5) { .boxwrap { --bw: 27vmin; } }
+  @media (min-aspect-ratio: 7/10) { .boxwrap { --bw: 28vmin; } }
+  @media (min-aspect-ratio: 9/10) { .boxwrap { --bw: 24vmin; } }
+  @media (min-aspect-ratio: 6/5) { .boxwrap { --bw: 30vmin; } }
+
+  .dot { animation: lap 8s infinite, halo 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes lap {
+    0% { transform: translate(0, 0); animation-timing-function: cubic-bezier(.3,0,.5,1); }
+    7% { transform: translate(calc(var(--bw) * .28), 0); animation-timing-function: cubic-bezier(.55,0,.45,1); }
+    32% { transform: translate(calc(var(--bw) * .28), var(--bw)); animation-timing-function: cubic-bezier(.55,0,.45,1); }
+    57% { transform: translate(calc(var(--bw) * -.72), var(--bw)); animation-timing-function: cubic-bezier(.55,0,.45,1); }
+    82% { transform: translate(calc(var(--bw) * -.72), 0); animation-timing-function: cubic-bezier(.5,0,.7,1); }
+    100% { transform: translate(0, 0); }
+  }
+  @keyframes halo {
+    0%, 100% { box-shadow: 0 0 0 1.2vmin rgba(167,95,67,.18), 0 0 0 2.6vmin rgba(167,95,67,.08); }
+    20% { box-shadow: 0 0 0 1.8vmin rgba(167,95,67,.2), 0 0 0 3.6vmin rgba(167,95,67,.09); }
+    45% { box-shadow: 0 0 0 .8vmin rgba(167,95,67,.14), 0 0 0 1.8vmin rgba(167,95,67,.05); }
+    70% { box-shadow: 0 0 0 .8vmin rgba(167,95,67,.14), 0 0 0 1.8vmin rgba(167,95,67,.05); }
+  }
+  .trail { animation: trail 8s linear infinite; }
+  @keyframes trail {
+    0% { opacity: 1; clip-path: inset(-2vmin 0 -2vmin 0); }
+    9% { opacity: 0; clip-path: inset(-2vmin 0 -2vmin 0); }
+    10%, 82% { opacity: 0; clip-path: inset(-2vmin 100% -2vmin 0); }
+    82.5% { opacity: 1; clip-path: inset(-2vmin 100% -2vmin 0); animation-timing-function: cubic-bezier(.5,0,.7,1); }
+    100% { opacity: 1; clip-path: inset(-2vmin 0 -2vmin 0); }
+  }
+
+  .inner { animation: swell 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes swell { 0%, 100% { transform: scale(1); } 8%, 30% { transform: scale(1.05); } 56%, 80% { transform: scale(.98); } }
+
+  .lb { animation: live 8s linear infinite; }
+  .lr { animation-delay: -7.44s; }
+  .lbm { animation-delay: -5.44s; }
+  .ll { animation-delay: -3.44s; }
+  .lt { animation-name: liveT; }
+  @keyframes live { 0%, 1%, 23%, 100% { color: #24302A; } 4%, 20% { color: #A75F43; } }
+  @keyframes liveT { 0%, 2%, 82%, 100% { color: #24302A; } 85%, 97% { color: #A75F43; } }
+
+  h1 i { display: inline-block; animation: slow 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes slow { 0%, 40%, 100% { opacity: 1; filter: blur(0); transform: translateY(0); } 52% { opacity: 0; filter: blur(.6vmin); transform: translateY(.6vmin); } 55% { opacity: 0; filter: blur(.6vmin); transform: translateY(.6vmin); } 70% { opacity: 1; filter: blur(0); transform: translateY(0); } }
+
+  .cta span { display: inline-block; animation: nudge 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes nudge { 0%, 60%, 100% { transform: translateX(0); } 75% { transform: translateX(.9vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="head"><span>The breathwork edit</span><span>Nº 01 — SS26</span></div>
+    <h1>Breathe in.<br><i>Dress slow.</i></h1>
+    <div class="row">
+      <div class="boxwrap">
+        <div class="box"></div>
+        <i class="trail"></i><i class="c0"></i><i class="c1"></i><i class="dot"></i>
+        <span class="lb lt">Inhale<b>4</b></span>
+        <span class="lb lr">Hold<b>4</b></span>
+        <span class="lb lbm">Exhale<b>4</b></span>
+        <span class="lb ll">Hold<b>4</b></span>
+        <div class="inner"><small>Take</small><strong>−20%</strong><em>the calm edit</em></div>
+      </div>
+      <div class="side">
+        <p>Soft layers made to move, stretch and rest in. Four counts in, and slow down.</p>
+        <div class="code">Code <b>BREATHE20</b></div>
+        <div class="cta">Shop the edit <span>→</span></div>
+        <div class="dates">Until 12 Oct</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

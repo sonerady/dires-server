@@ -277,16 +277,25 @@ async function buildBrief({ details, marketplace, language, style, imageUrl, con
   const timeoutMs = (contentImages.length || contentDocs.length || productReferences.length ? 40000 : 25000) + extraCopies * 4000;
   try {
     // 📎 Ek içerik fotoğrafları 2..N. görsel, dosya metinleri prompt'ta "CONTENT FILES"
-    const raw = await callStructuredText(
+    const ask = () => callStructuredText(
       buildBriefPrompt({ details, marketplace, language, style, contentImageCount: contentImages.length, contentDocs, frameCounts }) + `\n${primaryImageLine(primaryRole)} Do not assume unseen surfaces.\n` + referenceDirection(productReferences, 2 + contentImages.length) + (productReferences.length ? "\nFor legible text in additional product views use source content_image with the exact evidence quote." : "") + (brandProfile ? `\nSaved store identity: ${JSON.stringify(brandProfile)}. Keep this palette and typography across products; never change product colors. This overrides optional creative preferences only.` : ""),
       { maxOutputTokens, imageUrls: [imageUrl, ...contentImages, ...productReferences.map(r => r.url)], timeoutMs },
     );
-    const brief = parseBrief(raw, details, (issue) =>
-      logger.warn(`🛍️ [LISTING] brief ayrıştırma sorunu (bütçe ${maxOutputTokens}, ek kopya ${extraCopies}): ${issue}`),
+    const parse = (raw) => parseBrief(raw, details, (issue) =>
+      logger.warn(`🛍️ [LISTING] brief ayrıştırma sorunu (bütçe ${maxOutputTokens}, ek kopya ${extraCopies}): ${issue} — yanıt başı: ${JSON.stringify(String(raw || "").slice(0, 160))}`),
       { contentDocs, contentImageCount: contentImages.length + productReferences.length },
     );
+    const isEmpty = (b) => !b.productName && !(b.features || []).length && !Object.values(b.frames || {}).some((f) => f?.concept);
+    let brief = parse(await ask());
+    // 🔁 24 Eyl 2026: model arada bir JSON yerine kısa düz metin döndürüyor (canlı testte 435 karakter, JSON yok).
+    // Hata fırlatmadığı için boş brief'le devam ediliyor, kullanıcının ürün bilgisi / içerik fotoğrafı / PDF'i
+    // tamamen kayboluyordu. Boş gelirse bir kez daha denenir.
+    if (isEmpty(brief)) {
+      logger.warn("🛍️ [LISTING] brief boş/JSON'suz — bir kez daha deneniyor");
+      try { brief = parse(await ask()); } catch (retryError) { logger.warn("🛍️ [LISTING] brief yeniden deneme başarısız:", retryError?.message); }
+    }
     // Sessiz kalite kaybının ikinci kapısı: JSON geçerli ama içi boş
-    if (!brief.productName && !(brief.features || []).length && !Object.values(brief.frames || {}).some((f) => f?.concept)) {
+    if (isEmpty(brief)) {
       logger.warn(`🛍️ [LISTING] brief boş döndü — kareler yalnız şablon kurallarıyla üretilecek (bütçe ${maxOutputTokens})`);
     }
     return brief;
@@ -330,16 +339,8 @@ router.post("/generate", async (req, res) => {
       .filter((d) => d && typeof d.text === "string" && d.text.trim())
       .slice(0, MAX_CONTENT_DOCS)
       .map((d) => ({ name: String(d.name || "document").slice(0, 120), text: String(d.text).slice(0, MAX_CONTENT_DOC_CHARS) }));
-    // 17 Eyl 2026 (kullanıcı kararı): ürün bilgisi METNİ tek başına zorunlu
-    // değil. Metin, içerik fotoğrafı ve PDF birlikte de gidebilir, herhangi
-    // biri tek başına da. Brief yazacak LLM'in en az bir girdiye ihtiyacı var.
-    if (!details && !contentImages.length && !contentDocs.length && !productReferences.length) {
-      return res.status(400).json({
-        success: false,
-        error: "product details, a content photo or a document is required",
-        code: "BAD_REQUEST",
-      });
-    }
+    // 1 Eki 2026 (kullanıcı kararı): ürün bilgisi tamamen OPSİYONEL. Metin / içerik fotoğrafı / belge yoksa brief
+    // LLM'i yalnız ürün fotoğrafına bakar (buildBriefPrompt "notes yok" satırı) — ölçü/malzeme/iddia uydurmaz.
     const primaryRole = ["front", "back", "label", "detail", "auto"].includes(options.primaryRole) ? options.primaryRole : "front";
     const brandProfile = normalizeBrand(options.brandProfile);
     const style = normalizeStyle(options.style);

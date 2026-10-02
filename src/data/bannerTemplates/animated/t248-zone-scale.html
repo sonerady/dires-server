@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,600;0,900;1,400&family=Martian+Mono:wdth,wght@87.5,400;87.5,600&display=swap" rel="stylesheet">
+<style>
+  /* Zone Scale — the photographer's Zone System (0 to X, black to paper white) as a calibration bar; Zone V, the 18%
+     middle grey every light meter reads, is lifted out of the row and becomes the offer: 18% off.
+     tall → print above, meter card below · square & wide → print left, meter card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3F3F1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3F3F1; color: #111; font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .sheet { position: absolute; inset: 0; box-sizing: border-box; padding: 4.6vmin 5vmin 5.4vmin; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "head" "photo" "card"; }
+  .mono { font-family: "Martian Mono", Menlo, monospace; font-stretch: 87.5%; }
+
+  .head { grid-area: head; display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 2vmin; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .photo { grid-area: photo; position: relative; min-height: 0; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+
+  .card { grid-area: card; padding-top: 4.4vmin; }
+  .top { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .big { font-weight: 900; font-size: 25vmin; line-height: .76; letter-spacing: -.06em; }
+  .big sup { font-size: 9vmin; vertical-align: top; letter-spacing: -.02em; position: relative; top: .8vmin; }
+  .say { flex: none; text-align: right; padding-bottom: .6vmin; }
+  .say h1 { margin: 0; font-weight: 600; font-size: 4.4vmin; line-height: 1; letter-spacing: -.02em; }
+  .say p { margin: 1.2vmin 0 0; font-style: italic; font-size: 2.2vmin; line-height: 1.35; color: #4A4A48; }
+
+  /* the zone scale */
+  .scale { position: relative; margin-top: 5.6vmin; display: grid; grid-template-columns: repeat(11, 1fr); }
+  .scale i { display: block; height: 7vmin; }
+  .scale span { display: block; margin-top: 1vmin; text-align: center; font-size: 1.6vmin; color: #55554F; }
+  .z0 { background: #0A0A0A; } .z1 { background: #1D1D1C; } .z2 { background: #333332; } .z3 { background: #4B4B49; } .z4 { background: #646462; }
+  .z5 { background: #7D7D7A; } .z6 { background: #979794; } .z7 { background: #B0B0AD; } .z8 { background: #CACAC7; } .z9 { background: #E2E2DF; } .z10 { background: #FFF; box-shadow: inset 0 0 0 1px #CACAC7; }
+  .scale .v i { height: 10vmin; margin-top: -3vmin; }
+  .scale .v span { color: #111; font-weight: 600; }
+  .scale .v b { position: absolute; top: -8vmin; left: 50%; transform: translateX(-50%); font-family: "Martian Mono", Menlo, monospace; font-weight: 600; font-size: 1.6vmin; white-space: nowrap; }
+  .scale > div { position: relative; }
+
+  .foot { margin-top: 3vmin; padding-top: 1.8vmin; border-top: 1px solid #111; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; }
+  .foot b { background: #111; color: #F3F3F1; padding: 1vmin 1.6vmin; font-weight: 600; letter-spacing: .1em; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .sheet { grid-template-columns: 52% minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "photo head" "photo card"; column-gap: 5vmin; padding: 5vmin; }
+    .head { flex-direction: column; gap: .5vmin; }
+    .card { padding-top: 0; align-self: end; }
+    .top { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .big { font-size: 17vmin; }
+    .big sup { font-size: 6vmin; }
+    .say { text-align: left; }
+    .say h1 { font-size: 3.6vmin; }
+    .say p { font-size: 1.9vmin; }
+    .scale { margin-top: 7vmin; }
+    .scale i { height: 5.6vmin; }
+    .scale .v i { height: 8vmin; margin-top: -2.4vmin; }
+    .scale .v b { top: -6.4vmin; }
+    .scale span { font-size: 1.6vmin; }
+    .scale > div:nth-child(even) span { visibility: hidden; }
+    .scale .v span { visibility: visible; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.4vmin; font-size: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .sheet { grid-template-columns: 48% minmax(0, 1fr); padding: 4.6vmin; }
+    .big { font-size: 15vmin; }
+    .top { gap: 2.4vmin; }
+    .scale { margin-top: 6.4vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .sheet { grid-template-columns: 42% minmax(0, 1fr); column-gap: 6vmin; padding: 5vmin 5.6vmin; }
+    .head { flex-direction: row; }
+    .top { flex-direction: row; align-items: flex-end; }
+    .big { font-size: 22vmin; }
+    .big sup { font-size: 8vmin; }
+    .say { text-align: right; }
+    .say h1 { font-size: 4vmin; }
+    .say p { font-size: 2vmin; }
+    .scale { margin-top: 8vmin; }
+    .scale i { height: 6.4vmin; }
+    .scale .v i { height: 9.4vmin; margin-top: -3vmin; }
+    .scale .v b { top: -7.4vmin; }
+    .scale > div:nth-child(even) span { visibility: visible; }
+    .foot { flex-direction: row; align-items: center; font-size: 1.7vmin; }
+  }
+
+  /* ── motion (6s loop) · a spot-meter reading: a light scan runs down the scale from Zone 0 to X, Zone V bobs up
+     as the meter settles on it and its 18% marker drops in · the big 18% is re-metered from the baseline ·
+     the print breathes, the code chip inverts on the beat */
+  .photo { overflow: hidden; }
+  .photo img { transform-origin: 50% 25%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .scale i { animation: scan 6s ease-in-out infinite; }
+  .scale > div:nth-child(1) i { animation-delay: -1.1s; } .scale > div:nth-child(2) i { animation-delay: -1s; }
+  .scale > div:nth-child(3) i { animation-delay: -.9s; } .scale > div:nth-child(4) i { animation-delay: -.8s; }
+  .scale > div:nth-child(5) i { animation-delay: -.7s; } .scale > div:nth-child(6) i { animation-delay: -.6s; }
+  .scale > div:nth-child(7) i { animation-delay: -.5s; } .scale > div:nth-child(8) i { animation-delay: -.4s; }
+  .scale > div:nth-child(9) i { animation-delay: -.3s; } .scale > div:nth-child(10) i { animation-delay: -.2s; }
+  .scale > div:nth-child(11) i { animation-delay: -.1s; }
+  @keyframes scan { 0%, 20%, 30%, 100% { filter: none; } 24% { filter: brightness(1.6) contrast(.9); } }
+
+  .scale .v i { animation: lift 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes lift { 0%, 36% { transform: none; } 42% { transform: translateY(-1.6vmin); } 48% { transform: translateY(.3vmin); } 52%, 100% { transform: none; } }
+  .scale .v b { animation: marker 6s cubic-bezier(.3,0,.2,1) infinite; }
+  @keyframes marker { 0%, 36% { transform: translateX(-50%); opacity: 1; } 38% { transform: translate(-50%, -1.4vmin); opacity: 0; } 42% { transform: translate(-50%, -1.4vmin); opacity: 0; } 48% { transform: translate(-50%, .3vmin); opacity: 1; } 52%, 100% { transform: translateX(-50%); opacity: 1; } }
+
+  .big { animation: meter 6s cubic-bezier(.7,0,.25,1) infinite; }
+  @keyframes meter { 0%, 54% { clip-path: inset(-15% -5% -15% -5%); } 60% { clip-path: inset(-15% -5% 100% -5%); } 60.01% { clip-path: inset(100% -5% -15% -5%); } 72%, 100% { clip-path: inset(-15% -5% -15% -5%); } }
+  .say p { animation: say 6s ease infinite; }
+  @keyframes say { 0%, 58% { opacity: 1; } 61%, 68% { opacity: 0; } 76%, 100% { opacity: 1; } }
+
+  .foot b { animation: chip 6s steps(1, end) infinite; }
+  @keyframes chip { 0%, 80%, 83%, 100% { background: #111; color: #F3F3F1; } 81.5% { background: #7D7D7A; color: #fff; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sheet">
+    <div class="head mono"><span>The Zone System</span><span>Metered at Zone V</span></div>
+    <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="card">
+      <div class="top">
+        <div class="big">18<sup>%</sup></div>
+        <div class="say"><h1>Perfectly metered.</h1><p>Middle grey, middle of the season —<br>18% off the whole collection.</p></div>
+      </div>
+      <div class="scale mono">
+        <div><i class="z0"></i><span>0</span></div><div><i class="z1"></i><span>I</span></div><div><i class="z2"></i><span>II</span></div><div><i class="z3"></i><span>III</span></div><div><i class="z4"></i><span>IV</span></div>
+        <div class="v"><b>18% ▾</b><i class="z5"></i><span>V</span></div>
+        <div><i class="z6"></i><span>VI</span></div><div><i class="z7"></i><span>VII</span></div><div><i class="z8"></i><span>VIII</span></div><div><i class="z9"></i><span>IX</span></div><div><i class="z10"></i><span>X</span></div>
+      </div>
+      <div class="foot mono"><span>Until 12 October</span><b>Code ZONE18</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

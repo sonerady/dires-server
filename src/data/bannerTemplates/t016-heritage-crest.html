@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Heritage Crest — a centenary house seal (drawn in SVG) on bottle green.
+     tall → photo above the green; square/wide → photo left, green right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C3327; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #1C3327; color: #EFE7D6; font-family: "EB Garamond", Garamond, "Times New Roman", serif; }
+  .photo { position: absolute; top: 0; left: 0; width: 100%; height: 60%; object-fit: cover; object-position: 50% 18%; }
+  .rule2 { position: absolute; left: 0; right: 0; top: 60%; height: .5vmin; border-top: .5vmin solid #0F2219; border-bottom: 1px solid rgba(239,231,214,.35); }
+  .panel { position: absolute; left: 5vmin; right: 5vmin; top: calc(60% + 3vmin); bottom: 3vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .crest { width: min(30vmin, 16vh); height: min(30vmin, 16vh); flex: none; }
+  .since { margin-top: 2.2vmin; display: flex; align-items: center; gap: 2vmin; font-family: "Cinzel", "Trajan Pro", serif; font-weight: 500; font-size: 2vmin; letter-spacing: .5em; margin-right: -.5em; }
+  .since i { width: 7vmin; height: 1px; background: rgba(239,231,214,.6); }
+  .h { margin-top: 1.6vmin; font-style: italic; font-size: min(8.6vmin, 4.7vh); line-height: 1; }
+  .s { margin-top: 1.8vmin; font-family: "Cinzel", serif; font-size: 2.1vmin; letter-spacing: .32em; margin-right: -.32em; color: #CFC4AC; }
+  .cta { margin-top: 2.8vmin; padding: 1.4vmin 3.6vmin; border: 1px solid rgba(239,231,214,.7); font-family: "Cinzel", serif; font-weight: 600; font-size: 1.9vmin; letter-spacing: .34em; }
+  .crest text { font-family: "Cinzel", "Trajan Pro", serif; fill: #EFE7D6; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 58%; }
+    .rule2 { top: 58%; }
+    .panel { top: calc(58% + 2.4vmin); bottom: 2.4vmin; }
+    .crest { width: 20vmin; height: 20vmin; }
+    .h { font-size: 6.6vmin; }
+    .cta { margin-top: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 52%; height: 100%; object-position: 50% 25%; }
+    .rule2 { top: 0; bottom: 0; left: 52%; right: auto; width: .5vmin; height: auto; border-top: 0; border-left: .5vmin solid #0F2219; border-bottom: 0; border-right: 1px solid rgba(239,231,214,.35); }
+    .panel { left: calc(52% + 4vmin); right: 4vmin; top: 5vmin; bottom: 5vmin; }
+    .crest { width: 26vmin; height: 26vmin; }
+    .since { font-size: 1.8vmin; letter-spacing: .4em; margin-right: -.4em; }
+    .since i { width: 4vmin; }
+    .h { font-size: 6vmin; }
+    .s { font-size: 1.7vmin; letter-spacing: .2em; margin-right: -.2em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; }
+    .rule2 { left: 54%; }
+    .panel { left: calc(54% + 5vmin); right: 5vmin; }
+    .crest { width: 30vmin; height: 30vmin; }
+    .since { font-size: 2vmin; letter-spacing: .5em; margin-right: -.5em; }
+    .since i { width: 7vmin; }
+    .h { font-size: 7.4vmin; }
+    .s { font-size: 1.9vmin; letter-spacing: .3em; margin-right: -.3em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="rule2"></div>
+  <div class="panel">
+    <svg class="crest" viewBox="0 0 200 200" aria-hidden="true">
+      <defs><path id="ring" d="M 24,100 a 76,76 0 1,1 152,0 a 76,76 0 1,1 -152,0"/></defs>
+      <g fill="none" stroke="#EFE7D6">
+        <circle cx="100" cy="100" r="97" stroke-width="1.6"/>
+        <circle cx="100" cy="100" r="92.5" stroke-width=".6"/>
+        <circle cx="100" cy="100" r="61" stroke-width="1.2"/>
+        <circle cx="100" cy="100" r="57.5" stroke-width=".5" stroke-dasharray="1.2 2.4"/>
+      </g>
+      <text font-size="11.5" font-weight="500" letter-spacing="1"><textPath href="#ring" textLength="470" lengthAdjust="spacing">ATELIER NORD · PARIS · MAISON FONDÉE EN 1924 ·</textPath></text>
+      <text x="100" y="106" text-anchor="middle" font-size="50" font-weight="500">N</text>
+      <text x="100" y="125" text-anchor="middle" font-size="11" font-weight="600" letter-spacing="3">1924</text>
+      <g fill="#EFE7D6"><path d="M100 63 l2.2 3.2 l-2.2 3.2 l-2.2 -3.2z"/><circle cx="72" cy="94" r="1.4"/><circle cx="128" cy="94" r="1.4"/></g>
+      <g fill="#EFE7D6" opacity=".92"><ellipse cx="149.2" cy="108.7" rx="2.2" ry="5.2" transform="rotate(135 149.2 108.7)"/><ellipse cx="146.7" cy="117.9" rx="2.2" ry="5.2" transform="rotate(146 146.7 117.9)"/><ellipse cx="142.4" cy="126.5" rx="2.2" ry="5.2" transform="rotate(157 142.4 126.5)"/><ellipse cx="136.6" cy="134.1" rx="2.2" ry="5.2" transform="rotate(168 136.6 134.1)"/><ellipse cx="129.4" cy="140.5" rx="2.2" ry="5.2" transform="rotate(179 129.4 140.5)"/><ellipse cx="121.1" cy="145.3" rx="2.2" ry="5.2" transform="rotate(190 121.1 145.3)"/><ellipse cx="112.1" cy="148.5" rx="2.2" ry="5.2" transform="rotate(201 112.1 148.5)"/><ellipse cx="50.8" cy="108.7" rx="2.2" ry="5.2" transform="rotate(-135 50.8 108.7)"/><ellipse cx="53.3" cy="117.9" rx="2.2" ry="5.2" transform="rotate(-146 53.3 117.9)"/><ellipse cx="57.6" cy="126.5" rx="2.2" ry="5.2" transform="rotate(-157 57.6 126.5)"/><ellipse cx="63.4" cy="134.1" rx="2.2" ry="5.2" transform="rotate(-168 63.4 134.1)"/><ellipse cx="70.6" cy="140.5" rx="2.2" ry="5.2" transform="rotate(-179 70.6 140.5)"/><ellipse cx="78.9" cy="145.3" rx="2.2" ry="5.2" transform="rotate(-190 78.9 145.3)"/><ellipse cx="87.9" cy="148.5" rx="2.2" ry="5.2" transform="rotate(-201 87.9 148.5)"/></g>
+    </svg>
+    <div class="since"><i></i>Since 1924<i></i></div>
+    <div class="h">A Century of <span style="white-space:nowrap">Savoir&#8209;Faire</span></div>
+    <div class="s">The Heritage Collection</div>
+    <div class="cta">Discover</div>
+  </div>
+</div>
+</body>
+</html>

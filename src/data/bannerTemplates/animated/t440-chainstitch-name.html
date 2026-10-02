@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Rokkitt:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Chainstitch Name — the chest of a French work-blue chore jacket: a flat-felled seam with orange twin topstitching,
+     an oval twill name patch chain-stitched in red script ("Alex"), and a stitched patch pocket with a corozo button
+     holding the code and the CTA. The offer is the service: free chain-stitched names on the work edit.
+     tall / 3:4 → photo above the jacket; square / wide → photo left, the seam runs down the side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2F4E86; }
+  .banner { --P: 84vmin; --n: 1vmin; position: fixed; inset: 0; overflow: hidden; color: #F4F1E8; font-family: "Rokkitt", Rockwell, Georgia, serif;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 .2vmin, rgba(0,0,0,0) .2vmin .55vmin),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.05) 0 .2vmin, rgba(0,0,0,0) .2vmin .6vmin),
+      radial-gradient(120% 80% at 30% 20%, #3A5C96 0%, #2F4E86 55%, #253F6F 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--P)); object-fit: cover; object-position: 50% 22%; display: block; }
+  /* flat-felled seam, twin needle */
+  .fell { position: absolute; left: 0; right: 0; top: calc(100% - var(--P)); height: 4vmin; z-index: 2; background: linear-gradient(180deg, #243F70 0%, #2F4E86 45%, #2A477C 100%); box-shadow: 0 .5vmin 1vmin rgba(10,20,40,.35); }
+  .fell::before, .fell::after { content: ""; position: absolute; left: 0; right: 0; border-top: .35vmin dashed #E8893A; }
+  .fell::before { top: 1vmin; } .fell::after { bottom: 1vmin; }
+
+  .chest { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--P) - 4vmin); box-sizing: border-box; padding: 5vmin 6vmin 5vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .kick { display: flex; justify-content: space-between; font-weight: 600; font-size: 1.9vmin; letter-spacing: .24em; text-transform: uppercase; color: #C6D3EA; white-space: nowrap; }
+  .top { display: flex; align-items: center; gap: 5vmin; }
+
+  /* the name patch */
+  .patch { position: relative; flex: none; width: calc(var(--n) * 38); height: calc(var(--n) * 22); border-radius: 50%; transform: rotate(-4deg);
+    background: repeating-linear-gradient(45deg, rgba(0,0,0,.03) 0 .2vmin, rgba(0,0,0,0) .2vmin .6vmin), #F3EFE4;
+    box-shadow: 0 0 0 calc(var(--n) * .9) #C8322B, 0 0 0 calc(var(--n) * 1.2) #A7231F, 0 calc(var(--n) * 1) calc(var(--n) * 1.6) calc(var(--n) * .8) rgba(10,20,40,.45);
+    display: flex; align-items: center; justify-content: center; }
+  .patch::before { content: ""; position: absolute; inset: calc(var(--n) * 1.2); border-radius: 50%; border: calc(var(--n) * .3) dashed rgba(200,50,43,.55); }
+  .patch b { position: relative; margin-top: calc(var(--n) * -1.6); font-family: "Pacifico", "Brush Script MT", cursive; font-weight: 400; font-size: calc(var(--n) * 10.5); line-height: 1; color: #C8322B;
+    background: repeating-linear-gradient(62deg, #D73A31 0 .35vmin, #A8241F .35vmin .55vmin, #E0473C .55vmin .8vmin); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 .2vmin 0 rgba(90,15,10,.45)); }
+
+  h1 { margin: 0; font-weight: 900; font-size: 11.2vmin; line-height: .86; letter-spacing: -.02em; }
+  h1 em { font-style: normal; color: #F2A65A; }
+  .lede { margin: 0; font-size: 2.8vmin; line-height: 1.35; color: #DCE4F2; max-width: 76vmin; }
+  .lede b { color: #F4F1E8; font-weight: 800; }
+
+  /* patch pocket */
+  .pocket { position: relative; box-sizing: border-box; padding: 6.4vmin 4vmin 3.4vmin; background: linear-gradient(180deg, #2A477C 0%, #2C4B82 100%); border-radius: 0 0 2.4vmin 2.4vmin;
+    box-shadow: 0 .6vmin 1.2vmin rgba(10,20,40,.35); display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .pocket::before { content: ""; position: absolute; inset: 1vmin; border: .32vmin dashed #E8893A; border-radius: 0 0 1.6vmin 1.6vmin; pointer-events: none; }
+  .pocket::after { content: ""; position: absolute; left: 1vmin; right: 1vmin; top: 3.8vmin; border-top: .32vmin dashed #E8893A; }
+  .btnx { position: absolute; left: 50%; top: 1.4vmin; width: 3.6vmin; height: 3.6vmin; margin-left: -1.8vmin; border-radius: 50%; z-index: 1;
+    background: radial-gradient(circle at 35% 30%, #D9B98A 0%, #9C7547 60%, #5E4224 100%); box-shadow: 0 .3vmin .5vmin rgba(0,0,0,.45); }
+  .btnx::after { content: ""; position: absolute; inset: 30%; border-radius: 50%; background: radial-gradient(circle, #5E4224 0 18%, rgba(0,0,0,0) 20%) 30% 30% / 50% 50%; }
+  .code { position: relative; font-size: 2.2vmin; letter-spacing: .12em; text-transform: uppercase; color: #C6D3EA; white-space: nowrap; }
+  .code b { color: #F4F1E8; font-weight: 800; letter-spacing: .08em; font-size: 2.8vmin; margin-left: .6vmin; }
+  .cta { position: relative; font-weight: 800; font-size: 2.9vmin; letter-spacing: .04em; background: #F2A65A; color: #1E2E50; padding: 1.3vmin 2.6vmin; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --P: 70vmin; --n: .82vmin; }
+    .chest { padding: 4vmin 6vmin 4vmin; }
+    h1 { font-size: 9.4vmin; }
+    .lede { font-size: 2.3vmin; }
+    .pocket { padding: 5.6vmin 3.6vmin 2.8vmin; }
+    .cta { font-size: 2.5vmin; }
+  }
+  /* square → photo left, seam down the side */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --n: .78vmin; }
+    .photo { width: 46%; height: 100%; object-position: 50% 24%; }
+    .fell { top: 0; bottom: 0; left: 46%; right: auto; width: 4vmin; height: auto; background: linear-gradient(90deg, #243F70 0%, #2F4E86 45%, #2A477C 100%); }
+    .fell::before, .fell::after { top: 0; bottom: 0; left: auto; right: auto; border-top: 0; border-left: .35vmin dashed #E8893A; }
+    .fell::before { left: 1vmin; } .fell::after { right: 1vmin; }
+    .chest { left: calc(46% + 4vmin); top: 0; height: auto; padding: 5vmin 4.4vmin 4.6vmin; }
+    .kick span:last-child { display: none; }
+    .top { flex-direction: column; align-items: flex-start; gap: 4.4vmin; }
+    .patch { margin: 1.6vmin 0 0 1.6vmin; }
+    h1 { font-size: 8.4vmin; }
+    .lede { font-size: 2vmin; }
+    .pocket { flex-direction: column; align-items: flex-start; gap: 2vmin; padding: 5.8vmin 3.4vmin 3vmin; }
+    .cta { font-size: 2.3vmin; }
+    .code { font-size: 1.8vmin; }
+    .code b { font-size: 2.3vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --n: .86vmin; }
+    .photo { width: 44%; object-position: 50% 30%; }
+    .fell { left: 44%; }
+    .chest { left: calc(44% + 4vmin); padding: 5.6vmin 6vmin 5.4vmin; }
+    .kick span:last-child { display: inline; }
+    .top { flex-direction: row; align-items: center; gap: 5vmin; }
+    .patch { margin: 0; }
+    h1 { font-size: 9.6vmin; }
+    .lede { font-size: 2.3vmin; }
+    .pocket { flex-direction: row; align-items: center; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     0.6s the corozo button turns on its thread · 2.5s the name lifts off the patch and is chain-stitched back in, stitch by stitch
+     (stepped wipe) · 4.6s the patch gives a settling tug · 5.2s light glides over the CTA */
+  .btnx { animation: turn 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes turn { 0%, 8% { transform: rotate(0deg); } 18% { transform: rotate(-38deg); } 28%, 100% { transform: rotate(0deg); } }
+
+  .patch b { animation: stitch 6s linear infinite; }
+  @keyframes stitch {
+    0%, 38% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); }
+    42% { opacity: 0; clip-path: inset(-40% -12% -40% -12%); }
+    42.5% { opacity: 1; clip-path: inset(-40% 100% -40% -12%); animation-timing-function: steps(20, end); }
+    74%, 100% { opacity: 1; clip-path: inset(-40% -12% -40% -12%); }
+  }
+
+  .patch { animation: tug 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes tug {
+    0%, 75% { transform: rotate(-4deg) scale(1); }
+    79% { transform: rotate(-6deg) scale(1.04); }
+    83% { transform: rotate(-3.2deg) scale(.99); }
+    87%, 100% { transform: rotate(-4deg) scale(1); }
+  }
+
+  .cta { background: linear-gradient(100deg, rgba(0,0,0,0) 40%, #FFE2C0 50%, rgba(0,0,0,0) 60%) 100% 0 / 300% 100% no-repeat, #F2A65A; animation: glide 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glide { 0%, 84% { background-position: 100% 0, 0 0; } 98%, 100% { background-position: 0 0, 0 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="fell"></div>
+  <div class="chest">
+    <div class="kick"><span>Atelier Nord · Stitch Room</span><span>Chainstitch Nº 26</span></div>
+    <div class="top">
+      <div class="patch"><b>Alex</b></div>
+      <h1>Wear<br>your <em>name.</em></h1>
+    </div>
+    <p class="lede"><b>Free chain-stitched names</b> on everything in the work edit. Up to eight letters, done in-house in 48 hours.</p>
+    <div class="pocket"><i class="btnx"></i><span class="code">Code<b>NAMEIT</b></span><span class="cta">Stitch mine →</span></div>
+  </div>
+</div>
+</body>
+</html>

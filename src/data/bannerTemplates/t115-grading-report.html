@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Grading Report — a gem lab certificate for the collection: guilloché security band, report number,
+     dotted-leader grading table, a grade scale with its marker, and a holographic seal.
+     tall / wide → photo + certificate; square / 3:4 → photo left, certificate right with the seal by the price */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EFE4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EFE4; color: #1C2640; font-family: "IBM Plex Mono", "Courier New", monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 78vmin); object-fit: cover; object-position: 50% 22%; }
+  .cert { position: absolute; left: 0; right: 0; bottom: 0; height: 78vmin; box-sizing: border-box; padding: 9vmin 6vmin 5vmin;
+    background: radial-gradient(90% 70% at 80% 30%, #F8F5EC 0%, #F1ECDF 100%);
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 5vmin;
+    grid-template-rows: auto auto 1fr auto auto; grid-template-areas: "hd hd" "h1 h1" "tb sl" "sc sc" "ft ft"; }
+  .band { position: absolute; left: 0; right: 0; top: 0; height: 5.4vmin; width: 100%; background: #E4E7E4; border-bottom: 1px solid rgba(28,38,64,.4); }
+
+  .hd { grid-area: hd; display: flex; justify-content: space-between; gap: 3vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(28,38,64,.35); font-size: 1.6vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; }
+  .hd span:last-child { white-space: nowrap; color: #A2402A; }
+  h1 { grid-area: h1; margin: 2.6vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 9.4vmin; line-height: .96; letter-spacing: -.02em; }
+  h1 i { font-weight: 400; }
+  .tb { grid-area: tb; margin: 3vmin 0 0; padding: 0; list-style: none; align-self: start; }
+  .tb li { display: flex; align-items: baseline; gap: 1vmin; padding: .75vmin 0; font-size: 2vmin; }
+  .tb li::after { content: ""; order: 1; flex: 1; border-bottom: .25vmin dotted rgba(28,38,64,.55); transform: translateY(-.5vmin); }
+  .tb li span { order: 0; color: #56607A; }
+  .tb li b { order: 2; font-weight: 600; white-space: nowrap; }
+
+  /* holographic seal */
+  .sl { grid-area: sl; position: relative; margin-top: 3vmin; width: 22vmin; height: 22vmin; align-self: start; border-radius: 50%;
+    background: repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 0 .5vmin, rgba(255,255,255,.35) .5vmin .7vmin),
+      conic-gradient(from 20deg, #CFE8F6, #EBD3F2, #FBF0C8, #CDF3DF, #D8DCF7, #F6D7DF, #CFE8F6);
+    box-shadow: 0 0 0 .35vmin #B9B2A0, 0 .6vmin 1.2vmin rgba(28,38,64,.2); }
+  .sl svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .sl svg text { font-family: "IBM Plex Mono", monospace; font-size: 13px; font-weight: 500; fill: #1C2640; letter-spacing: 1px; }
+  .sl .c { position: absolute; inset: 22%; border-radius: 50%; background: rgba(243,239,228,.72); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .sl .c b { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 400; font-size: 2.8vmin; line-height: 1; }
+  .sl .c span { margin-top: .6vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .1em; }
+
+  /* grade scale */
+  .sc { grid-area: sc; margin-top: 3.4vmin; }
+  .scale { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: .5vmin; }
+  .scale i { height: 1.4vmin; background: #CBD1D8; }
+  .scale i:nth-child(2) { background: #9AA6B6; } .scale i:nth-child(3) { background: #5E6E88; } .scale i:nth-child(4) { background: #1C2640; }
+  .scale::after { content: ""; position: absolute; right: 12.5%; top: -1.8vmin; margin-right: -1vmin; border: 1vmin solid transparent; border-top: 1.2vmin solid #A2402A; border-bottom: 0; }
+  .lab { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5vmin; margin-top: .9vmin; font-size: 1.6vmin; letter-spacing: .04em; color: #56607A; }
+  .lab span:last-child { color: #1C2640; font-weight: 600; }
+
+  .ft { grid-area: ft; margin-top: 3.4vmin; padding-top: 2.4vmin; border-top: .3vmin solid #1C2640; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .price { font-family: "Fraunces", Georgia, serif; font-size: 5.4vmin; line-height: 1; white-space: nowrap; }
+  .price small { display: block; margin-bottom: .6vmin; font-family: "IBM Plex Mono", monospace; font-size: 1.6vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #56607A; }
+  .cta { padding: 1.8vmin 2.8vmin; background: #1C2640; color: #F3EFE4; font-size: 1.9vmin; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+
+  /* ── 3:4 / square — photo left, certificate right; the seal moves beside the price ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 48%; height: 100%; }
+    .cert { left: 48%; top: 0; height: auto; padding: 9vmin 5vmin 5vmin 5vmin; column-gap: 3vmin;
+      grid-template-rows: auto auto auto auto auto; align-content: space-between; grid-template-areas: "hd hd" "h1 h1" "tb tb" "sc sc" "ft sl"; }
+    .hd { flex-direction: column; gap: .6vmin; font-size: 1.6vmin; }
+    h1 { font-size: 7.4vmin; }
+    .tb li { font-size: 1.8vmin; padding: .6vmin 0; }
+    .sc { align-self: end; }
+    .sl { width: 17vmin; height: 17vmin; align-self: end; margin-top: 3vmin; }
+    .sl .c b { font-size: 2.2vmin; }
+    .sl .c span { font-size: 1.6vmin; letter-spacing: 0; }
+    .sl svg text { font-size: 15px; }
+    .ft { flex-direction: column; align-items: flex-start; gap: 2vmin; border-top: 0; padding-top: 0; align-self: end; }
+    .price { font-size: 4.8vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2vmin; }
+    .lab { font-size: 1.6vmin; letter-spacing: 0; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .cert { left: 46%; padding: 8vmin 4.6vmin 4.6vmin; }
+    .hd span:first-child { display: none; }
+    h1 { font-size: 6.4vmin; margin-top: 2vmin; }
+    .tb { margin-top: 2vmin; }
+    .tb li { font-size: 1.7vmin; padding: .45vmin 0; }
+    .sc { margin-top: 2.4vmin; }
+    .sl { width: 15vmin; height: 15vmin; }
+  }
+  /* ── wide — photo left, the full certificate right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; }
+    .cert { left: 40%; padding: 10vmin 6vmin 5.4vmin; column-gap: 6vmin;
+      grid-template-rows: auto auto auto auto auto; align-content: space-between; grid-template-areas: "hd hd" "h1 h1" "tb sl" "sc sc" "ft ft"; }
+    .hd { flex-direction: row; font-size: 1.6vmin; }
+    .hd span:first-child { display: inline; }
+    h1 { font-size: 8.6vmin; margin-top: 0; }
+    .tb { margin-top: 0; }
+    .tb li { font-size: 2vmin; padding: .9vmin 0; }
+    .sl { width: 22vmin; height: 22vmin; align-self: center; margin-top: 0; }
+    .sl .c b { font-size: 2.6vmin; }
+    .sl svg text { font-size: 13px; }
+    .sc { margin-top: 0; }
+    .ft { flex-direction: row; align-items: center; border-top: .3vmin solid #1C2640; padding-top: 2.4vmin; margin-top: 0; }
+    .price { font-size: 5vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.7vmin 2.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cert">
+    <svg class="band" viewBox="0 0 400 24" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <path id="w" fill="none" stroke="#3F6475" stroke-width=".3" d="M-50 12 C-37.5 1 -37.5 1 -25 12 S-12.5 23 0 12 S12.5 1 25 12 S37.5 23 50 12 S62.5 1 75 12 S87.5 23 100 12"/>
+        <pattern id="g" width="50" height="24" patternUnits="userSpaceOnUse">
+          <use href="#w"/><use href="#w" x="4"/><use href="#w" x="8"/><use href="#w" x="12"/><use href="#w" x="16"/><use href="#w" x="20"/>
+          <use href="#w" transform="translate(0 24) scale(1 -1)" x="2"/><use href="#w" transform="translate(0 24) scale(1 -1)" x="10"/><use href="#w" transform="translate(0 24) scale(1 -1)" x="18"/>
+        </pattern>
+      </defs>
+      <rect width="400" height="24" fill="url(#g)"/>
+    </svg>
+    <div class="hd"><span>Atelier Nord Grading Laboratory</span><span>Report AN-2604-1187</span></div>
+    <h1>Graded <i>exceptional.</i></h1>
+    <ul class="tb">
+      <li><span>Cut</span><b>True to size</b></li>
+      <li><span>Finish</span><b>By hand</b></li>
+      <li><span>Edition</span><b>300 pieces</b></li>
+      <li><span>Issued</span><b>04.10.26</b></li>
+    </ul>
+    <div class="sl">
+      <svg viewBox="0 0 220 220" aria-hidden="true"><defs><path id="sr" d="M 110,110 m -88,0 a 88,88 0 1,1 176,0 a 88,88 0 1,1 -176,0"/></defs><text><textPath href="#sr" textLength="545" lengthAdjust="spacing">AUTHENTIC · GRADED · ATELIER NORD · Nº 1187 ·</textPath></text></svg>
+      <div class="c"><b>Certified</b><span>Nº 1187</span></div>
+    </div>
+    <div class="sc">
+      <div class="scale"><i></i><i></i><i></i><i></i></div>
+      <div class="lab"><span>Good</span><span>Fine</span><span>Excellent</span><span>Exceptional</span></div>
+    </div>
+    <div class="ft">
+      <div class="price"><small>New season</small>$240</div>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

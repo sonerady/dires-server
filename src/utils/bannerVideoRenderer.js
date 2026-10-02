@@ -9,12 +9,12 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 
-const FPS = 60;
+const DEFAULT_FPS = 60;
 const DEFAULT_LOOP_SECONDS = 5;
 const MIN_LOOP_SECONDS = 2;
 const MAX_LOOP_SECONDS = 10;
 const TARGET_LONG_EDGE = 1920; // çıktı videonun uzun kenarı (px) — 9:16'da 1080×1920 tam HD
-const WORKERS = Math.max(
+const DEFAULT_WORKERS = Math.max(
   1,
   parseInt(process.env.BANNER_VIDEO_WORKERS, 10) || 3
 );
@@ -40,7 +40,7 @@ function resolveChromePath() {
       /* sıradakine bak */
     }
   }
-  // 26 Eyl 2026: canlıda "Chromium not found" — Railway artık Railpack ile derliyor olabilir (nixpacks.toml okunmuyor);
+  // 26 Eyl 2026: canlıda "Chromium not found" — Railway artık Railpack ile derliyor (nixpacks.toml okunmuyor);
   // railpack.json apt ile /usr/bin/chromium kurar. PATH'te görünmese bile bilinen yollara da bak.
   const knownPaths = [
     "/usr/bin/chromium",
@@ -64,12 +64,12 @@ function resolveChromePath() {
 }
 
 // arn = genişlik/yükseklik; çift sayıya yuvarla (libx264 şartı)
-function videoDimensions(arn) {
+function videoDimensions(arn, longEdge = TARGET_LONG_EDGE) {
   const even = (n) => Math.max(2, Math.round(n / 2) * 2);
   if (arn >= 1) {
-    return { width: even(TARGET_LONG_EDGE), height: even(TARGET_LONG_EDGE / arn) };
+    return { width: even(longEdge), height: even(longEdge / arn) };
   }
-  return { width: even(TARGET_LONG_EDGE * arn), height: even(TARGET_LONG_EDGE) };
+  return { width: even(longEdge * arn), height: even(longEdge) };
 }
 
 function runFfmpeg(args) {
@@ -88,11 +88,23 @@ function runFfmpeg(args) {
 async function preparePage(browser, html, width, height) {
   const page = await browser.newPage();
   await page.setViewport({ width, height, deviceScaleFactor: 1 });
-  await page.setContent(html, { waitUntil: "networkidle0", timeout: 60000 });
+  // animations never run on their own (they are only ever seeked): a compositor copy that ran during load
+  // could otherwise stay frozen in a tab and ignore the later seeks
+  const frozen = html.includes("</head>")
+    ? html.replace("</head>", "<style>*,*::before,*::after{animation-play-state:paused!important}</style></head>")
+    : html;
+  await page.setContent(frozen, { waitUntil: "networkidle0", timeout: 60000 });
+  // every image decoded + fonts ready before the first frame (parallel tabs otherwise sometimes drew no photo)
+  await page.evaluate(async () => {
+    await Promise.all([...document.images].map((img) => (img.decode ? img.decode().catch(() => {}) : null)));
+    if (document.fonts?.ready) await document.fonts.ready;
+  });
   await page.evaluate(() => {
+    // paused at t=0: the time spent loading would otherwise leave the first frame mid-animation
     document.getAnimations().forEach((a) => {
       try {
         a.pause();
+        a.currentTime = 0;
       } catch (e) {}
     });
   });
@@ -102,10 +114,13 @@ async function preparePage(browser, html, width, height) {
 /**
  * @param {string} html  Banner HTML dokümanı
  * @param {number} arn   Genişlik/yükseklik oranı
+ * @param {{ fps?: number, longEdge?: number, workers?: number }} [opts]  hızlı çıktı için (ör. şablon galerisi: 30 fps, 1280 px)
  * @returns {Promise<{ filePath: string, cleanup: () => void, durationSeconds: number }>}
  */
-async function renderBannerVideo(html, arn) {
-  const { width, height } = videoDimensions(arn || 4 / 5);
+async function renderBannerVideo(html, arn, opts = {}) {
+  const FPS = opts.fps || DEFAULT_FPS;
+  const WORKERS = opts.workers || DEFAULT_WORKERS;
+  const { width, height } = videoDimensions(arn || 4 / 5, opts.longEdge || TARGET_LONG_EDGE);
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "banner-video-"));
   const framesDir = path.join(workDir, "frames");
   fs.mkdirSync(framesDir);
@@ -129,6 +144,10 @@ async function renderBannerVideo(html, arn) {
         "--disable-dev-shm-usage",
         "--hide-scrollbars",
         "--force-device-scale-factor=1",
+        // parallel capture tabs are background tabs: without these they can paint stale animation frames
+        "--disable-renderer-backgrounding",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
       ],
     });
 
@@ -220,8 +239,8 @@ async function renderBannerVideo(html, arn) {
  * @param {number} arn   Genişlik/yükseklik oranı
  * @returns {Promise<Buffer>}
  */
-async function renderBannerScreenshot(html, arn) {
-  const { width, height } = videoDimensions(arn || 4 / 5);
+async function renderBannerScreenshot(html, arn, opts = {}) {
+  const { width, height } = videoDimensions(arn || 4 / 5, opts.longEdge || TARGET_LONG_EDGE);
   let browser = null;
   try {
     browser = await puppeteer.launch({
@@ -233,6 +252,10 @@ async function renderBannerScreenshot(html, arn) {
         "--disable-dev-shm-usage",
         "--hide-scrollbars",
         "--force-device-scale-factor=1",
+        // parallel capture tabs are background tabs: without these they can paint stale animation frames
+        "--disable-renderer-backgrounding",
+        "--disable-background-timer-throttling",
+        "--disable-backgrounding-occluded-windows",
       ],
     });
     const page = await preparePage(browser, html, width, height);

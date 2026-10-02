@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Caveat+Brush&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Sticker Bomb — a print gaffer-taped to a concrete wall; headline on torn tape, stickers around the edges.
+     tall → print above, tape headline below; square / wide → print left, tape column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D9D6D0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(120% 80% at 30% 20%, #E4E1DB 0%, #D4D0C9 60%, #C9C5BD 100%); color: #111; font-family: "Space Mono", Menlo, monospace; }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .5; mix-blend-mode: multiply; }
+  .print { position: absolute; left: 8vmin; right: 8vmin; top: 7vmin; height: calc(100% - 66vmin); background: #fff; padding: 1.6vmin; box-sizing: border-box; transform: rotate(-1.4deg); box-shadow: 0 .4vmin .8vmin rgba(0,0,0,.18), 0 2.4vmin 4vmin rgba(0,0,0,.16); }
+  .print img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .tape { position: absolute; height: 6vmin; background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.08)), #1C1C1C; box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.25);
+    clip-path: polygon(0 8%, 3% 0, 5% 18%, 7% 2%, 9% 12%, 91% 6%, 93% 0, 95% 14%, 97% 4%, 100% 10%, 100% 92%, 97% 100%, 95% 86%, 93% 98%, 91% 90%, 9% 96%, 7% 84%, 5% 100%, 3% 88%, 0 96%); }
+  .t1 { left: 1vmin; top: 5vmin; width: 22vmin; transform: rotate(-38deg); }
+  .t2 { right: 1vmin; top: 6vmin; width: 22vmin; transform: rotate(33deg); background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0)), rgba(236,229,205,.92); }
+  .t3 { right: 3vmin; top: calc(100% - 64vmin); width: 20vmin; transform: rotate(-32deg); }
+  .sticker { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center; box-shadow: 0 .3vmin .7vmin rgba(0,0,0,.28); }
+  .new { right: 2vmin; top: 44%; width: 17vmin; height: 17vmin; border-radius: 50%; background: #FFD400; transform: rotate(-14deg); flex-direction: column; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 7vmin; line-height: .8; outline: .5vmin solid #fff; outline-offset: -1.4vmin; }
+  .new small { font-family: "Space Mono", Menlo, monospace; font-weight: 700; font-size: 1.6vmin; letter-spacing: .14em; margin-top: 1vmin; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5.5vmin; height: 51vmin; }
+  .strip { position: relative; display: inline-block; padding: .4vmin 4vmin; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; text-transform: uppercase; line-height: .9; box-shadow: 0 .3vmin .7vmin rgba(0,0,0,.25);
+    clip-path: polygon(0 4%, 1.5% 0, 3% 10%, 4.5% 0, 95% 2%, 96.5% 0, 98% 10%, 100% 4%, 100% 96%, 98.5% 100%, 97% 90%, 95.5% 100%, 4.5% 98%, 3% 100%, 1.5% 90%, 0 100%); }
+  .s1 { background: #1C1C1C; color: #F4F1EA; font-size: 17vmin; transform: rotate(-2deg); margin-left: -1vmin; }
+  .s2 { background: #FFD400; color: #111; font-size: 16vmin; transform: rotate(1.5deg); margin-top: -1.4vmin; margin-left: 5vmin; }
+  .masking { position: absolute; right: 0; bottom: 10vmin; background: rgba(238,230,208,.95); padding: 1.2vmin 3.4vmin; transform: rotate(-3deg); font-family: "Caveat Brush", "Marker Felt", cursive; font-size: 5vmin; line-height: 1; color: #1B3BD6; box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.18);
+    clip-path: polygon(0 10%, 2% 0, 98% 6%, 100% 0, 100% 90%, 98% 100%, 2% 94%, 0 100%); }
+  .masking b { font-weight: 400; color: #111; }
+  .price { position: absolute; right: 1vmin; top: -1vmin; width: 18vmin; height: 18vmin; border-radius: 50%; background: #FF3B1F; color: #fff; flex-direction: column; transform: rotate(10deg); font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 9vmin; line-height: .82; }
+  .price small { font-family: "Space Mono", Menlo, monospace; font-weight: 700; font-size: 1.7vmin; letter-spacing: .12em; }
+  .price::after { content: ""; position: absolute; inset: 1.2vmin; border: .35vmin dashed rgba(255,255,255,.7); border-radius: 50%; }
+  .barcode { position: absolute; left: 0; bottom: 0; background: #fff; padding: 1.2vmin 1.8vmin 1vmin; transform: rotate(1.5deg); flex-direction: column; align-items: flex-start; font-size: 1.6vmin; letter-spacing: .1em; }
+  .barcode i { display: block; width: 24vmin; height: 5vmin; margin: .6vmin 0 .5vmin; background: repeating-linear-gradient(90deg, #111 0 .3vmin, transparent .3vmin .6vmin, #111 .6vmin 1.3vmin, transparent 1.3vmin 1.6vmin, #111 1.6vmin 1.8vmin, transparent 1.8vmin 2.4vmin, #111 2.4vmin 2.9vmin, transparent 2.9vmin 3.1vmin); }
+  .barcode b { font-weight: 700; }
+  .cta { position: absolute; right: 0; bottom: 0; background: #1C1C1C; color: #F4F1EA; padding: 2.2vmin 3.4vmin; font-weight: 700; font-size: 2.3vmin; letter-spacing: .16em; text-transform: uppercase; transform: rotate(-1deg); flex-direction: row; gap: 1.6vmin; }
+
+  /* 3:4 → print a little shorter relative to the headline */
+  @media (min-aspect-ratio: 7/10) {
+    .print { left: 12vmin; right: 12vmin; height: calc(100% - 58vmin); top: 6vmin; }
+    .t1 { left: 5vmin; }
+    .t2 { right: 5vmin; }
+    .t3 { top: calc(100% - 57vmin); right: 7vmin; }
+    .new { right: 6vmin; width: 15vmin; height: 15vmin; font-size: 6vmin; }
+    .copy { height: 44vmin; bottom: 5vmin; }
+    .s1, .s2 { font-size: 14vmin; }
+    .masking { bottom: 9.5vmin; font-size: 4.2vmin; }
+    .price { width: 16vmin; height: 16vmin; font-size: 7.6vmin; }
+  }
+  /* square / wide → print left, tape column right */
+  @media (min-aspect-ratio: 9/10) {
+    .print { left: 6vmin; right: auto; top: 7vmin; bottom: 7vmin; height: auto; width: 42%; transform: rotate(-1.6deg); }
+    .t1 { left: 1vmin; top: 4vmin; width: 18vmin; }
+    .t2 { left: calc(42% - 8vmin); right: auto; top: 4vmin; width: 18vmin; }
+    .t3 { left: calc(42% - 7vmin); right: auto; top: auto; bottom: 5vmin; width: 18vmin; transform: rotate(-36deg); }
+    .new { left: calc(42% - 1vmin); right: auto; top: 40%; width: 13vmin; height: 13vmin; font-size: 5.2vmin; }
+    .copy { left: calc(42% + 12vmin); right: 4vmin; top: 7vmin; bottom: 6vmin; height: auto; }
+    .s1, .s2 { font-size: 10.6vmin; }
+    .s2 { margin-left: 2vmin; }
+    .masking { left: 0; right: auto; top: 29vmin; bottom: auto; font-size: 3.8vmin; }
+    .price { width: 15vmin; height: 15vmin; font-size: 7vmin; right: 1vmin; top: 41vmin; }
+    .barcode { bottom: 10.5vmin; }
+    .cta { left: 0; right: auto; }
+    .barcode i { width: 20vmin; height: 4.4vmin; }
+    .cta { font-size: 2vmin; padding: 2vmin 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .print { width: 52%; }
+    .t2 { left: calc(52% - 8vmin); }
+    .t3 { left: calc(52% - 7vmin); }
+    .new { left: calc(52% - 1vmin); }
+    .copy { left: calc(52% + 13vmin); }
+    .s1, .s2 { font-size: 12.4vmin; }
+    .masking { top: 32vmin; }
+    .price { top: 46vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="grain" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="g"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .45  0 0 0 0 .43  0 0 0 0 .4  0 0 0 .55 0"/></filter><rect width="100%" height="100%" filter="url(#g)"/></svg>
+  <div class="print"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="tape t1"></div>
+  <div class="tape t2"></div>
+  <div class="tape t3"></div>
+  <div class="sticker new">NEW<small>DROP 04</small></div>
+  <div class="copy">
+    <div class="strip s1">Just</div><br>
+    <div class="strip s2">Dropped</div>
+    <div class="masking"><b>code</b> TAPE20 → 20% off</div>
+    <div class="sticker price"><small>FROM</small>$89</div>
+    <div class="sticker barcode"><span><b>SKU</b> 04-2610-77</span><i></i><span>SS26 · LIMITED RUN</span></div>
+    <div class="sticker cta">Shop the drop →</div>
+  </div>
+</div>
+</body>
+</html>

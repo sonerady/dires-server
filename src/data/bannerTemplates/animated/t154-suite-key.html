@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Suite Key — a private fitting appointment as a grand-hotel room key: a stitched cognac leather fob
+     stamped "Suite 07" hangs with its brass key from a hook, on Regency-striped wallpaper.
+     tall → photo above, wallpaper below; square/wide → photo left, wallpaper right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DCE3D5; }
+  .banner { --panel: 84vmin; --fw: 24vmin; position: fixed; inset: 0; overflow: hidden; background: #DCE3D5; color: #20302A; font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+  .wall { position: absolute; left: 0; bottom: 0; width: 100%; height: var(--panel);
+    background: repeating-linear-gradient(90deg, #DCE3D5 0 5vmin, #D1DAC9 5vmin 5.25vmin, #D5DDCD 5.25vmin 9.75vmin, #D1DAC9 9.75vmin 10vmin); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 5vmin); display: flex; gap: 6vmin; }
+
+  /* key + fob */
+  .fob { position: relative; flex: none; width: var(--fw); }
+  .hook { position: absolute; left: 50%; top: 0; width: calc(var(--fw) * .34); height: calc(var(--fw) * .1); margin-left: calc(var(--fw) * -.17); border-radius: 0 0 .6vmin .6vmin; background: linear-gradient(180deg, #7B5A26, #E9CC8A 45%, #A57B34); box-shadow: 0 .5vmin .8vmin rgba(32,48,42,.3); }
+  .hw { display: block; width: 100%; height: calc(var(--fw) * .62); }
+  .tag { position: relative; margin-top: calc(var(--fw) * -.4); height: calc(var(--fw) * 2.4); transform: rotate(4deg); transform-origin: 50% 0; filter: drop-shadow(0 1.6vmin 1.6vmin rgba(32,48,42,.32)); }
+  .tag svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .t-in { position: absolute; left: 0; right: 0; top: 22%; bottom: 12%; display: flex; flex-direction: column; align-items: center; text-align: center; color: #E9CB8C; }
+  .t-in small { font-size: max(1.6vmin, calc(var(--fw) * .075)); letter-spacing: .32em; margin-right: -.32em; text-transform: uppercase; }
+  .t-in b { margin-top: calc(var(--fw) * .04); font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; font-size: calc(var(--fw) * .62); line-height: .9; letter-spacing: -.02em; text-shadow: 0 -.15vmin 0 rgba(40,18,6,.55); }
+  .t-in i { display: block; width: 30%; height: 1px; margin: calc(var(--fw) * .08) 0; background: rgba(233,203,140,.6); }
+  .t-in em { font-family: "Cormorant Garamond", Georgia, serif; font-size: max(1.8vmin, calc(var(--fw) * .1)); line-height: 1.15; }
+  .t-in span { margin-top: auto; font-size: max(1.6vmin, calc(var(--fw) * .058)); letter-spacing: .2em; margin-right: -.2em; text-transform: uppercase; opacity: .85; }
+
+  .text { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 6vmin 0 0; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(32,48,42,.4); font-size: 1.7vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; }
+  h1 { margin: 3.4vmin 0 0; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 400; font-size: 10vmin; line-height: .92; letter-spacing: -.015em; }
+  h1 em { font-style: italic; color: #8A4724; }
+  .body { margin: 2.6vmin 0 0; font-size: 2.2vmin; line-height: 1.5; color: #3B4B44; }
+  .list { margin-top: auto; }
+  .list div { display: flex; justify-content: space-between; gap: 2vmin; padding: 1.2vmin 0; border-top: 1px solid rgba(32,48,42,.28); font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; color: #3B4B44; }
+  .list b { font-weight: 500; color: #20302A; letter-spacing: .04em; white-space: nowrap; }
+  .cta { margin-top: 2.2vmin; align-self: flex-start; background: #20302A; color: #EEF1E9; padding: 1.9vmin 3.4vmin; font-size: 1.9vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; --fw: 21vmin; }
+    .copy { bottom: 4.5vmin; height: calc(var(--panel) - 4.5vmin); gap: 5vmin; }
+    .text { padding-top: 4.6vmin; }
+    h1 { font-size: 8.6vmin; margin-top: 2.6vmin; }
+    .body { font-size: 2vmin; margin-top: 2vmin; }
+    .list div { padding: 1vmin 0; }
+  }
+  /* square — photo left, wallpaper right with the key hanging at the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --fw: 16vmin; }
+    .wall { left: auto; right: 0; width: 56%; height: 100%; }
+    .photo { width: 44%; height: 100%; object-position: 50% 22%; }
+    .copy { left: calc(44% + 5vmin); right: 5vmin; top: 0; bottom: 5vmin; height: auto; gap: 4vmin; flex-direction: row-reverse; }
+    .text { padding-top: 5vmin; }
+    .kick { flex-direction: column; gap: .6vmin; font-size: 1.6vmin; letter-spacing: .2em; }
+    h1 { font-size: 7.2vmin; margin-top: 2.6vmin; }
+    .body { font-size: 1.8vmin; }
+    .list div { font-size: 1.6vmin; flex-direction: column; gap: .3vmin; padding: .9vmin 0; }
+    .cta { padding: 1.6vmin 2.4vmin; font-size: 1.7vmin; letter-spacing: .14em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --fw: 21vmin; }
+    .wall { width: 55%; }
+    .photo { width: 45%; }
+    .copy { left: calc(45% + 7vmin); right: 7vmin; bottom: 6vmin; gap: 6vmin; }
+    .text { padding-top: 6vmin; }
+    .kick { flex-direction: row; font-size: 1.7vmin; }
+    h1 { font-size: 10.4vmin; margin-top: 3.4vmin; }
+    .body { font-size: 2.2vmin; max-width: 44vmin; }
+    .list div { flex-direction: row; font-size: 1.7vmin; padding: 1.1vmin 0; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design (slow, grand-hotel calm) ─────────
+     constant: the leather fob sways gently on the brass ring (4s pendulum; rest = its hung tilt)
+     beats: 1.6s a glint travels along the brass hook, 2.4s the gold foil "07" catches the light,
+            4.2s "is ready." dissolves and is re-inked left to right, 6.4s a soft sheen crosses the CTA */
+  .tag { animation: sway 4s cubic-bezier(.37,0,.63,1) infinite; }
+  @keyframes sway { 0%, 100% { transform: rotate(4deg); } 50% { transform: rotate(.8deg); } }
+  .hook { overflow: hidden; }
+  .hook::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, rgba(255,248,220,0) 30%, rgba(255,248,220,.85) 50%, rgba(255,248,220,0) 70%);
+    transform: translateX(-100%); animation: hook 8s linear infinite; }
+  @keyframes hook { 0%, 18% { transform: translateX(-100%); animation-timing-function: cubic-bezier(.45,0,.4,1); }
+                    28%, 100% { transform: translateX(100%); } }
+  .t-in b { background: linear-gradient(100deg, #E9CB8C 0 40%, #FFF5D8 50%, #E9CB8C 60% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    text-shadow: none; filter: drop-shadow(0 -.15vmin 0 rgba(40,18,6,.55)); animation: foil 8s linear infinite; }
+  @keyframes foil { 0%, 26% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.4,1); }
+                    40%, 100% { background-position: 0% 0; } }
+  h1 em { display: inline-block; clip-path: inset(-20% -6% -30% -6%); animation: ink 8s linear infinite; }
+  @keyframes ink {
+    0%, 50% { opacity: 1; filter: blur(0); clip-path: inset(-20% -6% -30% -6%); animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    55% { opacity: 0; filter: blur(.5vmin); clip-path: inset(-20% -6% -30% -6%); animation-timing-function: steps(1, end); }
+    56% { opacity: 1; filter: blur(0); clip-path: inset(-20% 106% -30% -6%); animation-timing-function: cubic-bezier(.4,.1,.3,1); }
+    70%, 100% { opacity: 1; filter: blur(0); clip-path: inset(-20% -6% -30% -6%); }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.2) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 8s linear infinite; }
+  @keyframes sheen { 0%, 78% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+                     92%, 100% { transform: translateX(400%) skewX(-18deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="wall"></div>
+  <div class="copy">
+    <div class="fob">
+      <div class="hook"></div>
+      <svg class="hw" viewBox="0 0 100 62" aria-hidden="true">
+        <defs><linearGradient id="br" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3DDA3"/><stop offset=".5" stop-color="#B98B3C"/><stop offset="1" stop-color="#7B5A26"/></linearGradient></defs>
+        <circle cx="50" cy="30" r="17" fill="none" stroke="url(#br)" stroke-width="5"/>
+        <g transform="rotate(-38 62 42)">
+          <circle cx="66" cy="42" r="9" fill="none" stroke="url(#br)" stroke-width="4.5"/>
+          <rect x="74" y="39.5" width="26" height="5" fill="url(#br)"/>
+          <path d="M92 44.5 v7 h-4 v-4 h-3 v5 h-4 v-8z" fill="url(#br)"/>
+        </g>
+      </svg>
+      <div class="tag">
+        <svg viewBox="0 0 100 240" preserveAspectRatio="none" aria-hidden="true">
+          <defs><linearGradient id="lt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6E3419"/><stop offset=".35" stop-color="#9A5329"/><stop offset=".7" stop-color="#8A4724"/><stop offset="1" stop-color="#5E2B14"/></linearGradient></defs>
+          <path d="M50 3 C72 3 97 36 97 64 L97 176 C97 204 72 237 50 237 C28 237 3 204 3 176 L3 64 C3 36 28 3 50 3 Z" fill="url(#lt)"/>
+          <path d="M50 10 C68 10 90 40 90 65 L90 175 C90 200 68 230 50 230 C32 230 10 200 10 175 L10 65 C10 40 32 10 50 10 Z" fill="none" stroke="#E9CB8C" stroke-width="1.2" stroke-dasharray="4 3" opacity=".75"/>
+          <circle cx="50" cy="28" r="8.5" fill="#C9A158"/><circle cx="50" cy="28" r="5.5" fill="#DCE3D5"/>
+        </svg>
+        <div class="t-in"><small>Suite</small><b>07</b><i></i><em>Private<br>fitting</em><span>Floor 2</span></div>
+      </div>
+    </div>
+    <div class="text">
+      <div class="kick"><span>By appointment</span><span>Members free</span></div>
+      <h1>Your suite <br><em>is ready.</em></h1>
+      <p class="body">A private fitting room, your own stylist and the new collection pulled in your size.</p>
+      <div class="list">
+        <div>Hours<b>Mon–Sat, 10–20</b></div>
+        <div>Members<b>15% off on the day</b></div>
+      </div>
+      <div class="cta">Book your hour</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

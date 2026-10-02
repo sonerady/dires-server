@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Tech Spec — tech-wear spec sheet: drafting grid, dimension lines, crop marks, monospace data table, acid-lime accents.
+     tall → figure on top, data sheet below; square / wide → figure left, data right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #15171A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #E9EBE6; font-family: "Space Mono", Menlo, monospace;
+    background: linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px) 0 0 / 5vmin 5vmin, linear-gradient(0deg, rgba(255,255,255,.045) 1px, transparent 1px) 0 0 / 5vmin 5vmin, #15171A; }
+  :root { --lime: #C8F31D; }
+  .doc { position: absolute; left: 5vmin; right: 5vmin; top: 3.6vmin; display: flex; justify-content: space-between; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #8E938C; }
+  .doc b { color: var(--lime); font-weight: 700; }
+  .fig { position: absolute; left: 13vmin; right: 6vmin; top: 13vmin; height: calc(100% - 80vmin); }
+  .fig img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .crop { position: absolute; width: 3.4vmin; height: 3.4vmin; border: 0 solid var(--lime); }
+  .c1 { left: -1.8vmin; top: -1.8vmin; border-left-width: .35vmin; border-top-width: .35vmin; }
+  .c2 { right: -1.8vmin; top: -1.8vmin; border-right-width: .35vmin; border-top-width: .35vmin; }
+  .c3 { left: -1.8vmin; bottom: -1.8vmin; border-left-width: .35vmin; border-bottom-width: .35vmin; }
+  .c4 { right: -1.8vmin; bottom: -1.8vmin; border-right-width: .35vmin; border-bottom-width: .35vmin; }
+  .dimv { position: absolute; left: -7vmin; top: 0; bottom: 0; width: 2vmin; border-top: 1px solid var(--lime); border-bottom: 1px solid var(--lime); }
+  .dimv::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; border-left: 1px solid var(--lime); }
+  .dimv span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); white-space: nowrap; background: #15171A; padding: 0 1.4vmin; font-size: 1.7vmin; letter-spacing: .16em; color: var(--lime); }
+  .dimh { position: absolute; left: 0; right: 0; top: -6.4vmin; height: 2vmin; border-left: 1px solid var(--lime); border-right: 1px solid var(--lime); }
+  .dimh::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; border-top: 1px solid var(--lime); }
+  .dimh span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); white-space: nowrap; background: #15171A; padding: 0 1.4vmin; font-size: 1.7vmin; letter-spacing: .16em; color: var(--lime); }
+  .coord { position: absolute; left: 0; bottom: 0; background: #15171A; color: #E9EBE6; padding: 1vmin 1.6vmin; font-size: 1.6vmin; letter-spacing: .08em; }
+  .coord b { color: var(--lime); font-weight: 400; }
+  .data { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 57vmin; display: flex; flex-direction: column; }
+  .title { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  h1 { margin: 0; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; font-weight: 700; font-size: 11vmin; line-height: .86; letter-spacing: -.045em; text-transform: uppercase; }
+  h1 em { font-style: normal; color: var(--lime); }
+  .ref { flex: none; text-align: right; font-size: 1.7vmin; line-height: 1.5; letter-spacing: .1em; color: #8E938C; text-transform: uppercase; }
+  .ref b { display: block; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 6vmin; line-height: 1; letter-spacing: -.03em; color: #E9EBE6; }
+  table { width: 100%; margin-top: 3vmin; border-collapse: collapse; font-size: 2vmin; letter-spacing: .04em; }
+  td { padding: 1.25vmin 0; border-top: 1px solid #3A3E43; vertical-align: top; white-space: nowrap; }
+  tr:last-child td { border-bottom: 1px solid #3A3E43; }
+  td:first-child { width: 11vmin; color: #6F746E; font-size: 1.7vmin; letter-spacing: .12em; }
+  td:nth-child(2) { color: #8E938C; width: 26vmin; text-transform: uppercase; font-size: 1.7vmin; letter-spacing: .12em; }
+  td:last-child { text-align: right; }
+  .desc { display: none; margin: 3vmin 0 0; font-size: 1.9vmin; line-height: 1.55; color: #A9AEA7; }
+  .cta { margin-top: auto; display: flex; justify-content: space-between; align-items: center; background: var(--lime); color: #15171A; padding: 2.4vmin 3vmin; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 3vmin; letter-spacing: .02em; text-transform: uppercase; }
+  .cta span { font-family: "Space Mono", monospace; font-weight: 700; font-size: 1.8vmin; letter-spacing: .14em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .fig { left: 12vmin; right: 5vmin; top: 12vmin; height: calc(100% - 73vmin); }
+    .data { height: 52vmin; bottom: 4.5vmin; }
+    h1 { font-size: 9.6vmin; }
+    .ref b { font-size: 5.4vmin; }
+    table { margin-top: 2.4vmin; }
+    td { padding: 1vmin 0; }
+    tr.x { display: none; }
+    .cta { padding: 2vmin 3vmin; font-size: 2.8vmin; }
+  }
+  /* square / wide → figure left, sheet right */
+  @media (min-aspect-ratio: 9/10) {
+    .fig { left: 12vmin; top: 13vmin; bottom: 6vmin; right: auto; height: auto; width: 40%; }
+    .data { left: calc(40% + 18vmin); right: 5vmin; top: 10vmin; bottom: 6vmin; height: auto; }
+    .title { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    h1 { font-size: 8.4vmin; }
+    .ref { text-align: left; }
+    .ref b { font-size: 5vmin; }
+    table { font-size: 1.8vmin; }
+    td:first-child { display: none; }
+    td:nth-child(2) { width: auto; font-size: 1.6vmin; }
+    tr.x { display: table-row; }
+    .cta { font-size: 2.4vmin; padding: 2vmin 2.4vmin; }
+    .cta span { display: none; }
+    .desc { display: block; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .fig { width: 46%; }
+    .data { left: calc(46% + 19vmin); right: 6vmin; }
+    .title { flex-direction: row; align-items: flex-end; }
+    .ref { text-align: right; }
+    h1 { font-size: 9.4vmin; }
+    td:first-child { display: table-cell; width: 8vmin; }
+    .desc { max-width: 48vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* 1 · a lime measuring beam scans the figure top → bottom */
+  .fig::after { content: ""; position: absolute; left: -1.8vmin; right: -1.8vmin; top: 0; height: 1px; background: var(--lime);
+    box-shadow: 0 0 1vmin .2vmin rgba(200,243,29,.55), 0 -2.4vmin 3vmin rgba(200,243,29,.07); opacity: 0; animation: beam 6s linear infinite; }
+  @keyframes beam {
+    0%, 4% { top: 0; opacity: 0; animation-timing-function: linear; }
+    5% { top: 0; opacity: 1; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    29% { top: 100%; opacity: 1; animation-timing-function: linear; }
+    31%, 100% { top: 100%; opacity: 0; }
+  }
+  /* 2 · crop marks lock on: out, then snap back onto the corners */
+  .crop { animation: lock 6s linear infinite; }
+  .c1 { --dx: -1; --dy: -1; } .c2 { --dx: 1; --dy: -1; } .c3 { --dx: -1; --dy: 1; } .c4 { --dx: 1; --dy: 1; }
+  @keyframes lock {
+    0%, 29% { transform: translate(0, 0); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    33% { transform: translate(calc(var(--dx) * 1.6vmin), calc(var(--dy) * 1.6vmin)); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    38%, 100% { transform: translate(0, 0); }
+  }
+  /* 3 · dimension lines are redrawn from their centre */
+  .dimh { animation: dimh 6s linear infinite; }
+  .dimv { animation: dimv 6s linear infinite; }
+  @keyframes dimh {
+    0%, 36% { clip-path: inset(-2vmin 0 -2vmin 0); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+    40% { clip-path: inset(-2vmin 50% -2vmin 50%); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    48%, 100% { clip-path: inset(-2vmin 0 -2vmin 0); }
+  }
+  @keyframes dimv {
+    0%, 38% { clip-path: inset(0 -3vmin 0 -3vmin); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+    42% { clip-path: inset(50% -3vmin 50% -3vmin); animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    50%, 100% { clip-path: inset(0 -3vmin 0 -3vmin); }
+  }
+  .coord b { display: inline-block; animation: ping 2s linear infinite; }
+  @keyframes ping { 0%, 70% { opacity: 1; } 75%, 85% { opacity: .2; } 90%, 100% { opacity: 1; } }
+  /* 4 · data values re-typed row by row */
+  td .v { display: inline-block; animation: type 6s linear infinite; }
+  tr:nth-child(1) td .v { animation-name: type1; }
+  tr:nth-child(2) td .v { animation-name: type2; }
+  tr:nth-child(3) td .v { animation-name: type3; }
+  tr:nth-child(4) td .v { animation-name: type4; }
+  @keyframes type1 { 0%, 50% { clip-path: inset(0 0 0 0); animation-timing-function: steps(1, end); } 51% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(10, end); } 59%, 100% { clip-path: inset(0 0 0 0); } }
+  @keyframes type2 { 0%, 50% { clip-path: inset(0 0 0 0); animation-timing-function: steps(1, end); } 51% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(1, end); } 57% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(10, end); } 65%, 100% { clip-path: inset(0 0 0 0); } }
+  @keyframes type3 { 0%, 50% { clip-path: inset(0 0 0 0); animation-timing-function: steps(1, end); } 51% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(1, end); } 62% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(10, end); } 70%, 100% { clip-path: inset(0 0 0 0); } }
+  @keyframes type4 { 0%, 50% { clip-path: inset(0 0 0 0); animation-timing-function: steps(1, end); } 51% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(1, end); } 67% { clip-path: inset(0 100% 0 0); animation-timing-function: steps(8, end); } 74%, 100% { clip-path: inset(0 0 0 0); } }
+  /* the row being written lights up */
+  tr td:first-child { animation: rowlit 6s linear infinite; }
+  tr:nth-child(2) td:first-child { animation-delay: -5.64s; }
+  tr:nth-child(3) td:first-child { animation-delay: -5.34s; }
+  tr:nth-child(4) td:first-child { animation-delay: -5.04s; }
+  @keyframes rowlit { 0%, 50% { color: #6F746E; } 51%, 59% { color: var(--lime); } 60%, 100% { color: #6F746E; } }
+  /* 5 · cursor after the series number blinks */
+  h1 em { animation: cursor 1s steps(1, end) infinite; }
+  @keyframes cursor { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+  /* 6 · CTA: the arrow travels out and returns, a dark sheen crosses */
+  .cta { position: relative; overflow: hidden; }
+  .cta .ar { font-style: normal; display: inline-block; animation: go 6s linear infinite; }
+  @keyframes go {
+    0%, 78% { transform: translateX(0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    83% { transform: translateX(4vmin); opacity: 0; animation-timing-function: steps(1, end); }
+    84% { transform: translateX(-3vmin); opacity: 0; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    90%, 100% { transform: translateX(0); opacity: 1; }
+  }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 22%; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.5), rgba(255,255,255,0));
+    transform: translateX(-120%) skewX(-20deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 76% { transform: translateX(-120%) skewX(-20deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    90%, 100% { transform: translateX(560%) skewX(-20deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="doc"><span>Doc. <b>NRD-07</b> / Spec sheet</span><span>Rev. B · Sheet 1/1</span></div>
+  <div class="fig">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <i class="crop c1"></i><i class="crop c2"></i><i class="crop c3"></i><i class="crop c4"></i>
+    <div class="dimh"><span>FIG. 01 — FRONT</span></div>
+    <div class="dimv"><span>TRUE COLOUR · 1:1</span></div>
+    <div class="coord"><b>◎</b> 41.0082°N 28.9784°E</div>
+  </div>
+  <div class="data">
+    <div class="title">
+      <h1>Utility<br>series<em>_</em>07</h1>
+      <div class="ref">Release<b>26.03</b>10:00 CET</div>
+    </div>
+    <table>
+      <tr><td>A.01</td><td>Line</td><td><span class="v">Core collection</span></td></tr>
+      <tr class="x"><td>A.02</td><td>Code</td><td><span class="v">SYS-07 / AW26</span></td></tr>
+      <tr><td>A.03</td><td>Units</td><td><span class="v">0400 worldwide</span></td></tr>
+      <tr><td>A.04</td><td>Price</td><td><span class="v">from €240</span></td></tr>
+    </table>
+    <p class="desc">Designed in-house, cut in small numbered runs. Once a series sells through, it is archived.</p>
+    <div class="cta">Shop the series <i class="ar">→</i><span>[ ONLINE · IN STORE ]</span></div>
+  </div>
+</div>
+</body>
+</html>

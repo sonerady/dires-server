@@ -148,6 +148,7 @@ async function applyResultUpscale({
   generationId,
   ensureBaseCharge,
   logTag = "RESULT UPSCALE",
+  transformResult,
 }) {
   // Not: GPT 2.5 (Sunburst) sonuçları için otomatik 4 MP Pruna "netleştirme"
   // geçişi kaldırıldı — yalnızca kullanıcının seçtiği (>4 MP) kademe uygulanır.
@@ -167,8 +168,10 @@ async function applyResultUpscale({
     }
 
     await markGenerationStage(generationId, userId, "upscaling");
-    const upscaled = await upscaleResultImage(result.imageUrl, upscaleMp);
+    let upscaled = await upscaleResultImage(result.imageUrl, upscaleMp);
     if (!upscaled) throw new Error("UPSCALE_EMPTY_RESULT");
+    if (transformResult) upscaled = await transformResult(upscaled);
+    if (!upscaled) throw new Error("UPSCALE_EMPTY_TRANSFORMED_RESULT");
 
     // İşlem sırasında bakiye değişmiş olabilir; gerçek kesinti tekrar atomik
     // RPC üzerinden yapılır. Kesinti reddedilirse orijinal sonuç teslim edilir.

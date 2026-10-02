@@ -7,9 +7,10 @@ const {randomUUID} = require('node:crypto');
 const {rateLimit} = require('express-rate-limit');
 const {supabaseAdmin:db} = require('../supabaseClient');
 const {refundIdentity} = require('../middleware/refundIdentity');
-const {askAstra,parseJsonLoose} = require('../utils/menuStudioAstra');
+const {parseJsonLoose} = require('../utils/menuStudioAstra');
+const {askToolModel} = require('../utils/customToolLlm');
 const {GPT25_EDIT_MODEL,buildEditInput} = require('../utils/gpt25Edit');
-const {validateInput,briefPrompt,parseBrief,publicTool,toolHue} = require('../utils/customStudioBrief');
+const {BRIEF_SYSTEM,clampTitle,validateInput,briefPrompt,parseBrief,publicTool,toolHue} = require('../utils/customStudioBrief');
 const {issueReview,readReview,reviewTool} = require('../utils/customToolReview');
 const router = express.Router();
 const TABLE='custom_studio_tools', BUCKET='user_image_results';
@@ -45,7 +46,9 @@ async function render(prompt,source) {
  const image=await axios.get(url,{responseType:'arraybuffer',timeout:60000,maxContentLength:30*1024*1024});
  return Buffer.from(image.data);
 }
-const astra=options=>askAstra({model:'openai/gpt-6-astra',maxRetries:1,timeoutMs:180000,tag:'CUSTOM_TOOL',...options});
+// 🧠 24 Eyl 2026 (kullanıcı kararı): araç tasarımı ve örnek kalite kontrolü GPT-6 Astra yerine Claude Opus 5.5
+// (utils/customToolLlm.js — fal geçidi, fal faturası).
+const QA_SYSTEM='You are the quality reviewer for before/after demonstration photos of an ecommerce photo tool. You judge strictly but fairly, as a marketplace art director would, and answer with strict JSON only.';
 // ⚡ Öncelik: KART GÖRSELİ (22 Eyl 2026, kullanıcı isteği). Eskiden dört örnek
 // sırayla üretiliyor ve kapak çifti ancak QA'dan sonra yazılıyordu; kart
 // dakikalarca boş bir yükleniyor kutusu olarak duruyordu. Şimdi:
@@ -73,9 +76,11 @@ async function processTool(row) {
  try {
   let plan=row.example_plan;
   if(!plan){
-   const brief=parseBrief(await astra({prompt:briefPrompt(row),systemPrompt:'Return only strict JSON. Follow the schema. Uploaded images explain the user need; they are not products for generated examples.',imageUrls:row.reference_urls?.length?row.reference_urls:row.source_url?[row.source_url]:[],maxTokens:6500,tag:'CUSTOM_TOOL_DESIGN'}));
+   const brief=parseBrief(await askToolModel({prompt:briefPrompt(row),systemPrompt:BRIEF_SYSTEM,imageUrls:row.reference_urls?.length?row.reference_urls:row.source_url?[row.source_url]:[],maxTokens:16000,tag:'CUSTOM_TOOL_DESIGN'}));
    plan=brief.examples;
-   await write({title:brief.title,brief:brief.brief,screen_schema:brief.screen,translations:{[row.language]:{title:brief.title,description:brief.brief}},example_plan:plan});
+   // Onay adımında kullanıcının gördüğü ad korunur (kart işlenirken zaten o adla duruyor); yoksa tasarımın adı
+   const title=row.title||brief.title;
+   await write({title,brief:brief.brief,screen_schema:brief.screen,translations:{...(row.translations||{}),[row.language]:{...(row.translations?.[row.language]||{}),title,description:brief.brief}},example_plan:plan});
   }
   const accepted=[...(row.accepted_examples||[])];
   const intros=()=>accepted.filter(e=>e.index>0).sort((a,b)=>a.index-b.index);
@@ -88,7 +93,9 @@ async function processTool(row) {
     const after=await saveImage(await render(plan[i].after+' Preserve exactly the reference product. Demonstrate the tool through a distinct environment and commercial composition. Vivid, professional ecommerce photograph, portrait9:16. No collage or captions.'+(feedback?' Correct previous issues: '+feedback:''),before),row.user_id,row.id,`example-${i}-after`);
     // Kapak çifti QA'dan önce yayınlanıyor: kart boş kalmasın.
     if(i===0){await write({before_url:before,after_url:after});onPublish?.();}
-    const review=parseJsonLoose(await astra({prompt:`Review these two photos as BEFORE (image1) and AFTER (image2) for this product photography tool: ${JSON.stringify(row.description)}. Sample product: ${JSON.stringify(plan[i].product)}. Does the pair accurately and obviously demonstrate the tool? Is the same product preserved, with a visibly transformed appropriate professional ecommerce setting in AFTER? BEFORE must be clean, bright, plausibly amateur; AFTER commercially polished and vibrant. Reject irrelevant photos, unintended product changes, same-scene-only retouch when the tool needs a new setting, malformed objects, collages, captions or bad anatomy. Return strict JSON {"approved":boolean,"feedback":"specific corrections if rejected"}.`,imageUrls:[before,after],maxTokens:1000,tag:'CUSTOM_TOOL_EXAMPLE_QA'}));
+    const review=parseJsonLoose(await askToolModel({systemPrompt:QA_SYSTEM,prompt:`image1 is the BEFORE photo and image2 the AFTER photo of one demonstration for this product photography tool: ${JSON.stringify(row.description)}. Sample product: ${JSON.stringify(plan[i].product)}. Intended AFTER: ${JSON.stringify(plan[i].after)}.
+Approve only if all hold: (1) AFTER shows the same product as BEFORE — same shape, colors, materials, logo and proportions; (2) the change between them is exactly what this tool promises and obvious at a glance on a phone, not just a generic retouch; (3) BEFORE looks like a clean, bright, believable amateur seller photo; AFTER looks polished and commercially vivid; (4) neither image has malformed objects, bad anatomy, collage, text, captions or UI.
+Return {"approved":boolean,"feedback":"if rejected: concrete corrections for the image generator, in English"}.`,imageUrls:[before,after],maxTokens:4000,maxRetries:1,timeoutMs:120000,tag:'CUSTOM_TOOL_EXAMPLE_QA'}));
     if(review?.approved===true){sample={index:i,product:plan[i].product,beforeUrl:before,afterUrl:after};break;}
     feedback=String(review?.feedback||'Make the intended transformation obvious and preserve the product.').slice(0,2000);
    }
@@ -146,7 +153,7 @@ async function tick() {
   }
  }catch(error){console.warn('[custom-studio] worker:',error.message);}finally{running=false;}
 }
-if(db&&process.env.NODE_ENV!=='test'){const timer=setInterval(tick,10000);timer.unref();}
+if(db&&process.env.NODE_ENV!=='test'&&process.env.DISABLE_BACKGROUND_WORKERS!=='1'){const timer=setInterval(tick,10000);timer.unref();}
 router.get('/',wrap(async(req,res)=>{
  const rows=check(await db.from(TABLE).select('*').eq('user_id',req.refundUserId).is('deleted_at',null).order('created_at',{ascending:false}).limit(50));
  res.set('Cache-Control','no-store').json({success:true,items:rows.map(row=>publicTool(row,req.query.language))});
@@ -237,12 +244,14 @@ router.post('/',upload.fields([{name:'photos',maxCount:6},{name:'photo',maxCount
  const existing=check(await db.from(TABLE).select('*').eq('user_id',owner).eq('request_key',input.request_key).maybeSingle());
  if(existing?.deleted_at)return res.status(410).json({success:false,reason:'tool_not_found'});
  if(existing)return res.json({success:true,item:publicTool(existing,req.query.language)});
- const recent=await db.from(TABLE).select('id',{count:'exact',head:true}).eq('user_id',owner).gte('created_at',new Date(Date.now()-86400000).toISOString());
- check(recent);
- if(recent.count>=3)return res.status(429).json({success:false,reason:'daily_limit'});
+ // 🔓 Günlük 3 araç sınırı kaldırıldı (24 Eyl 2026, kullanıcı kararı). Geriye yalnızca dakikalık
+ // rateLimit'ler kalıyor (router 40/dk, /review 6/dk); her araç yine onaylı review token'ı ister.
  const id=randomUUID();
  const reference_urls=approved.reference_urls;
- const result=await db.from(TABLE).insert({...input,id,user_id:owner,reference_urls,reference_roles:approved.reference_roles||[],button_hue:toolHue({id,description:input.description})}).select('*').single();
+ // 🏷️ Ad analizde belirlenir ve kart daha işlenirken bu adla görünür (24 Eyl 2026). Eskiden ad tasarım
+ // bitene kadar boştu, kart kullanıcının uzun açıklamasını başlık olarak gösteriyordu.
+ const title=clampTitle(approved.review.title)||null;
+ const result=await db.from(TABLE).insert({...input,id,user_id:owner,title,translations:title?{[input.language]:{title}}:{},reference_urls,reference_roles:approved.reference_roles||[],button_hue:toolHue({id,description:input.description})}).select('*').single();
  if(result.error?.code==='23505'){
   const same=check(await db.from(TABLE).select('*').eq('user_id',owner).eq('request_key',input.request_key).maybeSingle());
   if(same)return res.json({success:true,item:publicTool(same,req.query.language)});

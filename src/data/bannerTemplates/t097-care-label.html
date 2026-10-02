@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Care Label — a satin care label sewn into the seam: composition, laundry symbols, "wash at 30 / save 30".
+     tall → label hangs from the photo's foot beside the headline; 7/10+ → photo left, label hangs from the top */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #2C3039; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F3F1EC; font-family: "IBM Plex Sans Condensed", "Arial Narrow", Arial, sans-serif;
+    background: radial-gradient(120% 70% at 20% 100%, #373C47 0%, #2C3039 60%, #252830 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 72vmin); object-fit: cover; object-position: 50% 22%; }
+  .shade { position: absolute; left: 0; right: 0; top: calc(100% - 72vmin); height: 6vmin; background: linear-gradient(180deg, rgba(0,0,0,0.35) 0.0%, rgba(0,0,0,0.345) 7.7%, rgba(0,0,0,0.33) 15.4%, rgba(0,0,0,0.306) 23.1%, rgba(0,0,0,0.274) 30.8%, rgba(0,0,0,0.237) 38.5%, rgba(0,0,0,0.196) 46.2%, rgba(0,0,0,0.154) 53.8%, rgba(0,0,0,0.113) 61.5%, rgba(0,0,0,0.076) 69.2%, rgba(0,0,0,0.044) 76.9%, rgba(0,0,0,0.02) 84.6%, rgba(0,0,0,0.005) 92.3%, rgba(0,0,0,0.0) 100.0%); }
+
+  .copy { position: absolute; left: 7vmin; top: calc(100% - 72vmin + 7vmin); width: 42vmin; bottom: 6vmin; display: flex; flex-direction: column; }
+  .k { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .2em; text-transform: uppercase; color: #A9B0BD; }
+  h1 { margin: 2.4vmin 0 0; font-weight: 600; font-size: 10.6vmin; line-height: .9; letter-spacing: -.015em; }
+  h1 .a { display: block; }
+  h1 .a + .a { margin-top: 1.6vmin; color: #9CC3EA; }
+  .code { margin-top: auto; white-space: nowrap; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; color: #A9B0BD; }
+  .code b { color: #F3F1EC; font-weight: 500; }
+  .cta { margin-top: 2.4vmin; display: flex; align-items: center; justify-content: space-between; padding: 2vmin 2.6vmin; border: .3vmin solid #F3F1EC; font-size: 2.4vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; gap: 2vmin; }
+
+  /* the label */
+  .label { position: absolute; right: 7vmin; top: calc(100% - 72vmin - 1vmin); width: 39vmin; bottom: 7vmin; box-sizing: border-box; padding: 7vmin 3vmin 3vmin; color: #22242A; text-align: center; display: flex; flex-direction: column;
+    background:
+      linear-gradient(100deg, rgba(255,255,255,0) 20%, rgba(255,255,255,.55) 38%, rgba(255,255,255,0) 55%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.025) 0 1px, transparent 1px .45vmin),
+      #F4F2ED;
+    box-shadow: 0 1.6vmin 3.6vmin rgba(0,0,0,.45); }
+  .label::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4.2vmin; background: linear-gradient(180deg, rgba(0,0,0,.14), rgba(0,0,0,.03)); border-bottom: .3vmin dashed rgba(34,36,42,.5); }
+  .label .br { font-size: 2.4vmin; font-weight: 700; letter-spacing: .3em; margin-right: -.3em; text-transform: uppercase; }
+  .label .sub { margin-bottom: 2.2vmin; margin-top: .6vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #5A5E68; }
+  .label hr { width: 100%; margin: auto 0; flex: none; border: 0; border-top: 1px solid rgba(34,36,42,.35); }
+  .comp { margin: 2.2vmin 0; text-align: left; font-size: 2.2vmin; line-height: 1.5; text-transform: uppercase; letter-spacing: .06em; }
+  .comp div { display: flex; justify-content: space-between; }
+  .comp .hi { margin: .6vmin 0; font-size: 4.2vmin; line-height: 1.1; font-weight: 700; letter-spacing: 0; color: #1E5FA8; }
+  .sym { margin-top: 2.2vmin; display: flex; justify-content: space-between; gap: .8vmin; }
+  .sym svg { width: 5.2vmin; height: 5.2vmin; flex: none; }
+  .sym svg * { fill: none; stroke: #22242A; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+  .sym svg text { fill: #22242A; stroke: none; font-family: "IBM Plex Sans Condensed", Arial, sans-serif; font-weight: 700; }
+  .langs { margin-top: 2.4vmin; font-size: 1.7vmin; line-height: 1.5; color: #5A5E68; }
+  .rn { margin-top: 1.4vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .1em; color: #5A5E68; }
+
+  /* ── 7/10+ : photo left; the label hangs from the top edge of the right column ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 52%; height: 100%; object-position: 50% 25%; }
+    .shade { top: 0; bottom: 0; left: 52%; right: auto; width: 5vmin; height: auto; background: linear-gradient(90deg, rgba(0,0,0,0.35) 0.0%, rgba(0,0,0,0.345) 7.7%, rgba(0,0,0,0.33) 15.4%, rgba(0,0,0,0.306) 23.1%, rgba(0,0,0,0.274) 30.8%, rgba(0,0,0,0.237) 38.5%, rgba(0,0,0,0.196) 46.2%, rgba(0,0,0,0.154) 53.8%, rgba(0,0,0,0.113) 61.5%, rgba(0,0,0,0.076) 69.2%, rgba(0,0,0,0.044) 76.9%, rgba(0,0,0,0.02) 84.6%, rgba(0,0,0,0.005) 92.3%, rgba(0,0,0,0.0) 100.0%); }
+    .label { right: auto; left: calc(52% + 6vmin); top: -1vmin; width: calc(48% - 12vmin); bottom: auto; height: 60%; }
+    .copy { left: calc(52% + 6vmin); right: 6vmin; width: auto; top: calc(60% + 4vmin); bottom: 5.5vmin; }
+    .k { display: none; }
+    h1 { margin-top: 0; font-size: 6.4vmin; line-height: .95; }
+    h1 br { display: none; }
+    h1 .a + .a { margin-top: .4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .label { height: 58%; padding: 6vmin 2.6vmin 2.2vmin; }
+    .label::before { height: 3.6vmin; }
+    .comp { margin: 1.4vmin 0; } .sym { margin-top: 1.4vmin; } .label .sub { margin-bottom: 1.4vmin; }
+    .comp { font-size: 1.9vmin; }
+    .comp .hi { font-size: 3.4vmin; margin: .3vmin 0; }
+    .sym svg { width: 4.2vmin; height: 4.2vmin; }
+    .langs { display: none; }
+    .rn { margin-top: 1.6vmin; }
+    .copy { top: calc(58% + 3.4vmin); bottom: 4.5vmin; }
+    h1 { font-size: 5.4vmin; }
+    .cta { padding: 1.6vmin 2.2vmin; font-size: 2vmin; margin-top: 1.6vmin; }
+  }
+  /* ── wide: label and headline sit side by side ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .shade { left: 46%; }
+    .label { left: calc(46% + 6vmin); width: 36vmin; height: auto; bottom: 16vmin; padding: 7vmin 3vmin 3vmin; }
+    .label::before { height: 4.2vmin; }
+    .comp { margin: 2vmin 0; } .sym { margin-top: 2vmin; }
+    .comp { font-size: 2.1vmin; }
+    .comp .hi { font-size: 4vmin; }
+    .sym svg { width: 4.8vmin; height: 4.8vmin; }
+    .langs { display: block; }
+    .rn { margin-top: 1.4vmin; }
+    .copy { left: calc(46% + 46vmin); right: 6vmin; top: 8vmin; bottom: 7vmin; }
+    .k { display: block; }
+    h1 { margin-top: 2.4vmin; font-size: 8.6vmin; line-height: .9; }
+    h1 br { display: inline; }
+    h1 .a + .a { margin-top: 1.6vmin; }
+    .cta { padding: 2vmin 2.4vmin; font-size: 2.2vmin; margin-top: 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="shade"></div>
+  <div class="label">
+    <div class="br">Atelier Nord</div>
+    <div class="sub">Care sale · SS26</div>
+    <hr>
+    <div class="comp">
+      <div><span>60%</span><span>Comfort</span></div>
+      <div class="hi"><span>30%</span><span>Off</span></div>
+      <div><span>10%</span><span>Attitude</span></div>
+    </div>
+    <hr>
+    <div class="sym">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 12 L8 34 H32 L36 12"/><path d="M4 12 q4 -4 8 0 t8 0 t8 0 t8 0"/><text x="20" y="29.5" font-size="11" text-anchor="middle">30</text></svg>
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 6 L36 33 H4 Z"/><path d="M9 9 L31 35 M31 9 L9 35"/></svg>
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 31 L8 19 Q10 14 16 14 H35 V31 Z"/><path d="M17 14 Q17 8 23 8 H33"/><circle cx="21" cy="24" r="1.4" style="fill:#22242A"/></svg>
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M5 5 H35 V35 H5 Z"/><circle cx="20" cy="20" r="10.5"/><path d="M3 3 L37 37 M37 3 L3 37"/></svg>
+      <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15"/><text x="20" y="25.5" font-size="15" text-anchor="middle">P</text></svg>
+    </div>
+    <div class="langs">Wash at 30° · Lavar a 30° · Laver à 30°</div>
+    <div class="rn">RN 30030 · Made with care</div>
+  </div>
+  <div class="copy">
+    <div class="k">Handle with care</div>
+    <h1><span class="a">Wash<br> at 30°.</span><span class="a">Save<br> 30%.</span></h1>
+    <div class="code">Code <b>CARE30</b> · Ends Sunday</div>
+    <div class="cta"><span>Shop the sale</span><span>→</span></div>
+  </div>
+</div>
+</body>
+</html>

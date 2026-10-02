@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Instrument+Sans:wght@400;500;600&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Wet Edge — a pool of indigo wash that has crept up to the photo and bled into its edge: a deep
+     dye-bath panel with lighter cauliflower backruns, a ragged tide line, then an eased bleed onto the image.
+     tall → photo above, wash below · square / wide → wash left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1E2A4C; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #EEF0F6; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; background: #1E2A4C; }
+  .defs { position: absolute; width: 0; height: 0; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 58vmin); object-fit: cover; object-position: 50% 30%; display: block; }
+  .pool { position: absolute; left: 0; right: 0; bottom: 0; height: 58vmin;
+    background: radial-gradient(ellipse at 20% 80%, #243462 0%, transparent 60%), radial-gradient(ellipse at 90% 30%, #1A2442 0%, transparent 55%), #1E2A4C; }
+  .blooms { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  /* eased bleed onto the photo (14 stops) */
+  .bleed { position: absolute; left: 0; right: 0; bottom: 58vmin; height: 14vmin;
+    background: linear-gradient(to top, rgba(30,42,76,1) 0%, rgba(30,42,76,.985) 7.7%, rgba(30,42,76,.943) 15.4%, rgba(30,42,76,.874) 23.1%, rgba(30,42,76,.784) 30.8%, rgba(30,42,76,.677) 38.5%, rgba(30,42,76,.56) 46.2%, rgba(30,42,76,.44) 53.8%, rgba(30,42,76,.323) 61.5%, rgba(30,42,76,.216) 69.2%, rgba(30,42,76,.126) 76.9%, rgba(30,42,76,.057) 84.6%, rgba(30,42,76,.015) 92.3%, rgba(30,42,76,0) 100%); }
+  .tide { position: absolute; left: -2vmin; right: -2vmin; bottom: 55vmin; height: 7vmin; width: calc(100% + 4vmin); overflow: visible; }
+  .tide.v { display: none; }
+
+  .copy { position: absolute; left: 8vmin; right: 8vmin; bottom: 6vmin; height: 47vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: #A9B6DA; white-space: nowrap; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 11.4vmin; line-height: .95; letter-spacing: -.02em; }
+  h1 i { font-style: normal; color: #9FB3EA; }
+  .sub { margin-top: 2vmin; max-width: 66vmin; font-size: 2.3vmin; line-height: 1.45; color: #C9D0E4; }
+  .buy { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .price { font-family: "Gloock", Georgia, serif; font-size: 5.4vmin; line-height: 1; white-space: nowrap; }
+  .price small { font-family: "Instrument Sans", sans-serif; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #A9B6DA; margin-left: 1.4vmin; }
+  .cta { padding: 1.7vmin 3.4vmin; border-radius: 99vmin; background: #EEF0F6; color: #1E2A4C; font-size: 1.9vmin; font-weight: 600; white-space: nowrap; }
+  .fine { margin-top: 2vmin; font-size: 1.6vmin; color: #8E99BB; letter-spacing: .04em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 52vmin); }
+    .pool { height: 52vmin; }
+    .bleed { bottom: 52vmin; height: 12vmin; }
+    .tide { bottom: 49vmin; }
+    .copy { height: 42vmin; bottom: 5vmin; }
+    .sub { font-size: 2.1vmin; }
+    h1 { font-size: 10vmin; }
+  }
+  /* ── square-ish: wash left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 56%; height: 100%; }
+    .pool { right: auto; width: 44%; height: 100%; top: 0; }
+    .bleed { left: 44%; right: auto; bottom: 0; top: 0; width: 12vmin; height: 100%;
+      background: linear-gradient(to right, rgba(30,42,76,1) 0%, rgba(30,42,76,.985) 7.7%, rgba(30,42,76,.943) 15.4%, rgba(30,42,76,.874) 23.1%, rgba(30,42,76,.784) 30.8%, rgba(30,42,76,.677) 38.5%, rgba(30,42,76,.56) 46.2%, rgba(30,42,76,.44) 53.8%, rgba(30,42,76,.323) 61.5%, rgba(30,42,76,.216) 69.2%, rgba(30,42,76,.126) 76.9%, rgba(30,42,76,.057) 84.6%, rgba(30,42,76,.015) 92.3%, rgba(30,42,76,0) 100%); }
+    .tide.h { display: none; }
+    .tide.v { display: block; left: calc(44% - 3vmin); right: auto; top: -2vmin; bottom: auto; width: 7vmin; height: calc(100% + 4vmin); }
+    .copy { left: 6vmin; right: auto; width: calc(44% - 10vmin); top: 7vmin; bottom: 7vmin; height: auto; }
+    h1 { font-size: 8.6vmin; margin-top: 2.4vmin; }
+    .sub { font-size: 1.9vmin; }
+    .buy { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; }
+    .pool { width: 46%; }
+    .bleed { left: 46%; }
+    .tide.v { left: calc(46% - 3vmin); }
+    .copy { left: 8vmin; width: calc(46% - 14vmin); top: 9vmin; bottom: 8vmin; }
+    h1 { font-size: 11vmin; }
+    .sub { font-size: 2.1vmin; }
+    .buy { flex-direction: row; align-items: center; justify-content: flex-start; gap: 5vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) — the dye is still moving ─────────
+     constant: the tide line and its bleed creep a little further onto the photo and draw back (3s swell, twice per loop) ·
+               the cauliflower backruns spread and relax · the photo pushes in very slightly (≤1.03, clipped to its box)
+     beats: 2.4s "unbound." bleeds a soft indigo halo and pulls it back in · 4.6s a sheen glides over the CTA pill */
+  .photo { transform-origin: 50% 30%; animation: grow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes grow { 0%, 100% { transform: scale(1); clip-path: inset(0 0 0 0); } 50% { transform: scale(1.03); clip-path: inset(.874% 1.456% 2.039% 1.456%); } }
+
+  .tide, .bleed { animation: creepY 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes creepY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.8vmin); } }
+  @media (min-aspect-ratio: 9/10) {
+    .tide, .bleed { animation-name: creepX; }
+    @keyframes creepX { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(1.8vmin); } }
+  }
+
+  .pool { overflow: hidden; }
+  .blooms { transform-origin: 50% 50%; animation: backrun 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes backrun { 0%, 100% { transform: scale(1) rotate(0); opacity: 1; } 50% { transform: scale(1.07) rotate(1.5deg); opacity: .8; } }
+
+  h1 i { animation: halo 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes halo { 0%, 34%, 58%, 100% { text-shadow: 0 0 0 rgba(159,179,234,0); color: #9FB3EA; }
+                    45% { text-shadow: 0 0 2.4vmin rgba(159,179,234,.75); color: #C3D0F4; } }
+
+  .cta { background: linear-gradient(105deg, transparent 40%, rgba(159,179,234,.55) 50%, transparent 60%) no-repeat, #EEF0F6;
+    background-size: 300% 100%, auto; background-position: 120% 0, 0 0; animation: sheen 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 76% { background-position: 120% 0, 0 0; } 91%, 100% { background-position: -20% 0, 0 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <filter id="bloom" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="4" seed="17" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="30" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feMorphology in="shape" operator="erode" radius="2" result="inner"/>
+      <feComposite in="shape" in2="inner" operator="out" result="edge"/>
+      <feGaussianBlur in="edge" stdDeviation="1" result="edgeSoft"/>
+      <feColorMatrix in="edgeSoft" type="matrix" values="0 0 0 0 .06  0 0 0 0 .09  0 0 0 0 .18  0 0 0 .8 0" result="rim"/>
+      <feGaussianBlur in="shape" stdDeviation="2.4" result="soft"/>
+      <feComponentTransfer in="soft" result="fill"><feFuncA type="linear" slope=".32"/></feComponentTransfer>
+      <feMerge><feMergeNode in="fill"/><feMergeNode in="rim"/></feMerge>
+    </filter>
+    <filter id="tideline" x="-5%" y="-60%" width="110%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03 0.05" numOctaves="4" seed="3" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs></svg>
+
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="bleed"></div>
+  <div class="pool">
+    <svg class="blooms" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="#3A4E86">
+      <g filter="url(#bloom)"><ellipse cx="150" cy="60" rx="46" ry="34"/><ellipse cx="40" cy="160" rx="38" ry="30"/><ellipse cx="176" cy="170" rx="22" ry="18"/></g>
+    </svg>
+  </div>
+  <svg class="tide h" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0,20 L400,20 L400,40 L0,40 Z" fill="#1E2A4C" filter="url(#tideline)"/><path d="M0,20 L400,20" stroke="#151E38" stroke-width="2.4" fill="none" filter="url(#tideline)"/></svg>
+  <svg class="tide v" viewBox="0 0 40 400" preserveAspectRatio="none" aria-hidden="true"><path d="M20,0 L20,400 L0,400 L0,0 Z" fill="#1E2A4C" filter="url(#tideline)"/><path d="M20,0 L20,400" stroke="#151E38" stroke-width="2.4" fill="none" filter="url(#tideline)"/></svg>
+
+  <div class="copy">
+    <div class="kick">Indaco · Dye-house edit</div>
+    <h1>Colour,<br><i>unbound.</i></h1>
+    <div class="sub">Hand-dipped in indigo baths, so no two pieces come out quite the same.</div>
+    <div class="buy">
+      <div class="price">$96<small>each</small></div>
+      <div class="cta">Shop indigo →</div>
+    </div>
+    <div class="fine">Free shipping · 30-day returns</div>
+  </div>
+</div>
+</body>
+</html>

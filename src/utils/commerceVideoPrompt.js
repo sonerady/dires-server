@@ -137,7 +137,14 @@ function buildCommerceFallbackPrompt(brief, userPrompt) {
   ].filter(Boolean).join(" ");
 }
 
+/** Brief'in yönetmen cümleleri (tür · sahne · kamera · insan) — storyboard önizlemesi de kullanır */
+function briefDirection(brief) {
+  const b = sanitizeBrief(brief) || sanitizeBrief({});
+  return [STYLES[b.style], SCENES[b.scene], CAMERAS[b.camera], PEOPLE[b.people]].filter(Boolean).join(" ");
+}
+
 module.exports = {
+  briefDirection,
   sanitizeBrief,
   isReferenceMode,
   identityClause,

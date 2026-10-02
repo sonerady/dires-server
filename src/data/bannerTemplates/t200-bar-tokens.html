@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Bar Tokens — the multi-buy offer paid in festival bar tokens: moulded plastic coins (raised rim, dashed inner ring,
+     embossed value) piled 1 · 2 · 3 high so the stacks read like a bar chart of the saving.
+     tall → photo above, token stacks below · square & wide → photo left, stacks right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #13183A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #13183A; color: #F6F1E7; font-family: "Rubik", "Helvetica Neue", Arial, sans-serif; }
+  .mono { font-family: "DM Mono", "Courier New", monospace; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 55%; object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; top: 55%; bottom: 0; box-sizing: border-box; padding: 4.4vmin 6vmin 5vmin; display: flex; flex-direction: column; justify-content: space-between; background: radial-gradient(ellipse 80% 70% at 50% 100%, #1E2656 0%, #13183A 70%); }
+  .head { display: flex; flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+  .kick { font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; color: #FFC53D; margin-bottom: 1.4vmin; }
+  h1 { margin: 0; font-size: 11.2vmin; font-weight: 900; line-height: .88; letter-spacing: -.03em; }
+  .note { font-size: 1.8vmin; line-height: 1.5; text-align: left; white-space: nowrap; color: #B9BEDA; text-transform: uppercase; letter-spacing: .06em; padding-bottom: .6vmin; }
+
+  .stacks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3vmin; align-items: end; }
+  .st { display: flex; flex-direction: column; align-items: center; }
+  .pile { display: flex; flex-direction: column-reverse; align-items: center; }
+  .c { position: relative; width: 18vmin; height: 18vmin; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 .8vmin rgba(0,0,0,.14), inset 0 .5vmin 0 1vmin rgba(255,255,255,.22), 0 .9vmin 0 rgba(0,0,0,.28); }
+  .c + .c { margin-bottom: -12.6vmin; }
+  .c::before { content: ""; position: absolute; inset: 2.8vmin; border-radius: 50%; border: .3vmin dashed rgba(0,0,0,.28); }
+  .c b { position: relative; font-size: 5.4vmin; font-weight: 900; letter-spacing: -.02em; color: rgba(0,0,0,.72); text-shadow: 0 .2vmin 0 rgba(255,255,255,.35); }
+  .c b.s { font-size: 4.2vmin; }
+  .k1 { background: #FF6A4D; } .k2 { background: #FFC53D; } .k3 { background: #6FE0B8; }
+  .c:nth-child(2) { transform: translateX(.7vmin) rotate(8deg); }
+  .c:nth-child(3) { transform: translateX(-.5vmin) rotate(-6deg); }
+  .lab { margin-top: 2.2vmin; text-align: center; font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; color: #B9BEDA; line-height: 1.4; }
+  .lab b { display: block; font-family: "Rubik", sans-serif; font-weight: 900; font-size: 4.4vmin; letter-spacing: -.01em; color: #F6F1E7; text-transform: none; }
+  .note br.w { display: none; }
+  .foot { display: flex; justify-content: space-between; align-items: center; gap: 3vmin; border-top: 1px solid rgba(246,241,231,.25); padding-top: 2.4vmin; }
+  .foot span { font-size: 1.8vmin; letter-spacing: .06em; text-transform: uppercase; color: #B9BEDA; }
+  .foot .cta { padding: 1.7vmin 3vmin; background: #FFC53D; color: #13183A; font-size: 2vmin; font-weight: 700; letter-spacing: .06em; border-radius: 6vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 5/8) {
+    .c { width: 14.6vmin; height: 14.6vmin; }
+    .c::before { inset: 2.2vmin; }
+    .c + .c { margin-bottom: -10vmin; }
+    .c b { font-size: 4.4vmin; } .c b.s { font-size: 3.4vmin; }
+    h1 { font-size: 10.4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 48%; }
+    .panel { top: 48%; padding: 3.4vmin 6vmin 4vmin; }
+    h1 { font-size: 8.6vmin; }
+    .c { width: 12vmin; height: 12vmin; }
+    .c::before { inset: 1.8vmin; }
+    .c + .c { margin-bottom: -8vmin; }
+    .c b { font-size: 3.6vmin; } .c b.s { font-size: 3vmin; }
+    .lab { margin-top: 1.6vmin; }
+    .lab b { font-size: 3.8vmin; }
+    .foot { padding-top: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { top: 0; left: 50%; padding: 5vmin 4.5vmin 4.5vmin; }
+    .head { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .note { text-align: left; }
+    h1 { font-size: 8vmin; }
+    .stacks { gap: 1.6vmin; }
+    .c { width: 11vmin; height: 11vmin; }
+    .c::before { inset: 1.7vmin; }
+    .c + .c { margin-bottom: -7.4vmin; }
+    .c b { font-size: 3.2vmin; } .c b.s { font-size: 2.6vmin; }
+    .lab { font-size: 1.6vmin; }
+    .lab b { font-size: 3.4vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .foot span { font-size: 1.6vmin; }
+    .foot .cta { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 30%; }
+    .panel { left: 44%; padding: 6vmin 6vmin 5.5vmin; }
+    .head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    .note { text-align: right; }
+    .note br.w { display: inline; }
+    h1 { font-size: 9.6vmin; }
+    .stacks { gap: 3vmin; }
+    .c { width: 13vmin; height: 13vmin; }
+    .c::before { inset: 2vmin; }
+    .c + .c { margin-bottom: -8.8vmin; }
+    .c b { font-size: 3.8vmin; } .c b.s { font-size: 3.2vmin; }
+    .lab { font-size: 1.8vmin; }
+    .lab b { font-size: 4vmin; }
+    .foot { flex-direction: row; align-items: center; }
+    .foot span { font-size: 1.8vmin; }
+    .foot .cta { font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="head">
+      <div><div class="kick mono">Bar tokens · Studio Oro</div><h1>Stack &amp; save.</h1></div>
+      <div class="note mono">Festival edit <br class="w">03—05 July</div>
+    </div>
+    <div class="stacks">
+      <div class="st"><div class="pile"><i class="c k1"><b>10</b></i></div><div class="lab mono"><b>−10%</b>1 piece</div></div>
+      <div class="st"><div class="pile"><i class="c k2"></i><i class="c k2"><b>20</b></i></div><div class="lab mono"><b>−20%</b>2 pieces</div></div>
+      <div class="st"><div class="pile"><i class="c k3"></i><i class="c k3"></i><i class="c k3"><b>30</b></i></div><div class="lab mono"><b>−30%</b>3+ pieces</div></div>
+    </div>
+    <div class="foot mono"><span>Applied at checkout</span><span class="cta">Spend your tokens</span></div>
+  </div>
+</div>
+</body>
+</html>

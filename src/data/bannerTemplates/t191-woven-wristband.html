@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Woven Wristband — the festival edit sold as a weekend pass: a jacquard fabric wristband (edge stripes, weave texture,
+     woven wording, a ridged plastic cinch clasp) cuts across a cream panel under the look.
+     tall → photo above, panel below · square / wide → photo left, panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EAD8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4EAD8; color: #1B2FA6; font-family: "Unbounded", "Arial Black", Arial, sans-serif; }
+  .mono { font-family: "Space Mono", "Courier New", monospace; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 58%; object-fit: cover; object-position: 50% 20%; }
+  .chip { position: absolute; left: 5vmin; top: 5vmin; display: flex; align-items: center; gap: 1.4vmin; padding: 1.1vmin 1.8vmin; background: #1B2FA6; color: #F4EAD8; font-size: 1.7vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .chip i { display: block; width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: #FF5B3A; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 42%; box-sizing: border-box; padding: 0 6vmin 5.5vmin; display: flex; flex-direction: column; overflow: hidden; }
+  .wrap { position: relative; flex: none; height: 17vmin; margin: 0 -6vmin; overflow: hidden; }
+  .band { position: absolute; left: -12%; width: 124%; top: 4vmin; height: 9.4vmin; transform: rotate(-3.5deg); transform-origin: 50% 50%;
+    background:
+      repeating-linear-gradient(90deg, rgba(40,10,0,.10) 0 .22vmin, transparent .22vmin .55vmin),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.08) 0 .22vmin, transparent .22vmin .5vmin),
+      linear-gradient(to bottom, #F7C948 0 .9vmin, #1B2FA6 .9vmin 1.4vmin, #FF5B3A 1.4vmin calc(100% - 1.4vmin), #1B2FA6 calc(100% - 1.4vmin) calc(100% - .9vmin), #F7C948 calc(100% - .9vmin));
+    box-shadow: 0 .8vmin 1.4vmin rgba(60,30,0,.18); }
+  .band p { margin: 0; position: absolute; left: 0; top: 0; bottom: 0; display: flex; align-items: center; white-space: nowrap; font-size: 2.7vmin; font-weight: 800; letter-spacing: .24em; color: #FFF3DC; text-transform: uppercase; }
+  .band p span { margin: 0 1.8vmin; color: #F7C948; }
+  .clasp { position: absolute; left: 63%; top: -1.6vmin; width: 6.4vmin; height: 12.6vmin; border-radius: 1.3vmin;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,.13) 0 .35vmin, transparent .35vmin 1vmin), linear-gradient(90deg, #111 0%, #3a3a3a 45%, #1a1a1a 100%);
+    box-shadow: .5vmin .7vmin 1.2vmin rgba(0,0,0,.28); }
+  .clasp::after { content: ""; position: absolute; left: 50%; top: 50%; width: 2.2vmin; height: 2.2vmin; margin: -1.1vmin 0 0 -1.1vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff, #bdbdbd 55%, #7a7a7a); }
+
+  .copy { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+  .kicker { font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; color: #FF5B3A; font-weight: 700; margin-bottom: 1.6vmin; }
+  h1 { margin: 0; font-size: 9.8vmin; font-weight: 800; line-height: .98; letter-spacing: -.035em; }
+  .sub { margin-top: 1.8vmin; font-size: 2.3vmin; line-height: 1.4; color: #2B2B3A; }
+  .foot { flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; border-top: 1px solid rgba(27,47,166,.35); padding-top: 2vmin; }
+  .code { font-size: 1.8vmin; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; color: #2B2B3A; }
+  .code b { color: #1B2FA6; font-size: 2.3vmin; letter-spacing: .12em; }
+  .cta { white-space: nowrap; padding: 1.8vmin 3vmin; border-radius: 5vmin; background: #1B2FA6; color: #F4EAD8; font-size: 2vmin; font-weight: 700; letter-spacing: .06em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 52%; }
+    .panel { height: 48%; padding-bottom: 4.5vmin; }
+    .wrap { height: 15vmin; }
+    .band { top: 3vmin; }
+    h1 { font-size: 8.4vmin; }
+    .kicker { margin-bottom: 1.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 50%; top: 0; height: 100%; padding: 5vmin 5vmin 5vmin; }
+    .wrap { margin: 0 -5vmin; height: 18vmin; order: 1; }
+    .band { top: 4.4vmin; height: 8.6vmin; transform: rotate(-6deg); }
+    .band p { font-size: 2.3vmin; }
+    .clasp { left: 70%; width: 5.6vmin; height: 11.4vmin; top: -1.4vmin; }
+    .copy { order: 2; justify-content: center; }
+    .foot { order: 3; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    h1 { font-size: 5.8vmin; }
+    .sub { font-size: 1.9vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.6vmin 2.6vmin; }
+    .chip { font-size: 1.6vmin; left: 4vmin; top: 4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 50% 30%; }
+    .panel { left: 46%; padding: 6vmin 6vmin 6vmin; }
+    .wrap { margin: 0 -6vmin; height: 19vmin; }
+    .band { top: 5vmin; height: 9.4vmin; transform: rotate(-4deg); }
+    .band p { font-size: 2.6vmin; }
+    .clasp { left: 64%; width: 6.2vmin; height: 12.4vmin; top: -1.5vmin; }
+    h1 { font-size: 7.4vmin; }
+    .sub { font-size: 2.1vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .cta { font-size: 2vmin; padding: 1.8vmin 3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="chip"><i></i>Studio Oro · Fest Edit 26</div>
+  <div class="panel">
+    <div class="wrap">
+      <div class="band">
+        <p>All weekend<span>✦</span>Fri–Sun<span>✦</span>Festival edit<span>✦</span>All weekend<span>✦</span>Fri–Sun<span>✦</span>Festival edit<span>✦</span>All weekend<span>✦</span>Fri–Sun</p>
+        <div class="clasp"></div>
+      </div>
+    </div>
+    <div class="copy">
+      <div class="kicker mono">Weekend pass · Nº 0726</div>
+      <h1>Wear it all weekend.</h1>
+      <div class="sub mono">The festival edit — up to 40% off.</div>
+    </div>
+    <div class="foot">
+      <div class="code mono">Code <b>BAND40</b><br>03 — 06 July</div>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

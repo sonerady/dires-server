@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;1,500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Top Five — a countdown-list cover: "TOP 5" masthead, numbers five to two run as struck-through runner-up slots,
+     and a towering red "1" stands beside the photo — the product is number one.
+     tall / 3:4 → masthead, runner-up grid, numeral + photo, offer · square → masthead band, runners-up column, numeral + photo
+     · wide → masthead + list left, numeral + photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFEDE6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFEDE6; color: #121212;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif; display: flex; flex-direction: column;
+    padding: 5vmin 6vmin 5.4vmin; box-sizing: border-box; }
+
+  .head { position: relative; flex: none; display: flex; align-items: flex-end; gap: 4vmin; }
+  h1 { margin: 0; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 20vmin; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; }
+  h1 span { color: #E8322B; display: inline-block; line-height: .86; }
+  .dek { padding-bottom: 1.4vmin; }
+  .kick { font-size: 1.9vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #E8322B; }
+  .dek p { margin: 1vmin 0 0; font-size: 3.6vmin; font-weight: 600; line-height: 1; text-transform: uppercase; }
+
+  .ranks { position: relative; flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 1.4vmin 4vmin; margin-top: 3.4vmin; padding: 2vmin 0; border-top: .5vmin solid #121212; border-bottom: 1px solid #121212; }
+  .rk { display: flex; align-items: baseline; gap: 1.6vmin; white-space: nowrap; }
+  .rk b { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 3.6vmin; line-height: 1; color: #9A968C; }
+  .rk span { font-size: 2.6vmin; font-weight: 500; text-decoration: line-through; text-decoration-thickness: 1px; color: #6A665E; }
+
+  .stage { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 3.4vmin; display: flex; gap: 3vmin; }
+  .one { flex: none; width: 17vmin; display: flex; flex-direction: column; justify-content: flex-end; }
+  .one small { font-size: 2.2vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .one b { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 36vmin; line-height: .8; color: #E8322B; margin-top: 1vmin; margin-left: -.8vmin; }
+  .photo { position: relative; flex: 1 1 auto; min-width: 0; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .foot { position: relative; flex: none; margin-top: 3.4vmin; display: flex; align-items: center; gap: 3vmin; }
+  .win { font-size: 2.2vmin; font-weight: 600; line-height: 1.2; text-transform: uppercase; letter-spacing: .04em; }
+  .win b { display: block; font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 5.4vmin; letter-spacing: 0; line-height: 1; }
+  .cta { margin-left: auto; padding: 2vmin 3.4vmin; background: #E8322B; color: #FFF; font-size: 2.6vmin; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.6vmin; }
+    h1 { font-size: 15vmin; }
+    .dek p { font-size: 3vmin; }
+    .ranks { margin-top: 2.6vmin; padding: 1.4vmin 0; gap: 1vmin 4vmin; }
+    .rk b { font-size: 3vmin; } .rk span { font-size: 2.3vmin; }
+    .stage { margin-top: 2.8vmin; }
+    .one { width: 14vmin; }
+    .one b { font-size: 28vmin; }
+    .foot { margin-top: 2.8vmin; }
+    .win b { font-size: 4.6vmin; }
+  }
+  /* ── square: masthead band, runners-up column left, numeral + photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .head { position: absolute; left: 5.6vmin; right: 5.6vmin; top: 4.6vmin; }
+    h1 { font-size: 15vmin; }
+    .dek p { font-size: 3.2vmin; }
+    .ranks { position: absolute; left: 5.6vmin; width: 30vmin; top: 27vmin; margin: 0; grid-template-columns: 1fr; gap: 1.6vmin; padding: 2vmin 0; }
+    .rk b { font-size: 3.2vmin; } .rk span { font-size: 2.3vmin; }
+    .stage { position: absolute; left: 41vmin; right: 5.6vmin; top: 27vmin; bottom: 5.6vmin; margin: 0; gap: 2.4vmin; }
+    .one { width: 14vmin; }
+    .one b { font-size: 28vmin; }
+    .foot { position: absolute; left: 5.6vmin; width: 30vmin; bottom: 5.6vmin; margin: 0; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .cta { margin-left: 0; font-size: 2.2vmin; padding: 1.8vmin 2.8vmin; }
+  }
+  /* ── wide: masthead + list left, numeral + photo right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .head { left: 6.4vmin; right: auto; width: 46vmin; top: 6vmin; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    h1 { font-size: 19vmin; }
+    .dek { padding: 0; }
+    .ranks { left: 6.4vmin; width: 46vmin; top: 42vmin; grid-template-columns: 1fr 1fr; gap: 1.4vmin 4vmin; }
+    .stage { left: auto; right: 6vmin; top: 6vmin; bottom: 6vmin; width: calc(100% - 66vmin); }
+    .one { width: 16vmin; }
+    .one b { font-size: 34vmin; }
+    .foot { left: 6.4vmin; width: 46vmin; bottom: 6.4vmin; flex-direction: row; align-items: center; gap: 3vmin; }
+    .cta { margin-left: auto; }
+  }
+
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     the countdown, replayed: 0.9 s masthead "5" flips over · 1.2–2.1 s runner-up numbers 5→4→3→2 light up red in turn ·
+     2.5 s the towering "1" slams in (squash + settle) with a red glow · 3.6 s the winning price nudges up ·
+     4.6 s a sheen crosses the CTA · the photo drifts in (≤1.03) */
+  .photo { overflow: hidden; }
+  .photo img { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  h1 span { animation: flip5 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes flip5 {
+    0%, 14%, 24%, 100% { transform: perspective(60vmin) rotateX(0); }
+    19% { transform: perspective(60vmin) rotateX(-90deg); }
+    19.01% { transform: perspective(60vmin) rotateX(90deg); }
+  }
+
+  .rk b { display: inline-block; transform-origin: 50% 80%; animation: call 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .rk:nth-child(1) b { animation-delay: -1.35s; }
+  .rk:nth-child(2) b { animation-delay: -1.05s; }
+  .rk:nth-child(3) b { animation-delay: -.75s; }
+  .rk:nth-child(4) b { animation-delay: -.45s; }
+  @keyframes call { 0%, 42%, 52%, 100% { color: #9A968C; transform: scale(1); } 45% { color: #E8322B; transform: scale(1.3); } 48% { color: #E8322B; transform: scale(1); } }
+
+  .one b { display: block; transform-origin: 0 100%; animation: slam 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes slam {
+    0%, 38%, 60%, 100% { transform: scale(1, 1); text-shadow: 0 0 0 rgba(232,50,43,0); }
+    41% { transform: scale(1.08, .9); text-shadow: 0 0 0 rgba(232,50,43,0); }
+    45% { transform: scale(.98, 1); text-shadow: 0 0 3vmin rgba(232,50,43,.55); }
+    50% { transform: scale(1.01, .99); }
+    54% { transform: scale(1, 1); text-shadow: 0 0 1vmin rgba(232,50,43,.2); }
+  }
+  .one small { display: block; animation: lift 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes lift { 0%, 40%, 58%, 100% { color: #121212; } 45%, 50% { color: #E8322B; } }
+
+  .win b { transform-origin: 0 100%; animation: nudge 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes nudge { 0%, 58%, 70%, 100% { transform: translateY(0); } 62% { transform: translateY(-.8vmin); } 66% { transform: translateY(.1vmin); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 60%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.45), rgba(255,255,255,0));
+    transform: translateX(-120%); animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 76% { transform: translateX(-120%); } 90%, 100% { transform: translateX(260%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1>Top <span>5</span></h1>
+    <div class="dek"><div class="kick">Countdown · this season</div><p>Pieces I'll wear<br>on repeat</p></div>
+  </div>
+  <div class="ranks">
+    <div class="rk"><b>5</b><span>The easy tee</span></div>
+    <div class="rk"><b>4</b><span>Barrel jeans</span></div>
+    <div class="rk"><b>3</b><span>Suede loafer</span></div>
+    <div class="rk"><b>2</b><span>Rib cardigan</span></div>
+  </div>
+  <div class="stage">
+    <div class="one"><small>Number</small><b>1</b></div>
+    <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  </div>
+  <div class="foot">
+    <div class="win">The winner<b>$79</b></div>
+    <div class="cta">Shop no. 1</div>
+  </div>
+</div>
+</body>
+</html>

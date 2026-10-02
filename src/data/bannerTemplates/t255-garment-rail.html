@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Garment Rail — the dressers' rail backstage: a chrome rail across the top, the look hanging from a wire hanger,
+     round size dividers threaded on the rail (one carries the offer), and a kraft look card with the checklist.
+     tall → hanger + photo, then headline and look card · square & wide → photo hanger left, look card on its own hanger right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6E3DC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1B1A18; font-family: "Courier Prime", "Courier New", monospace;
+    background: linear-gradient(180deg, #EDEAE4 0%, #E4E0D9 60%, #DBD7CF 100%); }
+  .bs { font-family: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif; }
+
+  .rail { position: absolute; left: -2vmin; right: -2vmin; top: 10.2vmin; height: 1.6vmin; z-index: 4;
+    background: linear-gradient(180deg, #7C7D80 0%, #F4F5F6 32%, #C4C6C9 55%, #8E9094 80%, #6A6B6E 100%);
+    box-shadow: 0 1vmin 1.6vmin rgba(0,0,0,.18); }
+
+  .hanger { position: absolute; z-index: 3; }
+  .hanger svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .h1 { left: 11vmin; width: 78vmin; top: 10vmin; height: 16vmin; }
+
+  .photo { position: absolute; left: 11vmin; width: 78vmin; top: 26vmin; height: 54%; object-fit: cover; object-position: 50% 20%; box-shadow: 0 2vmin 3vmin rgba(0,0,0,.14); }
+
+  /* size dividers threaded on the rail */
+  .disc { position: absolute; z-index: 2; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; box-sizing: border-box; text-align: center; line-height: 1; box-shadow: 0 .8vmin 1.4vmin rgba(0,0,0,.2); }
+  .disc::before { content: ""; position: absolute; left: 50%; top: 0; width: .5vmin; height: 50%; margin-left: -.25vmin; background: rgba(0,0,0,.35); }
+  .disc::after { content: ""; position: absolute; left: 50%; top: 50%; width: 4.4vmin; height: 4.4vmin; margin: -2.2vmin 0 0 -2.2vmin; border-radius: 50%; background: #CFCBC3; box-shadow: inset 0 .3vmin .5vmin rgba(0,0,0,.35); }
+  .d1 { left: 1vmin; top: 0; width: 22vmin; height: 22vmin; padding: 2.6vmin 0 2.8vmin; background: #1B1A18; color: #F2EFE9; }
+  .d2 { right: 1vmin; top: 1.5vmin; width: 19vmin; height: 19vmin; padding: 2.3vmin 0 2.4vmin; background: #F7F5F0; color: #1B1A18; }
+  .disc small { font-size: 1.6vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; padding-left: .16em; }
+  .disc b { font-family: "Big Shoulders Display", sans-serif; font-weight: 900; font-size: 5.4vmin; letter-spacing: .01em; }
+  .d1 small { color: #E8543A; }
+  .d2 b { font-size: 4.2vmin; }
+
+  .lower { position: absolute; left: 7vmin; right: 7vmin; top: calc(26vmin + 54% + 3vmin); bottom: 4vmin; display: flex; justify-content: space-between; align-items: center; gap: 4vmin; }
+  .head h2 { margin: 0; font-family: "Big Shoulders Display", sans-serif; font-weight: 900; font-size: 17vmin; white-space: nowrap; line-height: .8; letter-spacing: -.005em; text-transform: uppercase; }
+  .head h2 em { font-style: normal; color: #E8543A; }
+  .head p { margin: 2vmin 0 0; font-size: 2.2vmin; line-height: 1.4; max-width: 34vmin; }
+
+  .card { position: relative; flex: none; width: 40vmin; padding: 4.4vmin 2.6vmin 2.4vmin; background: #D8C19A; box-sizing: border-box; transform: rotate(3deg); box-shadow: 0 1.2vmin 2vmin rgba(0,0,0,.18);
+    background-image: linear-gradient(135deg, rgba(255,255,255,.12), rgba(0,0,0,.04)); }
+  .card .eye { position: absolute; left: 50%; top: 1.4vmin; width: 2.4vmin; height: 2.4vmin; margin-left: -1.2vmin; border-radius: 50%; background: #E4E0D9; box-shadow: 0 0 0 .5vmin #B08D4E, inset 0 .2vmin .3vmin rgba(0,0,0,.3); }
+  .card h3 { margin: 0 0 1.2vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; border-bottom: .3vmin solid #1B1A18; padding-bottom: .8vmin; }
+  .card ul { list-style: none; margin: 0; padding: 0; }
+  .card li { display: flex; align-items: center; gap: 1.2vmin; font-size: 2.2vmin; padding: .55vmin 0; border-bottom: 1px dashed rgba(27,26,24,.35); white-space: nowrap; }
+  .card li i { flex: none; width: 2.2vmin; height: 2.2vmin; border: 1px solid #1B1A18; position: relative; }
+  .card li i::after { content: ""; position: absolute; left: .6vmin; top: -.3vmin; width: .7vmin; height: 1.5vmin; border: solid #B32B17; border-width: 0 .4vmin .4vmin 0; transform: rotate(40deg); }
+  .card .code { margin-top: 1.4vmin; font-size: 1.8vmin; letter-spacing: .06em; }
+  .card .code b { font-size: 2.6vmin; letter-spacing: .1em; background: #1B1A18; color: #D8C19A; padding: .2vmin 1vmin; }
+
+  .h2w { display: none; }
+
+  /* 2:3 */
+  @media (min-aspect-ratio: 5/8) {
+    .photo { height: 48%; }
+    .lower { top: calc(26vmin + 48% + 2.6vmin); bottom: 4vmin; }
+    .head p { font-size: 2vmin; }
+    .head h2 { font-size: 13vmin; }
+    .card { width: 38vmin; padding-top: 3.8vmin; }
+    .card li { font-size: 2vmin; padding: .4vmin 0; }
+  }
+  /* shorter portrait */
+  @media (min-aspect-ratio: 7/10) {
+    .rail { top: 9.2vmin; }
+    .h1 { top: 9vmin; height: 14vmin; left: 16vmin; width: 68vmin; }
+    .photo { top: 23vmin; left: 16vmin; width: 68vmin; height: calc(100% - 23vmin - 33vmin); }
+    .d1 { top: 0; width: 20vmin; height: 20vmin; padding: 2.4vmin 0 2.6vmin; }
+    .d2 { top: 1.5vmin; width: 17vmin; height: 17vmin; }
+    .lower { top: auto; bottom: 4vmin; height: 26vmin; align-items: flex-end; }
+    .head h2 { font-size: 11vmin; }
+    .head p { font-size: 1.8vmin; }
+    .card { width: 38vmin; padding: 3.4vmin 2.2vmin 1.8vmin; }
+    .card li:nth-child(3) { display: none; }
+  }
+  /* square — two hangers on one rail */
+  @media (min-aspect-ratio: 9/10) {
+    .rail { top: 10.2vmin; }
+    .h1 { left: 5vmin; width: 46vmin; top: 10vmin; height: 13vmin; }
+    .photo { left: 5vmin; width: 46vmin; top: 23vmin; height: calc(100% - 23vmin); }
+    .d1 { left: 41vmin; top: 0; width: 22vmin; height: 22vmin; }
+    .d2 { right: -3vmin; top: 1.5vmin; width: 19vmin; height: 19vmin; }
+    .h2w { display: block; left: 64vmin; width: 32vmin; top: 10vmin; height: 13vmin; }
+    .lower { left: 63vmin; right: 5vmin; top: 23vmin; bottom: 5vmin; height: auto; flex-direction: column-reverse; justify-content: space-between; align-items: stretch; gap: 3vmin; }
+    .card { width: 100%; transform: rotate(0); padding: 3.4vmin 2.4vmin 2.2vmin; }
+    .card .eye { display: none; }
+    .card li:nth-child(3) { display: flex; }
+    .card li { font-size: 2vmin; }
+    .head h2 { font-size: 11.6vmin; }
+    .head p { max-width: none; }
+  }
+  /* wide — photo, card hanger, then the headline */
+  @media (min-aspect-ratio: 6/5) {
+    .h1 { left: 6vmin; width: 48vmin; }
+    .photo { left: 6vmin; width: 48vmin; }
+    .d1 { left: 51vmin; }
+    .d2 { right: 4vmin; }
+    .h2w { left: 66vmin; width: 36vmin; top: 10vmin; }
+    .lower { left: 65vmin; right: 6vmin; top: 23vmin; bottom: 6vmin; flex-direction: row-reverse; align-items: stretch; gap: 6vmin; }
+    .card { width: 38vmin; align-self: flex-start; }
+    .head { display: flex; flex-direction: column; justify-content: flex-end; }
+    .head h2 { font-size: 11.4vmin; }
+    .head p { font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="disc d1"><small>Rail sale</small><b>−30%</b></div>
+  <div class="disc d2"><small>Sizes</small><b>XS–XL</b></div>
+  <div class="rail"></div>
+  <div class="hanger h1"><svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path d="M50 22 L50 13 C50 9 55 8 55 4 C55 0 45 0 45 4 M50 22 L2 39 L98 39 Z" fill="none" stroke="#3A3A3D" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+  <div class="hanger h2w"><svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path d="M50 22 L50 13 C50 9 55 8 55 4 C55 0 45 0 45 4 M50 22 L2 39 L98 39 Z" fill="none" stroke="#3A3A3D" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="lower">
+    <div class="head">
+      <h2>Off the<br><em>rail.</em></h2>
+      <p>The last rail of SS27 — 30% off, online &amp; in store.</p>
+    </div>
+    <div class="card">
+      <i class="eye"></i>
+      <h3><span>Look card</span><span>Rail 04</span></h3>
+      <ul>
+        <li><i></i>Looks 12 — 18</li>
+        <li><i></i>Every size in stock</li>
+        <li><i></i>Steamed &amp; tagged</li>
+      </ul>
+      <div class="code">Code <b>RAIL30</b> · ends Sun</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

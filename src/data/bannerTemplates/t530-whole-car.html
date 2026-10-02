@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Knewave&family=DotGothic16&family=Barlow+Condensed:wght@500;600;700;800&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Whole Car — the side of a fluted steel metro carriage: an amber dot-matrix destination sign, the photo as the big
+     car window, a line-colour stripe, and a window-down piece painted beneath it in brush letters with a 3D drop.
+     tall / 3:4 → sign, window, stripe, piece, fare stacked · square / wide → window left, sign + piece + fare right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #BFC3C7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #15171A; font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    background:
+      radial-gradient(60vmin 30vmin at 30% 90%, rgba(60,50,40,.18), transparent 70%),
+      linear-gradient(180deg, rgba(255,255,255,.18), rgba(0,0,0,.08)),
+      repeating-linear-gradient(90deg, #C3C7CB 0, #E8EBED .6vmin, #D2D5D8 1.2vmin, #A6ABB0 1.8vmin, #C3C7CB 2.2vmin); }
+
+  .sign { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; height: 7.4vmin; background: #16130F; border-radius: .8vmin; display: flex; align-items: center; gap: 2vmin; padding: 0 2vmin; box-sizing: border-box;
+    box-shadow: 0 0 0 .6vmin #5E6368, inset 0 0 1.4vmin rgba(0,0,0,.8); }
+  .bullet { flex: none; width: 4.8vmin; height: 4.8vmin; border-radius: 50%; background: #7B3FE4; color: #fff; font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 3.4vmin; display: flex; align-items: center; justify-content: center; }
+  .dest { font-family: "DotGothic16", monospace; font-size: 3.2vmin; color: #FFB224; letter-spacing: .08em; white-space: nowrap; text-shadow: 0 0 .8vmin rgba(255,170,30,.7); }
+  .dest i { font-style: normal; color: #FFD27A; }
+
+  .window { position: absolute; left: 7vmin; right: 7vmin; top: 17vmin; height: calc(100% - 74vmin); }
+  .window img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; display: block;
+    box-shadow: 0 0 0 1vmin #24272B, 0 0 0 1.6vmin #8C9196, 0 .8vmin 1.6vmin 1.6vmin rgba(0,0,0,.25); }
+
+  .stripe { position: absolute; left: 0; right: 0; bottom: 52vmin; height: 3.2vmin; background: linear-gradient(180deg, #7B3FE4 0 55%, #FF8A1F 55%); }
+
+  .piece { position: absolute; left: 5vmin; right: 5vmin; bottom: 17vmin; height: 31vmin; }
+  .piece::before { content: ""; position: absolute; left: 0; right: 4vmin; top: 1vmin; bottom: 0; border-radius: 12vmin 4vmin 14vmin 6vmin / 10vmin 6vmin 12vmin 8vmin;
+    background: radial-gradient(30vmin 20vmin at 25% 30%, #42E6C3, transparent 70%), radial-gradient(40vmin 26vmin at 85% 80%, #C6F24A, transparent 70%), #22C7B8;
+    box-shadow: 0 0 0 .8vmin #15171A, 1.2vmin 1.4vmin 0 .8vmin rgba(21,23,26,.35); }
+  .kick { position: absolute; left: 5vmin; top: 4.2vmin; font-weight: 800; font-size: 1.8vmin; letter-spacing: .22em; text-transform: uppercase; color: #0E3B37; white-space: nowrap; }
+  h1 { position: absolute; left: 4vmin; top: 7.6vmin; margin: 0; font-family: "Knewave", cursive; font-weight: 400; font-size: 11.6vmin; line-height: .9; color: #FF3D7F; letter-spacing: .01em; transform: rotate(-3deg);
+    text-shadow: .35vmin .35vmin 0 #fff, -.35vmin -.35vmin 0 #fff, .35vmin -.35vmin 0 #fff, -.35vmin .35vmin 0 #fff, .9vmin .9vmin 0 #15171A, 1.3vmin 1.3vmin 0 #15171A; }
+
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 4.6vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .sub { font-weight: 500; font-size: 2.2vmin; line-height: 1.25; color: #2C3036; }
+  .sub b { font-weight: 800; color: #15171A; }
+  .buy { display: flex; align-items: center; gap: 2vmin; flex: none; }
+  .price { font-weight: 800; font-size: 6vmin; line-height: .9; letter-spacing: -.01em; }
+  .cta { font-weight: 700; font-size: 2.2vmin; letter-spacing: .12em; text-transform: uppercase; color: #fff; background: #15171A; padding: 1.2vmin 2vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .sign { top: 4.4vmin; height: 6.6vmin; }
+    .window { top: 15vmin; height: calc(100% - 64vmin); }
+    .stripe { bottom: 45vmin; height: 2.8vmin; }
+    .piece { bottom: 14vmin; height: 27vmin; }
+    .kick { top: 3.6vmin; }
+    h1 { top: 6.6vmin; font-size: 9.8vmin; }
+    .foot { bottom: 3.8vmin; }
+    .price { font-size: 5.2vmin; }
+  }
+  /* square / wide — window left, everything else right */
+  @media (min-aspect-ratio: 9/10) {
+    .sign { left: calc(48% + 12vmin); right: 5vmin; top: 6vmin; height: 6.6vmin; }
+    .dest { font-size: 2.2vmin; }
+    .bullet { width: 4.2vmin; height: 4.2vmin; font-size: 3vmin; }
+    .window { left: 6vmin; right: auto; top: 6vmin; width: 48%; height: calc(100% - 12vmin); }
+    .stripe { bottom: auto; top: 18vmin; left: calc(48% + 14vmin); height: 2.6vmin; }
+    .piece { left: calc(48% + 11vmin); right: 3vmin; bottom: auto; top: 25vmin; height: 36vmin; }
+    .kick { font-size: 1.6vmin; top: 4.4vmin; }
+    h1 { font-size: 8vmin; top: 8.6vmin; left: 3.6vmin; }
+    .foot { left: calc(48% + 12vmin); right: 5vmin; bottom: 6vmin; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .sub { font-size: 2vmin; }
+    .price { font-size: 5.4vmin; }
+    .cta { font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .window { width: 46%; }
+    .sign { left: calc(46% + 13vmin); right: 6vmin; }
+    .dest { font-size: 3vmin; }
+    .stripe { left: calc(46% + 16.6vmin); }
+    .piece { left: calc(46% + 12vmin); right: 5vmin; top: 26vmin; height: 40vmin; }
+    .kick { font-size: 1.8vmin; top: 5vmin; left: 6vmin; }
+    h1 { font-size: 11vmin; top: 10vmin; left: 5vmin; }
+    .foot { left: calc(46% + 14vmin); right: 6vmin; flex-direction: row; align-items: flex-end; }
+    .price { font-size: 6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sign"><span class="bullet">7</span><span class="dest">Downtown <i>Express</i></span></div>
+  <div class="window"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <i class="stripe"></i>
+  <div class="piece">
+    <div class="kick">Line 7 · Nordo Supply</div>
+    <h1>Ride<br>the line.</h1>
+  </div>
+  <div class="foot">
+    <div class="sub">New season, all stops.<br><b>Free delivery</b> on every route.</div>
+    <div class="buy"><div class="price">$72</div><div class="cta">Board now →</div></div>
+  </div>
+</div>
+</body>
+</html>

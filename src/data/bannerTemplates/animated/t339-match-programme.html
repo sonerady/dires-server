@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Match Programme — a two-colour 1960s matchday programme cover: pillar-box red and black on newsprint cream,
+     double rules, a towering condensed club name, the fixture set as "Nord v Winter" with a Baskerville italic v,
+     and a halftone price roundel. tall/4:5 → cover stacked around the photo · square/wide → cover left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1E6CF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1A1714; font-family: "Libre Baskerville", Georgia, serif;
+    background: radial-gradient(circle, rgba(26,23,20,.05) 0 .15vmin, transparent .2vmin) 0 0 / .9vmin .9vmin, #F1E6CF; }
+  .mast { position: absolute; left: 5vmin; right: 5vmin; top: 4vmin; display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 1.2vmin; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap;
+    border-bottom: 3px double #1A1714; }
+  .mast i { text-transform: none; letter-spacing: .02em; font-size: 2.2vmin; }
+  .club { position: absolute; left: 5vmin; right: 5vmin; top: 8.6vmin; margin: 0; font-family: "League Gothic", "Oswald", Impact, sans-serif; font-weight: 400; font-size: 21vmin; line-height: .9; letter-spacing: .01em; color: #C8321E; text-transform: uppercase; text-align: center; white-space: nowrap; }
+  .photo { position: absolute; left: 5vmin; top: 30vmin; width: calc(100% - 10vmin); height: calc(100% - 30vmin - 50vmin); object-fit: cover; object-position: 50% 20%; }
+
+  .fx { position: absolute; left: 5vmin; right: 5vmin; bottom: 22vmin; height: 25vmin; display: flex; align-items: center; gap: 4vmin; border-top: 3px double #1A1714; }
+  .fx .t { flex: 1; min-width: 0; }
+  .fx small { display: block; font-size: 1.8vmin; letter-spacing: .2em; text-transform: uppercase; }
+  .fx h2 { margin: 1vmin 0 0; font-family: "League Gothic", "Oswald", Impact, sans-serif; font-weight: 400; font-size: 12vmin; line-height: .92; text-transform: uppercase; white-space: nowrap; }
+  .fx h2 em { font-family: "Libre Baskerville", Georgia, serif; font-style: italic; font-size: .5em; color: #C8321E; text-transform: none; padding: 0 .3em; vertical-align: .35em; }
+  .fx p { margin: 1vmin 0 0; font-size: 2vmin; font-style: italic; }
+  .rd { flex: none; position: relative; width: 19vmin; height: 19vmin; border-radius: 50%; background: #C8321E; color: #F1E6CF; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-8deg);
+    box-shadow: 0 0 0 .5vmin #F1E6CF, 0 0 0 .8vmin #C8321E; }
+  .rd::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, rgba(26,23,20,.22) 0 .22vmin, transparent .28vmin) 0 0 / .9vmin .9vmin; }
+  .rd b { position: relative; font-family: "League Gothic", Impact, sans-serif; font-weight: 400; font-size: 9vmin; line-height: .85; }
+  .rd span { position: relative; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; }
+
+  .strip { position: absolute; left: 0; right: 0; bottom: 0; height: 17vmin; background: #1A1714; color: #F1E6CF; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding: 0 5vmin; box-sizing: border-box; }
+  .strip p { margin: 0; font-size: 2.1vmin; line-height: 1.45; }
+  .strip p b { color: #F4A08F; letter-spacing: .08em; }
+  .strip span { flex: none; padding: 1.6vmin 2.8vmin 1.3vmin; background: #C8321E; font-family: "League Gothic", Impact, sans-serif; font-size: 3.8vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .club { font-size: 18vmin; }
+    .photo { top: 27vmin; height: calc(100% - 27vmin - 46vmin); }
+    .fx { bottom: 19vmin; height: 24vmin; }
+    .fx h2 { font-size: 11vmin; }
+    .rd { width: 17vmin; height: 17vmin; }
+    .rd b { font-size: 8vmin; }
+    .strip { height: 15vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .mast { top: 3.4vmin; font-size: 1.7vmin; }
+    .club { top: 7.4vmin; font-size: 14vmin; }
+    .photo { top: 22vmin; height: calc(100% - 22vmin - 38vmin); }
+    .fx { bottom: 14vmin; height: 21vmin; }
+    .fx h2 { font-size: 9vmin; }
+    .fx p { font-size: 1.9vmin; }
+    .rd { width: 14.5vmin; height: 14.5vmin; }
+    .rd b { font-size: 7vmin; }
+    .rd span { font-size: 1.6vmin; }
+    .strip { height: 12vmin; }
+    .strip p { font-size: 1.9vmin; }
+    .strip span { font-size: 3.2vmin; padding: 1.3vmin 2.4vmin 1vmin; }
+  }
+  /* square / wide → cover typography left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; top: 0; width: 48%; height: 100%; object-position: 50% 25%; }
+    .mast { right: calc(48% + 5vmin); top: 5vmin; font-size: 1.6vmin; letter-spacing: .1em; }
+    .mast i { display: none; }
+    .club { right: calc(48% + 5vmin); top: 10vmin; font-size: 13vmin; line-height: .86; white-space: normal; text-align: left; }
+    .fx { right: calc(48% + 5vmin); top: 38vmin; bottom: auto; height: auto; flex-direction: column; align-items: flex-start; gap: 3vmin; padding-top: 2.6vmin; }
+    .fx h2 { font-size: 9vmin; }
+    .fx p { font-size: 1.8vmin; }
+    .rd { position: absolute; right: 0; top: -18vmin; width: 13vmin; height: 13vmin; }
+    .rd b { font-size: 6.4vmin; }
+    .rd span { font-size: 1.6vmin; letter-spacing: .12em; }
+    .strip { right: 48%; height: 17vmin; flex-direction: column; justify-content: center; align-items: stretch; gap: 1.6vmin; }
+    .strip p { font-size: 1.7vmin; }
+    .strip span { text-align: center; font-size: 3vmin; padding: 1vmin 2vmin .8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .mast { left: 6vmin; right: calc(46% + 6vmin); top: 6vmin; font-size: 1.8vmin; letter-spacing: .16em; }
+    .mast i { display: inline; }
+    .club { left: 6vmin; right: calc(46% + 6vmin); top: 11vmin; font-size: 15vmin; line-height: .9; white-space: nowrap; text-align: left; }
+    .fx { left: 6vmin; right: calc(46% + 6vmin); top: 29vmin; flex-direction: row; align-items: center; gap: 4vmin; padding-top: 0; height: 36vmin; }
+    .fx h2 { font-size: 11vmin; }
+    .fx p { font-size: 2vmin; }
+    .rd { position: relative; right: auto; top: auto; width: 18vmin; height: 18vmin; }
+    .rd b { font-size: 8.6vmin; }
+    .strip { right: 46%; height: 18vmin; flex-direction: row; align-items: center; justify-content: space-between; padding: 0 6vmin; }
+    .strip p { font-size: 1.9vmin; }
+    .strip span { font-size: 3.4vmin; padding: 1.5vmin 2.8vmin 1.2vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* 1 · the club name is re-inked: a roller wipes it off left→right, then prints it back in */
+  @keyframes reink {
+    0%, 8% { clip-path: inset(-10% 0 -10% 0); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    17% { clip-path: inset(-10% 0 -10% 100%); animation-timing-function: steps(1, end); }
+    19% { clip-path: inset(-10% 100% -10% 0); animation-timing-function: cubic-bezier(.65,0,.25,1); }
+    31%, 100% { clip-path: inset(-10% 0 -10% 0); }
+  }
+  /* a red registration ghost trails the reprint for a moment, then snaps into register */
+  .club { animation: reink 6s linear infinite, register 6s linear infinite; }
+  @keyframes register {
+    0%, 19% { text-shadow: 0 0 0 rgba(26,23,20,0); }
+    21% { text-shadow: .9vmin .5vmin 0 rgba(26,23,20,.55); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    34%, 100% { text-shadow: 0 0 0 rgba(26,23,20,0); }
+  }
+  /* 2 · the fixture line rises back up out of the double rule */
+  .fx h2 { animation: fixture 6s linear infinite; }
+  @keyframes fixture {
+    0%, 22% { clip-path: inset(-20% -5% -20% -5%); animation-timing-function: cubic-bezier(.7,0,.8,.3); }
+    27% { clip-path: inset(100% -5% -20% -5%); animation-timing-function: cubic-bezier(.2,.8,.25,1); }
+    38%, 100% { clip-path: inset(-20% -5% -20% -5%); }
+  }
+  /* 3 · the price roundel is lifted and stamped back down */
+  .rd { animation: stamp 6s linear infinite; }
+  @keyframes stamp {
+    0%, 42% { transform: rotate(-8deg) scale(1); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    47% { transform: rotate(-17deg) scale(1.1); box-shadow: 0 0 0 .5vmin #F1E6CF, 0 0 0 .8vmin #C8321E, 0 1.4vmin 2.4vmin rgba(26,23,20,.3); animation-timing-function: cubic-bezier(.7,0,.9,.5); }
+    50% { transform: rotate(-6deg) scale(.95); box-shadow: 0 0 0 .5vmin #F1E6CF, 0 0 0 .8vmin #C8321E; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    55%, 100% { transform: rotate(-8deg) scale(1); box-shadow: 0 0 0 .5vmin #F1E6CF, 0 0 0 .8vmin #C8321E; }
+  }
+  /* the halftone screen inside the roundel turns a quarter-step with the stamp */
+  .rd::before { animation: screen 6s linear infinite; }
+  @keyframes screen { 0%, 46% { transform: rotate(0); animation-timing-function: cubic-bezier(.3,0,.2,1); } 58%, 100% { transform: rotate(90deg); } }
+  /* 4 · the code glows and a sheen crosses the red CTA */
+  .strip span { position: relative; overflow: hidden; }
+  .strip span::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 38%;
+    background: linear-gradient(90deg, rgba(241,230,207,0) 0%, rgba(241,230,207,.1) 30%, rgba(241,230,207,.42) 50%, rgba(241,230,207,.1) 70%, rgba(241,230,207,0) 100%);
+    transform: translateX(-170%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen { 0%, 66% { transform: translateX(-170%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 82%, 100% { transform: translateX(320%) skewX(-18deg); } }
+  .strip p b { animation: code 6s linear infinite; }
+  @keyframes code { 0%, 60%, 76%, 100% { color: #F4A08F; } 66%, 70% { color: #FFE3D8; } }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="mast"><span>Official programme</span><i>Autumn League 26/27</i><span class="n">Nº 26</span></div>
+  <h1 class="club">Atelier Nord</h1>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="fx">
+    <div class="t">
+      <small>Matchday one · Nord Park</small>
+      <h2>Nord<em>v</em>Winter</h2>
+      <p>Saturday 4 October · kick-off 10.00</p>
+    </div>
+    <div class="rd"><b>25%</b><span>off</span></div>
+  </div>
+  <div class="strip"><p>Season-ticket holders save 25%<br>on the new season · code <b>PROG25</b></p><span>Shop the season →</span></div>
+</div>
+</body>
+</html>

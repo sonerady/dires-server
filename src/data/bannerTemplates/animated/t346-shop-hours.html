@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Shop Hours — the glass shop door of a Nordic boutique: white cut-vinyl wordmark, headline and an opening-hours
+     table on smoked glass with faint reflections, a brushed-steel pull bar and one round vinyl sticker for the offer
+     (late Thursday). tall → photo above the door; 3:4 and wider → door beside the photo, handle on the seam */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #283033; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #283033; color: #F2F0EA; font-family: "Jost", "Futura", "Century Gothic", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .door { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; background: #283033; box-sizing: border-box; padding: 6vmin 16vmin 5vmin 6vmin; display: flex; flex-direction: column; overflow: hidden;
+          border-top: 1.4vmin solid #16191A; }
+  /* reflections on the glass */
+  .door::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,.05) 18%, rgba(255,255,255,.05) 30%, transparent 30%, transparent 36%, rgba(255,255,255,.035) 36%, rgba(255,255,255,.035) 40%, transparent 40%),
+                linear-gradient(180deg, rgba(170,190,195,.12), transparent 60%); }
+  .bar { position: absolute; right: 6vmin; top: 12%; bottom: 12%; width: 2.6vmin; background: linear-gradient(90deg, #6F7678, #D9DDDC 35%, #9BA1A2 60%, #5D6466); box-shadow: -.6vmin .4vmin 1vmin rgba(0,0,0,.4); }
+  .bar::before, .bar::after { content: ""; position: absolute; left: 50%; width: 4.4vmin; height: 1.6vmin; margin-left: -4.4vmin; background: linear-gradient(180deg, #A9AFB0, #6A7173); }
+  .bar::before { top: 6%; } .bar::after { bottom: 6%; }
+
+  .mark { position: relative; align-self: flex-start; font-weight: 500; font-size: 3.2vmin; letter-spacing: .42em; text-transform: uppercase; white-space: nowrap; }
+  .mark span { display: block; margin-top: 1vmin; font-weight: 300; font-size: 1.8vmin; letter-spacing: .3em; opacity: .8; }
+  h1 { position: relative; margin: auto 0 0; font-weight: 300; font-size: 9.4vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 b { font-weight: 500; }
+
+  .hours { position: relative; margin-top: 4.6vmin; font-size: 2.3vmin; font-weight: 400; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+  .hours div { display: flex; justify-content: space-between; padding: 1vmin 0; border-top: 1px solid rgba(242,240,234,.3); white-space: nowrap; }
+  .hours div span:first-child { text-transform: uppercase; letter-spacing: .2em; font-size: 1.8vmin; align-self: center; }
+  .hours .late { font-weight: 600; }
+  .hours .late span:first-child::after { content: " ●"; color: #D6B25E; letter-spacing: 0; }
+
+  .sticker { position: absolute; right: 13vmin; top: 5vmin; width: 19vmin; height: 19vmin; border-radius: 50%; background: #D6B25E; color: #1F2426; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: rotate(-8deg); z-index: 2; }
+  .sticker small { line-height: 1.1; font-weight: 500; font-size: 1.6vmin; letter-spacing: .18em; text-transform: uppercase; }
+  .sticker strong { margin: .5vmin 0 .4vmin; font-weight: 600; font-size: 5.8vmin; line-height: .8; letter-spacing: -.03em; }
+  .foot { position: relative; margin-top: 3.4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; opacity: .85; }
+
+  /* 3:4 / 4:5 → door on the right, handle on the seam */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .door { left: 50%; top: 0; height: auto; border-top: 0; border-left: 1.2vmin solid #16191A; padding: 6vmin 4.4vmin 5vmin 12vmin; }
+    .bar { right: auto; left: 4vmin; top: 30%; bottom: 30%; }
+    .bar::before, .bar::after { margin-left: 0; left: -1.2vmin; width: 3.2vmin; }
+    .mark { font-size: 2.4vmin; letter-spacing: .3em; }
+    .mark span { font-size: 1.6vmin; letter-spacing: .2em; }
+    h1 { font-size: 7vmin; }
+    .hours { font-size: 2vmin; }
+    .hours div span:first-child { font-size: 1.6vmin; letter-spacing: .12em; }
+    .sticker { right: 4vmin; top: auto; bottom: 46%; width: 16vmin; height: 16vmin; }
+    .sticker strong { font-size: 4.8vmin; }
+    .foot { flex-direction: column; gap: 1vmin; font-size: 1.6vmin; letter-spacing: .14em; }
+  }
+  /* square */
+  @media (min-aspect-ratio: 9/10) {
+    .door { padding: 5vmin 4.4vmin 4.4vmin 10vmin; }
+    .bar { left: 3.6vmin; top: 28%; bottom: 28%; width: 2.2vmin; }
+    h1 { font-size: 6.2vmin; }
+    .hours { margin-top: 3vmin; font-size: 1.9vmin; }
+    .hours div { padding: .8vmin 0; }
+    .sticker { top: 20vmin; bottom: auto; right: 4.4vmin; width: 14vmin; height: 14vmin; }
+    .sticker strong { font-size: 4.2vmin; }
+    .sticker small { font-size: 1.5vmin; }
+    .foot { flex-direction: row; margin-top: 2.4vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 52%; object-position: 50% 28%; }
+    .door { left: 52%; padding: 5.4vmin 5vmin 4.6vmin 12vmin; }
+    .bar { left: 4.4vmin; width: 2.6vmin; }
+    .mark { font-size: 2.8vmin; letter-spacing: .38em; }
+    .mark span { font-size: 1.7vmin; }
+    h1 { font-size: 7.6vmin; }
+    .hours { font-size: 2vmin; margin-top: 3.4vmin; }
+    .hours div span:first-child { font-size: 1.7vmin; }
+    .sticker { right: 5vmin; top: 5vmin; width: 17vmin; height: 17vmin; }
+    .sticker strong { font-size: 5vmin; }
+    .foot { font-size: 1.7vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* 1 · "the new season." is lettered back onto the glass, left to right */
+  h1 b { display: inline-block; animation: vinyl 6s linear infinite; }
+  @keyframes vinyl {
+    0%, 5% { clip-path: inset(-10% 0 -25% 0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    9% { clip-path: inset(-10% 0 -25% 0); opacity: 0; animation-timing-function: steps(1, end); }
+    9.5% { clip-path: inset(-10% 100% -25% 0); opacity: 1; animation-timing-function: cubic-bezier(.35,0,.2,1); }
+    22%, 100% { clip-path: inset(-10% 0 -25% 0); opacity: 1; }
+  }
+  /* 2 · Thursday lights up: the row warms, the gold dot pulses */
+  .hours .late { animation: late 6s linear infinite; }
+  @keyframes late {
+    0%, 26% { background-color: rgba(214,178,94,0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    31%, 40% { background-color: rgba(214,178,94,.16); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    50%, 100% { background-color: rgba(214,178,94,0); }
+  }
+  .hours .late span:first-child::after { animation: dot 1.5s linear infinite; }
+  @keyframes dot { 0%, 100% { color: #D6B25E; } 50% { color: rgba(214,178,94,.35); } }
+  .hours .late span:last-child { animation: latecolor 6s linear infinite; }
+  @keyframes latecolor { 0%, 27% { color: #F2F0EA; } 31%, 42% { color: #EBCB7C; } 50%, 100% { color: #F2F0EA; } }
+  /* 3 · the vinyl sticker: a gloss glint crosses it and it lifts a hair at the edge, then presses flat */
+  .sticker { overflow: hidden; animation: sticker 6s linear infinite; }
+  @keyframes sticker {
+    0%, 48% { transform: rotate(-8deg) scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    53% { transform: rotate(-4deg) scale(1.05); box-shadow: .4vmin .9vmin 1.6vmin rgba(0,0,0,.35); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    58% { transform: rotate(-9deg) scale(.985); box-shadow: 0 0 0 rgba(0,0,0,0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    63%, 100% { transform: rotate(-8deg) scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  }
+  .sticker::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.45) 50%, rgba(255,255,255,0));
+    transform: translateX(-150%) skewX(-18deg); animation: glint 6s linear infinite; }
+  @keyframes glint { 0%, 50% { transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.3,1); } 62%, 100% { transform: translateX(300%) skewX(-18deg); } }
+  /* 4 · a slow band of daylight slides across the glass door; the steel pull bar catches it */
+  .door::after { content: ""; position: absolute; top: -10%; bottom: -10%; left: 0; width: 30%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(220,235,240,0) 0%, rgba(220,235,240,.02) 20%, rgba(220,235,240,.075) 50%, rgba(220,235,240,.02) 80%, rgba(220,235,240,0) 100%);
+    transform: translateX(-120%) skewX(-24deg); animation: glass 6s linear infinite; }
+  @keyframes glass { 0%, 64% { transform: translateX(-120%) skewX(-24deg); animation-timing-function: cubic-bezier(.4,0,.35,1); } 96%, 100% { transform: translateX(460%) skewX(-24deg); } }
+  .bar { animation: steel 6s linear infinite; }
+  @keyframes steel { 0%, 70% { filter: brightness(1); animation-timing-function: cubic-bezier(.4,0,.4,1); } 80% { filter: brightness(1.28); animation-timing-function: cubic-bezier(.4,0,.4,1); } 92%, 100% { filter: brightness(1); } }
+  .foot span:last-child { animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 82% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    86% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    92%, 100% { transform: translateX(0); }
+  }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="door">
+    <div class="bar"></div>
+    <div class="mark">Lind &amp; Holm<span>Clothing · Est. 2011</span></div>
+    <div class="sticker"><small>Late Thu</small><strong>−20%</strong><small>After 18:00</small></div>
+    <h1>Open for<br><b>the new season.</b></h1>
+    <div class="hours">
+      <div><span>Mon – Wed</span><span>10 – 19</span></div>
+      <div class="late"><span>Thursday</span><span>10 – 21</span></div>
+      <div><span>Fri – Sat</span><span>10 – 18</span></div>
+      <div><span>Sunday</span><span>12 – 16</span></div>
+    </div>
+    <div class="foot"><span>Welcome in</span><span>Or shop online →</span></div>
+  </div>
+</div>
+</body>
+</html>

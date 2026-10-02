@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Hanken+Grotesk:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Two-Tone Split — a half-price story told in two butter values cut exactly in half.
+     The giant figure straddles the seam and swaps colour across it: each half is written in the other half's colour.
+     tall → photo on top, the field below splits left/right; square/wide → photo left, the field splits top/bottom */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F5DA74; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F5DA74; color: #4E3B06; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+    --lt: #F5DA74; --dk: #4E3B06; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 56%; object-fit: cover; object-position: 50% 18%; }
+
+  .field { position: absolute; left: 0; right: 0; top: 56%; bottom: 0; }
+  .h { position: absolute; }
+  .h.a { left: 0; top: 0; width: 50%; height: 100%; background: var(--lt); }
+  .h.b { left: 50%; top: 0; width: 50%; height: 100%; background: var(--dk); }
+
+  .big { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; align-items: center; justify-content: center;
+    font-family: "Anton", Impact, "Arial Narrow", sans-serif; font-size: 36vmin; line-height: 1; letter-spacing: -.01em; white-space: nowrap; padding-bottom: 1vmin; box-sizing: border-box; }
+  .big.a { color: var(--dk); clip-path: inset(0 50% 0 0); }
+  .big.b { color: var(--lt); clip-path: inset(0 0 0 50%); }
+
+  .c { position: absolute; font-size: 2vmin; line-height: 1.35; }
+  .c b { display: block; font-weight: 800; font-size: 2.6vmin; letter-spacing: -.01em; }
+  .mono { font-weight: 600; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; }
+  .tl { left: 6vmin; top: 4.4vmin; color: var(--dk); }
+  .tr { right: 6vmin; top: 4.4vmin; color: var(--lt); text-align: right; }
+  .bl { left: 6vmin; bottom: 4.6vmin; color: var(--dk); }
+  .br { right: 6vmin; bottom: 4.6vmin; color: var(--lt); text-align: right; }
+  .code { display: inline-block; margin-top: .8vmin; padding: .6vmin 1.1vmin; border: 1px solid currentColor; font-weight: 800; letter-spacing: .16em; font-size: 1.8vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 54%; }
+    .field { top: 54%; }
+    .big { font-size: 30vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 44%; height: 100%; object-position: 50% 22%; }
+    .field { left: 44%; top: 0; }
+    .h.a { left: 0; top: 0; width: 100%; height: 50%; }
+    .h.b { left: 0; top: 50%; width: 100%; height: 50%; }
+    .big { font-size: 25vmin; padding-bottom: 0; }
+    .big.a { clip-path: inset(0 0 50% 0); }
+    .big.b { clip-path: inset(50% 0 0 0); }
+    .tl { left: 5vmin; top: 5vmin; }
+    .tr { left: 5vmin; right: auto; top: 5vmin; text-align: right; color: var(--dk); }
+    .tr { left: auto; right: 5vmin; }
+    .bl { left: 5vmin; bottom: 5vmin; color: var(--lt); }
+    .br { right: 5vmin; bottom: 5vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .field { left: 46%; }
+    .big { font-size: 34vmin; }
+    .tl, .tr { top: 6vmin; } .bl, .br { bottom: 6vmin; }
+    .tl { left: 6vmin; } .tr { right: 6vmin; } .bl { left: 6vmin; } .br { right: 6vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     the seam is the story: it swings left, then right, then settles back on the centre line,
+     dragging the colour swap of the giant figure with it · the two bold lines re-set after it lands ·
+     the code chip inverts on the last beat · photo breathes a slow push-in */
+  .photo { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .h.b { transform-origin: 100% 50%; animation: seamH 6s cubic-bezier(.65,0,.35,1) infinite; }
+  .big.a { animation: seamA 6s cubic-bezier(.65,0,.35,1) infinite; }
+  .big.b { animation: seamB 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes seamH { 0%, 18%, 80%, 100% { transform: scaleX(1); } 30%, 40% { transform: scaleX(1.16); } 56%, 66% { transform: scaleX(.84); } }
+  @keyframes seamA { 0%, 18%, 80%, 100% { clip-path: inset(0 50% 0 0); } 30%, 40% { clip-path: inset(0 58% 0 0); } 56%, 66% { clip-path: inset(0 42% 0 0); } }
+  @keyframes seamB { 0%, 18%, 80%, 100% { clip-path: inset(0 0 0 50%); } 30%, 40% { clip-path: inset(0 0 0 42%); } 56%, 66% { clip-path: inset(0 0 0 58%); } }
+
+  .c b { animation: reset 6s cubic-bezier(.65,0,.35,1) infinite; }
+  .tr b { animation-delay: -.15s; }
+  @keyframes reset {
+    0%, 80%, 100% { clip-path: inset(0 0 0 0); }
+    83.5% { clip-path: inset(0 0 0 100%); }
+    83.6% { clip-path: inset(0 100% 0 0); }
+    92% { clip-path: inset(0 0 0 0); }
+  }
+  .code { animation: chip 6s linear infinite; }
+  @keyframes chip { 0%, 87%, 95.1%, 100% { background: transparent; color: var(--lt); } 87.1%, 95% { background: var(--lt); color: var(--dk); } }
+
+  @media (min-aspect-ratio: 9/10) {
+    .h.b { transform-origin: 50% 100%; animation-name: seamHv; }
+    .big.a { animation-name: seamAv; }
+    .big.b { animation-name: seamBv; }
+  }
+  @keyframes seamHv { 0%, 18%, 80%, 100% { transform: scaleY(1); } 30%, 40% { transform: scaleY(1.16); } 56%, 66% { transform: scaleY(.84); } }
+  @keyframes seamAv { 0%, 18%, 80%, 100% { clip-path: inset(0 0 50% 0); } 30%, 40% { clip-path: inset(0 0 58% 0); } 56%, 66% { clip-path: inset(0 0 42% 0); } }
+  @keyframes seamBv { 0%, 18%, 80%, 100% { clip-path: inset(50% 0 0 0); } 30%, 40% { clip-path: inset(42% 0 0 0); } 56%, 66% { clip-path: inset(58% 0 0 0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="field">
+    <div class="h a"></div><div class="h b"></div>
+    <div class="big a">50%</div>
+    <div class="big b">50%</div>
+    <div class="c tl"><span class="mono">The Butter Edit</span><b>Half price.</b></div>
+    <div class="c tr"><span class="mono">Summer 27</span><b>Full colour.</b></div>
+    <div class="c bl">Selected pieces<br>until 30 June</div>
+    <div class="c br">Shop now →<br><span class="code">HALF50</span></div>
+  </div>
+</div>
+</body>
+</html>

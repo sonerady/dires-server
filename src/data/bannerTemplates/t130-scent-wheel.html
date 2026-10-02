@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700;800&family=Cormorant:ital,wght@1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  /* Scent Wheel — the perfumer's fragrance wheel as a collection finder: four families, twelve moods,
+     a gold pointer on today's note and the offer in the hub. Midnight counter palette.
+     tall → photo above, copy left + wheel right; square → photo left, copy over the wheel; wide → photo | copy | wheel */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #16152B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F3EBDD; font-family: "Syne", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(80% 60% at 75% 78%, #242142 0%, #16152B 65%, #110F22 100%); --D: 56vmin; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 50%; object-fit: cover; object-position: 50% 22%; }
+
+  .copy { position: absolute; left: 6vmin; width: 32vmin; top: calc(50% + 5.5vmin); bottom: 5.5vmin; display: flex; flex-direction: column; }
+  .kick { font-size: 1.7vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; color: #C9A55B; line-height: 1.5; }
+  h1 { margin: 2vmin 0 0; font-family: "Cormorant", Garamond, Georgia, serif; font-style: italic; font-weight: 500; font-size: 9.6vmin; line-height: .9; letter-spacing: -.01em; }
+  p { margin: 2.4vmin 0 0; font-size: 2.2vmin; line-height: 1.4; color: #CFC6D8; }
+  .foot { margin-top: auto; }
+  .code { display: inline-block; padding: 1.1vmin 1.8vmin; border: 1px solid #C9A55B; font-size: 1.9vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .cta { margin-top: 1.8vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #CFC6D8; white-space: nowrap; }
+
+  .wrap { position: absolute; right: 5vmin; width: var(--D); height: var(--D); top: calc(75% - var(--D) / 2); }
+  .wheel { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .wheel .sl { font-family: "Syne", Arial, sans-serif; font-weight: 700; fill: #1A1830; letter-spacing: .02em; }
+  .wheel .fl { font-family: "Syne", Arial, sans-serif; font-weight: 800; fill: #F3EBDD; letter-spacing: .32em; text-transform: uppercase; }
+  .wheel .tk { stroke: #C9A55B; stroke-width: .6; }
+  .wheel .hl { fill: none; stroke: #F3EBDD; stroke-width: 1.6; }
+  .wheel .ptr { fill: #C9A55B; }
+  .hub { position: absolute; left: 28%; top: 28%; width: 44%; height: 44%; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #1A1830; }
+  .hub b { font-size: calc(var(--D) * .1); font-weight: 800; line-height: .9; letter-spacing: -.03em; }
+  .hub span { margin-top: calc(var(--D) * .012); font-family: "Cormorant", Georgia, serif; font-style: italic; font-weight: 600; font-size: calc(var(--D) * .045); line-height: 1.05; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 50%; }
+    .banner { --D: 50vmin; }
+    .copy { top: calc(50% + 4.4vmin); bottom: 4.4vmin; width: 36vmin; }
+    .wrap { right: 6vmin; }
+    h1 { font-size: 8.6vmin; }
+    p { font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 42%; height: 100%; object-position: 50% 25%; }
+    .banner { --D: 50vmin; }
+    .copy { left: calc(42% + 5vmin); right: 5vmin; width: auto; top: 5.5vmin; bottom: 5vmin; }
+    h1 { font-size: 6.4vmin; margin-top: 1.4vmin; }
+    h1 br { display: none; }
+    p { display: none; }
+    .foot { margin-top: 2.6vmin; display: flex; align-items: center; gap: 2.4vmin; }
+    .code { padding: 1vmin 1.4vmin; font-size: 1.7vmin; letter-spacing: .14em; }
+    .cta { margin-top: 0; font-size: 1.7vmin; letter-spacing: .14em; }
+    .banner { --D: 47vmin; }
+    .wrap { right: auto; left: calc(42% + 5vmin + (58% - 10vmin - var(--D)) / 2); top: auto; bottom: 4.5vmin; }
+    .wheel .sl { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 36%; }
+    .banner { --D: 62vmin; }
+    .copy { left: calc(36% + 6vmin); right: auto; width: 26vmin; top: 7vmin; bottom: 7vmin; }
+    h1 { font-size: 8.4vmin; margin-top: 2vmin; }
+    h1 br { display: inline; }
+    p { display: block; font-size: 2vmin; }
+    .foot { margin-top: auto; display: block; }
+    .cta { margin-top: 1.8vmin; }
+    .code { padding: 1.1vmin 1.6vmin; font-size: 1.8vmin; letter-spacing: .16em; }
+    .cta { font-size: 1.7vmin; letter-spacing: .16em; white-space: nowrap; }
+    .wrap { left: auto; right: 5vmin; bottom: auto; top: calc(50% - var(--D) / 2); }
+    .wheel .sl { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="kick">Studio Oro<br>The scent wheel</div>
+    <h1>Find<br> your<br> note.</h1>
+    <p>Four families, twelve moods — one new collection.</p>
+    <div class="foot">
+      <div class="code">Code NOTE20</div>
+      <div class="cta">Shop by mood →</div>
+    </div>
+  </div>
+  <div class="wrap">
+    <svg class="wheel" viewBox="0 0 200 200" aria-hidden="true">
+      <defs><path id="s0" d="M84.85 41.43 A60.5 60.5 0 0 1 115.15 41.43"/><path id="s1" d="M116.17 41.70 A60.5 60.5 0 0 1 142.41 56.85"/><path id="s2" d="M143.15 57.59 A60.5 60.5 0 0 1 158.30 83.83"/><path id="s3" d="M158.57 84.85 A60.5 60.5 0 0 1 158.57 115.15"/><path id="s4" d="M146.00 145.21 A64.5 64.5 0 0 0 162.15 117.24"/><path id="s5" d="M117.24 162.15 A64.5 64.5 0 0 0 145.21 146.00"/><path id="s6" d="M83.85 162.45 A64.5 64.5 0 0 0 116.15 162.45"/><path id="s7" d="M54.79 146.00 A64.5 64.5 0 0 0 82.76 162.15"/><path id="s8" d="M37.85 117.24 A64.5 64.5 0 0 0 54.00 145.21"/><path id="s9" d="M41.43 115.15 A60.5 60.5 0 0 1 41.43 84.85"/><path id="s10" d="M41.70 83.83 A60.5 60.5 0 0 1 56.85 57.59"/><path id="s11" d="M57.59 56.85 A60.5 60.5 0 0 1 83.83 41.70"/><path id="f0" d="M78.71 14.61 A88 88 0 0 1 184.59 75.74"/><path id="f1" d="M126.05 190.84 A94.5 94.5 0 0 0 191.69 77.14"/><path id="f2" d="M9.16 126.05 A94.5 94.5 0 0 0 122.86 191.69"/><path id="f3" d="M14.61 121.29 A88 88 0 0 1 75.74 15.41"/></defs>
+      <circle cx="100" cy="100" r="100" fill="#26233F"/>
+      <circle cx="100" cy="100" r="81.5" fill="#1A1830"/>
+      <path d="M88.61 57.50 L79.29 22.73 A80 80 0 0 1 120.71 22.73 L111.39 57.50 A44 44 0 0 0 88.61 57.50 Z" fill="#E8CF52"/><path d="M111.39 57.50 L120.71 22.73 A80 80 0 0 1 156.57 43.43 L131.11 68.89 A44 44 0 0 0 111.39 57.50 Z" fill="#8CC5D2"/><path d="M131.11 68.89 L156.57 43.43 A80 80 0 0 1 177.27 79.29 L142.50 88.61 A44 44 0 0 0 131.11 68.89 Z" fill="#86B47A"/><path d="M142.50 88.61 L177.27 79.29 A80 80 0 0 1 177.27 120.71 L142.50 111.39 A44 44 0 0 0 142.50 88.61 Z" fill="#F2AE7A"/><path d="M142.50 111.39 L177.27 120.71 A80 80 0 0 1 156.57 156.57 L131.11 131.11 A44 44 0 0 0 142.50 111.39 Z" fill="#E9899A"/><path d="M131.11 131.11 L156.57 156.57 A80 80 0 0 1 120.71 177.27 L111.39 142.50 A44 44 0 0 0 131.11 131.11 Z" fill="#E3AFC0"/><path d="M111.39 142.50 L120.71 177.27 A80 80 0 0 1 79.29 177.27 L88.61 142.50 A44 44 0 0 0 111.39 142.50 Z" fill="#D9745C"/><path d="M88.61 142.50 L79.29 177.27 A80 80 0 0 1 43.43 156.57 L68.89 131.11 A44 44 0 0 0 88.61 142.50 Z" fill="#E09A52"/><path d="M68.89 131.11 L43.43 156.57 A80 80 0 0 1 22.73 120.71 L57.50 111.39 A44 44 0 0 0 68.89 131.11 Z" fill="#C4642B"/><path d="M57.50 111.39 L22.73 120.71 A80 80 0 0 1 22.73 79.29 L57.50 88.61 A44 44 0 0 0 57.50 111.39 Z" fill="#9C5A34"/><path d="M57.50 88.61 L22.73 79.29 A80 80 0 0 1 43.43 43.43 L68.89 68.89 A44 44 0 0 0 57.50 88.61 Z" fill="#7A6A45"/><path d="M68.89 68.89 L43.43 43.43 A80 80 0 0 1 79.29 22.73 L88.61 57.50 A44 44 0 0 0 68.89 68.89 Z" fill="#5A4636"/>
+      <g stroke="#1A1830" stroke-width=".9"><path d="M88.61 57.50 L79.29 22.73"/><path d="M111.39 57.50 L120.71 22.73"/><path d="M131.11 68.89 L156.57 43.43"/><path d="M142.50 88.61 L177.27 79.29"/><path d="M142.50 111.39 L177.27 120.71"/><path d="M131.11 131.11 L156.57 156.57"/><path d="M111.39 142.50 L120.71 177.27"/><path d="M88.61 142.50 L79.29 177.27"/><path d="M68.89 131.11 L43.43 156.57"/><path d="M57.50 111.39 L22.73 120.71"/><path d="M57.50 88.61 L22.73 79.29"/><path d="M68.89 68.89 L43.43 43.43"/></g>
+      <path d="M88.61 57.50 L79.29 22.73 A80 80 0 0 1 120.71 22.73 L111.39 57.50 A44 44 0 0 0 88.61 57.50 Z" class="hl"/>
+      <path d="M180.17 78.52 L195.63 74.38" class="tk"/><path d="M121.48 180.17 L125.62 195.63" class="tk"/><path d="M19.83 121.48 L4.37 125.62" class="tk"/><path d="M78.52 19.83 L74.38 4.37" class="tk"/>
+      <path d="M100 21.5 L95 9.5 L105 9.5 Z" class="ptr"/>
+      <circle cx="100" cy="100" r="44" fill="#F3EBDD"/>
+      <circle cx="100" cy="100" r="40.5" fill="none" stroke="#C9A55B" stroke-width=".5"/>
+      <text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s0" startOffset="50%">Citrus</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s1" startOffset="50%">Water</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s2" startOffset="50%">Green</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s3" startOffset="50%">Fruity</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s4" startOffset="50%">Floral</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s5" startOffset="50%">Powdery</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s6" startOffset="50%">Spice</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s7" startOffset="50%">Amber</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s8" startOffset="50%">Resin</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s9" startOffset="50%">Leather</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s10" startOffset="50%">Woods</textPath></text><text class="sl" font-size="6.2" text-anchor="middle"><textPath href="#s11" startOffset="50%">Moss</textPath></text><text class="fl" font-size="8.4" text-anchor="middle"><textPath href="#f0" startOffset="50%">Fresh</textPath></text><text class="fl" font-size="8.4" text-anchor="middle"><textPath href="#f1" startOffset="50%">Floral</textPath></text><text class="fl" font-size="8.4" text-anchor="middle"><textPath href="#f2" startOffset="50%">Amber</textPath></text><text class="fl" font-size="8.4" text-anchor="middle"><textPath href="#f3" startOffset="50%">Woody</textPath></text>
+    </svg>
+    <div class="hub"><b>20%</b><span>off every<br>note</span></div>
+  </div>
+</div>
+</body>
+</html>

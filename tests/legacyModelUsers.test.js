@@ -98,7 +98,7 @@ for (const route of ["referenceBrowserRoutesV7", "referenceJewelryBrowserRoutesV
       modelPoolDb: fakeDb({"u-1": "andy@sheisme.com"}),
       supabase: {from: () => {anonReads++; return {select: async () => ({data: [], error: null})};}},
       requestUserId: "u-1", logger: silent,
-      isV2: true, req: {body: {}}, modelPhoto: null,
+      isV2: true, req: {body: {}}, modelPhoto: null, photoSwapMode: null,
       promptForNanoBananaPro: "preserve product", imageInputArray: ["https://test/product"],
       aspectRatioForRequest: "9:16", qualityParam: "2K", safetyTolerance: "4",
       process: {env: {FAL_API_KEY: "fixture"}},

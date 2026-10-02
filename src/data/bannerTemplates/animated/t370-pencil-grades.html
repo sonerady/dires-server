@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Pencil Grades — graphite as hard-edged blocks that tile the frame with no gutters, each value stamped
+     with its pencil grade (2H, HB, 4B, 8B) like the side of a drawing pencil. The darkest block is hatched.
+     tall → photo top right, grade column left, three blocks below; square/wide → photo left, hatched strip, blocks right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C1D1F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #1C1D1F; color: #1C1D1F; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; }
+  .b { position: absolute; box-sizing: border-box; }
+  .photo { position: absolute; left: 26%; top: 0; width: 74%; height: 62%; object-fit: cover; object-position: 50% 18%; }
+  .g { font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; font-weight: 600; letter-spacing: .14em; white-space: nowrap; }
+
+  .b8 { left: 0; top: 0; width: 26%; height: 62%; background: #1C1D1F; color: #C9CBCE; padding: 4vmin 3vmin;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.06) 0 1px, transparent 1px 1.4vmin); display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; }
+  .vt { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 2vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; color: #E6E7E9; }
+  .big8 { font-weight: 800; font-size: 9vmin; line-height: .8; letter-spacing: -.04em; color: #E6E7E9; }
+
+  .b2 { left: 0; top: 62%; width: 62%; height: 38%; background: #DADCDE; padding: 4.4vmin 5vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  h1 { margin: 0; font-weight: 800; font-size: 12vmin; line-height: .84; letter-spacing: -.055em; }
+  .sub { font-size: 2vmin; line-height: 1.4; color: #3A3C3F; max-width: 40vmin; }
+
+  .bh { left: 62%; top: 62%; width: 38%; height: 19%; background: #75787C; color: #F4F5F6; padding: 3vmin 3.4vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .off { font-weight: 800; font-size: 9.4vmin; line-height: .8; letter-spacing: -.05em; }
+  .off small { font-size: 1.8vmin; font-weight: 600; letter-spacing: .02em; margin-left: .8vmin; }
+
+  .b4 { left: 62%; top: 81%; width: 38%; height: 19%; background: #3A3C3F; color: #E6E7E9; padding: 3vmin 3.4vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .code { font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .08em; white-space: nowrap; }
+  .code b { display: inline-block; margin-left: .6vmin; padding: .5vmin .9vmin; background: #E6E7E9; color: #1C1D1F; font-weight: 600; }
+  .cta { font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo, .b8 { height: 58%; }
+    .b2, .bh { top: 58%; } .b2 { height: 42%; }
+    .bh { height: 21%; } .b4 { top: 79%; height: 21%; }
+    h1 { font-size: 10vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 0; top: 0; width: 46%; height: 100%; object-position: 50% 22%; }
+    .b8 { left: 46%; top: 0; width: 8%; height: 100%; padding: 3vmin 0; align-items: center; }
+    .big8 { font-size: 3.6vmin; letter-spacing: -.02em; }
+    .vt { font-size: 1.7vmin; }
+    .b2 { left: 54%; top: 0; width: 46%; height: 54%; padding: 4.4vmin 4.4vmin; }
+    h1 { font-size: 8.4vmin; }
+    .sub { font-size: 1.8vmin; }
+    .bh { left: 54%; top: 54%; width: 23%; height: 46%; padding: 3vmin 2.6vmin; }
+    .b4 { left: 77%; top: 54%; width: 23%; height: 46%; padding: 3vmin 2.6vmin; }
+    .off { font-size: 7.4vmin; }
+    .off small { display: block; margin: 1.2vmin 0 0; }
+    .code b { display: table; margin: .8vmin 0 0; }
+    .cta { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .b8 { left: 42%; width: 7%; }
+    .b2 { left: 49%; width: 51%; height: 55%; padding: 5vmin 5vmin; }
+    h1 { font-size: 10.4vmin; }
+    .sub { font-size: 2vmin; }
+    .bh { left: 49%; top: 55%; width: 25.5%; height: 45%; padding: 3.6vmin 3.4vmin; }
+    .b4 { left: 74.5%; top: 55%; width: 25.5%; height: 45%; padding: 3.6vmin 3.4vmin; }
+    .off { font-size: 9vmin; }
+    .big8 { font-size: 4.4vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     constant: the 8B hatching creeps along, like shading being laid down (one hatch tile per 3s) ·
+     1.2s a graphite sheen glides across the blocks, 2H → HB → 4B · 3.2s the headline is redrawn ·
+     4.9s the 30% presses in */
+  .b8 { background-size: 1.98vmin 1.98vmin; animation: hatch 3s linear infinite; }
+  @keyframes hatch { from { background-position: 0 0; } to { background-position: 1.98vmin 0; } }
+
+  .b2::after, .bh::after, .b4::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(118deg, rgba(255,255,255,0) 40%, rgba(255,255,255,.22) 50%, rgba(255,255,255,0) 60%);
+    background-size: 300% 100%; background-position: 100% 0; animation: sheen 6s cubic-bezier(.45,0,.3,1) infinite; }
+  .b2::after { animation-delay: -.3s; } .bh::after { animation-delay: -.15s; }
+  @keyframes sheen { 0%, 20% { background-position: 100% 0; } 36%, 100% { background-position: 0 0; } }
+
+  h1 { animation: redraw 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes redraw {
+    0%, 50%, 70%, 100% { clip-path: inset(-15% -6% -25% -6%); }
+    56.5%, 57.5% { clip-path: inset(-15% 106% -25% -6%); }
+  }
+  .off { transform-origin: 0 80%; animation: press 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes press { 0%, 80%, 90%, 100% { transform: scale(1); } 83% { transform: scale(.92); } 86.5% { transform: scale(1.04); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="b b8"><div class="vt">Graphite · AW 27</div><div class="big8">8B</div></div>
+  <div class="b b2">
+    <div class="g">2H — THE GREY EDIT</div>
+    <h1>Sharp<br>greys.</h1>
+    <div class="sub">Soft to hard, pale to lead. One colour, every grade.</div>
+  </div>
+  <div class="b bh"><div class="g">HB</div><div class="off">30%<small>off</small></div></div>
+  <div class="b b4"><div class="g">4B</div><div><div class="code">Code<b>LEAD30</b></div></div><div class="cta">Shop greys →</div></div>
+</div>
+</body>
+</html>

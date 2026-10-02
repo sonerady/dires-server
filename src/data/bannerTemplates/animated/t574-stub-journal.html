@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Reenie+Beanie&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Stub Journal — a kraft travel-journal page: the photo glued in as a white-bordered print, and the trip's paper
+     souvenirs stuck beside it — a red "admit one" cinema ticket (early access), a pale-green rail ticket from
+     Wishlist to Wardrobe with the fare, and a torn raffle stub with the code. Handwritten caption in brown ink.
+     tall → caption / print / tickets grid · 3:4 & square → print left, caption + stacked tickets right ·
+     wide → print left, caption + two-column ticket grid right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #C8A67B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3A2616; font-family: "JetBrains Mono", ui-monospace, monospace;
+    background:
+      repeating-linear-gradient(8deg, rgba(90,60,30,.05) 0 1px, transparent 1px .9vmin),
+      repeating-linear-gradient(-72deg, rgba(255,240,210,.06) 0 1px, transparent 1px 1.3vmin),
+      radial-gradient(ellipse at 45% 35%, #D4B58B 0%, #C7A479 55%, #B48F63 100%); }
+
+  .head { position: absolute; left: 8vmin; right: 8vmin; top: 6vmin; }
+  .kick { font-size: 1.7vmin; letter-spacing: .16em; text-transform: uppercase; color: #5C3F24; white-space: nowrap; }
+  h1 { margin: 2.6vmin 0 0; font-family: "Reenie Beanie", "Comic Sans MS", cursive; font-weight: 400; font-size: 14.4vmin; line-height: .8; white-space: nowrap; color: #3A2616; transform: rotate(-2deg); transform-origin: 0 50%; }
+
+  .print { position: absolute; left: 10vmin; right: 10vmin; top: 30vmin; bottom: 52vmin; padding: 1.6vmin 1.6vmin 5vmin; box-sizing: border-box; background: #FAF6EC;
+    box-shadow: 0 .5vmin 1.4vmin rgba(60,35,10,.35); transform: rotate(1.2deg); }
+  .print img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+  .print span { position: absolute; left: 2vmin; bottom: 1.2vmin; font-family: "Reenie Beanie", cursive; font-size: 3.2vmin; line-height: 1; color: #5C3F24; white-space: nowrap; }
+
+  .tickets { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; height: 43vmin; display: grid;
+    grid-template-columns: 38fr 52fr; grid-template-rows: auto auto; grid-template-areas: "admit admit" "stub train"; gap: 3vmin 4vmin; align-items: center; }
+  .tk { position: relative; box-shadow: 0 .4vmin 1vmin rgba(60,35,10,.3); }
+
+  /* admit one */
+  .admit { grid-area: admit; justify-self: start; width: 70vmin; height: 16vmin; display: flex; background: #C4422F; color: #FBEBD8; transform: rotate(-1deg);
+    -webkit-mask: radial-gradient(circle at 0 50%, transparent 1.6vmin, #000 1.7vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 50%, transparent 1.6vmin, #000 1.7vmin) right / 51% 100% no-repeat;
+            mask: radial-gradient(circle at 0 50%, transparent 1.6vmin, #000 1.7vmin) left / 51% 100% no-repeat, radial-gradient(circle at 100% 50%, transparent 1.6vmin, #000 1.7vmin) right / 51% 100% no-repeat; }
+  .admit .main { flex: 1; margin: 1.2vmin 0 1.2vmin 3vmin; border: 1px solid rgba(251,235,216,.6); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1vmin; }
+  .admit small { font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .admit b { font-family: "Oswald", Impact, sans-serif; font-weight: 700; font-size: 6.4vmin; line-height: 1; letter-spacing: .08em; }
+  .admit .end { width: 11vmin; margin-right: 2vmin; border-left: .3vmin dashed rgba(251,235,216,.7); display: flex; align-items: center; justify-content: center; }
+  .admit .end span { transform: rotate(-90deg); font-size: 1.6vmin; letter-spacing: .12em; white-space: nowrap; }
+
+  /* rail ticket */
+  .train { grid-area: train; background: #DCE6D2; padding: 1.8vmin 2.2vmin; transform: rotate(2deg);
+    background-image: repeating-linear-gradient(0deg, rgba(90,120,90,.08) 0 1px, transparent 1px .6vmin); }
+  .train .top { display: flex; justify-content: space-between; font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #3E5A44; border-bottom: 1px solid rgba(62,90,68,.5); padding-bottom: .8vmin; white-space: nowrap; }
+  .route { display: flex; align-items: center; gap: 1.4vmin; margin: 1.2vmin 0 1vmin; font-family: "Oswald", Impact, sans-serif; font-weight: 500; font-size: 3.6vmin; text-transform: uppercase; color: #22382A; white-space: nowrap; }
+  .route i { font-style: normal; font-family: "JetBrains Mono", monospace; font-size: 2vmin; color: #3E5A44; }
+  .fields { display: flex; justify-content: space-between; gap: 2vmin; }
+  .f { display: flex; flex-direction: column; gap: .2vmin; }
+  .f small { font-size: 1.6vmin; letter-spacing: .1em; text-transform: uppercase; color: #5E7A62; }
+  .f b { font-family: "Oswald", Impact, sans-serif; font-weight: 500; font-size: 3vmin; color: #22382A; white-space: nowrap; }
+  .f.fare b { font-size: 4.4vmin; color: #9A3322; line-height: 1; }
+
+  /* raffle stub */
+  .stub { grid-area: stub; justify-self: center; background: #F2D675; padding: 1.6vmin 2vmin 1.6vmin 3.2vmin; transform: rotate(-3deg); text-align: center;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 2.2% 92%, 0 84%, 2.6% 76%, .4% 68%, 2.2% 60%, 0 52%, 2.6% 44%, .6% 36%, 2.4% 28%, 0 20%, 2.2% 12%, .4% 6%); }
+  .stub small { display: block; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #6A5118; }
+  .stub b { display: block; margin: .9vmin 0; font-family: "Oswald", Impact, sans-serif; font-weight: 700; font-size: 6vmin; line-height: 1.05; color: #3A2616; }
+  .stub em { display: block; font-style: normal; font-size: 1.8vmin; font-weight: 500; letter-spacing: .08em; color: #3A2616; white-space: nowrap; }
+
+  .cta { position: absolute; z-index: 2; right: 11.8vmin; bottom: 52.8vmin; font-family: "Oswald", Impact, sans-serif; font-weight: 500; font-size: 1.9vmin; letter-spacing: .1em; text-transform: uppercase; color: #FAF6EC; background: #3A2616; padding: .7vmin 1.6vmin; white-space: nowrap; }
+
+  /* ── 3:4 — print left, caption + stacked tickets right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .print { left: 6vmin; right: auto; width: 50vmin; top: 7vmin; bottom: 7vmin; }
+    .head { left: 61vmin; right: 4vmin; top: 6vmin; }
+    .kick { white-space: normal; line-height: 1.5; font-size: 1.6vmin; }
+    h1 { font-size: 12.4vmin; margin-top: 1vmin; white-space: normal; }
+    .cta { right: auto; left: 61vmin; bottom: 6vmin; font-size: 2.2vmin; padding: 1vmin 2vmin; }
+    .tickets { left: 60vmin; right: 3vmin; top: 36vmin; bottom: 14vmin; height: auto; grid-template-columns: 1fr; grid-template-rows: auto auto auto; grid-template-areas: "admit" "train" "stub"; gap: 2vmin; align-content: space-evenly; }
+    .admit { width: 100%; height: 14vmin; }
+    .admit .main { margin-left: 2.4vmin; }
+    .admit small { font-size: 1.6vmin; letter-spacing: .04em; }
+    .admit small:last-child { display: none; }
+    .admit b { font-size: 4.6vmin; }
+    .admit .end { width: 6vmin; margin-right: 1.6vmin; }
+    .train { padding: 1.4vmin 1.6vmin; }
+    .route { font-size: 2.8vmin; gap: .8vmin; }
+    .train .top span:last-child { display: none; }
+    .f b { font-size: 2.4vmin; }
+    .f.fare b { font-size: 3.6vmin; }
+    .stub { justify-self: start; }
+    .stub b { font-size: 4.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .print { left: 6vmin; width: 46vmin; top: 6vmin; bottom: 6vmin; }
+    .head { left: 58vmin; right: 4vmin; top: 5vmin; }
+    h1 { font-size: 11vmin; }
+    .tickets { left: 58vmin; right: 4vmin; top: 25vmin; bottom: 14vmin; grid-template-columns: 1fr 1fr; grid-template-areas: "admit admit" "train train" "stub stub"; gap: 1.6vmin; }
+    .stub { padding: 1vmin 2vmin 1vmin 3vmin; }
+    .stub b { font-size: 4vmin; }
+    .cta { left: 58vmin; bottom: 5vmin; }
+  }
+  /* ── wide — print left, caption + two-column ticket grid right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .print { left: 7vmin; width: 52vmin; top: 7vmin; bottom: 7vmin; transform: rotate(-1.4deg); }
+    .head { left: 68vmin; right: 6vmin; top: 7vmin; }
+    .kick { white-space: nowrap; }
+    h1 { font-size: 15vmin; margin-top: 3.6vmin; }
+    .cta { left: 68vmin; right: auto; bottom: 6vmin; }
+    .tickets { left: 67vmin; right: 5vmin; top: 30vmin; bottom: 14vmin; grid-template-columns: 30fr 50fr; grid-template-areas: "admit admit" "stub train"; gap: 3vmin 3vmin; align-content: center; }
+    .admit { width: 100%; height: 15vmin; }
+    .admit b { font-size: 5.6vmin; }
+    .admit small:last-child { display: block; }
+    .admit .end { width: 9vmin; }
+    .route { font-size: 3vmin; }
+    .train .top span:last-child { display: inline; }
+    .stub b { font-size: 5vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     souvenirs coming unstuck and pressed back, one per beat:
+     0.6s the ADMIT ONE ticket lifts off the page (shadow grows) and is smoothed back down · 1.8s the rail ticket's → pulls
+     out toward "Wardrobe" twice like a departing train · 2.8s the raffle stub flutters on its torn edge ·
+     3.6s the handwritten caption is re-written left → right in brown ink · 5.0s the "Shop now" tag gets a rubber-stamp thump */
+  .admit { animation: lift 6s cubic-bezier(.4,0,.3,1) infinite; }
+  @keyframes lift {
+    0%, 9%, 25%, 100% { transform: rotate(-1deg) translateY(0) scale(1); box-shadow: 0 .4vmin 1vmin rgba(60,35,10,.3); }
+    14% { transform: rotate(-2.2deg) translateY(-1vmin) scale(1.015); box-shadow: 0 1.8vmin 2.6vmin rgba(60,35,10,.32); }
+    19% { transform: rotate(-.6deg) translateY(.1vmin) scale(.998); box-shadow: 0 .3vmin .8vmin rgba(60,35,10,.3); } }
+
+  .route i { display: inline-block; animation: depart 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes depart { 0%, 29%, 37%, 45%, 100% { transform: translateX(0); opacity: 1; } 33%, 41% { transform: translateX(1.4vmin); opacity: .35; } 33.1%, 41.1% { transform: translateX(-.8vmin); opacity: .35; } }
+
+  .stub { transform-origin: 100% 50%; animation: flutter 6s cubic-bezier(.4,0,.4,1) infinite; }
+  @keyframes flutter { 0%, 46%, 60%, 100% { transform: rotate(-3deg); } 49% { transform: rotate(-6deg); } 52.5% { transform: rotate(-1.2deg); } 56% { transform: rotate(-3.8deg); } }
+
+  h1 { animation: rewrite 6s linear infinite; }
+  @keyframes rewrite {
+    0%, 59% { opacity: 1; clip-path: inset(-30% -5% -30% -5%); }
+    62% { opacity: 0; clip-path: inset(-30% -5% -30% -5%); }
+    62.1%, 63% { opacity: 1; clip-path: inset(-30% 105% -30% -5%); animation-timing-function: cubic-bezier(.35,.1,.45,1); }
+    78%, 100% { opacity: 1; clip-path: inset(-30% -5% -30% -5%); } }
+
+  .cta { animation: thump 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes thump { 0%, 81%, 92%, 100% { transform: scale(1) rotate(0deg); } 84% { transform: scale(1.16) rotate(-3deg); } 87% { transform: scale(.96) rotate(1deg); } 89.5% { transform: scale(1.02) rotate(0deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <div class="kick">Travel journal · p. 42 · Maison Orla</div>
+    <h1>Worth the trip.</h1>
+  </div>
+  <div class="cta">Shop now →</div>
+
+  <div class="print">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <span>the one I came home with</span>
+  </div>
+
+  <div class="tickets">
+    <div class="tk admit">
+      <div class="main"><small>Maison Orla presents</small><b>ADMIT ONE</b><small>Early access · Fri 26.09</small></div>
+      <div class="end"><span>Nº 004571</span></div>
+    </div>
+    <div class="tk train">
+      <div class="top"><span>Single · 1st class</span><span>Valid to 05 Oct</span></div>
+      <div class="route">Wishlist <i>→</i> Wardrobe</div>
+      <div class="fields">
+        <div class="f"><small>Seat</small><b>14A</b></div>
+        <div class="f"><small>Dep.</small><b>10:00</b></div>
+        <div class="f fare"><small>Fare</small><b>$82</b></div>
+      </div>
+    </div>
+    <div class="tk stub">
+      <small>Keep this stub</small>
+      <b>−15%</b>
+      <em>code STUB15</em>
+    </div>
+  </div>
+</div>
+</body>
+</html>

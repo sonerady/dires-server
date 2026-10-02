@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Imbue:opsz,wght@10..100,300..700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  /* Shell Cameo — a Victorian gilt pendant frame hung on black velvet ribbon against carnelian:
+     twisted gold rope, a border of seed pearls and a gilt bezel around the look; the offer is carved
+     as a small oval shell-cameo brooch.
+     tall → pendant above, lettering below · square & wide → pendant left, lettering right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #8E3A26; }
+  .banner { --ivory: #F7EBD7; --gold: #D9B46A; --cw: 70vmin; --ch: calc(100% - 68vmin); --ct: 11vmin; --cl: calc(50% - var(--cw) / 2);
+    position: fixed; inset: 0; overflow: hidden; color: var(--ivory); font-family: "Cormorant Garamond", "Garamond", Georgia, serif;
+    background:
+      radial-gradient(70% 45% at 50% 32%, rgba(255,190,150,.28), rgba(255,190,150,0) 70%),
+      radial-gradient(130% 100% at 50% 40%, #B4553A 0%, #983F29 45%, #6E2819 100%); }
+  /* velvet ribbon */
+  .ribbon { position: absolute; left: calc(var(--cl) + var(--cw) / 2 - 3.2vmin); width: 6.4vmin; top: 0; height: calc(var(--ct) - 3vmin);
+    background: linear-gradient(90deg, #0E0B0B 0%, #2A2222 30%, #1A1414 55%, #070505 100%); box-shadow: 0 0 1.4vmin rgba(0,0,0,.35); }
+  .bail { position: absolute; left: calc(var(--cl) + var(--cw) / 2 - 3.4vmin); top: calc(var(--ct) - 6.6vmin); width: 6.8vmin; height: 8vmin; border-radius: 50%;
+    border: 1.2vmin solid var(--gold); box-sizing: border-box; background: transparent;
+    box-shadow: inset 0 0 0 1px rgba(90,60,20,.5), 0 .4vmin .8vmin rgba(0,0,0,.35); }
+  .scroll { position: absolute; top: calc(var(--ct) - 5.4vmin); width: 12vmin; height: 6vmin; }
+  .scroll.l { left: calc(var(--cl) + var(--cw) / 2 - 15vmin); }
+  .scroll.r { left: calc(var(--cl) + var(--cw) / 2 + 3vmin); transform: scaleX(-1); }
+  .scroll path { fill: none; stroke: var(--gold); stroke-width: .5vmin; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .scroll circle { fill: var(--gold); }
+
+  /* the pendant */
+  .cameo { position: absolute; left: var(--cl); top: var(--ct); width: var(--cw); height: var(--ch);
+    background: repeating-linear-gradient(45deg, #F3D992 0 .5vmin, #A77C33 .5vmin 1.1vmin, #E2BF72 1.1vmin 1.5vmin);
+    box-shadow: 0 2vmin 4vmin rgba(40,10,5,.5), 0 0 0 1px rgba(80,50,15,.6); }
+  .cameo i { position: absolute; }
+  .cameo .pearl { inset: 1.6vmin; border: 1.3vmin dotted #FBF3E4; background: #5F4217; }
+  .cameo .bez { inset: 3.4vmin; background: linear-gradient(160deg, #F6DE9C 0%, #C99A48 45%, #8F6626 70%, #E6C57C 100%); }
+  .cameo .ring { inset: 4.4vmin; border: 1px solid rgba(60,35,10,.7); }
+  .cameo img { position: absolute; left: 4.9vmin; top: 4.9vmin; width: calc(100% - 9.8vmin); height: calc(100% - 9.8vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .cameo .glint { inset: 4.9vmin; background: radial-gradient(60% 45% at 30% 18%, rgba(255,255,255,.18), rgba(255,255,255,0) 60%); }
+
+  /* lettering */
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: calc(var(--ct) + var(--ch) + 3vmin); bottom: 3vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .k { display: flex; align-items: center; gap: 2vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .36em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+  .k::before, .k::after { content: ""; width: 7vmin; height: 1px; background: var(--gold); opacity: .7; }
+  h1 { margin: 1.2vmin 0 0; font-family: "Imbue", "Didot", "Bodoni 72", Georgia, serif; font-optical-sizing: auto; font-weight: 500; font-size: 17vmin; line-height: .86; letter-spacing: -.01em; color: var(--ivory); white-space: nowrap; }
+  .sub { margin-top: 1.2vmin; font-style: italic; font-size: 3.4vmin; color: #F1D9BD; }
+  /* the offer carved as a small shell cameo brooch */
+  .deal { margin-top: 3vmin; width: 26vmin; height: 16vmin; flex: none; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(70% 70% at 40% 30%, #F4E4CC 0%, #E9D2B0 55%, #CFAF86 100%);
+    box-shadow: 0 0 0 .9vmin #C99A48, 0 0 0 1.1vmin #6B4A1C, 0 0 0 1.7vmin rgba(247,235,215,.9), 0 1.4vmin 2.4vmin rgba(40,10,5,.45); color: #7A301F; }
+  .deal b { margin: .5vmin 0 .3vmin; font-family: "Imbue", Georgia, serif; font-weight: 600; font-size: 8.4vmin; line-height: .9; color: #8E3A26; text-shadow: 0 .25vmin 0 rgba(255,250,240,.9), 0 -.15vmin 0 rgba(90,30,15,.35); }
+  .deal span { font-style: italic; font-size: 2.3vmin; font-weight: 600; line-height: 1; }
+  .meta { margin-top: 1.6vmin; font-size: 1.9vmin; font-weight: 600; letter-spacing: .24em; margin-right: -.24em; text-transform: uppercase; color: #EBCDB0; white-space: nowrap; }
+  .meta u { text-decoration: none; color: var(--ivory); border-bottom: 1px solid var(--gold); padding-bottom: .2vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --cw: 52vmin; --ch: calc(100% - 56vmin); --ct: 10vmin; }
+    .copy { top: calc(var(--ct) + var(--ch) + 2vmin); bottom: 2vmin; }
+    h1 { font-size: 13vmin; }
+    .sub { font-size: 3vmin; margin-top: .8vmin; }
+    .deal { margin-top: 2.4vmin; width: 22vmin; height: 13.6vmin; }
+    .deal b { font-size: 7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --cw: 48vmin; --ch: 76vmin; --ct: 13vmin; --cl: 8vmin; }
+    .copy { left: calc(var(--cl) + var(--cw) + 5vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; }
+    .k { font-size: 1.8vmin; letter-spacing: .28em; }
+    .k::before, .k::after { width: 4vmin; }
+    h1 { font-size: 11vmin; }
+    .sub { font-size: 2.8vmin; }
+    .deal { margin-top: 4vmin; }
+    .meta { margin-top: 2.4vmin; font-size: 1.7vmin; letter-spacing: .16em; margin-right: 0; white-space: normal; line-height: 1.9; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --cw: 56vmin; --ch: 78vmin; --ct: 13vmin; --cl: 12vmin; }
+    .copy { left: calc(var(--cl) + var(--cw) + 6vmin); right: 8vmin; }
+    .k { font-size: 2vmin; letter-spacing: .34em; }
+    .k::before, .k::after { width: 6vmin; }
+    h1 { font-size: 15vmin; }
+    .sub { font-size: 3.2vmin; }
+    .deal { width: 28vmin; height: 17vmin; }
+    .deal b { font-size: 9vmin; }
+    .meta { white-space: nowrap; font-size: 1.9vmin; letter-spacing: .22em; }
+  }
+
+  /* ───────── motion (8s loop · t=0 = static design) ─────────
+     constant: the soft glint on the glass breathes (4s)
+     0.7s the gilt rules beside the maker's name draw back out · 1.6s a specular glint runs round the twisted rope and the bezel
+     (never over the look) · 4.5s the shell-cameo offer brooch lifts */
+  .k::before { animation: ruleL 8s cubic-bezier(.45,0,.55,1) infinite; }
+  .k::after { animation: ruleR 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes ruleL { 0%, 7% { clip-path: inset(0 0 0 0); } 12% { clip-path: inset(0 0 0 100%); } 22%, 100% { clip-path: inset(0 0 0 0); } }
+  @keyframes ruleR { 0%, 7% { clip-path: inset(0 0 0 0); } 12% { clip-path: inset(0 100% 0 0); } 22%, 100% { clip-path: inset(0 0 0 0); } }
+
+  .cameo .sheen { pointer-events: none;
+    background: linear-gradient(125deg, rgba(255,250,225,0) 42%, rgba(255,250,225,.2) 46%, rgba(255,252,235,.75) 50%, rgba(255,250,225,.2) 54%, rgba(255,250,225,0) 58%) 100% 0 / 300% 300% no-repeat;
+    animation: glint 8s cubic-bezier(.45,0,.55,1) infinite; }
+  .cameo .sr { inset: 0; }
+  .cameo .sb { inset: 3.4vmin; animation-delay: -.25s; }
+  @keyframes glint { 0%, 18% { background-position: 100% 100%; } 46%, 100% { background-position: 0 0; } }
+
+  .cameo .glint { animation: breathe 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+  .deal { animation: brooch 8s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes brooch {
+    0%, 55% { transform: translateY(0) scale(1); }
+    60% { transform: translateY(-.8vmin) scale(1.07); }
+    65% { transform: translateY(0) scale(.985); }
+    69%, 100% { transform: translateY(0) scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ribbon"></div>
+  <svg class="scroll l" viewBox="0 0 120 60" preserveAspectRatio="none" aria-hidden="true"><path d="M118 50 C 90 50, 80 20, 56 22 C 34 24, 34 50, 52 50 C 64 50, 64 34, 54 34"/><path d="M118 42 C 100 30, 104 8, 84 6 C 70 5, 66 18, 76 22"/><circle cx="10" cy="40" r="3.4"/><path d="M16 40 C 26 40, 34 32, 40 30"/></svg>
+  <svg class="scroll r" viewBox="0 0 120 60" preserveAspectRatio="none" aria-hidden="true"><path d="M118 50 C 90 50, 80 20, 56 22 C 34 24, 34 50, 52 50 C 64 50, 64 34, 54 34"/><path d="M118 42 C 100 30, 104 8, 84 6 C 70 5, 66 18, 76 22"/><circle cx="10" cy="40" r="3.4"/><path d="M16 40 C 26 40, 34 32, 40 30"/></svg>
+  <div class="bail"></div>
+  <div class="cameo">
+    <i class="sheen sr"></i><i class="pearl"></i><i class="bez"></i><i class="sheen sb"></i>
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <i class="ring"></i><i class="glint"></i>
+  </div>
+  <div class="copy">
+    <div class="k">Maison Corail</div>
+    <h1>Heirlooms</h1>
+    <div class="sub">Pieces to keep, and to hand down.</div>
+    <div class="deal"><span>Up to</span><b>40%</b><span>off</span></div>
+    <div class="meta">Private preview · 12–18 May · Code <u>CAMEO40</u></div>
+  </div>
+</div>
+</body>
+</html>

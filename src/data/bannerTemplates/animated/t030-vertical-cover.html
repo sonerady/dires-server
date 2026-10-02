@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=Hanken+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Vertical Cover — a masthead-less minimalist cover: one oversized word runs up a flat spine, the look fills the rest.
+     every ratio → spine left (narrower as the frame widens), photo right; the word scales with the frame height */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE7DE; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE7DE; color: #121110; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif; }
+
+  .photo { position: absolute; top: 0; right: 0; width: 68%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 32%; }
+  .word { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(180deg); writing-mode: vertical-rl; white-space: nowrap;
+    font-family: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif; font-weight: 900; text-transform: uppercase;
+    font-size: min(30vmin, 16vh); line-height: .8; letter-spacing: -.005em; }
+  .tl, .bl { position: absolute; left: 0; right: 0; text-align: center; font-size: 1.8vmin; line-height: 1.45; letter-spacing: .24em; text-transform: uppercase; }
+  .tl { top: 4vmin; font-weight: 700; }
+  .tl span { display: block; font-weight: 400; }
+  .bl { bottom: 4vmin; }
+  .bl b { display: block; font-size: 3.4vmin; letter-spacing: .02em; font-weight: 700; margin-top: .6vmin; }
+  .dot { display: inline-block; width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #B8452A; margin-bottom: 1.2vmin; }
+
+  .tag { position: absolute; right: 0; bottom: 0; background: #121110; color: #ECE7DE; padding: 2vmin 3vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; display: flex; align-items: center; gap: 1.6vmin; }
+  .tag i { display: block; width: 5vmin; height: 1px; background: #ECE7DE; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 70%; }
+    .spine { width: 30%; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 74%; }
+    .spine { width: 26%; }
+    .word { font-size: 16.4vh; }
+    .tl, .bl { font-size: 1.6vmin; letter-spacing: .2em; }
+    .tl { top: 3.4vmin; }
+    .bl { bottom: 3.4vmin; }
+    .bl b { font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 79%; }
+    .spine { width: 21%; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* the spine word erases and is re-drawn in its reading direction (bottom → top) */
+  .word { clip-path: inset(-5% -5% -5% -5%); animation: spine 6s linear infinite; }
+  @keyframes spine {
+    0%, 22% { clip-path: inset(-5% -5% -5% -5%); animation-timing-function: cubic-bezier(.65,0,.35,1); }
+    31% { clip-path: inset(105% -5% -5% -5%); animation-timing-function: steps(1, end); }
+    34% { clip-path: inset(-5% -5% 105% -5%); animation-timing-function: cubic-bezier(.3,0,.15,1); }
+    48%, 100% { clip-path: inset(-5% -5% -5% -5%); }
+  }
+  /* the red dot pulses like a live indicator */
+  .dot { position: relative; animation: beat 3s linear infinite; }
+  @keyframes beat {
+    0%, 100% { transform: scale(1); }
+    6% { transform: scale(1.35); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    18% { transform: scale(1); }
+  }
+  .dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px solid #B8452A; opacity: 0; animation: halo 3s linear infinite; }
+  @keyframes halo {
+    0% { transform: scale(1); opacity: 0; }
+    4% { transform: scale(1.1); opacity: .9; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    45%, 100% { transform: scale(3.2); opacity: 0; }
+  }
+  /* price lands just after the word is back */
+  .bl b { animation: price 6s linear infinite; }
+  @keyframes price {
+    0%, 46% { transform: translateY(0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    49% { transform: translateY(0); opacity: 0; animation-timing-function: steps(1, end); }
+    49.5% { transform: translateY(1.2vmin); opacity: 0; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    57%, 100% { transform: translateY(0); opacity: 1; }
+  }
+  /* shop tag: the rule stretches toward the edge */
+  .tag i { transform-origin: 0 50%; animation: reach 6s linear infinite; }
+  @keyframes reach {
+    0%, 64% { transform: scaleX(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    72% { transform: scaleX(1.5); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    82%, 100% { transform: scaleX(1); }
+  }
+  .tag { overflow: hidden; }
+  /* photo: a slow push-in anchored to the right */
+  .photo { transform-origin: 100% 30%; animation: push 6s linear infinite; }
+  @keyframes push {
+    0% { transform: scale(1); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    50% { transform: scale(1.03); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    100% { transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="spine">
+    <div class="tl">Vol. 09<span>AW 26</span></div>
+    <div class="word">Essentials</div>
+    <div class="bl"><span class="dot"></span><br>New season<b>from $89</b></div>
+  </div>
+  <div class="tag">Shop now<i></i></div>
+</div>
+</body>
+</html>

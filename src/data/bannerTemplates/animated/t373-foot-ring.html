@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Foot Ring — the underside of a stoneware bowl, turned over on a gallery plinth: celadon glaze stops short of
+     the raw, speckled foot; trimming rings spiral into the base, and the potter's chop and incised name are pressed
+     into the clay. "Turn it over" — the signed collection. tall → photo above, bowl bleeds off the lower right ·
+     3:4 / square → photo left, bowl in the corner · wide → photo left, copy + bowl side by side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6E1D8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2B2825; font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(120% 90% at 85% 100%, #EFEBE4 0%, #E6E1D8 55%, #DDD7CC 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 72vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .pot { position: absolute; width: 66vmin; height: 66vmin; right: -15vmin; bottom: -9vmin; filter: drop-shadow(-1vmin 1.6vmin 2vmin rgba(60,48,36,.28)); }
+  .copy { position: absolute; left: 7vmin; bottom: 7vmin; width: 48vmin; height: 58vmin; display: flex; flex-direction: column; }
+  .k { font-size: 1.7vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: #6A6259; white-space: nowrap; }
+  h1 { margin: 3vmin 0 0; font-family: "Cormorant Garamond", Garamond, Georgia, serif; font-weight: 400; font-size: 14vmin; line-height: .84; letter-spacing: -.02em; }
+  h1 i { font-weight: 500; color: #5F6E5D; }
+  .d { margin-top: 3.4vmin; width: 40vmin; font-size: 2.4vmin; line-height: 1.5; color: #4A4540; }
+  .price { margin-top: auto; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 3.2vmin; }
+  .cta { margin-top: 1.6vmin; align-self: flex-start; white-space: nowrap; font-size: 1.8vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; padding-bottom: .7vmin; border-bottom: 1px solid #2B2825; }
+  .no { position: absolute; right: 5vmin; top: calc(100% - 72vmin + 3.6vmin); font-size: 1.6vmin; letter-spacing: .2em; text-transform: uppercase; color: #6A6259; white-space: nowrap; }
+
+  /* ── 3:4 / 4:5 and square → photo left, bowl sits in the lower-right corner ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 52%; height: 100%; object-position: 50% 22%; }
+    .pot { width: 58vmin; height: 58vmin; right: -17vmin; bottom: -13vmin; }
+    .copy { left: calc(52% + 5.4vmin); right: 5vmin; width: auto; top: 7vmin; bottom: auto; height: auto; }
+    h1 { font-size: 11vmin; }
+    .d { width: auto; font-size: 2.2vmin; }
+    .price { margin-top: 3vmin; }
+    .no { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .pot { width: 52vmin; height: 52vmin; right: -13vmin; bottom: -14vmin; }
+    .copy { left: calc(50% + 5vmin); top: 6vmin; }
+    .k { letter-spacing: .22em; font-size: 1.6vmin; }
+    h1 { font-size: 9.4vmin; margin-top: 2.4vmin; }
+    .d { font-size: 2vmin; margin-top: 2.4vmin; }
+    .price { margin-top: 2.4vmin; font-size: 2.8vmin; }
+    .cta { font-size: 1.7vmin; letter-spacing: .2em; }
+  }
+  /* ── wide → copy column + bowl beside it ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; object-position: 72% 30%; }
+    .pot { width: 56vmin; height: 56vmin; right: -7vmin; bottom: auto; top: 22vmin; }
+    .copy { left: calc(40% + 6vmin); right: auto; width: 32vmin; top: 8vmin; bottom: 8vmin; }
+    h1 { font-size: 11vmin; margin-top: 3vmin; }
+    .d { font-size: 2.2vmin; margin-top: 3vmin; }
+    .price { margin-top: auto; font-size: 3vmin; }
+    .no { display: block; left: auto; right: 5vmin; top: 8vmin; bottom: auto; }
+  }
+
+  /* ───────── motion (8s loop · t=0 = the static design) ─────────
+     constant: the bowl turns once on the banding wheel — foot ring, trimming rings, incised name and chop
+     revolve under a fixed studio light (the glaze sheen stays put and breathes) ·
+     3.6s "over." turns over on its own axis · 6.2s the CTA underline is re-drawn */
+  .pot .spin { transform-box: view-box; transform-origin: 100px 100px; animation: wheel 8s linear infinite; }
+  @keyframes wheel { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .pot .sheen { animation: sheen 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 100% { opacity: .22; } 50% { opacity: .34; } }
+
+  h1 i { display: inline-block; transform-origin: 50% 58%; animation: flip 8s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes flip { 0%, 44%, 58%, 100% { transform: perspective(60vmin) rotateX(0deg); } 56% { transform: perspective(60vmin) rotateX(360deg); } 56.01% { transform: perspective(60vmin) rotateX(0deg); } }
+
+  .cta { border-bottom-color: transparent; position: relative; }
+  .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #2B2825; animation: rule 8s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes rule { 0%, 76%, 92%, 100% { clip-path: inset(0 0 0 0); } 82% { clip-path: inset(0 0 0 100%); } 82.1% { clip-path: inset(0 100% 0 0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <svg class="pot" viewBox="0 0 200 200" aria-hidden="true">
+    <defs>
+      <radialGradient id="glaze" cx=".38" cy=".34" r=".75"><stop offset="0" stop-color="#B6C0AF"/><stop offset=".55" stop-color="#8F9C8A"/><stop offset="1" stop-color="#6B7868"/></radialGradient>
+      <radialGradient id="bisque" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#E4D1B6"/><stop offset="1" stop-color="#C9AE8D"/></radialGradient>
+      <radialGradient id="base" cx=".55" cy=".6" r=".7"><stop offset="0" stop-color="#D2BB9C"/><stop offset="1" stop-color="#BFA17F"/></radialGradient>
+      <filter id="speck" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 .32  0 0 0 0 .22  0 0 0 0 .14  0 0 0 -9 5.4"/>
+      </filter>
+      <clipPath id="raw"><path d="M100 17 C128 16 150 28 166 46 C180 62 185 82 184 101 C183 123 175 142 160 158 C143 174 122 183 99 183 C75 183 55 173 40 157 C26 141 17 122 17 100 C17 77 27 57 42 42 C58 27 77 17 100 17 Z"/></clipPath>
+      <path id="ring" d="M100 48 A52 52 0 1 1 99.9 48"/>
+    </defs>
+    <circle cx="100" cy="100" r="99" fill="url(#glaze)"/>
+    <circle cx="100" cy="100" r="99" fill="none" stroke="#56624F" stroke-width="1.2" opacity=".6"/>
+    <ellipse class="sheen" cx="62" cy="40" rx="26" ry="9" transform="rotate(-38 62 40)" fill="#fff" opacity=".22"/>
+    <g class="spin">
+    <!-- raw clay where the glaze stops short -->
+    <g clip-path="url(#raw)">
+      <rect width="200" height="200" fill="url(#bisque)"/>
+      <!-- foot ring -->
+      <circle cx="100" cy="100" r="70" fill="none" stroke="#DCC5A6" stroke-width="11"/>
+      <circle cx="100" cy="100" r="75.5" fill="none" stroke="#A88C6C" stroke-width="1" opacity=".7"/>
+      <circle cx="100" cy="100" r="64.5" fill="none" stroke="#8E7457" stroke-width="1.6" opacity=".6"/>
+      <circle cx="100" cy="100" r="64" fill="url(#base)"/>
+      <!-- trimming rings -->
+      <g fill="none" stroke="#8E7457" stroke-width=".6" opacity=".32">
+        <circle cx="100" cy="100" r="61"/><circle cx="100.4" cy="99.8" r="57.5"/><circle cx="100" cy="100.3" r="42"/><circle cx="99.7" cy="100" r="38.5"/><circle cx="100.2" cy="99.6" r="34"/><circle cx="100" cy="100" r="29"/><circle cx="99.8" cy="100.2" r="25.5"/>
+      </g>
+      <rect width="200" height="200" filter="url(#speck)" opacity=".55"/>
+    </g>
+    <!-- glaze edge -->
+    <path d="M100 17 C128 16 150 28 166 46 C180 62 185 82 184 101 C183 123 175 142 160 158 C143 174 122 183 99 183 C75 183 55 173 40 157 C26 141 17 122 17 100 C17 77 27 57 42 42 C58 27 77 17 100 17 Z" fill="none" stroke="#5E6B58" stroke-width="1.6" opacity=".75"/>
+    <!-- incised name: highlight + cut -->
+    <text font-family="Jost, Arial, sans-serif" font-size="7.2" font-weight="500" letter-spacing="3.1" fill="#F2E6D2" opacity=".7" transform="translate(.5 .6)"><textPath href="#ring">ATELIER NORD · STONEWARE · Nº 26 · SIGNED ·</textPath></text>
+    <text font-family="Jost, Arial, sans-serif" font-size="7.2" font-weight="500" letter-spacing="3.1" fill="#6B533A" opacity=".85"><textPath href="#ring">ATELIER NORD · STONEWARE · Nº 26 · SIGNED ·</textPath></text>
+    <!-- the potter's chop, pressed in -->
+    <g transform="rotate(-6 100 100)">
+      <rect x="85" y="85" width="30" height="30" rx="4" fill="#B0916F"/>
+      <rect x="85.8" y="86.4" width="30" height="30" rx="4" fill="#DDC7A8" opacity=".75"/>
+      <rect x="86.2" y="86.2" width="28.4" height="28.4" rx="3.4" fill="#C3A585"/>
+      <rect x="89.6" y="89.6" width="21.6" height="21.6" rx="1.6" fill="none" stroke="#7C6147" stroke-width="1.1"/>
+      <text x="100.8" y="106.2" text-anchor="middle" font-family="'Cormorant Garamond', Georgia, serif" font-style="italic" font-weight="500" font-size="15" fill="#E8D6BC">AN</text>
+      <text x="100.4" y="105.6" text-anchor="middle" font-family="'Cormorant Garamond', Georgia, serif" font-style="italic" font-weight="500" font-size="15" fill="#6E543C">AN</text>
+    </g>
+    </g>
+  </svg>
+  <div class="no">Piece Nº 026 / 120</div>
+  <div class="copy">
+    <div class="k">The signed collection</div>
+    <h1>Turn it<br><i>over.</i></h1>
+    <div class="d">Every piece carries its maker’s mark — numbered, signed and made to keep.</div>
+    <div class="price">From $140</div>
+    <div class="cta">Shop signed pieces →</div>
+  </div>
+</div>
+</body>
+</html>

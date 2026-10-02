@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=La+Belle+Aurore&display=swap" rel="stylesheet">
+<style>
+  /* Mother's Label — Mother's Day as a sewn-in woven name label ("Made with love by Mum"),
+     a soft lilac card and a handwritten note. tall → photo above the card; square/wide → photo left, card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E4DCEC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E4DCEC; color: #3E2443; font-family: "Newsreader", Georgia, "Times New Roman", serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 59%; object-fit: cover; object-position: 50% 16%; }
+  .card { position: absolute; left: 0; right: 0; top: 59%; bottom: 0; }
+  .k { position: absolute; left: 6vmin; right: 6vmin; top: 4.4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; padding-bottom: 1.3vmin; border-bottom: 1px solid rgba(62,36,67,.4); }
+  h1 { position: absolute; left: 5.6vmin; right: 6vmin; top: 10.2vmin; margin: 0; font-weight: 400; font-size: 9.8vmin; line-height: .96; letter-spacing: -.025em; }
+  h1 i { display: block; }
+  .woven { position: absolute; left: 6vmin; top: 31.5vmin; width: 58vmin; height: 8.4vmin; transform: rotate(-2.4deg); }
+  .woven .tape { position: absolute; inset: 0; background: #FBF7F0;
+    background-image: repeating-linear-gradient(90deg, rgba(62,36,67,.05) 0 1px, transparent 1px .5vmin), repeating-linear-gradient(0deg, rgba(62,36,67,.05) 0 1px, transparent 1px .5vmin);
+    clip-path: polygon(0 0, 100% 0, 97% 50%, 100% 100%, 0 100%, 3% 50%); box-shadow: 0 .5vmin 1vmin rgba(62,36,67,.2); }
+  .woven .tape::before, .woven .tape::after { content: ""; position: absolute; top: .9vmin; bottom: .9vmin; width: 0; border-left: .35vmin dashed #B8577A; }
+  .woven .tape::before { left: 5.2vmin; }
+  .woven .tape::after { right: 5.2vmin; }
+  .woven span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 1.6vmin; font-size: 2.3vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #3E2443; }
+  .woven svg { width: 2.8vmin; height: 2.8vmin; }
+  .p { position: absolute; left: 6vmin; width: 54vmin; bottom: max(12vmin, calc(100% - 56vmin)); font-size: 2.9vmin; line-height: 1.35; }
+  .p b { font-weight: 600; }
+  .cta { position: absolute; left: 6vmin; bottom: 5vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; padding-bottom: .6vmin; border-bottom: .25vmin solid #3E2443; }
+  .note { position: absolute; right: 6vmin; bottom: 7vmin; font-family: "La Belle Aurore", "Bradley Hand", cursive; font-size: 5.6vmin; line-height: 1.05; color: #A2426A; text-align: center; transform: rotate(-7deg); }
+  .note svg { display: block; margin: .8vmin auto 0; width: 6vmin; height: 5vmin; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 55%; }
+    .card { top: 55%; }
+    h1 { font-size: 9vmin; }
+    .woven { top: 29vmin; }
+    .p { bottom: 11vmin; font-size: 2.6vmin; }
+    .note { font-size: 5vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 30%; }
+    .card { top: 0; left: 50%; }
+    .k { left: 5vmin; right: 5vmin; top: 5vmin; }
+    .k span:last-child { display: none; }
+    h1 { left: 4.6vmin; right: 4vmin; top: 11vmin; font-size: 6.4vmin; }
+    .woven { left: 4vmin; top: 42vmin; width: 42vmin; height: 7.4vmin; }
+    .woven span { font-size: 1.8vmin; letter-spacing: .2em; gap: 1vmin; }
+    .woven svg { display: none; }
+    .p { left: 5vmin; width: auto; right: 5vmin; bottom: auto; top: 56vmin; font-size: 2.5vmin; }
+    .cta { left: 5vmin; bottom: 5vmin; }
+    .note { right: 4vmin; bottom: 10vmin; font-size: 4.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 55% 30%; }
+    .card { left: 48%; }
+    .k { left: 6vmin; right: 6vmin; }
+    .k span:last-child { display: inline; }
+    h1 { left: 5.6vmin; right: 5vmin; top: 12vmin; font-size: 7.4vmin; }
+    .woven { left: 6vmin; top: 40vmin; width: 56vmin; height: 8.4vmin; }
+    .woven span { font-size: 2.3vmin; letter-spacing: .3em; gap: 1.6vmin; }
+    .woven svg { display: block; }
+    .p { left: 6vmin; right: auto; width: 38vmin; top: auto; bottom: 14vmin; font-size: 2.8vmin; }
+    .cta { left: 6vmin; bottom: 6vmin; }
+    .note { right: 7vmin; bottom: 9vmin; font-size: 5.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="card">
+    <div class="k"><span>Mother's Day</span><span>Sunday, 10 May</span></div>
+    <h1>Borrowed from her,<i>never returned.</i></h1>
+    <div class="woven"><div class="tape"></div><span><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 34 C 8 25, 3 18, 3 12 C 3 7, 7 4, 11 4 C 15 4, 18 7, 20 10 C 22 7, 25 4, 29 4 C 33 4, 37 7, 37 12 C 37 18, 32 25, 20 34 Z" fill="#B8577A"/></svg>Made with love by Mum</span></div>
+    <div class="p">Gifts she'll actually wear. <b>15% off</b> with code <b>FORMUM</b>, until 10 May.</div>
+    <div class="cta">Shop gifts for her →</div>
+    <div class="note">thank you,<br>Mum x
+      <svg viewBox="0 0 60 50" aria-hidden="true"><path d="M30 44 C 14 34, 6 26, 7 17 C 8 9, 18 6, 24 12 C 27 15, 29 18, 30 21 C 31 16, 36 8, 44 8 C 52 8, 56 16, 52 24 C 48 32, 40 38, 32 43" fill="none" stroke="#A2426A" stroke-width="2.6" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+</div>
+</body>
+</html>

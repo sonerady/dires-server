@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Ship Label — a courier label stuck on a kraft box: priority box, from/to, barcode, weight & SKU cells, FRAGILE stamp.
+     tall → photo on top, box + label below; square / wide → photo left, box + label right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #C19A6B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: linear-gradient(170deg, #CCA676 0%, #BF9665 55%, #B48A5A 100%); color: #121212; font-family: "IBM Plex Mono", Menlo, monospace; }
+  .fiber { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: multiply; opacity: .55; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 70vmin); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .seam { position: absolute; left: 0; right: 0; top: calc(100% - 70vmin); height: 3.2vmin; background: repeating-linear-gradient(90deg, rgba(90,62,32,.22) 0 .25vmin, transparent .25vmin 1.4vmin), linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,0)); }
+  .up { position: absolute; left: 5vmin; top: calc(100% - 66.4vmin); align-items: center; gap: 1.2vmin; font-weight: 700; font-size: 1.8vmin; letter-spacing: .2em; text-transform: uppercase; color: rgba(25,18,10,.78); display: none; }
+  .up i { font-style: normal; font-size: 3.2vmin; line-height: 1; letter-spacing: -.1em; }
+  .label { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.5vmin; background: #FBFAF6; box-shadow: 0 .3vmin .6vmin rgba(60,40,15,.25), 0 1.6vmin 3vmin rgba(60,40,15,.18); transform: rotate(-.6deg);
+    display: grid; grid-template-columns: 14vmin 1fr; grid-template-rows: auto auto auto auto; border: .6vmin solid #121212; box-sizing: border-box; }
+  .label > div { border-bottom: .35vmin solid #121212; min-width: 0; }
+  .cls { grid-row: 1; background: #121212; color: #FBFAF6; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: "Archivo Black", Arial Black, sans-serif; font-size: 9vmin; line-height: .9; padding: 1.4vmin 0; }
+  .cls small { font-family: "IBM Plex Mono", Menlo, monospace; font-weight: 700; font-size: 1.6vmin; letter-spacing: .18em; margin-top: .8vmin; }
+  .from { grid-row: 1; padding: 1.6vmin 2.4vmin; font-size: 1.9vmin; line-height: 1.4; display: flex; justify-content: space-between; gap: 2vmin; }
+  .k { display: block; font-weight: 700; font-size: 1.6vmin; letter-spacing: .2em; text-transform: uppercase; color: #6A655B; margin-bottom: .4vmin; }
+  .from b { font-weight: 700; }
+  .date { text-align: right; flex: none; display: none; }
+  .to { grid-column: 1 / -1; padding: 1.8vmin 2.6vmin 2vmin; display: flex; flex-direction: column; justify-content: center; }
+  h1 { margin: .6vmin 0 0; font-family: "Archivo Black", Arial Black, sans-serif; font-weight: 400; font-size: 7.6vmin; line-height: .92; letter-spacing: -.02em; text-transform: uppercase; }
+  .to p { margin: 1.4vmin 0 0; font-size: 2.1vmin; line-height: 1.35; }
+  .to p b { font-weight: 700; background: #121212; color: #FBFAF6; padding: .1vmin 1vmin; }
+  .bars { grid-column: 1 / -1; padding: 1.6vmin 2.6vmin 1.2vmin; }
+  .bars i { display: block; height: 5.4vmin; background:
+      repeating-linear-gradient(90deg, #121212 0 .35vmin, transparent .35vmin .7vmin, #121212 .7vmin 1.5vmin, transparent 1.5vmin 1.8vmin, #121212 1.8vmin 2vmin, transparent 2vmin 2.7vmin, #121212 2.7vmin 3.3vmin, transparent 3.3vmin 3.6vmin, #121212 3.6vmin 3.8vmin, transparent 3.8vmin 4.5vmin); }
+  .bars span { display: flex; justify-content: space-between; margin-top: .8vmin; font-weight: 600; font-size: 1.8vmin; letter-spacing: .3em; }
+  .cells { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr 1fr 1.25fr; border-bottom: 0 !important; }
+  .cells > div { padding: 1.3vmin 2vmin; border-right: .35vmin solid #121212; font-weight: 700; font-size: 2.3vmin; white-space: nowrap; }
+  .cells > div:last-child { border-right: 0; background: #121212; color: #FBFAF6; display: flex; flex-direction: column; justify-content: center; }
+  .cells > div:last-child .k { color: #B7B1A4; }
+  .stamp { position: absolute; z-index: 2; right: 7vmin; top: calc(100% - 64vmin); transform: rotate(-9deg); border: .55vmin solid #C8231B; color: #C8231B; padding: .8vmin 2.2vmin .6vmin; font-family: "Archivo Black", Arial Black, sans-serif; font-size: 5.4vmin; line-height: 1; letter-spacing: .08em; text-align: center; opacity: .9; mix-blend-mode: multiply; }
+  .stamp small { display: block; font-family: "IBM Plex Mono", Menlo, monospace; font-weight: 700; font-size: 1.6vmin; letter-spacing: .24em; margin-top: .5vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .shot { height: calc(100% - 64vmin); }
+    .seam { top: calc(100% - 64vmin); }
+    .up { top: calc(100% - 60.6vmin); }
+    .stamp { top: calc(100% - 58vmin); right: 9vmin; font-size: 4.6vmin; }
+    .label { left: 7vmin; right: 7vmin; bottom: 4vmin; }
+    .from { padding: 1.3vmin 2.2vmin; }
+    .to { padding: 1.4vmin 2.4vmin 1.6vmin; }
+    h1 { font-size: 7.2vmin; }
+    .bars i { height: 4.6vmin; }
+  }
+  /* square / wide → photo left, box right */
+  @media (min-aspect-ratio: 9/10) {
+    .shot { right: auto; bottom: 0; height: auto; width: 46%; }
+    .seam { top: 0; bottom: 0; left: 46%; right: auto; width: 3.2vmin; height: auto; background: repeating-linear-gradient(180deg, rgba(90,62,32,.22) 0 .25vmin, transparent .25vmin 1.4vmin), linear-gradient(90deg, rgba(0,0,0,.28), rgba(0,0,0,0)); }
+    .up { display: none; }
+    .stamp { top: 3.4vmin; right: auto; left: calc(46% + 8vmin); font-size: 4.2vmin; }
+    .label { left: calc(46% + 4.5vmin); right: 4.5vmin; top: 13vmin; bottom: 4.5vmin; height: auto; grid-template-columns: 13vmin 1fr; grid-template-rows: auto 1fr auto auto; }
+    .cls { font-size: 9vmin; }
+    .from { font-size: 1.7vmin; padding: 1.6vmin 2vmin; }
+    .date { display: none; }
+    .to { padding: 1.6vmin 2.2vmin; }
+    h1 { font-size: 7.2vmin; }
+    .to p { font-size: 1.9vmin; }
+    .bars { padding: 1.4vmin 2.2vmin 1vmin; }
+    .bars i { height: 5vmin; }
+    .bars span { font-size: 1.6vmin; letter-spacing: .18em; }
+    .cells { grid-template-columns: 1fr 1fr; }
+    .cells > div { font-size: 2vmin; padding: 1.2vmin 1.8vmin; }
+    .cells > div:nth-child(2) { border-right: 0; }
+    .cells > div:nth-child(-n+2) { border-bottom: .35vmin solid #121212; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 52%; }
+    .seam { left: 52%; }
+    .up { display: flex; left: auto; right: 5vmin; top: 5.4vmin; }
+    .stamp { left: calc(52% + 8vmin); }
+    .label { left: calc(52% + 5vmin); right: 5vmin; grid-template-columns: 15vmin 1fr; }
+    .date { display: block; }
+    h1 { font-size: 7vmin; }
+    .cells { grid-template-columns: 1fr 1fr 1fr 1.25fr; }
+    .cells > div:nth-child(2) { border-right: .35vmin solid #121212; }
+    .cells > div:nth-child(-n+2) { border-bottom: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="fiber" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="f"><feTurbulence type="fractalNoise" baseFrequency=".012 .9" numOctaves="3" seed="4"/><feColorMatrix values="0 0 0 0 .42  0 0 0 0 .28  0 0 0 0 .13  0 0 0 .5 0"/></filter><rect width="100%" height="100%" filter="url(#f)"/></svg>
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="seam"></div>
+  <div class="up"><i>↑↑</i>This side up</div>
+  <div class="stamp">FRAGILE<small>Handle with care</small></div>
+  <div class="label">
+    <div class="cls">1<small>PRIORITY</small></div>
+    <div class="from"><span><span class="k">From</span><b>Studio Nord Supply</b><br>Dock 4 · Harbour Rd 12</span><span class="date"><span class="k">Ship date</span><b>10.03.26</b></span></div>
+    <div class="to"><span class="k">Deliver to — you</span><h1>Free express shipping</h1><p>On the new drop · orders over $75 · code <b>SHIPFREE</b></p></div>
+    <div class="bars"><i></i><span><span>NS 2610 0477 3318</span><span>→ OUT TODAY</span></span></div>
+    <div class="cells">
+      <div><span class="k">Weight</span>0.9 kg</div>
+      <div><span class="k">SKU</span>04-2610</div>
+      <div><span class="k">Qty</span>1 / 1</div>
+      <div><span class="k">Order by</span>18:00 today</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

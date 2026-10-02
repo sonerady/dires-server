@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Emerald Cut — the photo is cut like a step-cut stone: an octagonal table, three rows of stepped
+     facets in shaded greens with gold girdle lines, a gemmologist's figure caption, deep emerald ground.
+     tall → stone above the copy; 3:4 / square / wide → stone left, copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0B3025; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #EDE6D3; font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(75% 55% at 50% 32%, #17594A 0%, #0E3D30 55%, #082519 100%); --s: 2.6vmin; --c: 9vmin; --ln: #D6BD84; }
+  .fig { position: absolute; left: 6vmin; right: 6vmin; top: 3.2vmin; display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.6vmin; font-weight: 500; letter-spacing: .22em; text-transform: uppercase; color: #A9C4B6; }
+  .fig span:last-child { white-space: nowrap; }
+
+  .gem { position: absolute; left: 15vmin; right: 15vmin; top: 16vmin; height: calc(100% - 16vmin - 62vmin); }
+  .r, .ph { position: absolute; }
+  .r { background: var(--ln);
+    clip-path: polygon(var(--cc) 0, calc(100% - var(--cc)) 0, 100% var(--cc), 100% calc(100% - var(--cc)), calc(100% - var(--cc)) 100%, var(--cc) 100%, 0 calc(100% - var(--cc)), 0 var(--cc)); }
+  .r::after { content: ""; position: absolute; inset: .22vmin; background: var(--f);
+    clip-path: polygon(calc(var(--cc) - .09vmin) 0, calc(100% - var(--cc) + .09vmin) 0, 100% calc(var(--cc) - .09vmin), 100% calc(100% - var(--cc) + .09vmin), calc(100% - var(--cc) + .09vmin) 100%, calc(var(--cc) - .09vmin) 100%, 0 calc(100% - var(--cc) + .09vmin), 0 calc(var(--cc) - .09vmin)); }
+  .r3 { inset: calc(var(--s) * -3); --cc: calc(var(--c) + var(--s) * 3 * .4142); --f: linear-gradient(160deg, #1C6B55, #0C3B2E 55%, #155E4A); }
+  .r2 { inset: calc(var(--s) * -2); --cc: calc(var(--c) + var(--s) * 2 * .4142); --f: linear-gradient(200deg, #0F4637, #2A7D64 50%, #0D3F31); }
+  .r1 { inset: calc(var(--s) * -1); --cc: calc(var(--c) + var(--s) * .4142); --f: linear-gradient(150deg, #3C9277, #114A3A 60%, #267259); }
+  .ph { inset: 0; overflow: hidden; clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)); }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  /* a faint table-facet sheen */
+  .ph::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 26%); }
+
+  .copy { position: absolute; left: 8vmin; right: 8vmin; bottom: 6vmin; top: calc(100% - 62vmin + 12vmin); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; text-align: center; }
+  .k { font-size: 1.8vmin; font-weight: 600; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; color: var(--ln); }
+  h1 { margin: 2vmin 0 0; font-family: "Marcellus", "Trajan Pro", Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: 1; letter-spacing: .01em; }
+  .body { margin: 2.4vmin 0 0; max-width: 64vmin; font-size: 2.2vmin; line-height: 1.55; color: #BFD2C7; }
+  .row { margin-top: 4vmin; display: flex; align-items: center; gap: 4vmin; }
+  .price { font-family: "Marcellus", Georgia, serif; font-size: 4.4vmin; line-height: 1; white-space: nowrap; }
+  .price small { font-family: "Hanken Grotesk", sans-serif; font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: #A9C4B6; margin-right: 1.2vmin; vertical-align: .5vmin; }
+  .cta { padding: 1.8vmin 3.2vmin; background: var(--ln); color: #0B3025; font-size: 1.9vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; white-space: nowrap; }
+
+  /* ── 3:4 / square / wide — stone left, copy right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --s: 2.2vmin; --c: 7vmin; background: radial-gradient(60% 70% at 30% 50%, #17594A 0%, #0E3D30 55%, #082519 100%); }
+    .gem { left: 9vmin; right: auto; top: 13vmin; width: 48%; height: calc(100% - 24vmin); }
+    .fig { right: auto; width: calc(48% + 6vmin); left: 6vmin; }
+    .fig span:last-child { display: none; }
+    .copy { left: calc(48% + 17vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; align-items: flex-start; justify-content: center; text-align: left; }
+    .k { font-size: 1.6vmin; letter-spacing: .24em; margin-right: 0; }
+    h1 { font-size: 7.4vmin; }
+    .body { font-size: 1.9vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+    .cta { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .gem { width: 44%; top: 12.4vmin; height: calc(100% - 23.4vmin); }
+    .fig { width: calc(44% + 6vmin); top: 2.6vmin; }
+    .copy { left: calc(44% + 18vmin); right: 4vmin; }
+    h1 { font-size: 6.6vmin; }
+    .body { font-size: 1.8vmin; }
+    .price { font-size: 4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --s: 2.6vmin; --c: 8vmin; }
+    .gem { left: 12vmin; width: 36%; top: 14vmin; height: calc(100% - 26.4vmin); }
+    .fig { width: calc(36% + 12vmin); top: 3vmin; }
+    .copy { left: calc(36% + 24vmin); right: 9vmin; }
+    .k { font-size: 1.8vmin; letter-spacing: .32em; }
+    h1 { font-size: 8.8vmin; }
+    .body { font-size: 2vmin; }
+    .row { flex-direction: row; align-items: center; gap: 4vmin; }
+    .price { font-size: 4.4vmin; }
+    .cta { font-size: 1.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="fig"><span>Fig. 5 — Emerald cut, top view</span><span>Step facets · 3 rows</span></div>
+  <div class="gem">
+    <i class="r r3"></i><i class="r r2"></i><i class="r r1"></i>
+    <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  </div>
+  <div class="copy">
+    <div class="k">The Signature Edit</div>
+    <h1>Cut to be kept.</h1>
+    <p class="body">Clean lines and lasting materials: new pieces made for years, not for a season.</p>
+    <div class="row">
+      <div class="price"><small>From</small>$190</div>
+      <div class="cta">Discover →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

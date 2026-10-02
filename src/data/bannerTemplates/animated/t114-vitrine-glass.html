@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Cinzel:wght@600&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Vitrine — a lit boutique display case on a dark wall: brass rails, glass reflections, a warm
+     top light inside the case, a keyhole escutcheon and an engraved brass plaque.
+     tall → case above the copy; 3:4 / square / wide → case left, the wall text right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #211819; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F1E6D6; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(70% 45% at 50% 30%, #3A2B2A 0%, #271C1C 55%, #1A1213 100%); }
+
+  .case { position: absolute; left: 7vmin; right: 7vmin; top: 6vmin; height: calc(100% - 70vmin); box-sizing: border-box; padding: 1.4vmin .8vmin 1.4vmin;
+    background: linear-gradient(90deg, #7A5A26 0%, #D9B46A 18%, #F2D99A 30%, #B78C43 52%, #E6C47E 76%, #8A6630 100%);
+    box-shadow: 0 3vmin 5vmin rgba(0,0,0,.55), 0 1vmin 1.4vmin rgba(0,0,0,.4); }
+  /* the cabinet base: walnut with a brass lip */
+  .case::before { content: ""; position: absolute; left: -2vmin; right: -2vmin; top: 100%; height: 5vmin;
+    background: linear-gradient(180deg, #F0D48F 0, #A9803A .6vmin, #3E2A1A .6vmin, #2A1B10 70%, #1E130B 100%); box-shadow: 0 2.4vmin 3.6vmin rgba(0,0,0,.6); }
+  .glass { position: relative; width: 100%; height: 100%; overflow: hidden; background: #111; box-shadow: 0 0 0 1px rgba(60,40,10,.8); }
+  .glass img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; }
+  /* warm light from the top of the case, eased */
+  .glass .light { position: absolute; left: 0; right: 0; top: 0; height: 26%;
+    background: linear-gradient(180deg, rgba(255,233,196,0.34) 0.0%, rgba(255,233,196,0.335) 7.7%, rgba(255,233,196,0.321) 15.4%, rgba(255,233,196,0.297) 23.1%, rgba(255,233,196,0.267) 30.8%, rgba(255,233,196,0.23) 38.5%, rgba(255,233,196,0.19) 46.2%, rgba(255,233,196,0.15) 53.8%, rgba(255,233,196,0.11) 61.5%, rgba(255,233,196,0.073) 69.2%, rgba(255,233,196,0.043) 76.9%, rgba(255,233,196,0.019) 84.6%, rgba(255,233,196,0.005) 92.3%, rgba(255,233,196,0.0) 100.0%); }
+  .glass .light::before { content: ""; position: absolute; left: 6%; right: 6%; top: 0; height: .5vmin; background: #FFF4DC; box-shadow: 0 0 1.6vmin .4vmin rgba(255,236,196,.8); }
+  /* reflections on the glass */
+  .glass::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(116deg, rgba(255,255,255,0) 14%, rgba(255,255,255,.26) 19%, rgba(255,255,255,.07) 25%, rgba(255,255,255,0) 30%, rgba(255,255,255,0) 64%, rgba(255,255,255,.17) 67%, rgba(255,255,255,0) 71%); }
+  .key { position: absolute; left: 50%; bottom: -3.6vmin; width: 2vmin; height: 2vmin; margin-left: -1vmin; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #F7E3AE, #A57C35 70%); box-shadow: 0 .15vmin .3vmin rgba(0,0,0,.5); }
+  .key::after { content: ""; position: absolute; left: 50%; top: 28%; width: .5vmin; height: 1vmin; margin-left: -.25vmin; border-radius: .25vmin .25vmin .1vmin .1vmin; background: #2A1C0C; }
+
+  .text { position: absolute; left: 7vmin; right: 7vmin; top: calc(100% - 64vmin + 12vmin); bottom: 6vmin; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; }
+  .plaque { position: relative; padding: 1.5vmin 5.4vmin 1.6vmin; background: linear-gradient(180deg, #F3DC9F 0%, #C99D52 48%, #E9C983 100%); box-shadow: 0 .6vmin 1.2vmin rgba(0,0,0,.5), inset 0 .15vmin 0 rgba(255,255,255,.6);
+    font-family: "Cinzel", "Trajan Pro", Georgia, serif; font-weight: 600; color: #3C2A10; text-shadow: 0 .12vmin 0 rgba(255,244,214,.7); }
+  .plaque::before, .plaque::after { content: ""; position: absolute; top: 50%; width: 1.1vmin; height: 1.1vmin; margin-top: -.55vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #FFF1C8, #8A6630); box-shadow: inset 0 0 0 .1vmin rgba(60,40,10,.5); }
+  .plaque::before { left: 1.8vmin; } .plaque::after { right: 1.8vmin; }
+  .plaque b { display: block; font-size: 2.4vmin; letter-spacing: .3em; margin-right: -.3em; white-space: nowrap; }
+  .plaque span { display: block; margin-top: .5vmin; font-size: 1.6vmin; letter-spacing: .24em; margin-right: -.24em; white-space: nowrap; }
+  h1 { margin: 0; font-family: "Cormorant Garamond", Garamond, Georgia, serif; font-style: italic; font-weight: 500; font-size: 10vmin; line-height: .95; letter-spacing: -.01em; color: #F6EBDA; }
+  .body { margin: 0; max-width: 66vmin; font-size: 2.5vmin; line-height: 1.5; color: #CDBBA6; }
+  .body b { color: #F1E6D6; font-weight: 600; }
+  .cta { font-size: 2.1vmin; font-weight: 600; letter-spacing: .28em; margin-right: -.28em; text-transform: uppercase; color: #E7C987; padding-bottom: .8vmin; border-bottom: 1px solid #C99D52; white-space: nowrap; }
+
+  /* ── 3:4 / square / wide — case left, the wall text right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .case { left: 7vmin; right: auto; top: 6vmin; width: 52%; height: calc(100% - 18vmin); }
+    .text { left: calc(52% + 13vmin); right: 5vmin; top: 7vmin; bottom: 8vmin; justify-content: center; gap: 4.4vmin; }
+    .plaque { padding: 1.3vmin 4.4vmin 1.4vmin; }
+    .plaque b { font-size: 2vmin; letter-spacing: .24em; margin-right: -.24em; }
+    .plaque span { font-size: 1.6vmin; letter-spacing: .16em; margin-right: -.16em; }
+    h1 { font-size: 7.4vmin; }
+    .body { font-size: 2vmin; }
+    .cta { font-size: 1.8vmin; letter-spacing: .22em; margin-right: -.22em; }
+    .banner { background: radial-gradient(60% 60% at 30% 40%, #3A2B2A 0%, #271C1C 55%, #1A1213 100%); }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .case { width: 46%; }
+    .text { left: calc(46% + 13vmin); top: 6vmin; bottom: 7vmin; gap: 3.6vmin; }
+    h1 { font-size: 6.8vmin; }
+    .body { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .case { left: 9vmin; width: 40%; }
+    .text { left: calc(40% + 18vmin); right: 8vmin; top: 8vmin; bottom: 9vmin; gap: 5vmin; }
+    .plaque b { font-size: 2.3vmin; }
+    h1 { font-size: 9.4vmin; }
+    .body { font-size: 2.2vmin; }
+    .cta { font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  .glass img { transform-origin: 50% 35%; animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0% { transform: scale(1); } 50% { transform: scale(1.035); } 100% { transform: scale(1); } }
+  /* the case light warms up with a soft double flicker, then breathes */
+  .glass .light { animation: lamp 8s linear infinite; }
+  @keyframes lamp {
+    0%, 5% { opacity: 1; }
+    6% { opacity: .55; } 7.5% { opacity: 1; } 9% { opacity: .75; animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    13% { opacity: 1; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    55% { opacity: .82; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    92%, 100% { opacity: 1; }
+  }
+  /* the glass reflections slide as if the viewer walks past the case */
+  .glass::after { animation: reflect 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes reflect { 0% { transform: translateX(0); } 50% { transform: translateX(-9%); } 100% { transform: translateX(0); } }
+  /* brass plaque: a polish glint */
+  .plaque { background: linear-gradient(100deg, rgba(255,250,230,0) 42%, rgba(255,250,230,.75) 50%, rgba(255,250,230,0) 58%) 100% 0 / 300% 100% no-repeat,
+      linear-gradient(180deg, #F3DC9F 0%, #C99D52 48%, #E9C983 100%);
+    animation: plaque 8s linear infinite; }
+  @keyframes plaque {
+    0%, 22% { background-position: 100% 0, 0 0; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    40%, 100% { background-position: 0% 0, 0 0; }
+  }
+  /* the keyhole catches the light */
+  .key { animation: keyglint 8s linear infinite; }
+  @keyframes keyglint {
+    0%, 60% { filter: brightness(1); box-shadow: 0 .15vmin .3vmin rgba(0,0,0,.5); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    65% { filter: brightness(1.5); box-shadow: 0 .15vmin .3vmin rgba(0,0,0,.5), 0 0 1.6vmin .3vmin rgba(255,226,160,.55); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    74%, 100% { filter: brightness(1); box-shadow: 0 .15vmin .3vmin rgba(0,0,0,.5); }
+  }
+
+  .cta { position: relative; }
+  .cta::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #FFE3A6; box-shadow: 0 0 .6vmin #FFE3A6;
+    clip-path: inset(0 100% 0 0); animation: uline 8s linear infinite; }
+  @keyframes uline {
+    0%, 74% { clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    84% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    94%, 100% { clip-path: inset(0 0 0 100%); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="case">
+    <div class="glass"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="light"></div></div>
+    <div class="key"></div>
+  </div>
+  <div class="text">
+    <div class="plaque"><b>Vitrine Nº 3</b><span>The Evening Pieces</span></div>
+    <h1>Behind glass,<br>within reach.</h1>
+    <p class="body">Private viewing: <b>20% off</b> the collection, online and in store, until Sunday.</p>
+    <div class="cta">Open the case →</div>
+  </div>
+</div>
+</body>
+</html>

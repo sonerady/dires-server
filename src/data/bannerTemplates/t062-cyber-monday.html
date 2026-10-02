@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Cyber Monday — a desktop of its own: the look opens in a window, the offer runs as code in a terminal */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E3E3DE; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E3E3DE; color: #0C0C0C; font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+    background-image: radial-gradient(rgba(12,12,12,.16) 12%, transparent 13%); background-size: 2.2vmin 2.2vmin; }
+  .bar { position: absolute; left: 0; right: 0; top: 0; height: 6vmin; background: #0C0C0C; color: #E3E3DE; display: flex; align-items: center; justify-content: space-between; padding: 0 4vmin; font-size: 1.8vmin; letter-spacing: .08em; }
+  .bar b { font-family: "Silkscreen", monospace; font-weight: 700; font-size: 2.2vmin; letter-spacing: .06em; }
+  .bar b i { font-style: normal; color: #7C85FF; }
+
+  .win { position: absolute; left: 5vmin; right: 5vmin; top: 10vmin; height: calc(100% - 85vmin); background: #F4F4F0; border: .4vmin solid #0C0C0C; box-shadow: 1.4vmin 1.4vmin 0 #2B35FF; }
+  .tb { position: absolute; left: 0; right: 0; top: 0; height: 4.6vmin; border-bottom: .4vmin solid #0C0C0C; display: flex; align-items: center; gap: 2vmin; padding: 0 1.6vmin;
+    background: repeating-linear-gradient(to bottom, #0C0C0C 0 .3vmin, transparent .3vmin .8vmin) 50% 50% / 100% 2.6vmin no-repeat, #F4F4F0; }
+  .tb i { flex: none; width: 2.2vmin; height: 2.2vmin; border: .4vmin solid #0C0C0C; background: #F4F4F0; box-sizing: border-box; }
+  .tb span { margin: 0 auto; background: #F4F4F0; padding: 0 1.6vmin; font-size: 1.8vmin; font-weight: 700; white-space: nowrap; }
+  .win img { position: absolute; left: 0; top: 5vmin; width: 100%; height: calc(100% - 5vmin); object-fit: cover; object-position: 50% 22%; }
+  .tag { position: absolute; right: 0; bottom: 0; background: #0C0C0C; color: #F4F4F0; font-size: 1.7vmin; padding: .8vmin 1.4vmin; }
+
+  .copy { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 66vmin; display: flex; flex-direction: column; }
+  .big { display: flex; flex-direction: column; }
+  .big h1 { margin: 0; font-family: "Silkscreen", monospace; font-weight: 700; font-size: 28vmin; line-height: .8; letter-spacing: -.02em; color: #2B35FF; white-space: nowrap; }
+  .big p { margin: 2.4vmin 0 0; display: flex; justify-content: space-between; font-family: "Silkscreen", monospace; font-size: 3vmin; line-height: 1; white-space: nowrap; }
+  .big h1 small { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: .5em; letter-spacing: -.04em; margin-left: .06em; }
+  .term { margin-top: 3.6vmin; background: #0C0C0C; color: #E3E3DE; padding: 2.6vmin 3vmin; font-size: 2.3vmin; line-height: 1.75; box-shadow: 1.4vmin 1.4vmin 0 #2B35FF; }
+  .term div { white-space: nowrap; }
+  .term .c { color: #8A8A86; }
+  .term b { color: #9EA4FF; font-weight: 700; }
+  .term u { text-decoration: none; background: #E3E3DE; color: #0C0C0C; padding: 0 .8vmin; font-weight: 700; }
+  .cur { display: inline-block; width: 1.3vmin; height: 2.5vmin; background: #E3E3DE; vertical-align: -.4vmin; margin-left: .4vmin; }
+  .cta { margin-top: auto; display: flex; align-items: center; justify-content: space-between; font-family: "Silkscreen", monospace; font-size: 3vmin; }
+  .cta span:last-child { font-family: "JetBrains Mono", monospace; font-size: 1.8vmin; letter-spacing: .06em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .win { height: calc(100% - 76vmin); }
+    .copy { height: 59vmin; bottom: 4vmin; }
+    .big h1 { font-size: 20vmin; }
+    .big p { margin-top: 2vmin; font-size: 2.6vmin; }
+    .term { margin-top: 2.6vmin; padding: 1.8vmin 2.6vmin; font-size: 2vmin; line-height: 1.6; }
+  }
+  /* square — window on the left, offer on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .win { right: auto; width: 45%; height: auto; bottom: 6vmin; }
+    .copy { left: calc(45% + 10vmin); top: 11vmin; bottom: 6vmin; height: auto; right: 4vmin; }
+    .big h1 { font-size: 14vmin; }
+    .big p { font-size: 2.2vmin; margin-top: 1.8vmin; }
+    .term { font-size: 1.9vmin; padding: 2vmin 2.2vmin; line-height: 1.8; }
+    .term div { white-space: normal; }
+    .cta { flex-direction: column; align-items: flex-start; gap: 1.2vmin; font-size: 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .win { width: 50%; }
+    .copy { left: calc(50% + 12vmin); right: 6vmin; }
+    .big h1 { font-size: 19vmin; }
+    .big p { font-size: 2.8vmin; }
+    .term { font-size: 2.1vmin; padding: 2.2vmin 2.6vmin; }
+    .term div { white-space: nowrap; }
+    .cta { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="bar"><b>CYBER<i>_</i>MONDAY</b><span>01.12 · 00:00—23:59</span></div>
+  <div class="win">
+    <div class="tb"><i></i><span>new_season.jpg</span><i></i></div>
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="tag">1 / 1 — 100%</div>
+  </div>
+  <div class="copy">
+    <div class="big"><h1>-30<small>%</small></h1><p><span>on everything</span><span>24h</span></p></div>
+    <div class="term">
+      <div><span class="c">$</span> apply --code <u>CYBER30</u></div>
+      <div><span class="c">&gt;</span> discount <b>30%</b> sitewide</div>
+      <div><span class="c">&gt;</span> shipping <b>free</b>, today only</div>
+      <div><span class="c">&gt;</span> stock <b>[########··]</b> 80% gone</div>
+      <div><span class="c">&gt;</span> status <b>LIVE</b><span class="cur"></span></div>
+    </div>
+    <div class="cta"><span>[ SHOP NOW ]</span><span>ends at midnight</span></div>
+  </div>
+</div>
+</body>
+</html>

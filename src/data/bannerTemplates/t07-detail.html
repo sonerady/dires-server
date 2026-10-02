@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Detail Lookbook — responsive: the full look left, a magnified detail of the SAME photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E8E0D6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E8E0D6; color: #2E2823; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif; }
+  .full { position: absolute; left: 5vmin; top: 5vmin; bottom: 5vmin; width: 54%; overflow: hidden; }
+  .full img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+  .look { position: absolute; left: 7.4vmin; top: 7.4vmin; background: rgba(255,255,255,.88); border-radius: 99vmin; padding: 1vmin 2.2vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+  .col { position: absolute; left: calc(54% + 10vmin); top: 6vmin; right: 5vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+  .k { font-size: 1.8vmin; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; color: #8B7560; }
+  h1 { margin: 1.8vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 7.4vmin; line-height: .95; letter-spacing: -.01em; }
+  h1 i { color: #8B7560; }
+  /* the same photo, magnified around its upper-middle (neckline / waist detail) */
+  .zoom { position: relative; margin-top: 4.6vmin; width: min(30vmin, 100%); aspect-ratio: 1; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 .9vmin #F6F2EC, 0 2vmin 4vmin rgba(46,40,35,.2); }
+  .zoom img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; transform: scale(2.6); transform-origin: 50% 30%; }
+  .cap { margin-top: 2.6vmin; font-size: 2.3vmin; line-height: 1.4; color: #4E443B; }
+  .cap b { color: #2E2823; font-weight: 700; }
+  .price { margin-top: auto; font-family: "DM Serif Display", Georgia, serif; font-size: 6.6vmin; line-height: 1; }
+  .price small { display: block; font-family: "DM Sans", sans-serif; font-size: 1.8vmin; letter-spacing: .2em; text-transform: uppercase; color: #8B7560; margin-bottom: 1vmin; }
+  .sw { display: flex; gap: 1.4vmin; margin-top: 2.4vmin; }
+  .sw i { width: 3.3vmin; height: 3.3vmin; border-radius: 50%; border: .2vmin solid rgba(46,40,35,.25); }
+  .cta { margin-top: 3.2vmin; background: #2E2823; color: #F6F2EC; border-radius: 99vmin; padding: 2.1vmin 0; text-align: center; font-size: 2.2vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  @media (min-aspect-ratio: 6/5) {
+    .full { width: 44%; }
+    .col { left: calc(44% + 10vmin); }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    h1 { font-size: 6.6vmin; }
+    .zoom { margin-top: 3vmin; width: 22vmin; }
+    .cap { margin-top: 2vmin; font-size: 2vmin; }
+    .price { padding-top: 2vmin; font-size: 5.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="full"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="look">Look 07</div>
+  <div class="col">
+    <div class="k">In the details</div>
+    <h1>Stitched<br><i>by hand.</i></h1>
+    <div class="zoom"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="cap"><b>Hand embroidery,</b> airy cotton and a tie waist you can wear two ways.</div>
+    <div class="price"><small>Maxi dress</small>$98</div>
+    <div class="sw"><i style="background:#F3EBDA"></i><i style="background:#D9765B"></i><i style="background:#7C8B5A"></i></div>
+    <div class="cta">Shop the look</div>
+  </div>
+</div>
+</body>
+</html>

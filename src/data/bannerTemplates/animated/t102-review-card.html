@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Review Card — a real customer's words as the headline: stars, pull quote, verified badge, a fit scale and a "customer favourite" seal.
+     tall → photo above a blush review panel; square / wide → photo left, review right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2E3DC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F2E3DC; color: #3B1C1A; font-family: "Inter", "Helvetica Neue", Arial, sans-serif; }
+  .shot { position: absolute; left: 0; right: 0; top: 0; height: 54%; overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  /* the seal straddles the seam, parked on the outer edge */
+  .seal { position: absolute; right: 5vmin; top: calc(54% - 9vmin); width: 18vmin; height: 18vmin; border-radius: 50%; background: #3B1C1A; color: #F2E3DC; transform: rotate(-12deg); }
+  .seal svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .seal text { font-family: "Inter", sans-serif; font-weight: 700; fill: #F2E3DC; text-transform: uppercase; }
+  .seal b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 400; font-size: 6.4vmin; line-height: 1; }
+
+  .panel { position: absolute; left: 7vmin; right: 7vmin; top: calc(54% + 6vmin); bottom: 6vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; align-items: center; gap: 1.8vmin; font-size: 2.2vmin; font-weight: 600; letter-spacing: .02em; }
+  .stars { font-size: 2.9vmin; letter-spacing: .18em; color: #A5402D; line-height: 1; }
+  .ver { white-space: nowrap; display: inline-flex; align-items: center; gap: .8vmin; color: #6D4A43; }
+  .ver svg { width: 2.4vmin; height: 2.4vmin; }
+  .body { margin: auto 0; padding: 3vmin 0; }
+  .mark { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 400; font-size: 16vmin; line-height: .5; height: 7vmin; color: #A5402D; margin-left: -.8vmin; }
+  .quote { position: relative; margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 300; font-size: 7.2vmin; line-height: 1.04; letter-spacing: -.02em; }
+  .quote i { font-style: italic; font-weight: 400; color: #A5402D; }
+  .who { margin-top: 3vmin; font-size: 2.4vmin; font-weight: 600; }
+  .who span { font-weight: 400; color: #6D4A43; }
+
+  .fit { margin-top: 4vmin; }
+  .fit .track { position: relative; height: 1px; background: rgba(59,28,26,.35); }
+  .fit .track i { position: absolute; top: 50%; width: 1px; height: 1.4vmin; background: rgba(59,28,26,.45); transform: translateY(-50%); }
+  .fit .track i:nth-child(1) { left: 0; } .fit .track i:nth-child(2) { left: 50%; } .fit .track i:nth-child(3) { right: 0; }
+  .fit .track b { position: absolute; left: 50%; top: 50%; width: 2.2vmin; height: 2.2vmin; border-radius: 50%; background: #3B1C1A; transform: translate(-50%,-50%); box-shadow: 0 0 0 .6vmin #F2E3DC; }
+  .fit .lab { display: flex; justify-content: space-between; margin-top: 1.5vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: #6D4A43; }
+  .fit .lab b { color: #3B1C1A; font-weight: 700; }
+
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding-top: 2.4vmin; border-top: 1px solid rgba(59,28,26,.2); }
+  .score { font-family: "Fraunces", Georgia, serif; font-size: 4.4vmin; font-weight: 500; line-height: 1; letter-spacing: -.02em; }
+  .score small { display: block; margin-top: .7vmin; font-family: "Inter", sans-serif; font-size: 1.7vmin; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #6D4A43; white-space: nowrap; }
+  .cta { flex: none; background: #3B1C1A; color: #F2E3DC; border-radius: 99vmin; padding: 1.9vmin 3.4vmin; font-size: 2.1vmin; font-weight: 600; letter-spacing: .04em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .shot { height: 50%; }
+    .seal { top: calc(50% - 8vmin); width: 16vmin; height: 16vmin; }
+    .seal b { font-size: 5.6vmin; }
+    .panel { top: calc(50% + 4.6vmin); bottom: 4.6vmin; }
+    .body { padding: 2vmin 0; }
+    .mark { font-size: 12vmin; height: 5vmin; }
+    .quote { font-size: 5.6vmin; }
+    .who { margin-top: 2vmin; font-size: 2.1vmin; }
+    .fit { margin-top: 2.6vmin; }
+    .foot { padding-top: 2vmin; }
+    .score { font-size: 3.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .shot { top: 0; bottom: 0; left: 0; right: auto; width: 48%; height: 100%; }
+    .seal { left: calc(48% - 8vmin); right: auto; top: 6vmin; width: 16vmin; height: 16vmin; }
+    .panel { left: calc(48% + 10vmin); right: 5.5vmin; top: 7vmin; bottom: 5.5vmin; }
+    .mark { font-size: 14vmin; height: 6vmin; }
+    .quote { font-size: 5.4vmin; }
+    .who { font-size: 2.1vmin; }
+    .fit .lab { font-size: 1.6vmin; letter-spacing: .06em; }
+    .meta { gap: 1.4vmin; font-size: 2vmin; }
+    .stars { font-size: 2.6vmin; letter-spacing: .12em; }
+    .cta { padding: 1.7vmin 2.6vmin; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 52%; }
+    .seal { left: calc(52% - 9vmin); width: 18vmin; height: 18vmin; }
+    .seal b { font-size: 6.4vmin; }
+    .panel { left: calc(52% + 11vmin); right: 7vmin; top: 8vmin; bottom: 7vmin; }
+    .quote { font-size: 6.2vmin; }
+    .fit .lab { font-size: 1.7vmin; letter-spacing: .1em; }
+    .score { font-size: 4.4vmin; }
+    .cta { padding: 1.9vmin 3.4vmin; font-size: 2.1vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  /* warm and slow: the seal's ring text turns, the stars twinkle in sequence, the praise gets underlined, the fit dot settles */
+  .shot img { animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  /* seal: the ring text makes one slow turn per loop, the seal gives a tiny stamp at the beat */
+  .seal svg { animation: spin 8s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .seal b { animation: stamp 8s linear infinite; }
+  @keyframes stamp {
+    0%, 78% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    82% { transform: scale(1.14); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88%, 100% { transform: scale(1); }
+  }
+  /* stars light up one after another */
+  .stars s { text-decoration: none; display: inline-block; animation: star 8s linear infinite; }
+  .stars s:nth-child(2) { animation-delay: -7.84s; } .stars s:nth-child(3) { animation-delay: -7.68s; }
+  .stars s:nth-child(4) { animation-delay: -7.52s; } .stars s:nth-child(5) { animation-delay: -7.36s; }
+  @keyframes star {
+    0%, 8% { transform: scale(1) rotate(0); filter: brightness(1); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    11% { transform: scale(1.4) rotate(18deg); filter: brightness(1.5); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    16%, 100% { transform: scale(1) rotate(0); filter: brightness(1); }
+  }
+  /* "Worth every penny." gets a marker underline that draws in, holds, and lifts off */
+  .quote i { background: linear-gradient(90deg, rgba(165,64,45,.22) 50%, rgba(165,64,45,0) 50%) no-repeat 100% 88% / 200% .32em;
+    -webkit-box-decoration-break: clone; box-decoration-break: clone; animation: mark 8s linear infinite; }
+  @keyframes mark {
+    0%, 24% { background-position: 100% 88%; animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    36%, 68% { background-position: 0% 88%; animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    76%, 100% { background-position: 100% 88%; }
+  }
+  /* fit scale: the dot sweeps runs-small ↔ runs-large and settles on "true to size" */
+  .fit .track b { animation: fit 8s linear infinite; }
+  @keyframes fit {
+    0%, 40% { transform: translate(-50%,-50%); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    46% { transform: translate(calc(-50% - 9vmin),-50%); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    53% { transform: translate(calc(-50% + 7vmin),-50%); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    58% { transform: translate(calc(-50% - 1.2vmin),-50%); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    62%, 100% { transform: translate(-50%,-50%); }
+  }
+  .fit .lab b { display: inline-block; animation: tts 8s linear infinite; }
+  @keyframes tts {
+    0%, 58% { color: #3B1C1A; transform: translateY(0); animation-timing-function: cubic-bezier(.2,.9,.3,1); }
+    61% { color: #A5402D; transform: translateY(-.5vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    70% { color: #A5402D; transform: translateY(0); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    78%, 100% { color: #3B1C1A; transform: translateY(0); }
+  }
+  /* CTA: a soft sheen at the end of the loop */
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(242,227,220,0) 0%, rgba(242,227,220,.08) 30%, rgba(242,227,220,.34) 50%, rgba(242,227,220,.08) 70%, rgba(242,227,220,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 8s linear infinite; }
+  @keyframes sheen { 0%, 84% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); } 96%, 100% { transform: translateX(380%) skewX(-18deg); } }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="panel">
+    <div class="meta">
+      <span class="stars"><s>★</s><s>★</s><s>★</s><s>★</s><s>★</s></span>
+      <span class="ver"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#A5402D"/><path d="M7 12.4l3.2 3.1L17 8.8" fill="none" stroke="#F2E3DC" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified buyer</span>
+    </div>
+    <div class="body">
+    <div class="mark">&ldquo;</div>
+    <p class="quote">I've worn it every week since it arrived. <i>Worth every penny.</i></p>
+    <div class="who">Maya K. <span>· Lisbon · bought size M</span></div>
+    <div class="fit">
+      <div class="track"><i></i><i></i><i></i><b></b></div>
+      <div class="lab"><span>Runs small</span><b>True to size</b><span>Runs large</span></div>
+    </div>
+    </div>
+    <div class="foot">
+      <div class="score">4.9 / 5<small>2,184 reviews</small></div>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+  <div class="seal">
+    <svg viewBox="0 0 100 100"><defs><path id="ring" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"/></defs>
+      <text font-size="7" letter-spacing="1.3"><textPath href="#ring">Customer favourite · Customer favourite ·</textPath></text></svg>
+    <b>No.1</b>
+  </div>
+</div>
+</body>
+</html>

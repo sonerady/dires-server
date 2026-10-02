@@ -3,8 +3,9 @@
 //
 // Tek kaynak server/src/utils/studioTools.js. Bu betik:
 //   1) client/commerce/studioToolsSpec.json — araçların yapısı (kimlikler, türler,
-//      varsayılanlar, sınırlar) + her etiket için i18n anahtarı ve İngilizce
-//      varsayılan. Üretim talimatları istemciye GİTMEZ.
+//      varsayılanlar, sınırlar, section/display/allowCustom, hazır kurulumlar) +
+//      her etiket/ipucu için i18n anahtarı ve İngilizce varsayılan. Üretim
+//      talimatları istemciye GİTMEZ.
 //   2) client/locales/en.json + tr.json — "studioTools" ad alanı (metin tabanlı
 //      ekleme/değiştirme; dosyanın geri kalanına dokunmaz).
 //   3) Web aynası: web-dashboard/lib/studioToolsSpec.json + public/locales/en.json/tr.json
@@ -47,7 +48,10 @@ function buildClientSpec() {
     for (const control of tool.controls || []) {
       countUse(["controls", control.id, "title"], control.title);
       if (control.hint) countUse(["controls", control.id, "hint"], control.hint);
-      for (const option of control.options || []) countUse(["controls", control.id, "options", option.id], option.label);
+      for (const option of control.options || []) {
+        countUse(["controls", control.id, "options", option.id], option.label);
+        if (option.hint) countUse(["controls", control.id, "optionHints", option.id], option.hint);
+      }
     }
   }
 
@@ -72,7 +76,7 @@ function buildClientSpec() {
         title: label(tool.upload?.title, tool.id, ["upload", "title"]),
         hint: label(tool.upload?.hint, tool.id, ["upload", "hint"]),
       },
-      refs: (tool.refs || []).map((ref) => ({
+      refs: (tool.refs || []).filter((ref) => !ref.hidden).map((ref) => ({
         id: ref.id,
         required: !!ref.required,
         max: ref.max || 1,
@@ -92,9 +96,17 @@ function buildClientSpec() {
           options: control.options.map((option) => ({
             id: option.id,
             label: label(option.label, tool.id, ["controls", control.id, "options", option.id], ["controls", control.id, "options", option.id]),
+            ...(option.hint ? { hint: label(option.hint, tool.id, ["controls", control.id, "optionHints", option.id], ["controls", control.id, "optionHints", option.id]) } : {}),
           })),
         };
       }),
+      // Hazır kurulumlar: etiket + ipucu araç altında (paylaşılmaz), values kimlik eşlemesi olduğu gibi
+      presets: (tool.presets || []).map((preset) => ({
+        id: preset.id,
+        label: label(preset.label, tool.id, ["presets", preset.id, "label"]),
+        hint: label(preset.hint, tool.id, ["presets", preset.id, "hint"]),
+        values: { ...preset.values },
+      })),
     };
   });
   return { spec, locales: tree };

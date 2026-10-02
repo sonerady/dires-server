@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,400;0,500;0,800;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Press Proof — the lookbook page as the printer's final proof on grey proofing stock: the page sits on its
+     trim with the photo running into the bleed, crop marks at every corner, registration targets, a CMYK +
+     overprint + grey control strip, the file's slug line, and a red rubber "Approved" stamp that turns the
+     sign-off into the season's launch.
+     tall → strip under the page · square & wide → strip down the right margin */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E3E2DE; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E3E2DE; color: #161616; font-family: "Epilogue", "Helvetica Neue", Arial, sans-serif;
+    --l: 7vmin; --r: 7vmin; --t: 9vmin; --b: 14vmin; --p: 50vmin; --g: 1.6vmin; }
+  .mono { font-family: "IBM Plex Mono", Menlo, Consolas, monospace; }
+
+  .page { position: absolute; left: var(--l); right: var(--r); top: var(--t); bottom: var(--b); background: #FFFFFF; box-shadow: 0 .3vmin 1.2vmin rgba(0,0,0,.12); }
+  .photo { position: absolute; left: calc(var(--l) - var(--g)); top: calc(var(--t) - var(--g)); width: calc(100% - var(--l) - var(--r) + 2 * var(--g));
+    height: calc(100% - var(--t) - var(--b) - var(--p) + var(--g)); object-fit: cover; object-position: 50% 22%; }
+
+  /* crop marks: 8 hairlines just outside the trim */
+  .cm { position: absolute; background: #161616; }
+  .h { width: 4vmin; height: 1px; }
+  .v { width: 1px; height: 4vmin; }
+  .h.l { left: calc(var(--l) - var(--g) - 4.6vmin); }
+  .h.r { right: calc(var(--r) - var(--g) - 4.6vmin); }
+  .h.t { top: var(--t); }
+  .h.b { bottom: var(--b); }
+  .v.t { top: calc(var(--t) - var(--g) - 4.6vmin); }
+  .v.b { bottom: calc(var(--b) - var(--g) - 4.6vmin); }
+  .v.l { left: var(--l); }
+  .v.r { right: var(--r); }
+  .reg { position: absolute; width: 4.4vmin; height: 4.4vmin; }
+  .reg svg { display: block; width: 100%; height: 100%; }
+  .reg.a { left: calc(var(--l) / 2 - 2.2vmin); top: calc(50% - 2.2vmin); }
+  .reg.b { right: calc(var(--r) / 2 - 2.2vmin); top: calc(50% - 2.2vmin); }
+
+  .slug { position: absolute; left: calc(var(--l) + 2vmin); right: calc(var(--r) + 2vmin); top: calc(var(--t) / 2 - 1.6vmin); display: flex; justify-content: space-between; gap: 2vmin;
+    font-size: 1.6vmin; color: #4A4A48; white-space: nowrap; }
+  .strip { position: absolute; left: var(--l); bottom: calc(var(--b) / 2 - 2vmin); display: flex; align-items: center; gap: 2vmin; }
+  .bar { display: flex; border: 1px solid rgba(0,0,0,.25); }
+  .bar i { display: block; width: 4vmin; height: 4vmin; }
+  .strip span { font-size: 1.6vmin; color: #4A4A48; white-space: nowrap; }
+
+  .copy { position: absolute; left: calc(var(--l) + 5vmin); right: calc(var(--r) + 5vmin); bottom: calc(var(--b) + 4.4vmin); height: calc(var(--p) - 8.8vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.2vmin; border-bottom: 1px solid #161616; font-size: 1.65vmin; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: 2.4vmin 0 0; font-size: 9vmin; font-weight: 800; line-height: .9; letter-spacing: -.045em; }
+  .lede { margin: 1.8vmin 0 0; max-width: 52vmin; font-size: 2.3vmin; line-height: 1.4; color: #3A3A38; }
+  .offer { margin-top: auto; display: flex; align-items: flex-end; gap: 2.4vmin; }
+  .offer b { font-size: 10vmin; font-weight: 800; line-height: .78; letter-spacing: -.05em; }
+  .offer span { padding-bottom: .4vmin; font-size: 1.75vmin; line-height: 1.45; }
+  .offer span em { font-style: normal; font-weight: 600; background: #161616; color: #FFF; padding: 0 .8vmin; }
+
+  .stamp { position: absolute; right: calc(var(--r) + 4vmin); bottom: calc(var(--b) + 5vmin); width: 25vmin; transform: rotate(-9deg); color: #D0302A; mix-blend-mode: multiply; }
+  .stamp svg { display: block; width: 100%; height: auto; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --p: 44vmin; --t: 8vmin; --b: 12vmin; }
+    h1 { font-size: 7.8vmin; margin-top: 2vmin; }
+    .lede { font-size: 2.1vmin; }
+    .offer b { font-size: 8.4vmin; }
+    .stamp { width: 21vmin; }
+    .bar i { width: 3.4vmin; height: 3.4vmin; }
+  }
+  /* square & wide: photo half of the page, colour strip down the right margin */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --l: 6vmin; --r: 11vmin; --t: 8vmin; --b: 6vmin; --p: 0vmin; }
+    .photo { width: calc((100% - var(--l) - var(--r)) * .5 + var(--g)); height: calc(100% - var(--t) - var(--b) + 2 * var(--g)); object-position: 50% 24%; }
+    .strip { left: auto; right: calc(var(--r) / 2 - 1.6vmin); bottom: var(--b); flex-direction: column-reverse; }
+    .bar { flex-direction: column; }
+    .bar i { width: 3.2vmin; height: 3.2vmin; }
+    .strip span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 1.5vmin; }
+    .reg.b { top: var(--t); }
+    .slug { font-size: 1.5vmin; }
+    .slug span:last-child { display: none; }
+    .copy { left: calc(var(--l) + (100% - var(--l) - var(--r)) * .5 + 4vmin); right: calc(var(--r) + 4vmin); top: calc(var(--t) + 4vmin); bottom: calc(var(--b) + 4vmin); height: auto; }
+    .kick { font-size: 1.5vmin; letter-spacing: .04em; }
+    h1 { font-size: 6.2vmin; margin-top: 2.4vmin; }
+    .lede { font-size: 1.85vmin; margin-top: 1.6vmin; }
+    .offer { flex-direction: column; align-items: flex-start; gap: 1.2vmin; }
+    .offer b { font-size: 9vmin; }
+    .offer span { font-size: 1.6vmin; }
+    .stamp { width: 17vmin; right: calc(var(--r) + 3vmin); bottom: calc(var(--b) + 25vmin); }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --l: 8vmin; --r: 13vmin; --t: 9vmin; --b: 8vmin; }
+    .bar i { width: 3.6vmin; height: 3.6vmin; }
+    .slug { font-size: 1.6vmin; }
+    .slug span:last-child { display: inline; }
+    .copy { left: calc(var(--l) + (100% - var(--l) - var(--r)) * .5 + 5vmin); right: calc(var(--r) + 5vmin); top: calc(var(--t) + 5vmin); bottom: calc(var(--b) + 5vmin); }
+    .kick { font-size: 1.6vmin; letter-spacing: .08em; }
+    h1 { font-size: 8vmin; margin-top: 2.8vmin; }
+    .lede { font-size: 2.1vmin; margin-top: 2vmin; }
+    .offer { flex-direction: row; align-items: flex-end; gap: 2.4vmin; }
+    .offer b { font-size: 10vmin; }
+    .offer span { font-size: 1.75vmin; }
+    .stamp { width: 21vmin; right: calc(var(--r) + 4vmin); bottom: calc(var(--b) + 17vmin); }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the signed-off proof) ─────────
+     0.3s  the crop marks are re-ruled outward from the trim, corner by corner
+     1.2s  a densitometer reads the colour bar: each patch flashes in turn
+     2.7s  the registration targets twist a quarter turn into register
+     3.0s  the APPROVED stamp lifts off the sheet … 4.0s  slams back down (overshoot, ink settles) */
+  .cm.h.l { animation: ruleL 6s linear infinite; }
+  .cm.h.r { animation: ruleR 6s linear infinite; }
+  .cm.v.t { animation: ruleT 6s linear infinite; }
+  .cm.v.b { animation: ruleB 6s linear infinite; }
+  @keyframes ruleL {
+    0%, 4% { clip-path: inset(-2px 0 -2px 0); animation-timing-function: steps(1, end); }
+    4.5% { clip-path: inset(-2px 0 -2px 100%); animation-timing-function: cubic-bezier(.3,.1,.2,1); }
+    12%, 100% { clip-path: inset(-2px 0 -2px 0); } }
+  @keyframes ruleR {
+    0%, 4% { clip-path: inset(-2px 0 -2px 0); animation-timing-function: steps(1, end); }
+    4.5% { clip-path: inset(-2px 100% -2px 0); animation-timing-function: cubic-bezier(.3,.1,.2,1); }
+    12%, 100% { clip-path: inset(-2px 0 -2px 0); } }
+  @keyframes ruleT {
+    0%, 4% { clip-path: inset(0 -2px 0 -2px); animation-timing-function: steps(1, end); }
+    4.5% { clip-path: inset(100% -2px 0 -2px); animation-timing-function: cubic-bezier(.3,.1,.2,1); }
+    12%, 100% { clip-path: inset(0 -2px 0 -2px); } }
+  @keyframes ruleB {
+    0%, 4% { clip-path: inset(0 -2px 0 -2px); animation-timing-function: steps(1, end); }
+    4.5% { clip-path: inset(0 -2px 100% -2px); animation-timing-function: cubic-bezier(.3,.1,.2,1); }
+    12%, 100% { clip-path: inset(0 -2px 0 -2px); } }
+  .cm.r.t, .cm.t.r { animation-delay: -5.9s; }
+  .cm.r.b, .cm.b.r { animation-delay: -5.8s; }
+  .cm.l.b, .cm.b.l { animation-delay: -5.7s; }
+  .bar i { animation: patch 6s linear infinite; }
+  @keyframes patch {
+    0% { transform: scale(1); filter: brightness(1); box-shadow: 0 0 0 0 rgba(22,22,22,0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    1.2% { transform: scale(1.14); filter: brightness(1.18); box-shadow: 0 .3vmin .8vmin 0 rgba(22,22,22,.35); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    4%, 100% { transform: scale(1); filter: brightness(1); box-shadow: 0 0 0 0 rgba(22,22,22,0); }
+  }
+  .bar i { position: relative; }
+  .bar i:nth-child(1)  { animation-delay: -4.8s; }
+  .bar i:nth-child(2)  { animation-delay: -4.68s; }
+  .bar i:nth-child(3)  { animation-delay: -4.56s; }
+  .bar i:nth-child(4)  { animation-delay: -4.44s; }
+  .bar i:nth-child(5)  { animation-delay: -4.32s; }
+  .bar i:nth-child(6)  { animation-delay: -4.2s; }
+  .bar i:nth-child(7)  { animation-delay: -4.08s; }
+  .bar i:nth-child(8)  { animation-delay: -3.96s; }
+  .bar i:nth-child(9)  { animation-delay: -3.84s; }
+  .bar i:nth-child(10) { animation-delay: -3.72s; }
+  .reg svg { animation: twist 6s linear infinite; }
+  .reg.b svg { animation-delay: -.1s; }
+  @keyframes twist {
+    0%, 44% { transform: rotate(0); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    54%, 100% { transform: rotate(90deg); }
+  }
+  .stamp { animation: stamp 6s linear infinite; transform-origin: 50% 55%; }
+  @keyframes stamp {
+    0%, 49% { transform: rotate(-9deg) scale(1); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.8,.4); }
+    50.5% { transform: rotate(-9deg) scale(.97); opacity: 1; animation-timing-function: cubic-bezier(.2,.6,.3,1); }
+    56% { transform: rotate(-4deg) scale(1.28) translateY(-2vmin); opacity: 0; animation-timing-function: steps(1, end); }
+    64% { transform: rotate(-15deg) scale(1.3) translateY(-2vmin); opacity: 0; animation-timing-function: cubic-bezier(.7,0,.9,.5); }
+    67% { transform: rotate(-9deg) scale(.95); opacity: 1; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    70.5% { transform: rotate(-9deg) scale(1.02); opacity: 1; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    74%, 100% { transform: rotate(-9deg) scale(1); opacity: 1; }
+  }
+  .copy .offer b { display: inline-block; animation: thud 6s linear infinite; transform-origin: 0 100%; }
+  @keyframes thud {
+    0%, 66.5% { transform: translateY(0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    68% { transform: translateY(.5vmin); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    72%, 100% { transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="page"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cm h l t"></div><div class="cm h r t"></div><div class="cm h l b"></div><div class="cm h r b"></div>
+  <div class="cm v t l"></div><div class="cm v t r"></div><div class="cm v b l"></div><div class="cm v b r"></div>
+  <div class="reg a"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="12" fill="none" stroke="#161616" stroke-width="1"/><circle cx="22" cy="22" r="6" fill="#161616"/><path d="M22 2V42M2 22H42" stroke="#161616" stroke-width="1"/></svg></div>
+  <div class="reg b"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="12" fill="none" stroke="#161616" stroke-width="1"/><circle cx="22" cy="22" r="6" fill="#161616"/><path d="M22 2V42M2 22H42" stroke="#161616" stroke-width="1"/></svg></div>
+  <div class="slug mono"><span>AN_AW26_LOOKBOOK_p14.indd</span><span>25.09.26 · 14:32 · Proof 3/3</span></div>
+  <div class="strip"><div class="bar"><i style="background:#00A0E3"></i><i style="background:#E5007E"></i><i style="background:#FFE600"></i><i style="background:#161616"></i><i style="background:#E4202A"></i><i style="background:#00964B"></i><i style="background:#2E3192"></i><i style="background:#595959"></i><i style="background:#9C9C9C"></i><i style="background:#D4D4D4"></i></div><span class="mono">C M Y K · 300%</span></div>
+
+  <div class="copy">
+    <div class="kick mono"><span>p. 14 — The Autumn Edit</span><span>Atelier Nord</span></div>
+    <h1>Signed off for autumn.</h1>
+    <p class="lede">The new collection has passed its final proof. In store and online now.</p>
+    <div class="offer"><b>−20%</b><span>On first orders<br>with the code <em class="mono">PROOF20</em></span></div>
+  </div>
+  <div class="stamp"><svg viewBox="0 0 200 120" aria-hidden="true">
+    <defs><filter id="ink"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="7" result="n"/><feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.5 1.5" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter></defs>
+    <g filter="url(#ink)" fill="none" stroke="#D0302A">
+      <rect x="4" y="4" width="192" height="112" rx="10" stroke-width="5"/>
+      <rect x="13" y="13" width="174" height="94" rx="5" stroke-width="1.6"/>
+      <text x="100" y="56" text-anchor="middle" font-family="Epilogue, Arial, sans-serif" font-weight="800" font-size="29" letter-spacing="1.5" fill="#D0302A" stroke="none">APPROVED</text>
+      <path d="M26 70H174" stroke-width="1.6"/>
+      <text x="100" y="93" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="13" letter-spacing="1.5" fill="#D0302A" stroke="none">OK TO WEAR · 25.09</text>
+    </g></svg></div>
+</div>
+</body>
+</html>

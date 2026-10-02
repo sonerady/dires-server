@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300,100,1;1,9..144,300,100,1&family=Karla:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Wabi-Sabi — washi paper (SVG fibre noise), an ink brush stroke and a hand-pressed vermilion seal.
+     tall → photo bleeds off the top-left, words below; square/wide → photo bleeds off the left, words right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE4D5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE4D5; color: #26221D; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; }
+  .paper { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .photo { position: absolute; left: 0; top: 0; width: 84%; height: 63%; object-fit: cover; object-position: 50% 16%; }
+  .copy { position: absolute; left: 8vmin; right: 28vmin; top: calc(63% + 7vmin); }
+  .k { white-space: nowrap; font-size: 1.8vmin; font-weight: 500; letter-spacing: .3em; text-transform: uppercase; color: #6F6559; }
+  h1 { margin: 2.4vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 300; font-style: italic; font-variation-settings: "SOFT" 100, "WONK" 1; font-size: 11vmin; line-height: .98; letter-spacing: -.02em; }
+  .stroke { display: block; width: 44vmin; height: 4vmin; margin: .6vmin 0 0 -1vmin; }
+  .d { margin-top: 2.2vmin; font-size: 2.7vmin; line-height: 1.5; color: #4A433B; max-width: 58vmin; }
+  .cta { margin-top: 3vmin; white-space: nowrap; font-size: 1.9vmin; font-weight: 500; letter-spacing: .26em; text-transform: uppercase; }
+  .cta span { color: #9E3325; }
+  /* hanko seal — rough edge and uneven ink from SVG filters */
+  .seal { position: absolute; right: 8vmin; top: calc(63% + 7vmin); width: 17vmin; height: 17vmin; }
+  .edition { position: absolute; right: 4vmin; top: 4vmin; writing-mode: vertical-rl; font-size: 1.7vmin; letter-spacing: .3em; text-transform: uppercase; color: #6F6559; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 58%; width: 82%; }
+    .copy { top: calc(58% + 5vmin); right: 24vmin; }
+    .seal { top: calc(58% + 5vmin); width: 13vmin; height: 13vmin; }
+    h1 { font-size: 9vmin; margin-top: 1.8vmin; }
+    .d { margin-top: 1.6vmin; font-size: 2.3vmin; }
+    .cta { margin-top: 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 52%; height: 100%; object-position: 50% 25%; }
+    .copy { left: calc(52% + 7vmin); right: 6vmin; top: auto; bottom: 8vmin; }
+    .seal { right: auto; left: calc(52% + 7vmin); top: 8vmin; width: 13vmin; height: 13vmin; }
+    .edition { right: 4vmin; top: 8vmin; }
+    h1 { font-size: 7.6vmin; }
+    .stroke { width: 34vmin; }
+    .d { font-size: 2.1vmin; }
+    .k { letter-spacing: .2em; font-size: 1.7vmin; }
+    .cta { letter-spacing: .18em; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 54%; object-position: 62% 25%; }
+    .copy { left: calc(54% + 8vmin); right: 10vmin; bottom: 9vmin; }
+    .seal { left: calc(54% + 8vmin); top: 9vmin; }
+    .edition { top: 9vmin; right: 5vmin; }
+    h1 { font-size: 8.4vmin; }
+    .stroke { width: 40vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="paper" preserveAspectRatio="none" aria-hidden="true">
+    <filter id="washi" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3" seed="4" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 .38  0 0 0 0 .32  0 0 0 0 .24  0 0 0 -1.1 .62" result="g"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".012 .09" numOctaves="2" seed="9" result="fib"/>
+      <feColorMatrix in="fib" type="matrix" values="0 0 0 0 1  0 0 0 0 .98  0 0 0 0 .94  0 0 0 -1.6 1.05" result="f"/>
+      <feMerge><feMergeNode in="f"/><feMergeNode in="g"/></feMerge>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#washi)" opacity=".55"/>
+  </svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="edition">Edition of the season</div>
+  <svg class="seal" viewBox="0 0 100 100" aria-hidden="true">
+    <defs>
+      <filter id="rough" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="3" seed="3" result="t"/>
+        <feDisplacementMap in="SourceGraphic" in2="t" scale="4.5" xChannelSelector="R" yChannelSelector="G" result="d"/>
+        <feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="2" seed="12" result="s"/>
+        <feColorMatrix in="s" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.2 2.45" result="holes"/>
+        <feComposite in="d" in2="holes" operator="in"/>
+      </filter>
+    </defs>
+    <g filter="url(#rough)" transform="rotate(-3 50 50)">
+      <rect x="8" y="8" width="84" height="84" rx="3" fill="#B0362A"/>
+      <rect x="15" y="15" width="70" height="70" fill="none" stroke="#ECE4D5" stroke-width="2.6"/>
+      <text x="50" y="45" text-anchor="middle" font-family="'Hiragino Mincho ProN','Noto Serif CJK JP','Yu Mincho',serif" font-size="27" fill="#ECE4D5">新</text>
+      <text x="50" y="76" text-anchor="middle" font-family="'Hiragino Mincho ProN','Noto Serif CJK JP','Yu Mincho',serif" font-size="27" fill="#ECE4D5">作</text>
+    </g>
+  </svg>
+  <div class="copy">
+    <div class="k">Made slowly · Autumn 26</div>
+    <h1>Imperfect,<br>by hand.</h1>
+    <svg class="stroke" viewBox="0 0 440 40" preserveAspectRatio="none" aria-hidden="true">
+      <defs><filter id="brush" x="-5%" y="-40%" width="110%" height="180%"><feTurbulence type="fractalNoise" baseFrequency=".04 .9" numOctaves="2" seed="5" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+      <path d="M6 26 C 90 14, 200 12, 300 17 S 410 24, 434 15" fill="none" stroke="#26221D" stroke-width="5.5" stroke-linecap="round" filter="url(#brush)" opacity=".86"/>
+    </svg>
+    <div class="d">Natural fibres, uneven dyes and small flaws we chose to keep.</div>
+    <div class="cta">Discover the collection <span>—</span></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Loupe 10× — a jeweller's bench: the photo meets a millimetre rule, and a knurled triplet loupe
+     (engraved bezel, lens glare) sits on the seam magnifying the piece.
+     tall → photo above the bench; 3:4 / square / wide → photo left, loupe riding its right edge */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DADDD4; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #171916; font-family: "DM Mono", "Courier New", monospace;
+    background: radial-gradient(90% 60% at 30% 100%, #E6E8E0 0%, #D6D9CF 60%, #CDD1C6 100%);
+    --D: 44vmin; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 60vmin); object-fit: cover; object-position: 50% 22%; }
+
+  /* millimetre rule along the seam */
+  .rule { position: absolute; left: 0; right: 0; top: calc(100% - 60vmin); height: 4.4vmin; background: #F1F2EC;
+    background-image: repeating-linear-gradient(90deg, #171916 0 1px, transparent 1px 10vmin), repeating-linear-gradient(90deg, #171916 0 1px, transparent 1px 5vmin), repeating-linear-gradient(90deg, rgba(23,25,22,.6) 0 1px, transparent 1px 1vmin);
+    background-size: 100% 2.6vmin, 100% 1.8vmin, 100% 1vmin; background-repeat: no-repeat; background-position: 0 0, 0 0, 0 0;
+    box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.12); }
+  .rule span { position: absolute; bottom: .3vmin; font-size: 1.6vmin; line-height: 1; }
+
+  /* the loupe */
+  .loupe { position: absolute; width: var(--D); height: var(--D); right: 4vmin; top: calc(100% - 60vmin - 8vmin); border-radius: 50%; z-index: 2;
+    background: repeating-conic-gradient(#3A3B3A 0 1.5deg, #0E0F0E 1.5deg 3deg);
+    box-shadow: 0 2.4vmin 4vmin rgba(20,24,18,.38), 0 .6vmin 1vmin rgba(20,24,18,.3); }
+  .loupe::before { content: ""; position: absolute; inset: calc(var(--D) * .043); border-radius: 50%; background: linear-gradient(150deg, #2B2C2B 0%, #121312 55%, #1E1F1E 100%);
+    box-shadow: inset 0 0 0 .25vmin #6C6E6B; }
+  .lens { position: absolute; inset: calc(var(--D) * .127); border-radius: 50%; overflow: hidden; background: #fff;
+    box-shadow: 0 0 0 .5vmin #A9ABA6, 0 0 0 .8vmin #2A2B2A; }
+  .lens img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; transform: scale(2.9); transform-origin: 50% 32%; }
+  /* glass: a cool rim, a soft highlight top-left, a tiny window reflection */
+  .lens::after { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(60% 45% at 30% 22%, rgba(255,255,255,.42), rgba(255,255,255,0) 70%), radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 64%, rgba(160,200,255,.18) 69%, rgba(30,40,60,.35) 100%); }
+  .ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ring text { font-family: "DM Mono", monospace; font-size: 16px; fill: #D8DAD4; letter-spacing: 2px; }
+  .mag { position: absolute; left: 50%; bottom: -1.2vmin; transform: translate(-50%, 100%); font-size: 1.7vmin; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; color: #4B4F48; }
+
+  .k { position: absolute; left: 6vmin; top: calc(100% - 60vmin + 9vmin); font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #4B4F48; }
+  .k b { font-weight: 500; color: #A8331F; }
+  h1 { position: absolute; left: 6vmin; top: calc(100% - 60vmin + 13vmin); width: 44vmin; margin: 0; font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 11.6vmin; line-height: .9; letter-spacing: -.02em; }
+  .body { position: absolute; left: 6vmin; right: 6vmin; bottom: 15vmin; margin: 0; font-size: 2.1vmin; line-height: 1.5; color: #3A3D37; max-width: 60vmin; }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: center; padding-top: 2.4vmin; border-top: 1px solid rgba(23,25,22,.45); }
+  .price { font-family: "Gloock", Georgia, serif; font-size: 4.6vmin; line-height: 1; white-space: nowrap; }
+  .price small { font-family: "DM Mono", monospace; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #4B4F48; margin-right: 1.4vmin; vertical-align: .6vmin; }
+  .cta { padding: 1.7vmin 2.6vmin; background: #171916; color: #EEF0E8; font-size: 1.9vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  /* ── 3:4 / square / wide — photo left, the rule runs down its right edge, the loupe rides the seam ── */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pw: 57%; --D: 38vmin; }
+    .photo { width: var(--pw); height: 100%; }
+    .rule { left: var(--pw); right: auto; top: 0; bottom: 0; width: 3.6vmin; height: auto;
+      background-image: repeating-linear-gradient(180deg, #171916 0 1px, transparent 1px 10vmin), repeating-linear-gradient(180deg, #171916 0 1px, transparent 1px 5vmin), repeating-linear-gradient(180deg, rgba(23,25,22,.6) 0 1px, transparent 1px 1vmin);
+      background-size: 2.4vmin 100%, 1.7vmin 100%, 1vmin 100%; }
+    .rule span { display: none; }
+    .loupe { right: auto; left: calc(var(--pw) - var(--D) * .2); top: 50%; margin-top: calc(var(--D) * -.5); }
+    .mag { display: none; }
+    .k { left: calc(var(--pw) + 7vmin); right: 4vmin; top: 6vmin; font-size: 1.6vmin; letter-spacing: .1em; line-height: 1.5; }
+    h1 { left: calc(var(--pw) + 7vmin); right: 4vmin; width: auto; top: 13vmin; font-size: 7.6vmin; }
+    .body { left: calc(var(--pw) + 7vmin); right: 4vmin; bottom: 22vmin; font-size: 1.8vmin; }
+    .foot { left: calc(var(--pw) + 7vmin); right: 4vmin; bottom: 5vmin; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .price { font-size: 4.4vmin; }
+    .price small { display: block; margin: 0 0 .8vmin; vertical-align: 0; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 52%; --D: 32vmin; }
+    .loupe { top: 44%; }
+    .k { top: 5vmin; }
+    h1 { top: 10vmin; font-size: 6.8vmin; }
+    .body { display: none; }
+    .foot { bottom: 4.5vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 44%; --D: 46vmin; }
+    .loupe { top: auto; bottom: 7vmin; margin-top: 0; }
+    .k { left: calc(var(--pw) + 7vmin); top: 7vmin; font-size: 1.8vmin; letter-spacing: .14em; }
+    h1 { left: calc(var(--pw) + 7vmin); top: 12vmin; right: 5vmin; font-size: 9.6vmin; }
+    .body { display: block; left: calc(var(--pw) + var(--D) * .8 + 6vmin); right: 5vmin; bottom: 30vmin; font-size: 1.9vmin; }
+    .foot { left: calc(var(--pw) + var(--D) * .8 + 6vmin); right: 5vmin; bottom: 7vmin; }
+    .price { font-size: 4.8vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  /* the loupe hovers a breath above the bench */
+  .loupe { animation: hover 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes hover { 0% { translate: 0 0; } 50% { translate: 0 -.7vmin; } 100% { translate: 0 0; } }
+  /* focusing: the engraved bezel twists, the view blurs and snaps sharp; later it twists back */
+  .ring { transform-origin: 50% 50%; animation: twist 8s linear infinite; }
+  @keyframes twist {
+    0%, 8% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    22% { transform: rotate(-20deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    27%, 84% { transform: rotate(-17deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    97%, 100% { transform: rotate(0deg); }
+  }
+  /* inside the lens: defocus → focus, then the eye scans two details and returns */
+  .lens img { animation: scan 8s linear infinite; }
+  @keyframes scan {
+    0%, 8% { transform: scale(2.9) translate(0, 0); filter: blur(0); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    17% { transform: scale(2.9) translate(0, 0); filter: blur(.55vmin); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    27% { transform: scale(2.9) translate(0, 0); filter: blur(0); animation-timing-function: cubic-bezier(.55,0,.25,1); }
+    42%, 50% { transform: scale(2.9) translate(5%, -4%); filter: blur(0); animation-timing-function: cubic-bezier(.55,0,.25,1); }
+    64%, 72% { transform: scale(2.9) translate(-5%, 4%); filter: blur(0); animation-timing-function: cubic-bezier(.55,0,.25,1); }
+    86%, 100% { transform: scale(2.9) translate(0, 0); filter: blur(0); }
+  }
+  /* a glint crosses the glass */
+  .lens::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 38%, rgba(255,255,255,.5) 50%, rgba(255,255,255,0) 62%);
+    transform: translateX(-120%); animation: glint 8s linear infinite; }
+  @keyframes glint {
+    0%, 86% { transform: translateX(-120%); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    97%, 100% { transform: translateX(120%); }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.07) 30%, rgba(255,255,255,.3) 50%, rgba(255,255,255,.07) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-160%) skewX(-18deg); animation: ctaSheen 8s linear infinite; }
+  @keyframes ctaSheen {
+    0%, 52% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    64%, 100% { transform: translateX(330%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="rule"><span style="left:.8vmin">0</span><span style="left:10.8vmin">1</span><span style="left:20.8vmin">2</span><span style="left:30.8vmin">3</span></div>
+  <div class="loupe">
+    <svg class="ring" viewBox="0 0 440 440" aria-hidden="true"><defs><path id="lr" d="M 220,220 m -180,0 a 180,180 0 1,1 360,0 a 180,180 0 1,1 -360,0"/></defs><text><textPath href="#lr" textLength="1110" lengthAdjust="spacing">TRIPLET 10× · ACHROMATIC · 21 MM · ATELIER NORD · INSPECTED BY HAND ·</textPath></text></svg>
+    <div class="lens"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="mag">Detail at 10×</div>
+  </div>
+  <div class="k"><b>Fig. 01</b> — Under the loupe</div>
+  <h1>Look closer.</h1>
+  <p class="body">Every seam, every finish, inspected by hand before it leaves the atelier.</p>
+  <div class="foot">
+    <div class="price"><small>From</small>$180</div>
+    <div class="cta">Examine the edit →</div>
+  </div>
+</div>
+</body>
+</html>

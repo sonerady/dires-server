@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<style>
+  /* The Five — a trend-report listicle: numbered 01–05 column beside the look, offer bar below.
+     tall → list left, photo right · square → same, photo full height · wide → photo left, five in a row */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #DFF26A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #DFF26A; color: #121212; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; }
+  .it { font-family: "Newsreader", Georgia, "Times New Roman", serif; font-style: italic; font-weight: 400; }
+
+  .kick { position: absolute; left: 5vmin; right: 5vmin; top: 4.4vmin; display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+  .title { position: absolute; left: 4.2vmin; top: 8.6vmin; display: flex; align-items: flex-end; gap: 3vmin; }
+  .title h1 { margin: 0; font-weight: 800; font-size: 23vmin; line-height: .8; letter-spacing: -.06em; }
+  .title p { margin: 0 0 1.4vmin; font-size: 4.6vmin; line-height: 1; }
+
+  .photo { position: absolute; right: 0; top: 32vmin; width: 54%; height: calc(100% - 32vmin - 13vmin); object-fit: cover; object-position: 50% 22%; }
+  .list { position: absolute; left: 5vmin; width: calc(46% - 9vmin); top: 32vmin; bottom: 13vmin; display: grid; grid-template-rows: repeat(5, 1fr); }
+  .i { border-top: .4vmin solid #121212; padding-top: 1.4vmin; }
+  .i .n { font-weight: 800; font-size: 2.2vmin; letter-spacing: .06em; }
+  .i .t { margin-top: .6vmin; font-weight: 700; font-size: 4vmin; line-height: .98; letter-spacing: -.02em; }
+  .i .d { margin-top: .6vmin; font-size: 2.5vmin; line-height: 1.15; }
+
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 13vmin; background: #121212; color: #DFF26A; display: flex; align-items: center; justify-content: space-between; padding: 0 5vmin; box-sizing: border-box; }
+  .bar .off { font-weight: 800; font-size: 6vmin; letter-spacing: -.03em; }
+  .bar .off span { font-family: "Newsreader", Georgia, serif; font-style: italic; font-weight: 400; font-size: 3.4vmin; letter-spacing: 0; margin-left: 1.4vmin; }
+  .bar .code { text-align: right; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; line-height: 1.5; }
+  .bar .code b { display: inline-block; margin-top: .4vmin; border: 1px dashed #DFF26A; padding: .3vmin 1.2vmin; letter-spacing: .16em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .title h1 { font-size: 19vmin; }
+    .title { top: 8.6vmin; }
+    .photo, .list { top: 28vmin; }
+    .photo { height: calc(100% - 28vmin - 12vmin); width: 52%; }
+    .list { bottom: 12vmin; width: calc(48% - 9vmin); }
+    .bar { height: 12vmin; }
+    .i .t { font-size: 3.5vmin; }
+    .i .d { font-size: 2.2vmin; }
+  }
+  /* square — photo full height on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { top: 0; height: 100%; width: 44%; object-position: 50% 25%; }
+    .kick { right: calc(44% + 5vmin); }
+    .kick span:last-child { display: none; }
+    .title h1 { font-size: 16vmin; }
+    .title p { font-size: 3.6vmin; }
+    .list { top: 27vmin; bottom: 14vmin; width: calc(56% - 10vmin); }
+    .i { padding-top: 1vmin; }
+    .i .t { font-size: 3.2vmin; }
+    .i .d { font-size: 2vmin; margin-top: .3vmin; }
+    .bar { right: 44%; height: 11vmin; }
+    .bar .off { font-size: 4.8vmin; }
+    .bar .off span { font-size: 2.6vmin; }
+    .bar .code { font-size: 1.6vmin; }
+  }
+  /* wide — photo left, the five in one row */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { right: auto; left: 0; width: 38%; }
+    .kick { left: calc(38% + 5vmin); right: 5vmin; }
+    .kick span:last-child { display: inline; }
+    .title { left: calc(38% + 4.2vmin); top: 13vmin; }
+    .title { white-space: nowrap; }
+    .title h1 { font-size: 17vmin; }
+    .title p { font-size: 4vmin; }
+    .list { left: calc(38% + 5vmin); right: 5vmin; width: auto; top: 48vmin; bottom: 18vmin; grid-template-rows: none; grid-template-columns: repeat(5, 1fr); column-gap: 2.6vmin; }
+    .i .n { font-size: 2vmin; }
+    .i .t { font-size: 3.2vmin; }
+    .i .d { font-size: 2vmin; }
+    .bar { left: 38%; right: 0; height: 13vmin; }
+    .bar .off { font-size: 6vmin; }
+    .bar .off span { font-size: 3.2vmin; }
+    .bar .code { font-size: 1.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="kick"><span>Trend report</span><span>Autumn · Winter 26</span></div>
+  <div class="title"><h1>The Five</h1><p class="it">things to<br> wear now</p></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="list">
+    <div class="i"><div class="n">01</div><div class="t">Tonal dressing</div><div class="d it">One colour, head to toe.</div></div>
+    <div class="i"><div class="n">02</div><div class="t">Soft structure</div><div class="d it">Tailoring that moves.</div></div>
+    <div class="i"><div class="n">03</div><div class="t">Natural fibres</div><div class="d it">Linen, wool and cotton.</div></div>
+    <div class="i"><div class="n">04</div><div class="t">The long line</div><div class="d it">Everything, elongated.</div></div>
+    <div class="i"><div class="n">05</div><div class="t">One great piece</div><div class="d it">Buy less, choose well.</div></div>
+  </div>
+  <div class="bar"><div class="off">−25%<span>on the edit</span></div><div class="code">Use code<br><b>FIVE25</b></div></div>
+</div>
+</body>
+</html>

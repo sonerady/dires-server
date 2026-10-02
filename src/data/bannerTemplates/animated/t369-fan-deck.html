@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Fan Deck — a colour-matching fan deck of six sand strips splayed from one brass rivet,
+     each strip named and numbered at its tip. The neutrals edit, sold with the precision of a paint counter.
+     tall → photo on top, fan opens up-left from the lower right; square/wide → photo left, fan in the right column */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EBDD; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EBDD; color: #3D2E1B; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+    --px: 12vmin; --py: 10vmin; --sw: 11vmin; --len: min(58vmin, 38%); --st: 10deg; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 52%; object-fit: cover; object-position: 50% 18%; }
+
+  .strip { position: absolute; right: calc(var(--px) - var(--sw) / 2); bottom: calc(var(--py) - var(--sw) / 2); width: var(--sw); height: var(--len);
+    transform-origin: 50% calc(100% - var(--sw) / 2); transform: rotate(calc(var(--i) * var(--st) * -1));
+    box-sizing: border-box; padding: 1.4vmin 1.3vmin; box-shadow: -.3vmin .3vmin 1.2vmin rgba(61,46,27,.16);
+    font-size: 1.6vmin; line-height: 1.25; letter-spacing: .04em; white-space: nowrap; }
+  .strip b { display: block; font-weight: 600; letter-spacing: .12em; }
+  .strip::after { content: ""; position: absolute; left: 1.3vmin; right: 1.3vmin; top: 6.4vmin; height: 1px; background: currentColor; opacity: .35; }
+  .f5 { --i: 5; background: #ECDFCB; }
+  .f4 { --i: 4; background: #DCC8A7; }
+  .f3 { --i: 3; background: #C9AE86; }
+  .f2 { --i: 2; background: #AE8E64; color: #FFF8EC; }
+  .f1 { --i: 1; background: #8B6B45; color: #FFF8EC; }
+  .f0 { --i: 0; background: #5C4428; color: #FFF8EC; }
+  .rivet { position: absolute; right: calc(var(--px) - 2vmin); bottom: calc(var(--py) - 2vmin); width: 4vmin; height: 4vmin; border-radius: 50%;
+    background: radial-gradient(circle at 38% 35%, #F2DFB8 0, #C6A56C 38%, #8C6D3A 100%); box-shadow: 0 .3vmin .8vmin rgba(0,0,0,.3); }
+
+  .head { position: absolute; left: 6vmin; top: calc(52% + 4.4vmin); width: 40vmin; }
+  .k { font-size: 1.7vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #7A6143; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 10.4vmin; line-height: .86; letter-spacing: -.02em; }
+  h1 i { color: #8B6B45; }
+  .sub { margin-top: 1.8vmin; font-size: 2vmin; line-height: 1.4; color: #5A4630; max-width: 36vmin; }
+  .offer { position: absolute; left: 6vmin; bottom: 6vmin; }
+  .offer .n { font-family: "Instrument Serif", Georgia, serif; font-size: 6.4vmin; line-height: 1; }
+  .offer .c { margin-top: 1.4vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+  .offer .c span { display: inline-block; padding: .6vmin 1.1vmin; border: 1px solid #3D2E1B; margin-right: 1.2vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 50%; }
+    .head { top: calc(50% + 4vmin); }
+    .banner { --len: min(52vmin, 40%); --sw: 10vmin; --st: 9deg; }
+    h1 { font-size: 8.4vmin; }
+    .sub { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 22%; }
+    .banner { --px: 9vmin; --py: 9vmin; --len: 58vmin; --sw: 9vmin; --st: 7.5deg; }
+    .strip { padding: 1.2vmin 1vmin; }
+    .strip::after { left: 1vmin; right: 1vmin; top: 6vmin; }
+    .head { left: calc(46% + 5vmin); top: 5vmin; width: auto; right: 5vmin; }
+    h1 { font-size: 7.4vmin; }
+    .sub { display: block; max-width: 40vmin; font-size: 1.8vmin; margin-top: 1.4vmin; }
+    .offer { left: calc(46% + 5vmin); bottom: 5vmin; }
+    .offer .n { font-size: 5vmin; }
+    .offer .c span { display: table; margin: 0 0 1vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .banner { --px: 11vmin; --py: 10vmin; --len: 62vmin; --sw: 10.5vmin; --st: 9deg; }
+    .head { left: calc(44% + 6vmin); top: 6vmin; }
+    h1 { font-size: 8.6vmin; }
+    .offer { left: calc(44% + 6vmin); bottom: 6vmin; }
+    .offer .n { font-size: 6vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     1.1s the deck closes onto Umber, pivoting on the brass rivet (which turns with it) ·
+     2.2s it fans back open strip by strip, Tawny → Dune, easing into place ·
+     4.2s "sand." is re-set · 5.2s a sheen crosses the code */
+  .strip { animation: fan 6s cubic-bezier(.6,0,.4,1) infinite; }
+  .f1 { animation-delay: -.32s; } .f2 { animation-delay: -.24s; } .f3 { animation-delay: -.16s; } .f4 { animation-delay: -.08s; }
+  @keyframes fan {
+    0%, 18% { transform: rotate(calc(var(--i) * var(--st) * -1)); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    30%, 36% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.2,.75,.25,1); }
+    56%, 100% { transform: rotate(calc(var(--i) * var(--st) * -1)); }
+  }
+  .rivet { animation: turn 6s cubic-bezier(.6,0,.4,1) infinite; }
+  @keyframes turn {
+    0%, 18% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.6,0,.4,1); }
+    30%, 36% { transform: rotate(70deg); animation-timing-function: cubic-bezier(.2,.75,.25,1); }
+    58%, 100% { transform: rotate(0deg); }
+  }
+
+  h1 i { display: inline-block; animation: reset 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes reset {
+    0%, 66%, 84%, 100% { clip-path: inset(-20% -8% -30% -8%); }
+    72%, 73% { clip-path: inset(-20% 108% -30% -8%); }
+  }
+  .offer .c span { position: relative; overflow: hidden; }
+  .offer .c span::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, rgba(255,255,255,0) 35%, rgba(201,174,134,.55) 50%, rgba(255,255,255,0) 65%);
+    background-size: 300% 100%; background-position: 100% 0; animation: sheen 6s cubic-bezier(.4,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 86% { background-position: 100% 0; } 96%, 100% { background-position: 0 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="strip f5"><b>01</b>Dune</div>
+  <div class="strip f4"><b>02</b>Oat</div>
+  <div class="strip f3"><b>03</b>Sand</div>
+  <div class="strip f2"><b>04</b>Camel</div>
+  <div class="strip f1"><b>05</b>Tawny</div>
+  <div class="strip f0"><b>06</b>Umber</div>
+  <i class="rivet"></i>
+  <div class="head">
+    <div class="k">The neutrals deck</div>
+    <h1>Six shades<br>of <i>sand.</i></h1>
+    <div class="sub">Quiet colours, matched to the tone.</div>
+  </div>
+  <div class="offer">
+    <div class="n">20% off neutrals</div>
+    <div class="c"><span>SAND20</span>Shop the deck →</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Box End Label — the end of a kraft shoebox, shot straight on: the lid band carries the ink-printed
+     wordmark and headline, the white stock label below carries style no., colourway, the size run
+     (US / UK / EU / CM), a barcode and the offer. tall → photo above the box end; 3:4 and wider → box end on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #B88A58; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #B88A58; color: #2A1C12; font-family: "Archivo", "Arial Narrow", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .box { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; background: #B88A58; display: flex; flex-direction: column; }
+  .body { position: relative; flex: 1; min-height: 0; padding: 5vmin 5vmin 4vmin; display: flex; flex-direction: column; z-index: 1; }
+  .fibre { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: multiply; opacity: .55; pointer-events: none; }
+  /* lid: a lighter band that overlaps the box and casts a soft shadow onto it */
+  .lid { position: relative; flex: none; height: 28vmin; background: #C99C69; box-shadow: 0 .5vmin .9vmin rgba(60,36,14,.35); z-index: 2; }
+  .lid::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: rgba(60,36,14,.45); }
+  .lid .row em { font-style: normal; }
+  .lid .row { position: absolute; left: 5vmin; right: 5vmin; top: 3.6vmin; white-space: nowrap; display: flex; justify-content: space-between; align-items: center; font-family: "IBM Plex Mono", Menlo, monospace; font-weight: 600; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; }
+  .mark { display: flex; align-items: center; gap: 1.4vmin; font-family: "Archivo", Arial, sans-serif; font-stretch: 125%; font-weight: 900; font-size: 2.4vmin; letter-spacing: .08em; }
+  .mark i { width: 3.4vmin; height: 3.4vmin; border: .5vmin solid #2A1C12; border-radius: 50%; position: relative; box-sizing: border-box; }
+  .mark i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 1vmin; height: 1vmin; background: #2A1C12; transform: translate(-50%,-50%) rotate(45deg); }
+  .lid h1 { position: absolute; left: 4.4vmin; right: 4vmin; bottom: 3.4vmin; margin: 0; font-stretch: 125%; font-weight: 900; font-size: 11.6vmin; line-height: .82; letter-spacing: -.035em; text-transform: uppercase; white-space: nowrap; }
+  /* the stock label */
+  .label { position: relative; background: #F7F4EC; color: #151310; box-shadow: 0 .25vmin .5vmin rgba(60,36,14,.3); padding: 2.2vmin 2.6vmin 2.4vmin; font-family: "IBM Plex Mono", Menlo, monospace; z-index: 1; }
+  .label small { display: block; font-size: 1.6vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #6E675C; }
+  .label b { display: block; margin-top: .4vmin; font-family: "Archivo", Arial, sans-serif; font-weight: 700; font-stretch: 100%; font-size: 2.2vmin; letter-spacing: .01em; text-transform: uppercase; white-space: nowrap; }
+  .meta { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 2vmin; padding-bottom: 1.8vmin; border-bottom: 1px solid #151310; }
+  .meta div:last-child { text-align: right; }
+  .sizes { display: grid; grid-template-columns: repeat(4, 1fr); padding: 1.4vmin 0 1.6vmin; border-bottom: 1px solid #151310; }
+  .sizes div + div { border-left: 1px solid #C8C1B4; padding-left: 2vmin; }
+  .sizes strong { display: block; font-family: "Archivo", Arial, sans-serif; font-stretch: 75%; font-weight: 800; font-size: 7.4vmin; line-height: .95; letter-spacing: -.02em; }
+  .foot { display: flex; align-items: stretch; justify-content: space-between; gap: 2.4vmin; padding-top: 1.8vmin; }
+  .code39 { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .bars { height: 6.6vmin; background:
+      repeating-linear-gradient(90deg, #151310 0 .35vmin, transparent .35vmin .7vmin, #151310 .7vmin 1.5vmin, transparent 1.5vmin 1.8vmin, #151310 1.8vmin 2vmin, transparent 2vmin 2.6vmin, #151310 2.6vmin 3.3vmin, transparent 3.3vmin 3.6vmin, #151310 3.6vmin 3.8vmin, transparent 3.8vmin 4.5vmin); }
+  .digits { margin-top: .6vmin; font-size: 1.7vmin; letter-spacing: .3em; white-space: nowrap; }
+  .offer { flex: none; background: #151310; color: #F7F4EC; padding: 1.2vmin 2vmin; display: flex; flex-direction: column; justify-content: center; }
+  .offer strong { font-family: "Archivo", Arial, sans-serif; font-stretch: 75%; font-weight: 900; font-size: 5.2vmin; line-height: .9; letter-spacing: -.01em; white-space: nowrap; }
+  .offer span { margin-top: .6vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .14em; white-space: nowrap; }
+  /* printed on the cardboard under the label */
+  .note { display: none; margin-top: 3vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-weight: 600; font-size: 1.8vmin; line-height: 1.6; letter-spacing: .1em; text-transform: uppercase; }
+  .note span { display: block; }
+  .ink { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-family: "IBM Plex Mono", Menlo, monospace; font-weight: 600; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; z-index: 1; }
+  .ink .cta { white-space: nowrap; font-family: "Archivo", Arial, sans-serif; font-stretch: 110%; font-weight: 800; font-size: 2.6vmin; letter-spacing: .04em; border-bottom: .4vmin solid #2A1C12; padding-bottom: .3vmin; }
+  .up { white-space: nowrap; display: flex; align-items: center; gap: 1vmin; }
+  .up svg { width: 2.6vmin; height: 2.6vmin; }
+
+  /* 3:4 / 4:5 → photo left, box end becomes a tall column on the right */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 55%; height: 100%; object-position: 50% 25%; }
+    .box { left: 55%; top: 0; height: auto; }
+    .lid { height: 34vmin; }
+    .lid .row { left: 3.6vmin; right: 3.6vmin; top: 3.4vmin; font-size: 1.6vmin; }
+    .lid .row em { display: none; }
+    .mark { font-size: 2vmin; gap: 1vmin; }
+    .mark i { width: 2.8vmin; height: 2.8vmin; border-width: .45vmin; }
+    .lid h1 { left: 3.4vmin; bottom: 3.2vmin; font-size: 9.6vmin; line-height: .84; white-space: normal; }
+    .body { padding: 5vmin 3.4vmin 3.4vmin; }
+    .label { padding: 2vmin 2.2vmin 2.2vmin; }
+    .note { display: block; }
+    .meta { grid-template-columns: 1fr 1fr; row-gap: 1.4vmin; }
+    .meta div:nth-child(2) { text-align: right; }
+    .meta div:last-child { grid-column: 1 / -1; text-align: left; }
+    .sizes { grid-template-columns: repeat(2, 1fr); row-gap: 1.2vmin; }
+    .sizes div + div { border-left: 0; padding-left: 0; }
+    .sizes div:nth-child(even) { border-left: 1px solid #C8C1B4; padding-left: 2vmin; }
+    .sizes strong { font-size: 6.4vmin; }
+    .foot { flex-direction: column; gap: 1.8vmin; }
+    .offer { padding: 1.4vmin 2vmin; }
+    .ink { flex-direction: column-reverse; align-items: flex-start; gap: 2vmin; }
+    .ink .cta { font-size: 2.3vmin; }
+  }
+  /* square → 50 / 50 */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .box { left: 50%; }
+    .lid { height: 26vmin; }
+    .lid h1 { font-size: 7.8vmin; }
+    .body { padding: 4vmin 3.4vmin 3.2vmin; }
+    .lid .row em { display: none; }
+    .label { padding: 1.6vmin 2vmin 1.8vmin; }
+    .meta { padding-bottom: 1.2vmin; row-gap: 1vmin; }
+    .label b { font-size: 2vmin; }
+    .sizes { grid-template-columns: repeat(4, 1fr); padding: 1vmin 0 1.2vmin; }
+    .sizes div:nth-child(n) { border-left: 0; padding-left: 0; }
+    .sizes div + div { border-left: 1px solid #C8C1B4; padding-left: 1.2vmin; }
+    .sizes strong { font-size: 5vmin; }
+    .foot { flex-direction: row; padding-top: 1.2vmin; gap: 1.6vmin; }
+    .bars { height: 5.4vmin; }
+    .digits { letter-spacing: .12em; font-size: 1.6vmin; }
+    .offer { padding: 1vmin 1.4vmin; }
+    .offer strong { font-size: 4.2vmin; }
+    .offer span { font-size: 1.6vmin; letter-spacing: .08em; }
+    .ink { flex-direction: row; align-items: center; }
+    .ink .up { display: none; }
+  }
+  /* wide → photo 52%, roomier box end */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 52%; object-position: 50% 30%; }
+    .box { left: 52%; }
+    .lid { height: 27vmin; }
+    .lid .row { left: 5vmin; right: 5vmin; top: 3.6vmin; font-size: 1.8vmin; }
+    .mark { font-size: 2.4vmin; }
+    .lid h1 { left: 4.6vmin; bottom: 3.6vmin; font-size: 8.6vmin; white-space: nowrap; }
+    .lid .row em { display: inline; }
+    .body { padding: 4.4vmin 5vmin 4vmin; }
+    .label { padding: 2vmin 2.4vmin 2.2vmin; }
+    .meta { grid-template-columns: 1fr 1.5fr 1fr; }
+    .meta div:nth-child(2) { text-align: left; }
+    .meta div:last-child { grid-column: auto; text-align: right; }
+    .sizes strong { font-size: 6.6vmin; }
+    .sizes div + div { padding-left: 2vmin; }
+    .bars { height: 6vmin; }
+    .digits { letter-spacing: .26em; }
+    .offer { padding: 1.2vmin 2vmin; }
+    .offer strong { font-size: 5vmin; }
+    .ink .cta { font-size: 2.6vmin; }
+    .note { display: flex; gap: 3.6vmin; margin-top: 2.6vmin; font-size: 1.7vmin; white-space: nowrap; }
+    .ink .up { white-space: nowrap; display: flex; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="box">
+    <svg class="fibre" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" aria-hidden="true"><filter id="f"><feTurbulence type="fractalNoise" baseFrequency=".9 .06" numOctaves="3" seed="4"/><feColorMatrix values="0 0 0 0 .45  0 0 0 0 .3  0 0 0 0 .16  0 0 0 -1.4 1.05"/></filter><rect width="100%" height="100%" filter="url(#f)"/></svg>
+    <div class="lid">
+      <div class="row"><span class="mark"><i></i>Nord Athletic</span><span>SS26<em> · Box 01</em></span></div>
+      <h1>New in box</h1>
+    </div>
+    <div class="body">
+    <div class="label">
+      <div class="meta">
+        <div><small>Style</small><b>NA26-104</b></div>
+        <div><small>Colourway</small><b>Sail / Gum</b></div>
+        <div><small>Made in</small><b>Portugal</b></div>
+      </div>
+      <div class="sizes">
+        <div><small>US</small><strong>8</strong></div>
+        <div><small>UK</small><strong>7</strong></div>
+        <div><small>EU</small><strong>41</strong></div>
+        <div><small>CM</small><strong>26</strong></div>
+      </div>
+      <div class="foot">
+        <div class="code39"><div class="bars"></div><div class="digits">0 42817 30926 4</div></div>
+        <div class="offer"><strong>20% off</strong><span>Code BOX20</span></div>
+      </div>
+    </div>
+    <div class="note"><span>Double-boxed</span><span>Tissue-wrapped</span><span>Free returns · 30 days</span></div>
+    <div class="ink">
+      <span class="cta">Shop the collection →</span>
+      <span class="up"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 L10 18 M4 8 L10 2 L16 8" stroke="#2A1C12" stroke-width="2.4" fill="none"/></svg>This side up</span>
+    </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

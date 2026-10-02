@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Shop Profile — the seller's storefront header: cover photo, a monogram avatar on the seam, verified name,
+     a four-figure stats strip, shop tabs and follow / visit actions. tall → cover above butter panel; square / wide → cover left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2E6BC; }
+  .banner { --panel: 76vmin; position: fixed; inset: 0; overflow: hidden; background: #F2E6BC; color: #3A2419; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .ava { position: absolute; left: 6vmin; top: calc(100% - var(--panel) - 10vmin); width: 20vmin; height: 20vmin; border-radius: 50%; background: #3A2419; border: .9vmin solid #F2E6BC; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+  .ava span { font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 600; font-size: 8.4vmin; line-height: 1; color: #F2E6BC; letter-spacing: -.04em; margin-top: -.6vmin; }
+  .ava::after { content: ""; position: absolute; inset: 1.1vmin; border-radius: 50%; border: 1px solid rgba(242,230,188,.4); }
+
+  .who { position: absolute; left: 30vmin; right: 6vmin; top: calc(100% - var(--panel) + 2.6vmin); }
+  .name { display: flex; align-items: center; gap: 1.4vmin; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 7.6vmin; line-height: 1; letter-spacing: -.01em; white-space: nowrap; }
+  .name svg { flex: none; width: 3.6vmin; height: 3.6vmin; }
+  .handle { margin-top: 1vmin; display: flex; align-items: center; gap: 1.4vmin; font-size: 1.9vmin; font-weight: 500; color: #6E5646; white-space: nowrap; }
+  .badge { background: #3A2419; color: #F2E6BC; padding: .6vmin 1.3vmin; border-radius: 99vmin; font-size: 1.6vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+
+  .body { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - var(--panel) + 17vmin); bottom: 5.4vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .bio { margin: 0; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 500; font-size: 4.2vmin; line-height: 1.15; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid rgba(58,36,25,.3); border-bottom: 1px solid rgba(58,36,25,.3); }
+  .stats div { padding: 2vmin 0 1.8vmin 2vmin; border-left: 1px solid rgba(58,36,25,.2); font-size: 1.7vmin; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #6E5646; white-space: nowrap; }
+  .stats div:first-child { padding-left: 0; border-left: 0; }
+  .stats b { display: block; margin-bottom: .5vmin; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 5vmin; line-height: 1; letter-spacing: -.01em; text-transform: none; color: #3A2419; }
+  .stats b em { font-style: normal; font-size: .6em; color: #B5651D; }
+  .tabs { display: flex; gap: 4vmin; font-size: 2vmin; font-weight: 600; color: #8A7260; white-space: nowrap; border-bottom: 1px solid rgba(58,36,25,.2); }
+  .tabs span { padding-bottom: 1.4vmin; }
+  .tabs span.on { color: #3A2419; box-shadow: inset 0 -.5vmin 0 #3A2419; }
+  .tabs em { font-style: normal; font-size: 1.6vmin; color: #B5651D; margin-left: .5vmin; }
+  .acts { display: flex; gap: 2vmin; }
+  .acts span { flex: 1; display: flex; align-items: center; justify-content: center; gap: 1vmin; border-radius: 99vmin; padding: 2vmin 0; font-size: 2.1vmin; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+  .acts .f { border: .3vmin solid #3A2419; flex: .8; }
+  .acts .v { background: #3A2419; color: #F2E6BC; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 68vmin; }
+    .ava { width: 18vmin; height: 18vmin; top: calc(100% - var(--panel) - 9vmin); }
+    .ava span { font-size: 7.4vmin; }
+    .who { left: 28vmin; top: calc(100% - var(--panel) + 2.2vmin); }
+    .name { font-size: 6.6vmin; }
+    .body { top: calc(100% - var(--panel) + 15vmin); bottom: 4.6vmin; }
+    .bio { font-size: 3.6vmin; }
+    .stats div { padding-top: 1.6vmin; padding-bottom: 1.4vmin; }
+    .stats b { font-size: 4.4vmin; }
+    .acts span { padding: 1.7vmin 0; }
+  }
+  /* square / wide — cover photo on the left, avatar leads the panel */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 46%; }
+    .photo { width: var(--pw); height: 100%; }
+    .ava { left: calc(var(--pw) + 5vmin); top: 5vmin; width: 14vmin; height: 14vmin; border-width: 0; }
+    .ava span { font-size: 6vmin; }
+    .who { left: calc(var(--pw) + 22vmin); right: 4vmin; top: 6.6vmin; }
+    .name { font-size: 4.6vmin; gap: 1vmin; }
+    .name svg { width: 2.8vmin; height: 2.8vmin; }
+    .handle { font-size: 1.7vmin; gap: 1vmin; }
+    .badge { font-size: 1.5vmin; }
+    .body { left: calc(var(--pw) + 5vmin); right: 5vmin; top: 27vmin; bottom: 5vmin; }
+    .bio { font-size: 3.4vmin; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stats div { padding: 1.4vmin 0 1.2vmin 1.8vmin; }
+    .stats div:nth-child(3) { padding-left: 0; border-left: 0; border-top: 1px solid rgba(58,36,25,.2); }
+    .stats div:nth-child(4) { border-top: 1px solid rgba(58,36,25,.2); }
+    .stats b { font-size: 4vmin; }
+    .tabs { gap: 2.8vmin; font-size: 1.8vmin; }
+    .tabs span:nth-child(4) { display: none; }
+    .acts span { padding: 1.6vmin 0; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 44%; }
+    .ava { left: calc(var(--pw) + 7vmin); top: 7vmin; width: 17vmin; height: 17vmin; }
+    .ava span { font-size: 7.2vmin; }
+    .who { left: calc(var(--pw) + 28vmin); right: 7vmin; top: 9.4vmin; }
+    .name { font-size: 6.4vmin; }
+    .body { left: calc(var(--pw) + 7vmin); right: 7vmin; top: 30vmin; bottom: 6vmin; }
+    .bio { font-size: 3.8vmin; }
+    .stats { grid-template-columns: repeat(4, 1fr); }
+    .stats div:nth-child(3) { padding-left: 1.8vmin; border-left: 1px solid rgba(58,36,25,.2); border-top: 0; }
+    .stats div:nth-child(4) { border-top: 0; }
+    .tabs span:nth-child(4) { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+
+  <div class="ava"><span>AN</span></div>
+
+  <div class="who">
+    <div class="name">Atelier Nord <svg viewBox="0 0 24 24"><path d="M12 1.5l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3-3.2-.1L12 22.5l-2.6-1.9-3.2.1-1-3-2.6-1.9 1-3.1-1-3.1 2.6-1.9 1-3 3.2.1z" fill="#B5651D"/><path d="M8 12.2l2.7 2.6L16.2 9.4" fill="none" stroke="#F2E6BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="handle"><span class="badge">Top seller</span><span>Lisbon · since 2019</span></div>
+  </div>
+
+  <div class="body">
+    <p class="bio">Slow-made wardrobe pieces, new drop every Friday.</p>
+    <div class="stats">
+      <div><b>4.9<em>★</em></b>Rating</div>
+      <div><b>12.4k</b>Sold</div>
+      <div><b>24h</b>Ships in</div>
+      <div><b>98%</b>Positive</div>
+    </div>
+    <div class="tabs"><span>Shop</span><span class="on">New in<em>24</em></span><span>Sale</span><span>Reviews</span></div>
+    <div class="acts"><span class="f">+ Follow</span><span class="v">Visit the shop →</span></div>
+  </div>
+</div>
+</body>
+</html>

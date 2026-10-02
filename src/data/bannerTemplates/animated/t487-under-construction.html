@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500;1,6..96,700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Under Construction — a launch teaser dressed as a 1999 personal homepage: a hazard-tape band with a running
+     "under construction" line, a tiled starry background, a red "NEW!" starburst, a black odometer hit counter
+     ("you are visitor no. 004812") and a web-ring navigation bar — around a Bodoni italic "Opening Friday."
+     tall → photo above, tape at the seam, homepage below · square & wide → photo left, homepage right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EEE1; }
+  .banner { --paper: #F3EEE1; --ink: #141210; --link: #1F2FD6; --red: #D8261C; --yel: #F7C82E; --panel: 80vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Courier Prime", "Courier New", monospace;
+    background: radial-gradient(circle, rgba(20,18,16,.16) 0 .25vmin, transparent .3vmin) 0 0 / 5vmin 5vmin, radial-gradient(circle, rgba(31,47,214,.14) 0 .2vmin, transparent .25vmin) 2.5vmin 2.5vmin / 5vmin 5vmin, var(--paper); }
+
+  .photo { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - var(--panel)); overflow: hidden; }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .tape { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel)); height: 7vmin; overflow: hidden;
+    background: repeating-linear-gradient(-45deg, var(--ink) 0 1.6vmin, var(--yel) 1.6vmin 3.2vmin); }
+  .tape div { position: absolute; left: 0; right: 0; top: 1.3vmin; bottom: 1.3vmin; background: var(--ink); color: var(--yel); display: flex; align-items: center; gap: 2.4vmin; padding-left: 3vmin;
+    font-weight: 700; font-size: 2.2vmin; letter-spacing: .18em; white-space: nowrap; }
+
+  .page { position: absolute; left: 6vmin; right: 6vmin; top: calc(100% - var(--panel) + 11vmin); bottom: 4.5vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.7vmin; white-space: nowrap; }
+  .meta a { color: var(--link); text-decoration: underline; }
+  .hl { position: relative; margin-top: 3vmin; }
+  h1 { display: inline-block; margin: 0; font-family: "Bodoni Moda", Didot, Georgia, serif; font-style: italic; font-weight: 500; font-size: 14.6vmin; line-height: .9; letter-spacing: -.035em; }
+  h1 b { font-weight: 700; color: var(--red); }
+  .burst { position: absolute; right: 0; top: 1vmin; width: 19vmin; height: 19vmin; transform: rotate(12deg); background: var(--red); color: #fff;
+    clip-path: polygon(50.0% 0.0%, 57.8% 10.8%, 69.1% 3.8%, 72.2% 16.7%, 85.4% 14.6%, 83.3% 27.8%, 96.2% 30.9%, 89.2% 42.2%, 100.0% 50.0%, 89.2% 57.8%, 96.2% 69.1%, 83.3% 72.2%, 85.4% 85.4%, 72.2% 83.3%, 69.1% 96.2%, 57.8% 89.2%, 50.0% 100.0%, 42.2% 89.2%, 30.9% 96.2%, 27.8% 83.3%, 14.6% 85.4%, 16.7% 72.2%, 3.8% 69.1%, 10.8% 57.8%, 0.0% 50.0%, 10.8% 42.2%, 3.8% 30.9%, 16.7% 27.8%, 14.6% 14.6%, 27.8% 16.7%, 30.9% 3.8%, 42.2% 10.8%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1; }
+  .burst b { font-family: "Bodoni Moda", Georgia, serif; font-style: italic; font-weight: 700; font-size: 5.4vmin; letter-spacing: -.02em; }
+  .burst small { display: block; margin-top: .5vmin; font-family: "Courier Prime", monospace; font-style: normal; letter-spacing: .12em; font-weight: 700; font-size: 1.7vmin; letter-spacing: .12em; }
+  p { margin: 2.8vmin 0 0; max-width: 64vmin; font-size: 2.2vmin; line-height: 1.45; }
+  p b { background: var(--yel); padding: 0 .8vmin; letter-spacing: .08em; }
+  .count { margin-top: auto; display: flex; align-items: center; gap: 2.4vmin; }
+  .count span { font-size: 1.8vmin; line-height: 1.3; white-space: nowrap; }
+  .odo { display: flex; gap: .5vmin; padding: .6vmin; background: #2A2724; box-shadow: inset 0 0 0 1px #000; }
+  .odo i { width: 4.8vmin; height: 6.6vmin; display: flex; align-items: center; justify-content: center; font-style: normal; font-weight: 700; font-size: 4.4vmin; color: #fff;
+    background: linear-gradient(180deg, #3B3834 0%, #0E0D0C 49%, #000 51%, #2A2724 100%); }
+  .odo i:last-child { color: var(--yel); }
+  .ring { margin-top: 3vmin; padding-top: 1.8vmin; border-top: .35vmin double var(--ink); display: flex; justify-content: space-between; font-size: 1.9vmin; white-space: nowrap; }
+  .ring a { color: var(--link); text-decoration: underline; }
+  .ring em { font-style: normal; font-weight: 700; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 74vmin; }
+    .page { left: 10vmin; right: 10vmin; top: calc(100% - var(--panel) + 10vmin); bottom: 4vmin; }
+    h1 { font-size: 12.6vmin; }
+    .burst { width: 17vmin; height: 17vmin; }
+    .burst b { font-size: 4.8vmin; }
+    .odo i { width: 4.2vmin; height: 5.8vmin; font-size: 3.8vmin; }
+  }
+
+  /* square & wide: photo left, homepage right with the tape across its top */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { right: auto; bottom: 0; width: 48%; height: 100%; }
+    .tape { left: 48%; top: 0; }
+    .page { left: calc(48% + 5vmin); right: 5vmin; top: 12vmin; bottom: 5vmin; }
+    .meta span { display: none; }
+    .hl { position: static; margin-top: 3.6vmin; }
+    h1 { font-size: 10.4vmin; }
+    .burst { width: 15vmin; height: 15vmin; top: auto; bottom: 8.4vmin; right: 1vmin; }
+    .burst b { font-size: 4vmin; }
+    .burst small { font-size: 1.6vmin; letter-spacing: .06em; }
+    p { font-size: 1.9vmin; margin-top: 2.4vmin; }
+    .count { gap: 1.6vmin; flex-direction: column; align-items: flex-start; }
+    .odo i { width: 4vmin; height: 5.4vmin; font-size: 3.6vmin; }
+    .ring { margin-top: 2.6vmin; font-size: 1.7vmin; }
+    .ring .rnd { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .tape { left: 42%; }
+    .page { left: calc(42% + 6vmin); right: 6vmin; top: 13vmin; bottom: 5.5vmin; }
+    .meta span { display: inline; }
+    .hl { position: relative; }
+    h1 { font-size: 12vmin; }
+    .burst { width: 17vmin; height: 17vmin; top: 0; bottom: auto; right: 2vmin; }
+    .burst b { font-size: 4.8vmin; }
+    .count { flex-direction: row; align-items: center; gap: 2.4vmin; }
+    .ring .rnd { display: inline; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: hazard stripes crawl left (1.5s per stripe period), the tape line runs as a marquee (one group per loop)
+     beats: 1.4s "NEW!" starburst punches & wobbles · 2.6s "Friday." does a <blink> triple-blink ·
+            3.8s hit counter ticks (last digits flip over) · 4.8s the code highlight re-marks itself */
+  .tape { background: repeating-linear-gradient(-45deg, var(--ink) 0 1.6vmin, var(--yel) 1.6vmin 3.2vmin) 0 0 / 4.5255vmin 4.5255vmin;
+    animation: stripes 1.5s linear infinite; }
+  @keyframes stripes { from { background-position: 0 0; } to { background-position: -4.5255vmin 0; } }
+  .tape .trk { display: inline-flex; flex: 0 0 auto; animation: marquee 6s linear infinite; }
+  .tape .g { display: inline-flex; flex: 0 0 auto; gap: 2.4vmin; padding-right: 2.4vmin; }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-33.3333%); } }
+
+  .burst { animation: punch 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes punch {
+    0%, 22%, 42%, 100% { transform: rotate(12deg) scale(1); }
+    25% { transform: rotate(4deg) scale(1.16); }
+    29% { transform: rotate(17deg) scale(.96); }
+    33% { transform: rotate(9deg) scale(1.04); }
+    37% { transform: rotate(13deg) scale(.995); }
+  }
+  h1 b { animation: blink 6s steps(1, end) infinite; }
+  @keyframes blink { 0%, 43%, 47%, 51%, 55%, 100% { opacity: 1; } 45%, 49%, 53% { opacity: 0; } }
+
+  .odo { perspective: 20vmin; }
+  .odo i:nth-child(5), .odo i:nth-child(6) { animation: flip 6s cubic-bezier(.5,0,.3,1) infinite; }
+  .odo i:nth-child(5) { animation-delay: -.2s; }
+  @keyframes flip { 0%, 63%, 71%, 100% { transform: rotateX(0deg); } 67% { transform: rotateX(-180deg); } 70.99% { transform: rotateX(-360deg); } }
+
+  p b { background: linear-gradient(var(--yel), var(--yel)) 0 0 / 100% 100% no-repeat; animation: mark 6s cubic-bezier(.6,0,.2,1) infinite; }
+  @keyframes mark { 0%, 78%, 100% { background-size: 100% 100%; } 80% { background-size: 0% 100%; background-position: 100% 0; } 80.01% { background-size: 0% 100%; background-position: 0 0; } 86% { background-size: 100% 100%; background-position: 0 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="tape"><div><span class="trk"><span class="g"><span>UNDER CONSTRUCTION</span><span>✦</span><span>NEW STORE OPENING FRIDAY</span><span>✦</span></span><span class="g"><span>UNDER CONSTRUCTION</span><span>✦</span><span>NEW STORE OPENING FRIDAY</span><span>✦</span></span><span class="g"><span>UNDER CONSTRUCTION</span><span>✦</span><span>NEW STORE OPENING FRIDAY</span><span>✦</span></span></span></div></div>
+  <div class="page">
+    <div class="meta"><a>studio-oro.shop/new</a><span>last updated 25.09 · best viewed at 800×600</span></div>
+    <div class="hl">
+      <h1>Opening<br><b>Friday.</b></h1>
+      <div class="burst"><b>New!<small>STORE</small></b></div>
+    </div>
+    <p>The new Studio Oro store goes live Friday at 10:00. Early visitors take 20% off launch day with <b>SOON20</b>.</p>
+    <div class="count"><span>You are<br>visitor no.</span><div class="odo"><i>0</i><i>0</i><i>4</i><i>8</i><i>1</i><i>2</i></div></div>
+    <div class="ring"><a>« prev</a><em>✦ The Fashion Ring ✦</em><a class="rnd">random</a><a>next »</a></div>
+  </div>
+</div>
+</body>
+</html>

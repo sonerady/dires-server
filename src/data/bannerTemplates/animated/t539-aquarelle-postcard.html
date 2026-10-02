@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Homemade+Apple&family=Figtree:wght@400;500;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Aquarelle Postcard — a holiday postcard lying on a sky-and-sand watercolour wash: the photo is the
+     picture side, the other half is the message side with a handwritten note, a perforated stamp cut from
+     the photo, a wavy postmark and ruled address lines.
+     tall → picture on top, message below · square / wide → picture left, message right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EAF0F0; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #2C3440; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #E4EEF2 0%, #EFF1EC 55%, #F3EBDD 100%); }
+  .defs { position: absolute; width: 0; height: 0; }
+  .wash { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+
+  .card { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; bottom: 6vmin; background: #FBF8F1; transform: rotate(-1.2deg);
+    box-shadow: 0 .6vmin 1.4vmin rgba(40,60,80,.16), 0 2.4vmin 5vmin rgba(40,60,80,.14); }
+  .pic { position: absolute; left: 3vmin; right: 3vmin; top: 3vmin; bottom: 50vmin; }
+  .pic img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+  .back { position: absolute; left: 4.4vmin; right: 4.4vmin; bottom: 4vmin; height: 43vmin; display: grid; grid-template-columns: 1fr 1px 30vmin; column-gap: 3.4vmin; }
+  .rule { grid-column: 2; background: rgba(44,52,64,.3); }
+  .msg { grid-column: 1; }
+  .side { grid-column: 3; }
+
+  .msg { display: flex; flex-direction: column; min-width: 0; }
+  .hello { font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #5F7E96; white-space: nowrap; }
+  h1 { margin: .8vmin 0 0; font-family: "Yeseva One", Georgia, serif; font-weight: 400; font-size: 7.4vmin; line-height: .98; letter-spacing: -.01em; color: #1F4E6E; }
+  .note { margin-top: 2.2vmin; font-family: "Homemade Apple", cursive; font-size: 2vmin; line-height: 1.75; color: #36404C; }
+  .offer { margin-top: auto; display: flex; align-items: center; gap: 2vmin; flex-wrap: wrap; }
+  .code { padding: 1.4vmin 2.4vmin; background: #1F4E6E; color: #F6F1E6; font-size: 1.8vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .fine { font-size: 1.6vmin; color: #6D7682; white-space: nowrap; }
+
+  .side { position: relative; display: flex; flex-direction: column; min-width: 0; }
+  .stamp { position: relative; align-self: flex-end; width: 13vmin; height: 15.6vmin; margin-right: .6vmin; }
+  .stamp::before { content: ""; position: absolute; inset: 0; background: #FFFDF8; box-shadow: 0 .2vmin .5vmin rgba(0,0,0,.1);
+    -webkit-mask: radial-gradient(circle at 50% 50%, transparent .52vmin, #000 .58vmin) -.65vmin -.65vmin / 1.3vmin 1.3vmin;
+            mask: radial-gradient(circle at 50% 50%, transparent .52vmin, #000 .58vmin) -.65vmin -.65vmin / 1.3vmin 1.3vmin; }
+  .stamp img { position: absolute; left: 1.3vmin; top: 1.3vmin; width: calc(100% - 2.6vmin); height: calc(100% - 5vmin); object-fit: cover; object-position: 50% 30%; display: block; }
+  .stamp b { position: absolute; left: 0; right: 0; bottom: .9vmin; text-align: center; font-family: "Yeseva One", Georgia, serif; font-weight: 400; font-size: 1.9vmin; color: #B0452F; }
+  .pmark { position: absolute; right: 15vmin; top: 3.4vmin; width: 11vmin; height: 11vmin; border-radius: 50%; border: .3vmin solid rgba(60,70,90,.55); box-sizing: border-box;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .4vmin; transform: rotate(-12deg);
+    font-size: 1.6vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: rgba(60,70,90,.75); text-align: center; line-height: 1.1; }
+  .waves { position: absolute; right: 22vmin; top: 5.4vmin; width: 8vmin; height: 6vmin; overflow: visible; }
+  .addr { margin-top: auto; display: flex; flex-direction: column; gap: 2vmin; font-family: "Homemade Apple", cursive; font-size: 1.8vmin; color: #36404C; }
+  .addr span { display: block; border-bottom: 1px solid rgba(44,52,64,.35); padding: 0 0 .6vmin .4vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .pic { bottom: 46vmin; }
+    .back { height: 39vmin; bottom: 3.6vmin; grid-template-columns: 1fr 1px 28vmin; }
+    h1 { font-size: 6.6vmin; }
+    .note { font-size: 1.8vmin; margin-top: 1.6vmin; }
+  }
+  /* ── square-ish: picture left, message right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .card { left: 5vmin; right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    .pic { right: auto; width: 44vmin; bottom: 3vmin; }
+    .back { left: 51vmin; right: 3.6vmin; top: 4vmin; bottom: 4vmin; height: auto; grid-template-columns: 1fr; grid-template-rows: auto 1fr; row-gap: 2.4vmin; }
+    .rule { display: none; }
+    .msg { grid-row: 2; grid-column: 1; }
+    .side { grid-row: 1; grid-column: 1; flex-direction: row; justify-content: space-between; align-items: flex-start; height: 16vmin; }
+    .stamp { order: 2; align-self: flex-start; width: 11.4vmin; height: 13.6vmin; }
+    .stamp img { height: calc(100% - 4.6vmin); }
+    .pmark { right: 13vmin; top: 1.6vmin; width: 10vmin; height: 10vmin; }
+    .waves { right: 21vmin; top: 3.6vmin; width: 10vmin; }
+    .addr { order: 1; margin-top: auto; width: 13vmin; gap: 1.4vmin; font-size: 1.6vmin; display: none; }
+    h1 { font-size: 5.2vmin; }
+    .note { font-size: 1.6vmin; line-height: 1.8; margin-top: 1.4vmin; }
+    .offer { flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .card { left: 6vmin; right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .pic { width: 64vmin; }
+    .back { left: 72vmin; right: 4.4vmin; top: 4.4vmin; bottom: 4.4vmin; grid-template-columns: 1fr 1px 25vmin; grid-template-rows: 1fr; column-gap: 3vmin; }
+    .rule { display: block; }
+    .msg { grid-row: 1; grid-column: 1; }
+    .side { grid-row: 1; grid-column: 3; flex-direction: column; justify-content: flex-start; height: auto; }
+    .stamp { order: 0; align-self: flex-end; }
+    .pmark { right: 14vmin; top: 3vmin; width: 10vmin; height: 10vmin; }
+    .waves { right: 12vmin; top: 12vmin; width: 12vmin; }
+    .addr { display: flex; width: auto; gap: 2vmin; font-size: 1.7vmin; }
+    h1 { font-size: 6.2vmin; }
+    .note { font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion (6s loop) — slow, holiday-calm ─────────
+     constant: the watercolour wash drifts & swells, the postcard floats on a gentle breath (tilt −1.2° ↔ −.7°)
+     beats: 1.5s the postmark lifts off and is struck back down (thunk), then the wave cancel lines are re-inked left→right ·
+            3.9s a light sheen slides across the code chip · 4.8s the stamp's corner lifts in a breeze */
+  .wash { transform-origin: 50% 50%; animation: drift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes drift { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-1.5%, 1%) scale(1.05); } }
+
+  .card { animation: float 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes float { 0%, 100% { transform: rotate(-1.2deg) translateY(0); } 50% { transform: rotate(-.7deg) translateY(-.6vmin); } }
+
+  .pmark { animation: strike 6s cubic-bezier(.25,.8,.3,1) infinite; }
+  @keyframes strike {
+    0%, 22%, 36%, 100% { transform: rotate(-12deg) scale(1); opacity: 1; }
+    27% { transform: rotate(-18deg) scale(1.35); opacity: 0; }
+    31% { transform: rotate(-12deg) scale(.94); opacity: 1; }
+  }
+  .waves { animation: reink 6s cubic-bezier(.55,0,.35,1) infinite; }
+  @keyframes reink {
+    0%, 22% { clip-path: inset(-20% -20% -20% -20%); opacity: 1; }
+    26% { clip-path: inset(-20% -20% -20% -20%); opacity: 0; }
+    26.01%, 31% { clip-path: inset(-20% 100% -20% -20%); opacity: 1; }
+    45%, 100% { clip-path: inset(-20% -20% -20% -20%); opacity: 1; }
+  }
+
+  .code { position: relative; overflow: hidden; }
+  .code::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 60%; pointer-events: none;
+    background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,.32) 50%, transparent 100%);
+    transform: translateX(-120%); animation: sheen 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 64% { transform: translateX(-120%); } 78%, 100% { transform: translateX(260%); } }
+
+  .stamp { transform-origin: 0% 100%; animation: breeze 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breeze { 0%, 78%, 96%, 100% { transform: none; } 84% { transform: rotate(3deg) translateY(-.5vmin); } 90% { transform: rotate(-1deg); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="defs" aria-hidden="true"><defs>
+    <filter id="wc" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="4" seed="31" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="40" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feMorphology in="shape" operator="erode" radius="2.4" result="inner"/>
+      <feComposite in="shape" in2="inner" operator="out" result="edge"/>
+      <feGaussianBlur in="edge" stdDeviation="1" result="edgeSoft"/>
+      <feComponentTransfer in="edgeSoft" result="rim"><feFuncA type="linear" slope=".45"/></feComponentTransfer>
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="8" result="g"/>
+      <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .8 0 0 0 -.14" result="ga"/>
+      <feComposite in="shape" in2="ga" operator="in" result="fill"/>
+      <feMerge><feMergeNode in="fill"/><feMergeNode in="rim"/></feMerge>
+    </filter>
+  </defs></svg>
+
+  <svg class="wash" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <g filter="url(#wc)">
+      <ellipse cx="90" cy="50" rx="150" ry="80" fill="#6FA6CC"/><ellipse cx="330" cy="90" rx="110" ry="70" fill="#86B8D6"/>
+      <ellipse cx="300" cy="360" rx="150" ry="70" fill="#E3B783"/><ellipse cx="60" cy="330" rx="90" ry="50" fill="#9BC3B7"/>
+    </g>
+  </svg>
+
+  <div class="card">
+    <div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="back">
+      <div class="msg">
+        <div class="hello">Greetings from</div>
+        <h1>The Summer Edit</h1>
+        <div class="note">Wish you were here — the new season just landed, and it's 20% off until Sunday. x</div>
+        <div class="offer"><div class="code">Code POSTCARD →</div><div class="fine">Ships free, worldwide</div></div>
+      </div>
+      <i class="rule"></i>
+      <div class="side">
+        <div class="stamp"><img src="{{PRODUCT_IMAGE}}" alt=""><b>−20%</b></div>
+        <svg class="waves" viewBox="0 0 140 60" preserveAspectRatio="none" aria-hidden="true" fill="none" stroke="rgba(60,70,90,.5)" stroke-width="2.4">
+          <path d="M0,10 q10,-8 20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0"/><path d="M0,30 q10,-8 20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0"/><path d="M0,50 q10,-8 20,0 t20,0 t20,0 t20,0 t20,0 t20,0 t20,0"/>
+        </svg>
+        <div class="pmark"><span>Summer<br>· 27 ·</span></div>
+        <div class="addr"><span>To: you</span><span>Your wardrobe</span><span>Anywhere sunny</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

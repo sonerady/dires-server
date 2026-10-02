@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+  /* Placard Parade — the launch as a joyful street march: three hand-lettered placards on timber sticks rise
+     into the frame — a white board "Room for every body", a kraft one "XS → 4XL", a pink one with the offer —
+     under a black march banner with the date. Marker lettering, tape at the corners, sunny yellow street.
+     tall → photo above, placards rising below · square / wide → photo left, placards right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFD23F; }
+  .banner { --panel: max(80vmin, 50%); --px: 0%; position: fixed; inset: 0; overflow: hidden; background: #FFD23F; color: #16130F; font-family: "Archivo Black", "Arial Black", sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; display: block; }
+  .march { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel)); height: 7vmin; background: #16130F; color: #FFD23F; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding: 0 5vmin; box-sizing: border-box; font-size: 1.9vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; z-index: 4; }
+  .march i { font-style: normal; color: #FF8FB1; }
+
+  .pl { position: absolute; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: "Caveat Brush", "Marker Felt", cursive; line-height: .9; box-shadow: 0 1.2vmin 2.4vmin rgba(60,40,0,.28); }
+  .pl::after { content: ""; position: absolute; left: 50%; top: 100%; width: 2.6vmin; height: 120vmin; margin-left: -1.3vmin; z-index: -1;
+    background: linear-gradient(90deg, #8A5A2B, #C08A52 45%, #9C6934); box-shadow: .4vmin 0 .8vmin rgba(60,40,0,.25); }
+  .pl .tape { position: absolute; width: 9vmin; height: 3vmin; background: rgba(250,245,225,.72); box-shadow: 0 .2vmin .4vmin rgba(0,0,0,.08); }
+  .main { left: 13vmin; right: 13vmin; top: calc(100% - var(--panel) + 30vmin); height: 34vmin; background: #FBF8F0; transform: rotate(-2.4deg); z-index: 3; padding: 2vmin 3vmin; }
+  .main .tape { left: -2.4vmin; top: -.8vmin; transform: rotate(-32deg); }
+  .main p { margin: 0; font-size: 7.4vmin; color: #16130F; }
+  .main p b { display: block; font-weight: 400; font-size: 13.6vmin; line-height: .82; color: #E2362B; }
+  .main p b span { background: linear-gradient(transparent 78%, #16130F 78% 86%, transparent 86%); }
+  .main small { margin-top: 2.6vmin; font-family: "Archivo Black", sans-serif; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; }
+  .kraft { left: 4vmin; top: calc(100% - var(--panel) + 12vmin); width: 34vmin; height: 20vmin; transform: rotate(-11deg); z-index: 2;
+    background: #C99A63 repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 .5vmin, transparent .5vmin 1.2vmin); color: #16130F; font-size: 9vmin; }
+  .kraft small { font-family: "Archivo Black", sans-serif; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; margin-top: .6vmin; }
+  .pink { right: 4vmin; top: calc(100% - var(--panel) + 12.5vmin); width: 32vmin; height: 20vmin; transform: rotate(9deg); z-index: 1; background: #FF8FB1; color: #16130F; font-size: 10vmin; }
+  .pink small { font-family: "Archivo Black", sans-serif; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; margin-top: .4vmin; }
+  .pink .tape { right: -2vmin; top: -.6vmin; transform: rotate(30deg); }
+
+  .foot { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.6vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; z-index: 5; }
+  .foot p { margin: 0; background: #FFD23F; padding: .6vmin 1vmin .6vmin 0; font-size: 2vmin; line-height: 1.35; text-transform: uppercase; letter-spacing: .04em; }
+  .cta { flex: none; background: #16130F; color: #FFD23F; padding: 2vmin 3vmin; font-size: 2.3vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; transform: rotate(-2deg); }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 74vmin; }
+    .main { left: 18vmin; right: 18vmin; top: calc(100% - var(--panel) + 27vmin); height: 29vmin; }
+    .main p { font-size: 6.4vmin; }
+    .main p b { font-size: 11.6vmin; }
+    .kraft { top: calc(100% - var(--panel) + 10.5vmin); width: 30vmin; height: 18vmin; font-size: 8vmin; }
+    .pink { top: calc(100% - var(--panel) + 11vmin); width: 28vmin; height: 18vmin; font-size: 8.6vmin; }
+  }
+  /* square → photo left, the march on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; }
+    .march { left: 48%; top: 0; height: 7vmin; padding: 0 3vmin; font-size: 1.7vmin; }
+    .march span:last-child { display: none; }
+    .main { left: calc(48% + 5vmin); right: 5vmin; top: 33vmin; height: 34vmin; }
+    .main p { font-size: 5.6vmin; }
+    .main p b { font-size: 10.4vmin; }
+    .kraft { left: calc(48% + 1vmin); top: 13vmin; width: 26vmin; height: 16vmin; font-size: 7vmin; }
+    .pink { right: 2vmin; top: 13.5vmin; width: 24vmin; height: 16vmin; font-size: 7.6vmin; }
+    .foot { left: calc(48% + 3vmin); right: 3vmin; bottom: 3.6vmin; }
+    .foot p { font-size: 1.7vmin; }
+    .cta { font-size: 2vmin; padding: 1.7vmin 2.4vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 28%; }
+    .march { left: 44%; padding: 0 4vmin; font-size: 1.9vmin; }
+    .march span:last-child { display: inline; }
+    .main { left: calc(44% + 14vmin); right: 14vmin; top: 31vmin; height: 38vmin; }
+    .main p { font-size: 6.6vmin; }
+    .main p b { font-size: 12.4vmin; }
+    .kraft { left: calc(44% + 3vmin); top: 14vmin; width: 30vmin; height: 18vmin; font-size: 8vmin; }
+    .pink { right: 3vmin; top: 14.5vmin; width: 28vmin; height: 18vmin; font-size: 8.6vmin; }
+    .foot { left: calc(44% + 5vmin); right: 5vmin; bottom: 4.6vmin; }
+    .foot p { font-size: 1.9vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static march) ─────────
+     constant: the three placards bob on their sticks in a marching step (1.5s beat, each sign on its own
+     count: kraft on 1, main on 2, pink on 3) · 3.75s the main placard is hoisted high with a cheer-tilt ·
+     4.3s the marker underline under "every" is re-drawn · the ✦ in the march banner turns slowly ·
+     5.2s the CTA gives a little wave */
+  .kraft { animation: bobK 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  .pink  { animation: bobP 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  .main  { animation: bobM 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bobK { 0%, 50%, 100% { transform: rotate(-11deg) translateY(0); } 25% { transform: rotate(-12.6deg) translateY(-1.3vmin); } }
+  @keyframes bobP { 0%, 50%, 100% { transform: rotate(9deg) translateY(0); } 75% { transform: rotate(9deg) translateY(-1.3vmin); } }
+  @keyframes bobM {
+    0%, 6.25%, 18.75%, 31.25%, 43.75%, 56.25%, 81.25%, 93.75%, 100% { transform: rotate(-2.4deg) translateY(0); }
+    12.5%, 37.5%, 87.5% { transform: rotate(-1.4deg) translateY(-1vmin); }
+    60% { transform: rotate(-4.4deg) translateY(-3.2vmin); }
+    66% { transform: rotate(-.4deg) translateY(-3.6vmin); }
+    71% { transform: rotate(-3.4deg) translateY(-2.6vmin); }
+    76% { transform: rotate(-2.4deg) translateY(0); }
+  }
+
+  .main p b span { background: linear-gradient(#16130F, #16130F) no-repeat 0 82% / 100% 8%; animation: under 6s cubic-bezier(.65,0,.35,1) infinite; }
+  @keyframes under { 0%, 69% { background-size: 100% 8%; background-position: 0 82%; } 70% { background-size: 0% 8%; background-position: 0 82%; } 80%, 100% { background-size: 100% 8%; background-position: 0 82%; } }
+
+  .march i { display: inline-block; animation: spin 6s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .cta { animation: wave 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes wave {
+    0%, 85% { transform: rotate(-2deg) translateY(0); }
+    88% { transform: rotate(-5deg) translateY(-.6vmin); }
+    91.5% { transform: rotate(1.4deg) translateY(-.6vmin); }
+    95% { transform: rotate(-3deg) translateY(0); }
+    98%, 100% { transform: rotate(-2deg) translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="march"><span>The Every Body March <i>✦</i></span><span>Sat 14.09 · New collection</span></div>
+  <div class="pl pink"><i class="tape"></i>−20%<small>This week only</small></div>
+  <div class="pl kraft">XS → 4XL<small>All sizes, all in</small></div>
+  <div class="pl main"><i class="tape"></i><p>Room for<b><span>every</span> body</b></p><small>New collection</small></div>
+  <div class="foot"><p>In stores<br>&amp; online</p><span class="cta">Join the march</span></div>
+</div>
+</body>
+</html>

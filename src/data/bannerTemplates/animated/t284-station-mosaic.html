@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Station Mosaic — an old platform wall: cream brick-bond tiles, the look pasted up like a poster, a ceramic mosaic
+     name tablet ("DROP ST") with a checker border and tessellated letters, a round mosaic cartouche for the offer
+     and a small enamel exit plate.
+     tall → poster above, tablet + cartouche below · square & wide → poster left, tablet column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE6D8; }
+  .banner { --tile: #ECE6D8; --gr: rgba(120,108,88,.42); --tc: #B4533A; --oc: #D8A443; --sea: #1F4E57; --cr: #F4EEDF; --ink: #1B1B1B;
+    position: fixed; inset: 0; overflow: hidden; background: var(--tile); color: var(--ink); font-family: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; }
+  /* brick-bond tile wall */
+  .wall, .wall::before, .wall::after { position: absolute; inset: 0; }
+  .wall { background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 45%, rgba(90,70,40,.05)) 0 0 / 6vmin 3vmin,
+    linear-gradient(180deg, var(--gr) 0 1px, transparent 1px) 0 0 / 100% 3vmin; }
+  .wall::before { content: ""; background: linear-gradient(90deg, var(--gr) 0 1px, transparent 1px) 0 0 / 6vmin 100%;
+    -webkit-mask: linear-gradient(180deg, #000 50%, transparent 50%) 0 0 / 100% 6vmin; mask: linear-gradient(180deg, #000 50%, transparent 50%) 0 0 / 100% 6vmin; }
+  .wall::after { content: ""; background: linear-gradient(90deg, var(--gr) 0 1px, transparent 1px) 3vmin 0 / 6vmin 100%;
+    -webkit-mask: linear-gradient(180deg, transparent 50%, #000 50%) 0 0 / 100% 6vmin; mask: linear-gradient(180deg, transparent 50%, #000 50%) 0 0 / 100% 6vmin; }
+
+  .photo { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; height: calc(100% - 6vmin - 66vmin); box-shadow: 0 .5vmin 1.4vmin rgba(40,30,20,.22); }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .tablet { position: absolute; left: 6vmin; right: 6vmin; bottom: 30vmin; height: 27vmin; box-sizing: border-box; padding: 3vmin;
+    background: repeating-conic-gradient(var(--tc) 0 25%, var(--oc) 0 50%) 0 0 / 3vmin 3vmin; box-shadow: 0 .4vmin 1vmin rgba(40,30,20,.18); }
+  .field { position: relative; height: 100%; background: var(--sea); display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: inset 0 0 0 .9vmin var(--cr), inset 0 0 0 1.2vmin var(--sea); }
+  .name { font-family: "Alfa Slab One", Rockwell, Georgia, serif; font-size: 13vmin; line-height: 1; letter-spacing: .04em; white-space: nowrap;
+    color: var(--cr); background: linear-gradient(90deg, rgba(31,78,87,.55) 0 1px, transparent 1px) 0 0 / 1.3vmin 100%, linear-gradient(180deg, rgba(31,78,87,.55) 0 1px, transparent 1px) 0 0 / 100% 1.3vmin, var(--cr);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .sub { margin-top: .6vmin; font-weight: 600; font-size: 2.4vmin; letter-spacing: .26em; text-transform: uppercase; color: var(--oc); white-space: nowrap; }
+
+  .low { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; height: 20vmin; display: flex; align-items: center; gap: 4vmin; }
+  .cart { flex: none; width: 20vmin; height: 20vmin; border-radius: 50%; box-sizing: border-box; padding: 1.8vmin;
+    background: repeating-conic-gradient(var(--sea) 0 25%, var(--cr) 0 50%) 50% 50% / 2.4vmin 2.4vmin; box-shadow: 0 .4vmin 1vmin rgba(40,30,20,.2); }
+  .cart div { width: 100%; height: 100%; border-radius: 50%; background: var(--tc); color: var(--cr); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 0 .6vmin var(--oc); }
+  .cart b { font-family: "Alfa Slab One", Georgia, serif; font-weight: 400; font-size: 6.2vmin; line-height: .9; }
+  .cart span { font-weight: 700; font-size: 2vmin; letter-spacing: .2em; text-transform: uppercase; }
+  .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1.8vmin; align-items: flex-start; }
+  .plate { background: #8E1F1B; color: #F6EFE2; padding: 1vmin 2vmin; font-weight: 700; font-size: 2.8vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; box-shadow: inset 0 0 0 .35vmin #F6EFE2, inset 0 0 0 .6vmin #8E1F1B; border-radius: .6vmin; }
+  .copy { font-weight: 500; font-size: 2.8vmin; line-height: 1.25; letter-spacing: .01em; }
+  .copy b { font-weight: 700; letter-spacing: .08em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { left: 15vmin; right: 15vmin; height: calc(100% - 6vmin - 60vmin); }
+    .tablet { left: 15vmin; right: 15vmin; bottom: 27vmin; height: 24vmin; }
+    .name { font-size: 11.4vmin; }
+    .low { left: 15vmin; right: 15vmin; height: 17vmin; bottom: 5vmin; }
+    .cart { width: 17vmin; height: 17vmin; }
+    .cart b { font-size: 5.2vmin; }
+  }
+  /* square & wide: poster left, tablet column right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 6vmin; right: auto; top: 6vmin; bottom: 6vmin; width: 46%; height: calc(100% - 12vmin); }
+    .tablet { left: calc(46% + 12vmin); right: 6vmin; top: 6vmin; bottom: auto; height: 40vmin; }
+    .field { padding: 0 2vmin; }
+    .name { font-size: 8.8vmin; white-space: normal; text-align: center; line-height: 1.05; }
+    .sub { font-size: 2vmin; letter-spacing: .2em; margin-top: 1.2vmin; }
+    .low { left: calc(46% + 12vmin); right: 6vmin; top: 52vmin; bottom: 6vmin; height: auto; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .cart { width: 18vmin; height: 18vmin; }
+    .cart b { font-size: 5.6vmin; }
+    .txt { gap: 1.8vmin; }
+    .plate { font-size: 2.2vmin; padding: 1vmin 1.6vmin; }
+    .copy { font-size: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .tablet { left: calc(42% + 12vmin); height: 36vmin; }
+    .name { font-size: 11vmin; white-space: nowrap; }
+    .sub { font-size: 2.2vmin; letter-spacing: .24em; }
+    .low { left: calc(42% + 12vmin); top: 48vmin; flex-direction: row; align-items: center; gap: 4vmin; }
+    .cart { width: 22vmin; height: 22vmin; }
+    .cart b { font-size: 7vmin; }
+    .cart span { font-size: 2.2vmin; }
+    .plate { font-size: 2.6vmin; }
+    .copy { font-size: 2.8vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     platform ambience: a train's headlight wash slides along the tiled wall (under the grout, never over the poster) ·
+     a glaze glint crosses the mosaic tablet · the checker ring of the cartouche slowly turns (half a turn per loop) while the offer stays upright and punches ·
+     the exit arrow points up twice */
+  .photo img { transform-origin: 50% 30%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  .photo { overflow: hidden; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+
+  .banner::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 70%;
+    background: radial-gradient(50% 60% at 50% 50%, rgba(255,224,150,.95), rgba(255,224,150,.5) 45%, rgba(255,224,150,0) 100%);
+    transform: translateX(-110%); opacity: 1; animation: train 6s linear infinite; }
+  @keyframes train {
+    0%, 6% { transform: translateX(-110%); animation-timing-function: cubic-bezier(.55,.1,.45,.9); }
+    44%, 100% { transform: translateX(160%); }
+  }
+
+  .tablet { overflow: hidden; }
+  .tablet::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 26%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.1) 30%, rgba(255,255,255,.42) 50%, rgba(255,255,255,.1) 70%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-20deg); animation: glaze 6s linear infinite; }
+  @keyframes glaze {
+    0%, 42% { transform: translateX(-160%) skewX(-20deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    62%, 100% { transform: translateX(480%) skewX(-20deg); }
+  }
+
+  /* cartouche: tile ring turns 180° per loop (the checker is 180°-symmetric about its centre vertex), the offer stays upright and punches */
+  .cart { animation: turn 6s linear infinite; }
+  @keyframes turn { from { transform: rotate(0deg); } to { transform: rotate(180deg); } }
+  .cart div { animation: upright 6s linear infinite; }
+  @keyframes upright { from { transform: rotate(0deg); } to { transform: rotate(-180deg); } }
+  .cart b { display: block; animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 70% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.5); }
+    74% { transform: scale(1.18); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    80%, 100% { transform: scale(1); }
+  }
+
+  .plate .up { display: inline-block; animation: up 6s linear infinite; }
+  @keyframes up {
+    0%, 82% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    85% { transform: translateY(-.8vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    88% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    91% { transform: translateY(-.8vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    94%, 100% { transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="wall"></div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="tablet"><div class="field"><div class="name">DROP ST</div><div class="sub">New season · all lines</div></div></div>
+  <div class="low">
+    <div class="cart"><div><b>25%</b><span>off</span></div></div>
+    <div class="txt">
+      <div class="plate"><span class="up">↑</span> Exit to the sale</div>
+      <div class="copy">Local &amp; express this week.<br>Code <b>DROPST25</b> at checkout.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

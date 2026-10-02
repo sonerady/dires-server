@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Libre+Franklin:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Club Tie — the house repp stripe (navy, claret, one gold thread) is woven as a silk band along the seam,
+     with a tie-keeper label sewn onto it; the copy sits on club cream.
+     tall → photo above, stripe across, copy below; square/wide → copy left, stripe down the seam, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EDE2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F2EDE2; color: #16223B; font-family: "Libre Franklin", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 62vmin); object-fit: cover; object-position: 50% 20%; }
+
+  .band { position: absolute; left: 0; right: 0; top: calc(100% - 62vmin); height: 9vmin; overflow: hidden;
+    background:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.06) 0 .25vmin, transparent .25vmin .55vmin),
+      repeating-linear-gradient(-45deg, #16223B 0 4.6vmin, #C9A55C 4.6vmin 5.2vmin, #16223B 5.2vmin 6vmin, #7A2331 6vmin 9.2vmin, #16223B 9.2vmin 10vmin, #C9A55C 10vmin 10.6vmin, #16223B 10.6vmin 11.4vmin);
+    box-shadow: inset 0 .5vmin .9vmin rgba(0,0,0,.28), inset 0 -.4vmin .7vmin rgba(0,0,0,.22); }
+  .keeper { position: absolute; right: 7vmin; top: 50%; transform: translateY(-50%); padding: 1.3vmin 2.4vmin 1.3vmin 2.8vmin; background: #F2EDE2; white-space: nowrap;
+    font-size: 1.7vmin; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: #16223B; box-shadow: 0 .4vmin 1vmin rgba(0,0,0,.35); }
+  .keeper::before { content: ""; position: absolute; inset: .6vmin; border: 1px dashed rgba(22,34,59,.45); }
+
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: calc(100% - 49vmin); bottom: 6vmin; display: flex; flex-direction: column; }
+  .k { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 500; letter-spacing: .28em; text-transform: uppercase; color: #6B6455; }
+  h1 { margin: 2.6vmin 0 0; font-family: "Libre Caslon Text", "Caslon", Georgia, serif; font-weight: 400; font-size: 12vmin; line-height: .98; letter-spacing: -.02em; }
+  h1 i { color: #7A2331; }
+  .lede { margin-top: 2.4vmin; font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-size: 2.9vmin; line-height: 1.35; color: #3A4254; }
+  .foot { margin-top: auto; padding-top: 2.4vmin; border-top: 1px solid rgba(22,34,59,.35); display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; white-space: nowrap; }
+  .offer { font-size: 2.1vmin; font-weight: 500; letter-spacing: .06em; }
+  .offer b { font-weight: 600; color: #7A2331; letter-spacing: .12em; }
+  .cta { font-size: 2vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; border-bottom: .3vmin solid #16223B; padding-bottom: .5vmin; }
+
+  /* shorter portrait (3:4, 4:5) */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 55vmin); }
+    .band { top: calc(100% - 55vmin); height: 8vmin; }
+    .copy { top: calc(100% - 43.6vmin); bottom: 5vmin; }
+    h1 { margin-top: 2.6vmin; font-size: 10.4vmin; }
+    .lede { margin-top: 1.8vmin; font-size: 2.6vmin; }
+  }
+  /* square: copy left, the stripe runs down the seam, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .band { left: calc(50% - 8vmin); right: auto; top: 0; bottom: 0; width: 8vmin; height: auto; }
+    .keeper { right: auto; left: 50%; top: auto; bottom: 16vmin; transform: translateX(-50%) rotate(-90deg); transform-origin: 50% 50%; }
+    .copy { left: 6vmin; right: calc(50% + 13vmin); top: 7vmin; bottom: 7vmin; }
+    .k { flex-direction: column; gap: 1vmin; font-size: 1.7vmin; }
+    h1 { margin-top: 6vmin; font-size: 9vmin; }
+    .lede { margin-top: 3vmin; font-size: 2.5vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+    .offer { font-size: 1.9vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 40% 25%; }
+    .band { left: calc(52% - 9vmin); width: 9vmin; }
+    .copy { left: 8vmin; right: calc(48% + 17vmin); top: 8vmin; bottom: 8vmin; }
+    .k { flex-direction: row; font-size: 1.8vmin; }
+    h1 { margin-top: 7vmin; font-size: 11.6vmin; }
+    .lede { margin-top: 3vmin; font-size: 2.8vmin; }
+    .foot { flex-direction: row; align-items: baseline; }
+    .offer { font-size: 2.1vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="band"><div class="keeper">House stripe Nº 7</div></div>
+  <div class="copy">
+    <div class="k"><span>Atelier Nord</span><span>The Club Room</span></div>
+    <h1>Club<br><i>colours.</i></h1>
+    <div class="lede">The autumn collection, cut in the house stripe.</div>
+    <div class="foot">
+      <div class="offer">Members save 20% · <b>CLUB20</b></div>
+      <div class="cta">Shop the edit</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

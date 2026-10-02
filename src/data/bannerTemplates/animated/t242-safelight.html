@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Safelight — a drop announced from inside the darkroom: a lit "In use" door sign, the red safelight glow,
+     the three baths (dev / stop / fix) as a timing strip, and the colour print surfacing in the dark.
+     tall → sign, print, copy stacked · square & wide → print left, sign + copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0B0706; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #EC4630; font-family: "DM Mono", Menlo, monospace;
+    background:
+      radial-gradient(ellipse 90vmin 70vmin at 50% 0%, rgba(214,40,24,.34), rgba(214,40,24,.335) 7%, rgba(214,40,24,.32) 14%, rgba(214,40,24,.297) 21%, rgba(214,40,24,.267) 29%, rgba(214,40,24,.23) 36%, rgba(214,40,24,.19) 43%, rgba(214,40,24,.15) 50%, rgba(214,40,24,.11) 57%, rgba(214,40,24,.073) 64%, rgba(214,40,24,.043) 71%, rgba(214,40,24,.019) 79%, rgba(214,40,24,.005) 86%, rgba(214,40,24,0) 93%),
+      #0B0706; }
+  .sheet { position: absolute; inset: 0; box-sizing: border-box; padding: 5vmin 6vmin 6vmin; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "sign" "photo" "copy"; }
+
+  /* the lit door sign */
+  .sign { grid-area: sign; justify-self: center; display: flex; align-items: center; gap: 2vmin; background: #D42A1B; color: #1C0503; padding: 1.3vmin 3vmin 1.2vmin; box-shadow: 0 0 5vmin rgba(236,60,36,.55), 0 0 1.2vmin rgba(255,110,80,.6); font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 900; font-size: 3.8vmin; line-height: 1; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .sign i { display: block; width: 1.3vmin; height: 1.3vmin; border-radius: 50%; background: #1C0503; }
+
+  .photo { grid-area: photo; position: relative; min-height: 0; margin: 4.4vmin 0 0; box-shadow: 0 0 7vmin rgba(214,40,24,.32); }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .photo .fr { position: absolute; left: 0; right: 0; top: calc(100% + 1.2vmin); display: flex; justify-content: space-between; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; color: #A2574B; }
+
+  .copy { grid-area: copy; padding-top: 7vmin; }
+  h1 { margin: 0; font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 800; font-size: 15vmin; line-height: .84; letter-spacing: -.005em; text-transform: uppercase; color: #F04A32; text-shadow: 0 0 3vmin rgba(240,74,50,.35); }
+  .sub { margin: 2.2vmin 0 0; font-size: 2.1vmin; line-height: 1.5; color: #D9A79C; }
+  .sub b { color: #F04A32; font-weight: 500; }
+  .baths { margin-top: 3vmin; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid #5C2119; border-bottom: 1px solid #5C2119; }
+  .baths div { padding: 1.3vmin 0; font-size: 1.6vmin; letter-spacing: .12em; text-transform: uppercase; color: #A2574B; }
+  .baths div + div { padding-left: 2vmin; border-left: 1px solid #5C2119; }
+  .baths b { display: block; margin-top: .4vmin; font-weight: 500; font-size: 2.2vmin; letter-spacing: .06em; color: #EC4630; }
+  .act { margin-top: 3.4vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .cta { border: 1px solid #EC4630; padding: 1.4vmin 2.4vmin; font-size: 1.9vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .off { font-family: "Big Shoulders Display", Impact, sans-serif; font-weight: 800; font-size: 5.4vmin; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+  .off small { font-family: "DM Mono", Menlo, monospace; font-weight: 400; font-size: 1.6vmin; letter-spacing: .12em; color: #A2574B; margin-left: 1vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .sheet { grid-template-columns: 52% minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "photo sign" "photo copy"; column-gap: 5vmin; padding: 5.4vmin; }
+    .sign { justify-self: start; font-size: 3vmin; padding: 1.1vmin 2.4vmin 1vmin; }
+    .photo { margin: 0; }
+    .photo .fr { display: none; }
+    .copy { align-self: end; padding-top: 0; }
+    h1 { font-size: 10.4vmin; }
+    .sub { font-size: 1.8vmin; }
+    .baths div { font-size: 1.6vmin; }
+    .baths b { font-size: 1.9vmin; }
+    .act { flex-direction: column; align-items: flex-start; }
+    .off { font-size: 4.6vmin; }
+    .cta { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .sheet { grid-template-columns: 48% minmax(0, 1fr); padding: 5vmin; }
+    h1 { font-size: 9.6vmin; }
+    .sub { margin-top: 1.6vmin; }
+    .baths { margin-top: 2.4vmin; }
+    .baths div { padding: 1vmin 0; }
+    .act { margin-top: 2.6vmin; gap: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .sheet { grid-template-columns: 42% minmax(0, 1fr); column-gap: 6vmin; padding: 5.4vmin 6vmin; }
+    .banner { background:
+      radial-gradient(ellipse 110vmin 80vmin at 72% 0%, rgba(214,40,24,.34), rgba(214,40,24,.335) 7%, rgba(214,40,24,.32) 14%, rgba(214,40,24,.297) 21%, rgba(214,40,24,.267) 29%, rgba(214,40,24,.23) 36%, rgba(214,40,24,.19) 43%, rgba(214,40,24,.15) 50%, rgba(214,40,24,.11) 57%, rgba(214,40,24,.073) 64%, rgba(214,40,24,.043) 71%, rgba(214,40,24,.019) 79%, rgba(214,40,24,.005) 86%, rgba(214,40,24,0) 93%), #0B0706; }
+    .sign { font-size: 3.4vmin; }
+    h1 { font-size: 12vmin; }
+    .sub { font-size: 2vmin; }
+    .act { flex-direction: row; align-items: center; }
+    .off { font-size: 5vmin; }
+    .cta { font-size: 1.8vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the red safelight breathes (3s). beats: 1.4s the "In use" sign buzzes and flickers ·
+     2.0s the print sinks back into the dark tray and surfaces again (developing) while a red timing bar runs
+     Dev → Stop → Fix under the baths · 5.1s the CTA arrow nudges. */
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 90vmin 70vmin at 50% 0%, rgba(230,50,30,.22), rgba(230,50,30,0) 70%);
+    opacity: 0; animation: breathe 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+  .sign { animation: buzz 6s linear infinite; }
+  @keyframes buzz {
+    0%, 23%, 24.2%, 25%, 26.6%, 100% { filter: brightness(1); opacity: 1; }
+    23.3%, 23.9% { filter: brightness(.45); opacity: .7; }
+    25.3%, 26.2% { filter: brightness(.55); opacity: .8; }
+  }
+  .photo img { animation: develop 6s linear infinite; }
+  @keyframes develop {
+    0%, 32% { filter: brightness(1) sepia(0) saturate(1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    38% { filter: brightness(.3) sepia(1) saturate(2.4); animation-timing-function: cubic-bezier(.35,0,.3,1); }
+    70%, 100% { filter: brightness(1) sepia(0) saturate(1); }
+  }
+  .baths { position: relative; }
+  .baths .run { position: absolute; left: 0; right: 0; bottom: -1px; height: .35vmin; background: #EC4630; box-shadow: 0 0 1vmin rgba(236,70,48,.8);
+    opacity: 0; clip-path: inset(0 100% 0 0); animation: timer 6s linear infinite; }
+  @keyframes timer {
+    0%, 34% { opacity: 0; clip-path: inset(0 100% 0 0); }
+    35% { opacity: 1; clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    70% { opacity: 1; clip-path: inset(0 0 0 0); }
+    76%, 100% { opacity: 0; clip-path: inset(0 0 0 0); }
+  }
+  .baths b { animation: bath 6s linear infinite; }
+  .baths div:nth-child(3) b { animation-delay: -5.3s; }
+  .baths div:nth-child(4) b { animation-delay: -4.6s; }
+  @keyframes bath {
+    0%, 42% { color: #EC4630; text-shadow: 0 0 0 rgba(255,120,90,0); }
+    45% { color: #FF8C74; text-shadow: 0 0 1.4vmin rgba(255,120,90,.8); }
+    52%, 100% { color: #EC4630; text-shadow: 0 0 0 rgba(255,120,90,0); }
+  }
+  .cta .ar { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 85% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    88% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    91% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    94% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    97%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sheet">
+    <div class="sign"><i></i>Darkroom · In use<i></i></div>
+    <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="fr"><span>Print 01 / AW26</span><span>Do not open the door</span></div></div>
+    <div class="copy">
+      <h1>Now<br>developing.</h1>
+      <p class="sub">The new collection is surfacing.<br><b>Doors open 03.10 — 09:00.</b></p>
+      <div class="baths"><span class="run"></span><div>Dev<b>Preview</b></div><div>Stop<b>03 Oct</b></div><div>Fix<b>Yours</b></div></div>
+      <div class="act"><div class="off">−15%<small>for the list</small></div><div class="cta">Join the list <span class="ar">→</span></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

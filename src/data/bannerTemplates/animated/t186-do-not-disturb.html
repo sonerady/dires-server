@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400;1,500&family=Josefin+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Do Not Disturb — a blush die-cut door hanger on a brass lever, on a lacquered teal hotel door: italic "Do not disturb",
+     the sale in session, the code; a brass room plate and a room-service line on the door beside it.
+     tall → photo above, door below; square → photo left, hanger centred; wide → photo left, plate + hanger */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #28595A; }
+  .banner { --door: #28595A; --door2: #1F4A4B; --blush: #F4CFC4; --ox: #6B1D2A; --brass: #CDA75A; --cream: #F4EDE0;
+    --hx: 68vmin; --hy: 11vmin; --hw: 40vmin; --hh: 64vmin;
+    position: fixed; inset: 0; overflow: hidden; background: var(--door); color: var(--cream); font-family: "Josefin Sans", "Futura", "Century Gothic", sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 22%; display: block; }
+  .door { position: absolute; left: 0; right: 0; bottom: 0; height: 80vmin; background: linear-gradient(90deg, rgba(0,0,0,.06), rgba(255,255,255,.04) 40%, rgba(0,0,0,.08)), var(--door); }
+  .mould { position: absolute; left: 5vmin; top: 5vmin; width: 38vmin; bottom: 5vmin; border: .7vmin solid var(--door2); box-shadow: inset .5vmin .5vmin 0 rgba(255,255,255,.07), .5vmin .5vmin 0 rgba(255,255,255,.07), inset -.4vmin -.4vmin 0 rgba(0,0,0,.14); }
+  .side { position: absolute; left: 10vmin; top: 11vmin; width: 29vmin; display: flex; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+  .plate { padding: 1.6vmin 2.6vmin 1.3vmin; background: linear-gradient(135deg, #E3C47E, var(--brass) 45%, #A8833C); color: #3A2A10; border-radius: .6vmin; box-shadow: 0 .4vmin .8vmin rgba(0,0,0,.3), inset 0 0 0 .3vmin rgba(255,240,200,.35); text-align: center; }
+  .plate small { display: block; font-size: 1.6vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; }
+  .plate b { display: block; font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 7vmin; line-height: 1; }
+  .rs { font-size: 2.1vmin; line-height: 1.5; }
+  .rs small { display: block; margin-bottom: 1vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--brass); }
+  .cta { font-size: 1.9vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; border-bottom: .25vmin solid var(--brass); padding-bottom: .6vmin; white-space: nowrap; }
+
+  .hanger { position: absolute; left: calc(var(--hx) - var(--hw) / 2); top: calc(var(--hy) - 5.4vmin); width: var(--hw); height: var(--hh); box-sizing: border-box; padding: 11.6vmin 3.4vmin 3.4vmin;
+    display: flex; flex-direction: column; align-items: center; text-align: center; color: var(--ox);
+    background: linear-gradient(170deg, #F8DCD3 0%, var(--blush) 60%, #EDC2B6 100%); border-radius: 6vmin 6vmin 1.6vmin 1.6vmin;
+    -webkit-mask: radial-gradient(circle at 50% 5.4vmin, transparent 3.2vmin, #000 3.3vmin); mask: radial-gradient(circle at 50% 5.4vmin, transparent 3.2vmin, #000 3.3vmin); transform: rotate(2deg); transform-origin: 50% 5.4vmin; }
+  .hanger::before { content: ""; position: absolute; left: 1.6vmin; right: 1.6vmin; top: 10vmin; bottom: 1.6vmin; border: 1px solid rgba(107,29,42,.4); border-radius: .8vmin; }
+  .hotel { font-family: "Playfair Display", Georgia, serif; font-style: italic; font-size: 2.3vmin; }
+  .orn { width: 60%; height: 1px; background: rgba(107,29,42,.45); margin: 1.6vmin 0 2vmin; position: relative; }
+  .orn::after { content: "✦"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -52%); font-size: 1.8vmin; background: var(--blush); padding: 0 1vmin; line-height: 1; }
+  .dnd { font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 500; font-size: 7.6vmin; line-height: .95; letter-spacing: -.01em; }
+  .sess { margin-top: 2.6vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; line-height: 1.5; }
+  .off { margin-top: auto; font-family: "Playfair Display", Georgia, serif; font-weight: 500; font-size: 11vmin; line-height: 1; letter-spacing: -.02em; }
+  .code { margin-top: 1.4vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .code b { display: inline-block; margin-top: .8vmin; padding: .8vmin 1.6vmin .6vmin; background: var(--ox); color: var(--blush); letter-spacing: .22em; }
+  .lever { position: absolute; left: calc(var(--hx) - 3.4vmin); top: calc(var(--hy) - 3.4vmin); width: 6.8vmin; height: 6.8vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #F1D594, var(--brass) 50%, #8E6B2C); box-shadow: 0 .5vmin 1vmin rgba(0,0,0,.35); }
+  .lever::before { content: ""; position: absolute; right: 2.6vmin; top: 2vmin; width: 16vmin; height: 2.8vmin; border-radius: 1.4vmin; background: linear-gradient(180deg, #F1D594, var(--brass) 45%, #8E6B2C); box-shadow: 0 .6vmin .9vmin rgba(0,0,0,.35); }
+  .lever::after { content: ""; position: absolute; inset: 1.9vmin; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #F6DFA6, #B58F46); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 72vmin); }
+    .door { height: 72vmin; }
+    .banner { --hy: 10vmin; --hw: 38vmin; --hh: 58vmin; --hx: 70vmin; }
+    .mould { left: 6vmin; width: 40vmin; }
+    .side { left: 11vmin; width: 31vmin; top: 10vmin; gap: 2.6vmin; }
+    .dnd { font-size: 7vmin; }
+    .off { font-size: 10vmin; }
+    .hanger { padding-top: 11vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 24%; }
+    .door { left: 48%; top: 0; height: 100%; }
+    .banner { --hx: 26vmin; --hy: 13vmin; --hw: 38vmin; --hh: 72vmin; }
+    .mould { left: 5vmin; right: 5vmin; width: auto; top: 5vmin; bottom: 5vmin; }
+    .side { display: none; }
+    .hanger { padding-top: 12vmin; }
+    .dnd { font-size: 7.2vmin; }
+    .sess { margin-top: 2.2vmin; }
+    .off { font-size: 10.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .door { left: 42%; }
+    .banner { --hx: 60vmin; --hy: 13vmin; --hw: 38vmin; --hh: 76vmin; }
+    .mould { left: 6vmin; right: auto; width: 34vmin; top: 6vmin; bottom: 6vmin; }
+    .side { display: flex; left: 11vmin; top: 12vmin; width: 26vmin; gap: 3.4vmin; }
+    .plate b { font-size: 7.6vmin; }
+    .rs { font-size: 2.2vmin; }
+    .dnd { font-size: 7.6vmin; }
+    .off { font-size: 11vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) — slow, hushed hotel-corridor luxury ─────────
+     1.0s the brass lever is pressed down and springs back · 1.2s the hanger swings on it and settles (damped) ·
+     3.2s a warm corridor light sweeps across the door · 4.2s glint on the room plate · 4.8s sheen on the code tag ·
+     5.2s the CTA arrow nudges */
+  .lever { animation: lever 6s linear infinite; }
+  @keyframes lever {
+    0%, 15% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    19%, 22% { transform: rotate(-20deg); animation-timing-function: cubic-bezier(.2,.9,.3,1.2); }
+    29%, 100% { transform: rotate(0deg); }
+  }
+  .hanger { animation: swing 6s linear infinite; }
+  @keyframes swing {
+    0%, 18% { transform: rotate(2deg); animation-timing-function: cubic-bezier(.3,0,.4,1); }
+    23% { transform: rotate(-1.2deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    31% { transform: rotate(4.6deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    39% { transform: rotate(.4deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    47% { transform: rotate(3.1deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    55% { transform: rotate(1.5deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    62% { transform: rotate(2.3deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    68%, 100% { transform: rotate(2deg); }
+  }
+  .door { overflow: hidden; }
+  .door::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 60%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,214,150,0) 0%, rgba(255,214,150,.06) 35%, rgba(255,222,170,.13) 50%, rgba(255,214,150,.06) 65%, rgba(255,214,150,0) 100%);
+    transform: translateX(-110%); animation: corridor 6s linear infinite; }
+  @keyframes corridor {
+    0%, 50% { transform: translateX(-110%); animation-timing-function: cubic-bezier(.45,0,.5,1); }
+    80%, 100% { transform: translateX(185%); }
+  }
+  .plate { position: relative; overflow: hidden; }
+  .plate::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 45%;
+    background: linear-gradient(90deg, rgba(255,250,225,0), rgba(255,250,225,.55), rgba(255,250,225,0));
+    transform: translateX(-150%) skewX(-20deg); animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 68% { transform: translateX(-150%) skewX(-20deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    80%, 100% { transform: translateX(300%) skewX(-20deg); }
+  }
+  .code b { position: relative; overflow: hidden; }
+  .code b::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,230,222,0), rgba(255,230,222,.4), rgba(255,230,222,0));
+    transform: translateX(-150%) skewX(-18deg); animation: tag 6s linear infinite; }
+  @keyframes tag {
+    0%, 78% { transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.3,1); }
+    90%, 100% { transform: translateX(330%) skewX(-18deg); }
+  }
+  .cta i { font-style: normal; display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 85% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    88% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    91% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    94% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    97%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="door">
+    <div class="mould"></div>
+    <div class="side">
+      <div class="plate"><small>Suite</small><b>26</b></div>
+      <div class="rs"><small>Room service</small>The resort sale, delivered to your door. Free returns.</div>
+      <div class="cta">Shop now <i>→</i></div>
+    </div>
+    <div class="hanger">
+      <div class="hotel">Hôtel Rivage</div>
+      <div class="orn"></div>
+      <div class="dnd">Do not<br>disturb</div>
+      <div class="sess">Resort sale<br>in session</div>
+      <div class="off">−40%</div>
+      <div class="code">Until Sunday<br><b>DND40</b></div>
+    </div>
+    <div class="lever"></div>
+  </div>
+</div>
+</body>
+</html>

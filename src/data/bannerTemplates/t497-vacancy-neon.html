@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Neonderthaw&family=Tilt+Neon&family=Bungee&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Vacancy — a roadside motor-inn sign after dark: a bulb-studded pylon spelling S-A-L-E in channel letters,
+     a pink tube-script name, a VACANCY box with the "NO" left unlit, the offer as the room rate.
+     tall → pylon beside the photo, sign band below · square → horizontal marquee over the copy, photo right ·
+     wide → pylon at the far left, copy in the middle, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0C1130; }
+  .banner { --pink: #FF6FB8; --blue: #7BE6FF; --cream: #FFF2D8; --bulb: #FFE39A; --band: 64vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--cream); font-family: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
+    background:
+      radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 34% 8%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 72% 22%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 88% 12%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 55% 30%, rgba(255,255,255,.7) 50%, transparent 51%), radial-gradient(1px 1px at 20% 42%, rgba(255,255,255,.7) 50%, transparent 51%),
+      radial-gradient(120% 50% at 50% 115%, rgba(255,111,184,.35), transparent 70%),
+      linear-gradient(180deg, #0A0E2A 0%, #151A45 45%, #2B1850 80%, #3E1B4E 100%); }
+
+  .photo { position: absolute; left: 31vmin; top: 0; width: calc(100% - 31vmin); height: calc(100% - var(--band)); object-fit: cover; object-position: 50% 22%; display: block; }
+
+  /* the pylon */
+  .pylon { position: absolute; left: 5vmin; top: 5vmin; width: 21vmin; height: calc(100% - var(--band) - 1vmin); box-sizing: border-box; padding: 3vmin 0 3.4vmin;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    background: linear-gradient(90deg, #0D3A48 0%, #14556A 50%, #0D3A48 100%);
+    border: 1.3vmin dotted var(--bulb); border-radius: 1.6vmin; filter: drop-shadow(0 0 .9vmin rgba(255,200,90,.75)); }
+  .pylon::before { content: ""; position: absolute; inset: .6vmin; border: .35vmin solid rgba(123,230,255,.55); border-radius: .6vmin; pointer-events: none; }
+  .pylon .plate { font-size: 1.8vmin; font-weight: 700; letter-spacing: .3em; padding-left: .3em; text-transform: uppercase; color: #0C1130; background: var(--cream); padding: .5vmin .8vmin .4vmin 1.1vmin; white-space: nowrap; }
+  .pylon .ls { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; }
+  .pylon b { font-family: "Bungee", Impact, sans-serif; font-weight: 400; font-size: 13vmin; line-height: 1; color: #FFF6E6;
+    text-shadow: 0 0 .3vmin #fff, 0 0 1.2vmin #FF4D5E, 0 0 2.6vmin #FF4D5E, 0 0 5vmin rgba(255,77,94,.7); }
+
+  .band { position: absolute; left: 0; right: 0; bottom: 0; height: var(--band); box-sizing: border-box; padding: 4.6vmin 6vmin 4.6vmin;
+    display: flex; flex-direction: column; justify-content: space-between; }
+  .name { display: flex; align-items: baseline; justify-content: space-between; gap: 3vmin; }
+  .script { font-family: "Neonderthaw", cursive; font-size: 17vmin; line-height: .9; color: #FFE4F2; white-space: nowrap;
+    text-shadow: 0 0 .3vmin #fff, 0 0 1vmin var(--pink), 0 0 2.4vmin var(--pink), 0 0 5vmin var(--pink), 0 0 8vmin rgba(255,111,184,.6); }
+  .inn { font-size: 2.2vmin; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; line-height: 1.5; text-align: right; color: rgba(255,242,216,.8); white-space: nowrap; }
+
+  .vac { display: inline-flex; align-self: flex-start; align-items: center; gap: 2.2vmin; padding: 1.4vmin 3vmin 1.2vmin; border: .5vmin solid #26314F; background: #0A0F24;
+    box-shadow: inset 0 0 0 .3vmin #3C4768, 0 1vmin 2vmin rgba(0,0,0,.4); font-family: "Tilt Neon", sans-serif; font-size: 6.4vmin; line-height: 1; letter-spacing: .06em; white-space: nowrap; }
+  .vac .off { color: rgba(255,130,150,.16); -webkit-text-stroke: 1px rgba(255,150,170,.35); }
+  .vac .on { color: #E9FBFF; text-shadow: 0 0 .3vmin #fff, 0 0 1vmin var(--blue), 0 0 2.4vmin var(--blue), 0 0 4.6vmin rgba(123,230,255,.7); }
+
+  .rate { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .rate .l { font-size: 2.6vmin; font-weight: 600; letter-spacing: .12em; line-height: 1.35; text-transform: uppercase; white-space: nowrap; }
+  .rate .l span { display: block; font-size: 2vmin; font-weight: 500; letter-spacing: .2em; color: rgba(255,242,216,.7); }
+  .rate .big { font-family: "Bungee", Impact, sans-serif; font-size: 11vmin; line-height: .85; color: var(--bulb); white-space: nowrap; text-shadow: 0 0 2vmin rgba(255,200,90,.45); }
+  .rate .big small { font-size: .38em; }
+
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 2vmin; padding-top: 2vmin; border-top: 1px solid rgba(255,242,216,.3);
+    font-size: 2.1vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+  .foot .code { color: var(--bulb); }
+  .foot .go { padding: 1vmin 2.2vmin .9vmin; border: .3vmin solid var(--pink); color: #FFE4F2; box-shadow: 0 0 1.2vmin rgba(255,111,184,.55), inset 0 0 1vmin rgba(255,111,184,.35); }
+
+  /* 3:4 – 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --band: 56vmin; }
+    .pylon { width: 18vmin; padding: 2.4vmin 0 2.8vmin; }
+    .pylon b { font-size: 10.4vmin; }
+    .photo { left: 27vmin; width: calc(100% - 27vmin); }
+    .band { padding: 3.6vmin 6vmin 4vmin; }
+    .script { font-size: 14vmin; }
+    .vac { font-size: 5.4vmin; padding: 1.2vmin 2.6vmin 1vmin; }
+    .rate .big { font-size: 9.6vmin; }
+  }
+  /* square: photo right, horizontal marquee + copy left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 50%; top: 0; height: 100%; width: 50%; }
+    .pylon { left: 5vmin; top: 5vmin; width: calc(50% - 10vmin); height: 21vmin; padding: 0 2.6vmin; flex-direction: column; justify-content: center; }
+    .pylon .plate { position: absolute; top: -1.2vmin; left: 50%; transform: translate(-50%, -50%); font-size: 1.6vmin; }
+    .pylon .ls { flex: 0 0 auto; flex-direction: row; width: 100%; justify-content: space-between; }
+    .pylon b { font-size: 10vmin; }
+    .band { top: 29vmin; left: 0; right: 50%; height: auto; padding: 2.6vmin 5vmin 5vmin; }
+    .name { flex-direction: column; align-items: flex-start; gap: 1vmin; }
+    .script { font-size: 11.6vmin; }
+    .inn { font-size: 1.7vmin; text-align: left; letter-spacing: .26em; }
+    .vac { font-size: 4.4vmin; gap: 1.6vmin; padding: 1vmin 2vmin .9vmin; }
+    .rate { flex-direction: column-reverse; align-items: flex-start; gap: 1vmin; }
+    .rate .l { font-size: 2vmin; }
+    .rate .l span { font-size: 1.7vmin; }
+    .rate .big { font-size: 8.4vmin; }
+    .foot { font-size: 1.7vmin; letter-spacing: .14em; padding-top: 1.6vmin; }
+    .foot .go { padding: .8vmin 1.4vmin .7vmin; }
+  }
+  /* wide: pylon far left, copy middle, photo right */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: auto; right: 0; width: 44%; }
+    .pylon { left: 5vmin; top: 5vmin; width: 19vmin; height: calc(100% - 10vmin); padding: 3.4vmin 0 3.6vmin; }
+    .pylon .plate { position: static; transform: none; font-size: 1.7vmin; }
+    .pylon .ls { flex: 1; flex-direction: column; width: auto; justify-content: space-evenly; }
+    .pylon b { font-size: 12.4vmin; }
+    .band { top: 0; left: 28vmin; right: 44%; height: 100%; padding: 6vmin 5.4vmin 6vmin 4.6vmin; }
+    .name { flex-direction: column; align-items: flex-start; gap: 1.2vmin; }
+    .script { font-size: 15vmin; }
+    .inn { font-size: 2vmin; text-align: left; }
+    .vac { font-size: 5.6vmin; padding: 1.2vmin 2.6vmin 1vmin; }
+    .rate { flex-direction: column-reverse; align-items: flex-start; gap: 1.2vmin; }
+    .rate .l { font-size: 2.3vmin; }
+    .rate .l span { font-size: 1.8vmin; }
+    .rate .big { font-size: 9.6vmin; }
+    .foot { font-size: 1.9vmin; letter-spacing: .18em; }
+    .foot .go { padding: 1vmin 2vmin .9vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="pylon">
+    <span class="plate">Motor Inn</span>
+    <div class="ls"><b>S</b><b>A</b><b>L</b><b>E</b></div>
+  </div>
+  <div class="band">
+    <div class="name"><span class="script">Starlite</span><span class="inn">Route 26<br>Open all night</span></div>
+    <div class="vac"><span class="off">NO</span><span class="on">VACANCY</span></div>
+    <div class="rate">
+      <div class="l">Check in to the new season<span>Rooms still open · all sizes</span></div>
+      <div class="big">30%<small> off</small></div>
+    </div>
+    <div class="foot"><span>Code <span class="code">STAY30</span></span><span class="go">Book it →</span></div>
+  </div>
+</div>
+</body>
+</html>

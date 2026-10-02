@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital@1&family=DM+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Advent Doors — Christmas as an advent calendar: perforated paper doors numbered out of order on bottle-green
+     board; the big door 24 has swung open on its hinge to reveal the offer inside, lined in berry red.
+     tall → photo above the calendar (6 × 2 grid); square/wide → photo left, calendar right (4 × 3 grid) */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #173327; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #173327; color: #F1E8D4; font-family: "DM Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 80vmin); object-fit: cover; object-position: 50% 18%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; top: calc(100% - 80vmin); overflow: hidden;
+    background: radial-gradient(circle at 20% 30%, rgba(241,232,212,.07) 0 .25vmin, transparent .3vmin) 0 0 / 4vmin 4vmin, linear-gradient(180deg, #1B3A2C, #132B20); }
+  .head { position: absolute; left: 8vmin; right: 8vmin; top: 5vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .k { font-size: 1.8vmin; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; color: #D9B86A; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Libre Caslon Display", Didot, Georgia, serif; font-weight: 400; font-size: 9.6vmin; line-height: .95; letter-spacing: -.01em; }
+  h1 i { font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-size: .82em; color: #D9B86A; }
+  .dates { text-align: right; font-size: 1.8vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; line-height: 1.6; color: #C9CDB9; white-space: nowrap; }
+  .grid { position: absolute; left: 8vmin; right: 8vmin; top: 28vmin; height: 34vmin; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1.4vmin; }
+  .d { position: relative; background: #F1E8D4; color: #173327; box-shadow: 0 .3vmin .8vmin rgba(0,0,0,.25); }
+  .d::after { content: ""; position: absolute; inset: .8vmin; border: 1px dashed rgba(23,51,39,.35); }
+  .d span { position: absolute; left: 1.6vmin; top: 1.1vmin; font-family: "Libre Caslon Display", Georgia, serif; font-size: 4vmin; line-height: 1; }
+  .d:nth-child(3n) { background: #E6D9BC; }
+  .d:nth-child(4n+1) span { left: auto; right: 1.6vmin; top: auto; bottom: 1.1vmin; }
+  .d.o { grid-column: 1 / span 2; grid-row: 1 / span 2; background: #9E2430; box-shadow: inset 0 .6vmin 1.6vmin rgba(0,0,0,.45); }
+  .d.o::after { border-color: rgba(241,232,212,.35); }
+  .o .in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #F6E7C8; text-align: center; }
+  .o .in small { font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; }
+  .o .in b { font-family: "Libre Caslon Display", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .95; margin: .6vmin 0; }
+  .o .in b sup { font-size: .4em; vertical-align: .9em; }
+  .o .leaf { position: absolute; right: 100%; top: -4%; width: 5vmin; height: 108%; background: linear-gradient(90deg, #F4ECD9, #CDBF9F); clip-path: polygon(0 0, 100% 3.7%, 100% 96.3%, 0 100%); }
+  .foot { position: absolute; left: 8vmin; right: 8vmin; bottom: 5vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .foot .code { color: #C9CDB9; white-space: nowrap; }
+  .foot .code em { font-style: normal; color: #F1E8D4; border: 1px dashed #D9B86A; padding: .8vmin 1.4vmin; margin-left: .8vmin; }
+  .foot .cta { background: #D9B86A; color: #173327; padding: 1.5vmin 2.8vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 66vmin); }
+    .panel { top: calc(100% - 66vmin); }
+    .head { top: 3.6vmin; }
+    h1 { font-size: 8vmin; }
+    .grid { top: 21.5vmin; height: 28vmin; }
+    .d span { font-size: 3.4vmin; }
+    .o .in b { font-size: 9.4vmin; }
+    .foot { bottom: 4vmin; font-size: 1.9vmin; }
+  }
+  /* square / wide → photo left, calendar right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 46%; top: 0; }
+    .head { left: 6vmin; right: 5vmin; top: 6vmin; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .dates { text-align: left; font-size: 1.7vmin; }
+    .grid { left: 6vmin; right: 5vmin; top: 33vmin; height: auto; bottom: 20vmin; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 1.2vmin; }
+    .d span { font-size: 3vmin; left: 1.2vmin; top: .9vmin; }
+    .d:nth-child(4n+1) span { right: 1.2vmin; bottom: .9vmin; }
+    .o .in b { font-size: 8vmin; }
+    .o .in small { font-size: 1.6vmin; letter-spacing: .16em; }
+    .foot { left: 6vmin; right: 5vmin; bottom: 6vmin; font-size: 1.7vmin; }
+    .foot .code em { padding: .6vmin 1vmin; }
+    .foot .cta { padding: 1.3vmin 2vmin; }
+    .o .leaf { width: 4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; }
+    .panel { left: 44%; }
+    .head { left: 8vmin; right: 8vmin; top: 7vmin; flex-direction: row; align-items: flex-end; }
+    h1 { font-size: 9vmin; }
+    .dates { text-align: right; }
+    .grid { left: 8vmin; right: 8vmin; top: 31vmin; bottom: 20vmin; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1.4vmin; }
+    .d span { font-size: 3.6vmin; }
+    .o .in b { font-size: 10vmin; }
+    .foot { left: 8vmin; right: 8vmin; bottom: 7vmin; font-size: 1.9vmin; }
+    .foot .code em { padding: .8vmin 1.4vmin; }
+    .foot .cta { padding: 1.5vmin 2.8vmin; }
+    .o .leaf { width: 5vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     beats: 0.6s / 1.2s / 1.8s three paper doors (12, 5, 19) swing open on their left hinge in turn, each showing a gold star in a
+     berry-red recess, then close again · 3.3s the big door 24 leaf swings on its hinge and the 25% inside bounces ·
+     4.8s a sheen crosses the gold CTA · the "a day." italic catches a soft shimmer at 4.2s */
+  .d.sw { background: #5E1620; box-shadow: inset 0 .5vmin 1.2vmin rgba(0,0,0,.5); z-index: 1; }
+  .d.sw::after { display: none; }
+  .d.sw::before { content: "✦"; position: absolute; left: 50%; top: 50%; width: 4vmin; height: 4vmin; margin: -2vmin 0 0 -2vmin; text-align: center;
+    font-size: 3vmin; line-height: 4vmin; color: #D9B86A; text-shadow: 0 0 1.2vmin rgba(217,184,106,.8); }
+  .d.sw .f { position: absolute; inset: 0; background: #F1E8D4; box-shadow: 0 .3vmin .8vmin rgba(0,0,0,.25); transform-origin: 0% 50%;
+    animation: door 6s linear infinite; }
+  .d.sw:nth-child(3n) .f { background: #E6D9BC; }
+  .d.sw .f::after { content: ""; position: absolute; inset: .8vmin; border: 1px dashed rgba(23,51,39,.35); }
+  .grid .d.sw:nth-child(7) .f { animation-delay: -5.4s; }
+  .grid .d.sw:nth-child(3) .f { animation-delay: -4.8s; }
+  @keyframes door {
+    0%, 10% { transform: perspective(40vmin) rotateY(0deg); animation-timing-function: cubic-bezier(.5,0,.2,1); }
+    17% { transform: perspective(40vmin) rotateY(-78deg); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    20% { transform: perspective(40vmin) rotateY(-70deg); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    30% { transform: perspective(40vmin) rotateY(-72deg); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    35% { transform: perspective(40vmin) rotateY(3deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    37.5%, 100% { transform: perspective(40vmin) rotateY(0deg); }
+  }
+  .o .leaf { transform-origin: 100% 50%; animation: leaf 6s linear infinite; }
+  @keyframes leaf {
+    0%, 53% { transform: perspective(30vmin) rotateY(0deg); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    58% { transform: perspective(30vmin) rotateY(-50deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    64% { transform: perspective(30vmin) rotateY(10deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    69% { transform: perspective(30vmin) rotateY(-4deg); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    73%, 100% { transform: perspective(30vmin) rotateY(0deg); }
+  }
+  .o .in b { display: inline-block; animation: pop 6s linear infinite; }
+  @keyframes pop {
+    0%, 56% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.9,.3,1.3); }
+    61% { transform: scale(1.14); animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    69%, 100% { transform: scale(1); }
+  }
+  h1 i { background: linear-gradient(100deg, #D9B86A 0 40%, #FFF2CC 50%, #D9B86A 60% 100%) 100% 0 / 300% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; padding-right: .1em; margin-right: -.1em;
+    animation: shine 6s linear infinite; }
+  @keyframes shine {
+    0%, 70% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.4,1); }
+    86%, 100% { background-position: 0% 0; }
+  }
+  .foot .cta { position: relative; overflow: hidden; }
+  .foot .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 30%;
+    background: linear-gradient(90deg, rgba(255,250,230,0), rgba(255,255,255,.7) 50%, rgba(255,250,230,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    93%, 100% { transform: translateX(420%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="head">
+      <div><div class="k">The advent edit</div><h1>A door <i>a day.</i></h1></div>
+      <div class="dates">1—24 Dec<br>New gift daily</div>
+    </div>
+    <div class="grid">
+      <div class="d o"><div class="in"><small>Door 24</small><b>25<sup>%</sup></b><small>Off everything</small></div><div class="leaf"></div></div>
+      <div class="d"><span>7</span></div>
+      <div class="d sw"><div class="f"><span>19</span></div></div>
+      <div class="d"><span>3</span></div>
+      <div class="d sw"><div class="f"><span>12</span></div></div>
+      <div class="d"><span>22</span></div>
+      <div class="d sw"><div class="f"><span>5</span></div></div>
+      <div class="d"><span>16</span></div>
+      <div class="d"><span>9</span></div>
+    </div>
+    <div class="foot"><span class="code">Code<em>ADVENT24</em></span><span class="cta">Open today's door</span></div>
+  </div>
+</div>
+</body>
+</html>

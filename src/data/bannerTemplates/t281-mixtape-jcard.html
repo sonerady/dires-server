@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat+Brush&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Mixtape J-Card — the cassette insert unfolded: the look is the front panel, a printed spine with the tape title,
+     and the back flap where the tracklist is written in blue ballpoint over ruled lines (Side A / Side B = the edit).
+     tall → front / spine / flap stacked · square & wide → flap | vertical spine | front, like the card laid flat */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE7D6; }
+  .banner { --paper: #EFE7D6; --ink: #16161A; --or: #FF5A1F; --co: #2340B8; --pen: #1B3AA6; --mute: #6F675A;
+    position: fixed; inset: 0; overflow: hidden; background: var(--paper); color: var(--ink); font-family: "Space Mono", "Courier New", monospace; }
+
+  .front { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 66vmin); overflow: hidden; }
+  .front img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  /* spine */
+  .spine { position: absolute; left: 0; right: 0; bottom: 54vmin; height: 12vmin; background: var(--ink); color: var(--paper); display: flex; align-items: stretch; overflow: hidden; }
+  .spine .c { flex: none; width: 13vmin; background: var(--or); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: "Anton", Impact, sans-serif; font-size: 5.4vmin; line-height: .9; }
+  .spine .c small { font-family: "Space Mono", monospace; font-weight: 700; font-size: 1.6vmin; letter-spacing: .12em; margin-top: .6vmin; }
+  .spine .ttl { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 3vmin; }
+  .spine .ttl > div { display: flex; flex-direction: column; }
+  .spine .ttl b { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 5.6vmin; line-height: 1; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
+  .spine .ttl span { font-size: 1.6vmin; letter-spacing: .18em; text-transform: uppercase; color: #BDB5A5; margin-top: .6vmin; white-space: nowrap; }
+  .spine .st { flex: none; width: 14vmin; background: repeating-linear-gradient(-58deg, var(--or) 0 1.6vmin, var(--ink) 1.6vmin 2.4vmin, var(--co) 2.4vmin 4vmin, var(--ink) 4vmin 4.8vmin); }
+
+  /* fold lines */
+  .fold { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed rgba(22,22,26,.45); }
+  .f1 { bottom: 54vmin; }
+
+  /* flap */
+  .flap { position: absolute; left: 0; right: 0; bottom: 0; height: 54vmin; box-sizing: border-box; padding: 3.6vmin 6vmin 4.4vmin;
+    background: var(--paper); display: flex; flex-direction: column; }
+  .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 3vmin; border-bottom: .4vmin solid var(--ink); padding-bottom: 1.2vmin; }
+  .hd .lb { font-size: 1.6vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); white-space: nowrap; }
+  .hd .hw { font-family: "Caveat Brush", "Marker Felt", cursive; font-size: 6.6vmin; line-height: 1; color: var(--pen); text-transform: none; letter-spacing: 0; margin-left: 1.2vmin; }
+  .sides { flex: 1; display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 0 5vmin; margin-top: 1vmin; }
+  .side h4 { margin: 0; font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; line-height: 5.4vmin; height: 5.4vmin; display: flex; align-items: center; gap: 1.2vmin; border-bottom: 1px solid rgba(35,64,184,.3); }
+  .side h4 i { font-style: normal; display: inline-grid; place-items: center; width: 3.4vmin; height: 3.4vmin; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 1.8vmin; letter-spacing: 0; line-height: 1; }
+  .side ol { list-style: none; margin: 0; padding: 0; }
+  .side li { font-family: "Caveat Brush", "Marker Felt", cursive; font-size: 3.7vmin; line-height: 5.4vmin; height: 5.4vmin; color: var(--pen); white-space: nowrap; overflow: hidden; border-bottom: 1px solid rgba(35,64,184,.3); box-sizing: border-box; }
+  .side li s { text-decoration: none; font-family: "Space Mono", monospace; font-size: 1.6vmin; color: var(--mute); margin-right: 1.2vmin; vertical-align: .3vmin; }
+  .side li em { font-style: normal; color: var(--or); }
+  .ft { display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; margin-top: 1.4vmin; }
+  .spec { font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; line-height: 1.6; color: var(--mute); white-space: nowrap; }
+  .spec b { color: var(--ink); }
+  .cta { flex: none; background: var(--or); color: var(--ink); padding: 1.4vmin 2.4vmin; font-weight: 700; font-size: 2vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .cta u { text-decoration: none; font-family: "Anton", sans-serif; font-weight: 400; font-size: 2.8vmin; letter-spacing: .06em; margin-left: .8vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .front { height: calc(100% - 60vmin); }
+    .spine { bottom: 49vmin; height: 11vmin; }
+    .f1 { bottom: 49vmin; }
+    .flap { height: 49vmin; padding: 3vmin 12vmin 3.6vmin; }
+    .side li, .side h4 { line-height: 4.9vmin; height: 4.9vmin; }
+    .side li.x { display: none; }
+    .spine .c { width: 12vmin; }
+  }
+
+  /* square & wide: card laid flat — flap | spine | front */
+  @media (min-aspect-ratio: 9/10) {
+    .front { left: auto; right: 0; top: 0; bottom: 0; height: 100%; width: calc(52% - 12vmin); }
+    .front img { object-position: 50% 24%; }
+    .spine { left: 48%; right: auto; top: 0; bottom: 0; height: 100%; width: 12vmin; flex-direction: column; }
+    .spine .c { width: 100%; height: 14vmin; }
+    .spine .ttl { flex: 1; padding: 0; align-items: center; justify-content: center; }
+    .spine .ttl > div { transform: rotate(-90deg); display: flex; flex-direction: column; align-items: center; }
+    .spine .st { width: 100%; height: 16vmin; }
+    .f1 { top: 0; bottom: 0; left: 48%; right: auto; width: 0; height: 100%; border-top: 0; border-left: 1px dashed rgba(22,22,26,.45); }
+    .flap { top: 0; right: auto; width: 48%; height: 100%; padding: 5vmin 4.4vmin 5vmin 5vmin; }
+    .hd { flex-direction: column; align-items: flex-start; gap: .4vmin; }
+    .hd .lb + .lb { display: none; }
+    .hd .hw { margin-left: 0; font-size: 6.4vmin; display: block; }
+    .sides { grid-template-columns: 1fr; gap: 2.4vmin 0; margin-top: 1.6vmin; }
+    .side li, .side h4 { line-height: 5.4vmin; height: 5.4vmin; }
+    .side li { font-size: 3.6vmin; }
+    .side li.x { display: none; }
+    .ft { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .flap { width: 44%; padding: 5.6vmin 5vmin 5.6vmin 6vmin; }
+    .spine { left: 44%; }
+    .f1 { left: 44%; }
+    .front { width: calc(56% - 12vmin); }
+    .sides { grid-template-columns: 1fr 1fr; gap: 0 4vmin; }
+    .sides { gap: 0 4vmin; margin-top: 1.2vmin; }
+    .side li.x { display: block; }
+    .side li { font-size: 3.4vmin; }
+    .hd .hw { font-size: 7vmin; }
+    .ft { flex-direction: row; align-items: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="front"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="spine">
+    <div class="c">C90<small>TYPE II</small></div>
+    <div class="ttl"><div><b>The Drop · Summer Mix</b><span>Vol. 3 — Recorded live in store</span></div></div>
+    <div class="st"></div>
+  </div>
+  <i class="fold f1"></i>
+  <div class="flap">
+    <div class="hd"><span class="lb">Title <span class="hw">The Drop Mixtape</span></span><span class="lb">No. 03</span></div>
+    <div class="sides">
+      <div class="side"><h4><i>A</i>Side A</h4>
+        <ol><li><s>01</s>New season intro</li><li><s>02</s>Fresh fits</li><li><s>03</s>Layers (remix)</li><li class="x"><s>04</s>Weekend skit</li></ol></div>
+      <div class="side"><h4><i>B</i>Side B</h4>
+        <ol><li><s>01</s>Sale joint <em>−30%</em></li><li><s>02</s>Essentials</li><li class="x"><s>03</s>Bonus beat</li><li><s>04</s>Outro · last call</li></ol></div>
+    </div>
+    <div class="ft">
+      <div class="spec"><b>High bias</b> · 90 min<br>Code <b>MIX30</b> · ends Sunday</div>
+      <div class="cta">▶ Press play <u>Shop</u></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

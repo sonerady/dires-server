@@ -90,6 +90,19 @@ test('successful upscale settles base first, then bills team owner only after pr
   assert.equal(state.settings.stage, null);
 });
 
+test('alpha restoration completes before charging and delivering the upscale', async () => {
+  const { state, apply } = setup();
+  const result = await apply({transformResult: async () => { state.events.push('restore-alpha'); return 'https://test/transparent.png'; }});
+  assert.equal(result.imageUrl, 'https://test/transparent.png');
+  assert.deepEqual(state.events, ['base-charge','provider','restore-alpha','mp-charge']);
+});
+test('failed alpha restoration retains the source and does not bill the upscale', async () => {
+  const { state, apply } = setup();
+  const result = await apply({transformResult: async () => { throw Error('alpha unavailable'); }});
+  assert.equal(result.imageUrl,'https://test/original.jpg');
+  assert.deepEqual(state.debits,[]);
+});
+
 for (const failure of ['providerError', 'emptyOutput', 'missingToken']) {
   test(`${failure}: original image retained and no MP fee deducted`, async () => {
     const { state, apply } = setup({ [failure]: true });
@@ -141,4 +154,3 @@ test('bulk sum includes only successfully applied MP fees', async () => {
   const total = [success, failed, standard].reduce((sum, r) => sum + 10 + r.creditsCharged, 0);
   assert.equal(total, 70);
 });
-

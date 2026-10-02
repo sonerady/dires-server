@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Karla:wght@400;500;700;800&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Shutter Piece — a corner shop after hours: the roll-down shutter carries a commissioned piece (block letters with
+     a 3D drop, painted across the ribbed slats), and where the shutter is up the shop window — the photo — shows through.
+     tall / 3:4 → shutter half down on top, photo in the gap below · square / wide → closed bay with the piece left, open bay right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #22302B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F3EFE6; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; background: #2A2E30; }
+
+  .fascia { position: absolute; left: 0; right: 0; top: 0; height: 10vmin; background: linear-gradient(180deg, #24463A, #1C372D); display: flex; align-items: center; justify-content: space-between; padding: 0 5vmin; box-sizing: border-box;
+    box-shadow: inset 0 -.6vmin 0 #13261F; }
+  .fascia b { font-family: "Bungee", sans-serif; font-weight: 400; font-size: 3vmin; letter-spacing: .04em; color: #E9C77B; white-space: nowrap; }
+  .fascia span { font-size: 1.7vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #BFD3C8; white-space: nowrap; }
+
+  .bay { position: absolute; overflow: hidden; }
+  .b1 { left: 0; right: 0; top: 10vmin; height: 62vmin; }
+  .shutter { position: absolute; inset: 0;
+    background: repeating-linear-gradient(180deg, #C9CCCF 0, #E1E3E4 .9vmin, #AEB2B6 2.2vmin, #8F9499 2.5vmin, #C4C7CA 2.9vmin); }
+  .ribs { position: absolute; inset: 0; pointer-events: none; z-index: 1; mix-blend-mode: multiply; opacity: .5;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,1) 0, rgba(255,255,255,1) 1.4vmin, rgba(120,125,130,1) 2.3vmin, rgba(90,95,100,1) 2.5vmin, rgba(235,235,235,1) 2.9vmin); }
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3.6vmin; background: linear-gradient(180deg, #7D8186, #5A5E63); box-shadow: 0 .6vmin 1vmin rgba(0,0,0,.45); z-index: 2; }
+  .bar::before, .bar::after { content: ""; position: absolute; top: .9vmin; width: 7vmin; height: 1.8vmin; border-radius: .9vmin; background: #3A3D41; box-shadow: inset 0 .3vmin 0 rgba(0,0,0,.4); }
+  .bar::before { left: 18%; } .bar::after { right: 18%; }
+
+  /* the painted piece */
+  .piece { position: absolute; left: 5vmin; right: 5vmin; top: 5vmin; bottom: 8vmin; border-radius: 8vmin 2vmin 10vmin 3vmin;
+    background:
+      radial-gradient(40vmin 30vmin at 20% 20%, #FF7AB6, transparent 70%),
+      radial-gradient(50vmin 40vmin at 90% 90%, #6A4CFF, transparent 70%),
+      linear-gradient(135deg, #FF5E7E, #B04BE8);
+    box-shadow: 0 0 0 .9vmin #FFF6E8, 0 0 0 1.8vmin #1B1A2E; }
+  .kick { position: absolute; z-index: 2; left: 9vmin; top: 8.6vmin; font-size: 1.8vmin; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: #FFF6E8; white-space: nowrap; }
+  h1 { position: absolute; left: 8.4vmin; top: 12.4vmin; margin: 0; font-family: "Bungee", sans-serif; font-weight: 400; font-size: 15vmin; line-height: .95; color: #FFE66B;
+    text-shadow: .5vmin .5vmin 0 #1B1A2E, 1vmin 1vmin 0 #1B1A2E, 1.5vmin 1.5vmin 0 #1B1A2E, 1.9vmin 1.9vmin 0 #0B7A75; }
+  .tagline { position: absolute; z-index: 2; right: 9vmin; bottom: 11.4vmin; width: 32vmin; text-align: right; font-size: 2vmin; font-weight: 700; line-height: 1.35; color: #FFF6E8; }
+
+  .price { position: absolute; right: 7vmin; top: 17vmin; width: 16vmin; height: 16vmin; border-radius: 50%; background: #FFE66B; color: #1B1A2E; transform: rotate(6deg); z-index: 3;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.8vmin; box-shadow: .4vmin .6vmin 0 #1B1A2E; }
+  .price b { font-family: "Bungee", sans-serif; font-weight: 400; font-size: 4.6vmin; line-height: .9; }
+  .price span { font-size: 1.6vmin; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+
+  .window { position: absolute; left: 0; right: 0; top: 72vmin; height: calc(100% - 83vmin); background: #111; }
+  .window img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+  .pillar { display: none; }
+  .kerb { position: absolute; left: 0; right: 0; bottom: 0; height: 11vmin; background: linear-gradient(180deg, #9A968D 0 .8vmin, #6F6C66 .8vmin 1.4vmin, #57554F 1.4vmin); display: flex; align-items: center; justify-content: space-between; gap: 3vmin; padding: 1.4vmin 5vmin 0; box-sizing: border-box; }
+  .kerb .sub { font-size: 1.9vmin; line-height: 1.35; color: #ECE8DE; }
+  .kerb .cta { font-size: 1.9vmin; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #1B1A2E; background: #FFE66B; padding: 1.2vmin 2vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .fascia { height: 8.6vmin; }
+    .b1 { top: 8.6vmin; height: 48vmin; }
+    .piece { top: 4vmin; bottom: 7vmin; }
+    .kick { top: 7.2vmin; left: 8.4vmin; }
+    h1 { top: 10.6vmin; left: 7.8vmin; font-size: 12vmin; }
+    .tagline { bottom: 10vmin; right: 8.4vmin; width: 36vmin; font-size: 1.8vmin; }
+    .price { width: 14vmin; height: 14vmin; top: 14vmin; }
+    .price b { font-size: 4vmin; }
+    .window { top: 56.6vmin; height: calc(100% - 66.6vmin); }
+    .kerb { height: 10vmin; }
+  }
+  /* square / wide — two bays: closed with the piece, open with the window */
+  @media (min-aspect-ratio: 9/10) {
+    .fascia { height: 9vmin; }
+    .b1 { right: auto; width: calc(50% - 1.5vmin); top: 9vmin; height: auto; bottom: 10vmin; }
+    .bar { display: none; }
+    .piece { left: 4vmin; right: 4vmin; top: 5vmin; bottom: 5vmin; }
+    .kick { left: 7.6vmin; top: 8.6vmin; font-size: 1.6vmin; }
+    h1 { left: 7vmin; top: 12.6vmin; font-size: 10vmin; }
+    .tagline { left: 7.6vmin; right: auto; bottom: 8.6vmin; width: calc(100% - 15vmin); text-align: left; font-size: 1.8vmin; }
+    .price { right: auto; left: calc(50% - 20vmin); top: auto; bottom: 27vmin; width: 14vmin; height: 14vmin; }
+    .price b { font-size: 4vmin; }
+    .pillar { display: block; position: absolute; left: calc(50% - 1.5vmin); width: 3vmin; top: 9vmin; bottom: 10vmin;
+      background: repeating-linear-gradient(180deg, #7A3B2C 0 2.8vmin, #B9A58F 2.8vmin 3.2vmin), #7A3B2C; box-shadow: inset .4vmin 0 0 rgba(255,255,255,.1), inset -.4vmin 0 0 rgba(0,0,0,.25); }
+    .window { left: calc(50% + 1.5vmin); right: 0; top: 9vmin; bottom: 10vmin; height: auto; }
+    .kerb { height: 10vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .b1 { width: calc(52% - 1.5vmin); }
+    .pillar { left: calc(52% - 1.5vmin); }
+    .window { left: calc(52% + 1.5vmin); }
+    h1 { font-size: 13vmin; top: 13.4vmin; }
+    .kick { font-size: 1.8vmin; top: 8.8vmin; }
+    .tagline { width: 40vmin; font-size: 2vmin; }
+    .price { left: calc(52% - 23vmin); bottom: 26vmin; width: 16vmin; height: 16vmin; }
+    .price b { font-size: 4.6vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: the round price sign swings gently on its hook (3s), the shop window breathes (≤1.03)
+     beats: 0.8s the shop's strip light flickers on behind the window · 2.2s "Open late" pops out of the shutter, its 3D drop deepening ·
+            3.6s the shutter rattles on its runners · 4.9s the CTA lights up */
+  .window img { animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite, tube 6s linear infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.456%); } }
+  @keyframes tube { 0%, 13%, 14.4%, 15.6%, 17%, 18.2%, 100% { filter: none; } 13.2%, 14.2%, 15.8%, 16.8% { filter: brightness(.55) saturate(.8); } 18% { filter: brightness(1.12); } }
+  .price { animation: swing 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes swing { 0%, 100% { transform: rotate(6deg); } 50% { transform: rotate(-2deg); } }
+  h1 { animation: pop 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pop {
+    0%, 36%, 54%, 100% { transform: none; text-shadow: .5vmin .5vmin 0 #1B1A2E, 1vmin 1vmin 0 #1B1A2E, 1.5vmin 1.5vmin 0 #1B1A2E, 1.9vmin 1.9vmin 0 #0B7A75; }
+    42%, 46% { transform: translate(-.8vmin, -.8vmin); text-shadow: .7vmin .7vmin 0 #1B1A2E, 1.4vmin 1.4vmin 0 #1B1A2E, 2.1vmin 2.1vmin 0 #1B1A2E, 2.7vmin 2.7vmin 0 #0B7A75; }
+    50% { transform: translate(.15vmin, .15vmin); text-shadow: .45vmin .45vmin 0 #1B1A2E, .9vmin .9vmin 0 #1B1A2E, 1.35vmin 1.35vmin 0 #1B1A2E, 1.75vmin 1.75vmin 0 #0B7A75; } }
+  .b1 { animation: rattle 6s linear infinite; }
+  @keyframes rattle { 0%, 60%, 70%, 100% { transform: none; } 61% { transform: translateY(-.5vmin); } 62.5% { transform: translateY(.3vmin); } 64% { transform: translateY(-.35vmin); } 65.5% { transform: translateY(.2vmin); } 67% { transform: translateY(-.12vmin); } 68.5% { transform: translateY(.05vmin); } }
+  .kerb .cta { animation: lit 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes lit { 0%, 78%, 96%, 100% { box-shadow: 0 0 0 rgba(255,230,107,0); filter: none; } 84%, 88% { box-shadow: 0 0 2.2vmin rgba(255,230,107,.75); filter: brightness(1.08); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="fascia"><b>Mercier &amp; Fils</b><span>Nº 12 · Since 1978</span></div>
+  <div class="bay b1">
+    <div class="shutter"></div>
+    <div class="piece"></div>
+    <div class="kick">After hours · Online</div>
+    <h1>Open<br>late</h1>
+    <div class="tagline">Shutters down, shop still open. New arrivals every night.</div>
+    <div class="ribs"></div>
+    <div class="bar"></div>
+  </div>
+  <i class="pillar"></i>
+  <div class="window"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="price"><b>€59</b><span>Night price</span></div>
+  <div class="kerb"><div class="sub">Order till 2 am,<br>delivered by noon.</div><div class="cta">Shop after hours →</div></div>
+</div>
+</body>
+</html>

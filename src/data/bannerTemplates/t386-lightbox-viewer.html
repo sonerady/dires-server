@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Lightbox Viewer — the full-screen image viewer a luxury product page opens on tap: black stage, a counter,
+     a spaced wordmark and "Close", soft prev / next arrows at the photo's edges, a six-segment progress line and a
+     filmstrip of detail crops (the full view active), then the name, price and a hairline "Add to bag".
+     tall → bars above and below the photo; square / wide → vertical filmstrip | photo | caption column */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0D0D0C; }
+  .banner { --top: 11vmin; --foot: 42vmin; position: fixed; inset: 0; overflow: hidden; background: #0D0D0C; color: #EDEAE4; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+
+  .bar { position: absolute; left: 5vmin; right: 5vmin; top: 0; height: var(--top); display: flex; align-items: center; justify-content: space-between; font-size: 1.8vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .bar .n b { font-weight: 600; color: #FFFFFF; }
+  .bar .n { color: #98948C; }
+  .wm { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: "Tenor Sans", "Gill Sans", sans-serif; font-size: 2.6vmin; letter-spacing: .5em; padding-left: .5em; color: #FFFFFF; font-weight: 400; }
+  .x { display: flex; align-items: center; gap: 1.2vmin; }
+  .x i { position: relative; width: 2.2vmin; height: 2.2vmin; }
+  .x i::before, .x i::after { content: ""; position: absolute; left: -.2vmin; right: -.2vmin; top: 50%; height: .25vmin; background: #EDEAE4; transform: rotate(45deg); }
+  .x i::after { transform: rotate(-45deg); }
+
+  .stage { position: absolute; left: 0; right: 0; top: var(--top); bottom: var(--foot); overflow: hidden; }
+  .stage img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .arr { position: absolute; top: 50%; width: 6vmin; height: 6vmin; margin-top: -3vmin; border-radius: 50%; background: rgba(13,13,12,.42); display: flex; align-items: center; justify-content: center; }
+  .arr svg { width: 2.6vmin; height: 2.6vmin; }
+  .arr.l { left: 2.4vmin; }
+  .arr.r { right: 2.4vmin; }
+
+  .foot { position: absolute; left: 5vmin; right: 5vmin; bottom: 0; height: var(--foot); box-sizing: border-box; padding: 3vmin 0 5vmin; display: flex; flex-direction: column; }
+  .prog { display: flex; gap: .8vmin; }
+  .prog i { flex: 1; height: .35vmin; background: rgba(237,234,228,.22); }
+  .prog i.on { background: #FFFFFF; }
+  .strip { margin-top: 2.6vmin; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1.4vmin; }
+  .t { position: relative; height: 15vmin; overflow: hidden; background: #1E1D1B; opacity: .55; }
+  .t img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .t.on { opacity: 1; }
+  .t.on::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 .35vmin #FFFFFF; }
+  .t1 img { transform: scale(2.4); transform-origin: 50% 18%; }
+  .t3 img { transform: scale(2.6); transform-origin: 30% 45%; }
+  .t4 img { transform: scale(2.8); transform-origin: 55% 60%; }
+  .t5 img { transform: scale(2.4); transform-origin: 50% 88%; }
+  .t6 img { transform: scale(3.2); transform-origin: 70% 35%; }
+  .cap { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .cap h1 { margin: 0; font-family: "Tenor Sans", "Gill Sans", sans-serif; font-weight: 400; font-size: 4.2vmin; line-height: 1.05; letter-spacing: .02em; white-space: nowrap; }
+  .cap p { margin: 1vmin 0 0; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; color: #98948C; white-space: nowrap; }
+  .buy { flex: none; display: flex; align-items: center; gap: 2.4vmin; }
+  .buy b { font-size: 2.4vmin; font-weight: 500; letter-spacing: .04em; }
+  .buy span { padding: 1.8vmin 2.6vmin; border: 1px solid rgba(237,234,228,.7); font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --top: 9vmin; --foot: 36vmin; }
+    .t { height: 12vmin; }
+    .strip { margin-top: 2.2vmin; }
+    .foot { padding: 2.6vmin 0 4.4vmin; }
+    .cap h1 { font-size: 3.8vmin; }
+  }
+  /* ── square: vertical filmstrip | photo | caption column ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --top: 10vmin; }
+    .stage { left: 17vmin; right: 38%; bottom: 5vmin; }
+    .foot { position: static; }
+    .prog { position: absolute; left: 17vmin; right: 38%; bottom: 2.4vmin; }
+    .strip { position: absolute; left: 4vmin; top: var(--top); width: 10vmin; margin: 0; grid-template-columns: 1fr; gap: 1.2vmin; }
+    .t { height: 12.4vmin; }
+    .t6 { display: none; }
+    .cap { position: absolute; left: calc(62% + 4.5vmin); right: 4.5vmin; top: var(--top); bottom: 5vmin; margin: 0; flex-direction: column; align-items: stretch; justify-content: space-between; }
+    .cap h1 { font-size: 4.8vmin; white-space: normal; }
+    .cap p { margin-top: 1.6vmin; line-height: 1.6; white-space: normal; }
+    .buy { flex-direction: column; align-items: stretch; gap: 1.8vmin; }
+    .buy b { font-size: 3vmin; }
+    .buy span { text-align: center; padding: 2vmin 0; }
+    .arr { width: 5vmin; height: 5vmin; margin-top: -2.5vmin; }
+    .arr.l { left: 1.6vmin; }
+    .arr.r { right: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --top: 10vmin; }
+    .bar { left: 6vmin; right: 6vmin; }
+    .stage { left: 20vmin; right: 40%; }
+    .prog { left: 20vmin; right: 40%; }
+    .strip { left: 6vmin; width: 11vmin; }
+    .t { height: 13vmin; }
+    .cap { left: calc(60% + 7vmin); right: 7vmin; }
+    .cap h1 { font-size: 5.6vmin; }
+    .buy { flex-direction: row; align-items: center; justify-content: space-between; }
+    .buy span { padding: 2vmin 3.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="bar"><span class="n"><b>02</b> / 06</span><span class="wm">Maison Vere</span><span class="x">Close<i></i></span></div>
+  <div class="stage"><img src="{{PRODUCT_IMAGE}}" alt="">
+    <span class="arr l"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M15 5l-7 7 7 7"/></svg></span>
+    <span class="arr r"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M9 5l7 7-7 7"/></svg></span>
+  </div>
+  <div class="foot">
+    <div class="prog"><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    <div class="strip">
+      <div class="t t1"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="t t2 on"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="t t3"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="t t4"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="t t5"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="t t6"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    </div>
+    <div class="cap">
+      <div><h1>The Soleil Piece</h1><p>Look 04 — Summer collection</p></div>
+      <div class="buy"><b>$480</b><span>Add to bag</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Rubik:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Wheel Durometer — a 90s skate-wheel ad: one giant urethane wheel rolling in from the edge with its rim print
+     (size, 99A hardness, shape) wrapped around an orange core and a steel bearing, and a size run of wheels
+     growing 52 → 58 mm where the bigger wheel carries the bigger discount.
+     tall → photo above, wheel panel below · square/wide → photo left, wheel panel right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #4B34C9; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #4B34C9; color: #F4EFE1; font-family: "Rubik", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 84vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 84vmin; overflow: hidden; background: radial-gradient(circle at 85% 30%, #5A43DA, #4B34C9 60%); }
+  .wheel { position: absolute; right: -14vmin; top: 4vmin; width: 50vmin; height: 50vmin; transform: rotate(-18deg); filter: drop-shadow(-1.4vmin 1.6vmin 0 rgba(20,10,70,.45)); }
+  .wheel svg { width: 100%; height: 100%; display: block; }
+  .wheel text { font-family: "Rubik", Arial, sans-serif; font-weight: 700; }
+  .kick { position: absolute; left: 6vmin; top: 5vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #FFB27A; }
+  h1 { position: absolute; left: 6vmin; top: 10vmin; width: 50vmin; margin: 0; font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 6.4vmin; line-height: 1; letter-spacing: -.02em; text-transform: uppercase; }
+  h1 span { display: block; color: #FF7A1A; }
+  .lede { position: absolute; left: 6vmin; top: 63vmin; width: 52vmin; margin: 0; font-size: 2.2vmin; font-weight: 500; line-height: 1.45; color: #D9D2FF; }
+  .run { position: absolute; left: 6vmin; right: 40vmin; top: 40vmin; display: flex; align-items: flex-end; justify-content: space-between; }
+  .run div { display: flex; flex-direction: column; align-items: center; gap: 1.2vmin; }
+  .run i { display: block; border-radius: 50%; background: radial-gradient(circle, #2E2A33 0 16%, #A7A9B1 17% 30%, #FF7A1A 31% 50%, #F4EFE1 51% 88%, #D8D0BC 89%); box-shadow: -.5vmin .6vmin 0 rgba(20,10,70,.45); }
+  .run .w1 { width: 7vmin; height: 7vmin; } .run .w2 { width: 8.5vmin; height: 8.5vmin; } .run .w3 { width: 10vmin; height: 10vmin; } .run .w4 { width: 11.5vmin; height: 11.5vmin; }
+  .run small { font-size: 1.8vmin; font-weight: 500; letter-spacing: .12em; color: #D9D2FF; }
+  .run b { font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 2.8vmin; line-height: 1; }
+  .run div:last-child b { color: #FF7A1A; }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; padding-top: 2vmin; border-top: .35vmin solid #F4EFE1; }
+  .foot span { font-size: 2.2vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .foot b { font-family: "Unbounded", "Arial Black", sans-serif; font-weight: 800; font-size: 2.6vmin; letter-spacing: .04em; background: #F4EFE1; color: #4B34C9; padding: 1.4vmin 2.6vmin; border-radius: 99vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 78vmin); }
+    .panel { height: 78vmin; }
+    .wheel { top: 4vmin; width: 48vmin; height: 48vmin; right: -14vmin; }
+    h1 { top: 9.5vmin; font-size: 6.2vmin; }
+    .lede { display: none; }
+    .run { top: 38vmin; }
+    .foot { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 64vmin); }
+    .panel { height: 64vmin; }
+    .kick { top: 4vmin; font-size: 1.8vmin; }
+    .wheel { top: 2vmin; width: 44vmin; height: 44vmin; right: -10vmin; }
+    h1 { top: 8vmin; font-size: 5.8vmin; }
+    .lede { display: none; }
+    .run { top: 28vmin; left: 6vmin; right: 40vmin; }
+    .run .w1 { width: 7vmin; height: 7vmin; } .run .w2 { width: 8.5vmin; height: 8.5vmin; } .run .w3 { width: 10vmin; height: 10vmin; } .run .w4 { width: 11.5vmin; height: 11.5vmin; }
+    .run b { font-size: 2.6vmin; }
+    .run small { font-size: 1.6vmin; }
+    .run div { gap: .8vmin; }
+    .foot { bottom: 3.6vmin; padding-top: 1.6vmin; }
+    .foot b { font-size: 2.2vmin; padding: 1.1vmin 2.2vmin; }
+  }
+  /* square / wide → photo left, wheel panel right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 50%; top: 0; height: auto; }
+    .kick { left: 5vmin; top: 24vmin; font-size: 1.7vmin; }
+    .wheel { top: -14vmin; right: -13vmin; width: 36vmin; height: 36vmin; }
+    h1 { left: 5vmin; top: 27vmin; width: 42vmin; font-size: 5.4vmin; }
+    .lede { display: block; left: 5vmin; top: 52vmin; width: 40vmin; font-size: 1.8vmin; }
+    .run { left: 5vmin; right: 5vmin; top: 63vmin; }
+    .run .w1 { width: 6vmin; height: 6vmin; } .run .w2 { width: 7.2vmin; height: 7.2vmin; } .run .w3 { width: 8.4vmin; height: 8.4vmin; } .run .w4 { width: 9.6vmin; height: 9.6vmin; }
+    .run b { font-size: 2.3vmin; }
+    .run small { font-size: 1.6vmin; letter-spacing: .06em; }
+    .run div { gap: .7vmin; }
+    .foot { left: 5vmin; right: 5vmin; bottom: 4.6vmin; padding-top: 1.6vmin; }
+    .foot span { font-size: 1.7vmin; }
+    .foot b { font-size: 1.9vmin; padding: 1vmin 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; }
+    .panel { left: 45%; }
+    .kick { left: 6vmin; top: 6vmin; font-size: 1.9vmin; }
+    .wheel { top: 4vmin; right: -18vmin; width: 58vmin; height: 58vmin; }
+    h1 { left: 6vmin; top: 12vmin; width: 36vmin; font-size: 5.6vmin; }
+    .lede { left: 6vmin; top: 44vmin; width: 34vmin; font-size: 2vmin; }
+    .run { left: 6vmin; right: 22vmin; top: 60vmin; }
+    .run .w1 { width: 8vmin; height: 8vmin; } .run .w2 { width: 9.6vmin; height: 9.6vmin; } .run .w3 { width: 11.2vmin; height: 11.2vmin; } .run .w4 { width: 12.8vmin; height: 12.8vmin; }
+    .run b { font-size: 2.8vmin; }
+    .run small { font-size: 1.7vmin; }
+    .foot { left: 6vmin; right: 6vmin; bottom: 5.4vmin; }
+    .foot span { font-size: 2vmin; }
+    .foot b { font-size: 2.3vmin; padding: 1.3vmin 2.4vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the ad at rest) ─────────
+     0.3s the big wheel gets flicked: two full turns on a free-spinning bearing, slowing to a stop by 4.5s ·
+     1.2s the size run hops left→right like wheels rolling over a crack · 2.4s "Soft prices." squishes like urethane ·
+     3.3s the −45% pops · 4.9s a sheen crosses the CTA pill, arrow nudges */
+  .wheel svg { transform-origin: 50% 50%; animation: spin 6s linear infinite; }
+  @keyframes spin {
+    0%, 5% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.12,.55,.3,1); }
+    75%, 100% { transform: rotate(720deg); }
+  }
+  .run i { animation: hop 6s linear infinite; }
+  .run div:nth-child(2) i { animation-delay: -5.88s; } .run div:nth-child(3) i { animation-delay: -5.76s; } .run div:nth-child(4) i { animation-delay: -5.64s; }
+  @keyframes hop {
+    0%, 20% { transform: translateY(0) scale(1, 1); animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+    23% { transform: translateY(-1.8vmin) scale(1, 1); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    26% { transform: translateY(0) scale(1.06, .94); animation-timing-function: cubic-bezier(.3,.6,.4,1); }
+    29%, 100% { transform: translateY(0) scale(1, 1); }
+  }
+  h1 span { transform-origin: 0% 100%; animation: squish 6s linear infinite; }
+  @keyframes squish {
+    0%, 40% { transform: scale(1, 1); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    43% { transform: scale(1.05, .86); animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    46.5% { transform: scale(.98, 1.06); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    49.5% { transform: scale(1.01, .98); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    52%, 100% { transform: scale(1, 1); }
+  }
+  .run div:last-child b { animation: pop 6s linear infinite; }
+  @keyframes pop {
+    0%, 54% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1.2); }
+    57.5% { transform: scale(1.25) rotate(-4deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    61% { transform: scale(.96) rotate(1deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    64%, 100% { transform: scale(1) rotate(0deg); }
+  }
+  .foot b { position: relative; overflow: hidden; }
+  .foot b::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.9) 50%, rgba(255,255,255,0));
+    transform: translateX(-150%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 80% { transform: translateX(-150%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    92%, 100% { transform: translateX(320%) skewX(-18deg); }
+  }
+  .foot b i { display: inline-block; font-style: normal; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 86% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    89% { transform: translateX(.8vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    92% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    95% { transform: translateX(.8vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    98%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="wheel">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <radialGradient id="ure" cx="50%" cy="50%" r="50%"><stop offset=".55" stop-color="#F4EFE1"/><stop offset=".9" stop-color="#EDE5D0"/><stop offset="1" stop-color="#CFC4A8"/></radialGradient>
+          <path id="rim" d="M 100 26 A 74 74 0 1 1 99.9 26"/>
+        </defs>
+        <circle cx="100" cy="100" r="99" fill="url(#ure)"/>
+        <circle cx="100" cy="100" r="88" fill="none" stroke="#D8CFB8" stroke-width=".8"/>
+        <text font-size="10.2" letter-spacing="1.6" fill="#4B34C9"><textPath href="#rim">ORO WHEEL CO. ✦ 58 MM ✦ 99A ✦ CONICAL ✦ STREET FORMULA ✦</textPath></text>
+        <circle cx="100" cy="100" r="58" fill="#FF7A1A"/>
+        <circle cx="100" cy="100" r="58" fill="none" stroke="#E0600A" stroke-width="2"/>
+        <circle cx="100" cy="100" r="36" fill="#A7A9B1"/>
+        <circle cx="100" cy="100" r="36" fill="none" stroke="#7D8089" stroke-width="1.4"/>
+        <circle cx="100" cy="100" r="26" fill="#2E2A33"/>
+        <circle cx="100" cy="100" r="17" fill="#C9CBD2"/>
+        <circle cx="100" cy="100" r="8" fill="#4B34C9"/>
+        <text x="100" y="75" font-size="9" letter-spacing="1.5" text-anchor="middle" fill="#2E2A33">99A</text>
+      </svg>
+    </div>
+    <div class="kick">Oro Wheel Co. · Formula 99A</div>
+    <h1>Hard wheels. <span>Soft prices.</span></h1>
+    <p class="lede">The summer drop rolls in. The bigger the wheel, the bigger the markdown.</p>
+    <div class="run">
+      <div><i class="w1"></i><b>−15%</b><small>52 mm</small></div>
+      <div><i class="w2"></i><b>−25%</b><small>54 mm</small></div>
+      <div><i class="w3"></i><b>−35%</b><small>56 mm</small></div>
+      <div><i class="w4"></i><b>−45%</b><small>58 mm</small></div>
+    </div>
+    <div class="foot"><span>Code ROLL45</span><b>Roll in <i>→</i></b></div>
+  </div>
+</div>
+</body>
+</html>

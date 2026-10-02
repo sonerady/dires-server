@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Red+Hat+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Stencil Crate — clearance straight from the stockroom: spray-stencilled kraft board, printed packing tape, a lot label and handling marks */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #BE9366; }
+  .banner { --panel: 80vmin; position: fixed; inset: 0; overflow: hidden; color: #1B1A17; font-family: "Red Hat Mono", Menlo, monospace;
+    background:
+      repeating-linear-gradient(90deg, rgba(90,60,30,.05) 0 .3vmin, transparent .3vmin 1.1vmin),
+      radial-gradient(ellipse at 30% 20%, rgba(255,235,200,.28), transparent 60%),
+      radial-gradient(ellipse at 80% 90%, rgba(80,50,20,.22), transparent 55%),
+      #BE9366; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .edge { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel)); height: 1.2vmin; background: repeating-linear-gradient(90deg, #A67C51 0 .6vmin, #8E6843 .6vmin 1.2vmin); }
+
+  /* printed packing tape */
+  .tape { position: absolute; left: -2vmin; right: -2vmin; top: calc(100% - var(--panel) + 5vmin); height: 6.4vmin; transform: rotate(-1.2deg); background: linear-gradient(180deg, rgba(222,190,140,.72), rgba(205,170,118,.66) 50%, rgba(222,190,140,.72)); box-shadow: 0 .2vmin .4vmin rgba(60,40,20,.18); overflow: hidden; display: flex; align-items: center; }
+  .tape::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.22) 35%, transparent 50%); }
+  .tape span { white-space: nowrap; font-weight: 700; font-size: 2vmin; letter-spacing: .3em; color: rgba(160,34,26,.8); padding-left: 3vmin; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5.4vmin; top: calc(100% - var(--panel) + 15vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .sten { font-family: "Saira Stencil One", Impact, sans-serif; font-weight: 400; line-height: .9; white-space: nowrap; text-shadow: 0 0 .5vmin rgba(27,26,23,.45), .2vmin .1vmin 1.4vmin rgba(27,26,23,.18); }
+  h1 { margin: 2.4vmin 0 0; font-size: 14.4vmin; letter-spacing: .01em; transform: rotate(-.8deg); transform-origin: 0 50%; }
+  .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 4vmin; margin-top: auto; }
+  .pct { font-size: 21vmin; color: #A8231A; text-shadow: 0 0 .6vmin rgba(168,35,26,.5), .3vmin .2vmin 1.8vmin rgba(168,35,26,.22); letter-spacing: -.02em; margin-bottom: -1.4vmin; }
+
+  .lbl { flex: none; width: 25vmin; background: #F6F2EA; box-shadow: 0 .3vmin .8vmin rgba(60,40,20,.25); padding: 2vmin 2.2vmin 1.8vmin; box-sizing: border-box; transform: rotate(1.6deg); }
+  .lbl .h { display: flex; justify-content: space-between; font-size: 1.6vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; padding-bottom: 1vmin; border-bottom: .3vmin solid #1B1A17; }
+  .lbl .lot { font-family: "Saira Stencil One", Impact, sans-serif; font-size: 7vmin; line-height: 1; margin-top: 1.2vmin; }
+  .lbl .m { font-size: 1.6vmin; line-height: 1.5; margin-top: .8vmin; }
+  .lbl .bc { height: 4vmin; margin-top: 1.2vmin; background: repeating-linear-gradient(90deg, #1B1A17 0 .3vmin, transparent .3vmin .6vmin, #1B1A17 .6vmin 1.1vmin, transparent 1.1vmin 1.4vmin, #1B1A17 1.4vmin 1.55vmin, transparent 1.55vmin 2.1vmin); }
+
+  .marks { display: flex; gap: 1.6vmin; margin-top: 2.4vmin; }
+  .marks svg { width: 6vmin; height: 6vmin; }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; margin-top: 3.4vmin; padding-top: 2vmin; border-top: .3vmin dashed rgba(27,26,23,.6); }
+  .foot p { margin: 0; font-size: 1.8vmin; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; }
+  .cta { flex: none; font-family: "Saira Stencil One", Impact, sans-serif; font-size: 2.8vmin; letter-spacing: .08em; text-transform: uppercase; background: #1B1A17; color: #D9B78C; padding: 1.2vmin 2.6vmin 1vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 72vmin; }
+    .marks { display: none; }
+    .tape { top: calc(100% - var(--panel) + 4vmin); height: 5.6vmin; }
+    .panel { top: calc(100% - var(--panel) + 13vmin); bottom: 4.6vmin; }
+    h1 { font-size: 12vmin; margin-top: 1.6vmin; }
+    .pct { font-size: 18vmin; }
+    .lbl { width: 24vmin; padding: 1.6vmin 2vmin 1.4vmin; }
+    .lbl .lot { font-size: 6vmin; }
+    .foot { margin-top: 2.6vmin; padding-top: 1.6vmin; }
+  }
+  /* square / wide — photo left, the crate side right, tape runs down the seam */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .edge { left: 48%; right: auto; top: 0; bottom: 0; width: 1.2vmin; height: auto; background: repeating-linear-gradient(180deg, #A67C51 0 .6vmin, #8E6843 .6vmin 1.2vmin); }
+    .tape { left: calc(48% - 2.4vmin); right: auto; top: -2vmin; bottom: -2vmin; width: 6vmin; height: auto; transform: rotate(.8deg); }
+    .tape span { writing-mode: vertical-rl; padding: 3vmin 0 0; margin: 0 auto; }
+    .panel { left: calc(48% + 8vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; }
+    .kick span:last-child { display: none; }
+    h1 { font-size: 6.6vmin; margin-top: 2vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .pct { font-size: 16vmin; margin-bottom: 0; }
+    .lbl { width: 26vmin; }
+    .lbl .lot { font-size: 5.6vmin; }
+    .marks { display: flex; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; margin-top: 3vmin; }
+    .foot p { font-size: 1.6vmin; }
+    .cta { font-size: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 64% 25%; }
+    .edge { left: 44%; }
+    .tape { left: calc(44% - 2.4vmin); }
+    .panel { left: calc(44% + 9vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .kick span:last-child { display: inline; }
+    h1 { font-size: 11vmin; }
+    .row { flex-direction: row; align-items: flex-end; }
+    .pct { font-size: 17vmin; }
+    .lbl { width: 24vmin; }
+    .marks { display: flex; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="edge"></div>
+  <div class="tape"><span>FINAL REDUCTION ✕ FINAL REDUCTION ✕ FINAL REDUCTION ✕ FINAL REDUCTION ✕ FINAL REDUCTION ✕ FINAL REDUCTION ✕</span></div>
+  <div class="panel">
+    <div class="kick"><span>Stockroom clearance</span><span>End of season</span></div>
+    <h1 class="sten">CLEARANCE</h1>
+    <div class="marks">
+      <svg viewBox="0 0 60 60"><rect x="2" y="2" width="56" height="56" fill="none" stroke="#1B1A17" stroke-width="3"/><path d="M20 46 V18 M12 26 L20 16 L28 26 M40 46 V18 M32 26 L40 16 L48 26 M12 50 H48" fill="none" stroke="#1B1A17" stroke-width="3.4"/></svg>
+      <svg viewBox="0 0 60 60"><rect x="2" y="2" width="56" height="56" fill="none" stroke="#1B1A17" stroke-width="3"/><path d="M10 30 A20 16 0 0 1 50 30 Z M30 30 V46 A4 4 0 0 1 22 46" fill="none" stroke="#1B1A17" stroke-width="3.4"/><path d="M18 10 L20 16 M30 8 V14 M42 10 L40 16" stroke="#1B1A17" stroke-width="2.6"/></svg>
+    </div>
+    <div class="row">
+      <div class="sten pct">−70%</div>
+      <div class="lbl">
+        <div class="h"><span>Lot</span><span>Final</span></div>
+        <div class="lot">07</div>
+        <div class="m">QTY: last units<br>All sizes · mixed</div>
+        <div class="bc"></div>
+      </div>
+    </div>
+    <div class="foot"><p>Everything must go<br>Online &amp; in store</p><div class="cta">Shop the lot</div></div>
+  </div>
+</div>
+</body>
+</html>

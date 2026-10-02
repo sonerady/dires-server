@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Field Map — outdoor / utility: olive map sheet with topographic contours, coordinates, a compass,
+     a scale bar and registration marks on the photo corners. tall → photo above; 7/10+ → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #3E432F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #3E432F; color: #ECE6D3; font-family: "Space Mono", Menlo, monospace; }
+  .map { position: absolute; left: 0; right: 0; bottom: 0; height: 62vmin; overflow: hidden; }
+  .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .map path { fill: none; stroke: #ECE6D3; stroke-opacity: .2; stroke-width: .22vmin; vector-effect: non-scaling-stroke; }
+  .map path.ix { stroke-opacity: .36; stroke-width: .4vmin; }
+  .gridl { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(236,230,211,.07) 0 1px, transparent 1px 16vmin), repeating-linear-gradient(0deg, rgba(236,230,211,.07) 0 1px, transparent 1px 16vmin); }
+
+  .ph { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 62vmin); }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  /* registration marks */
+  .ph i { position: absolute; width: 4vmin; height: 4vmin; border: 0 solid #ECE6D3; }
+  .ph .c1 { left: 3vmin; top: 3vmin; border-left-width: .35vmin; border-top-width: .35vmin; }
+  .ph .c2 { right: 3vmin; top: 3vmin; border-right-width: .35vmin; border-top-width: .35vmin; }
+  .ph .c3 { left: 3vmin; bottom: 3vmin; border-left-width: .35vmin; border-bottom-width: .35vmin; }
+  .ph .c4 { right: 3vmin; bottom: 3vmin; border-right-width: .35vmin; border-bottom-width: .35vmin; }
+
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5.5vmin; height: 52vmin; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; color: #C9C3AE; }
+  .top b { color: #F26B2A; font-weight: 700; }
+  h1 { width: fit-content; margin: 2.6vmin 0 0; font-family: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif; font-weight: 900; font-size: 17.5vmin; line-height: .8; letter-spacing: -.005em; text-transform: uppercase; }
+  h1 span { color: #F26B2A; }
+  .lede { margin-top: 3vmin; width: 46vmin; font-size: 2vmin; line-height: 1.5; color: #D6D0BC; }
+  .foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .scale { font-size: 1.6vmin; letter-spacing: .1em; color: #C9C3AE; }
+  .scale .bar { width: 24vmin; height: 1.1vmin; margin-bottom: .8vmin; border: 1px solid #ECE6D3; background: repeating-linear-gradient(90deg, #ECE6D3 0 6vmin, transparent 6vmin 12vmin); }
+  .scale .t { display: flex; justify-content: space-between; width: 26vmin; }
+  .cta { flex: none; display: flex; align-items: center; gap: 2vmin; padding: 2vmin 3vmin; background: #F26B2A; color: #1E2116; font-size: 2.2vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  .compass { position: absolute; right: 7vmin; bottom: 25vmin; width: 22vmin; height: 22vmin; }
+  .compass .t { font-family: "Space Mono", monospace; font-weight: 700; }
+
+  /* ── 7/10+ : photo left, map sheet right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .map { left: 54%; top: 0; height: auto; }
+    .ph { width: 54%; height: 100%; }
+    .ph img { object-position: 50% 25%; }
+    .panel { left: calc(54% + 5vmin); right: 5vmin; top: 6vmin; bottom: 5vmin; height: auto; }
+    .top { flex-direction: column; gap: .8vmin; }
+    h1 { font-size: 13vmin; margin-top: 4vmin; }
+    .lede { width: auto; }
+    .foot { flex-direction: column; align-items: stretch; gap: 3vmin; }
+    .cta { justify-content: space-between; }
+    .compass { right: 7vmin; bottom: auto; top: 52%; width: 20vmin; height: 20vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .map { left: 50%; }
+    .ph { width: 50%; }
+    .panel { left: calc(50% + 5vmin); top: 5.5vmin; bottom: 5vmin; }
+    h1 { font-size: 11vmin; margin-top: 3vmin; }
+    .lede { font-size: 1.8vmin; margin-top: 2.4vmin; }
+    .foot { gap: 2.4vmin; }
+    .compass { top: 50%; right: 6vmin; width: 15vmin; height: 15vmin; }
+    .cta { padding: 1.7vmin 2.4vmin; font-size: 2vmin; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .map { left: 44%; }
+    .ph { width: 44%; }
+    .panel { left: calc(44% + 7vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; }
+    .top { flex-direction: row; }
+    h1 { font-size: 16vmin; margin-top: 5vmin; }
+    .lede { width: 46vmin; font-size: 2vmin; margin-top: 3vmin; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .compass { top: 22vmin; right: 9vmin; width: 22vmin; height: 22vmin; }
+    .cta { padding: 2vmin 3vmin; font-size: 2.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="map">
+    <div class="gridl"></div>
+    <svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <path d="M232 128c22-8 46 2 50 20s-12 34-34 36-44-6-46-24 8-26 30-32z"/>
+      <path class="ix" d="M226 104c38-14 80 0 88 32s-16 62-56 68-84-6-90-38 18-50 58-62z"/>
+      <path d="M214 78c54-20 116-2 126 42s-22 90-80 100-122-6-132-52 28-70 86-90z"/>
+      <path d="M200 52c70-24 150-4 164 52s-28 118-104 132-160-8-172-68 40-92 112-116z"/>
+      <path class="ix" d="M184 24c88-30 190-6 206 64s-34 146-128 162-198-10-212-84 50-112 134-142z"/>
+      <path d="M170 -6c104-34 226-8 246 78s-40 176-152 194-238-12-254-100 58-136 160-172z"/>
+      <path d="M60 250c20-18 50-22 70-8s16 40-8 50-58 8-66-8-8-22 4-34z"/>
+      <path d="M40 232c32-30 80-36 110-14s24 64-14 80"/>
+      <path d="M20 214c44-40 110-48 150-18s32 86-18 108"/>
+      <path class="ix" d="M-4 196c56-50 138-60 190-22s40 110-22 140"/>
+      <path d="M60 60c14-10 34-8 40 6s-4 28-20 30-30-6-30-18 2-12 10-18z"/>
+      <path d="M44 44c24-18 58-16 70 8s-6 50-34 54-54-10-54-32 4-20 18-30z"/>
+    </svg>
+  </div>
+  <div class="ph">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i>
+  </div>
+  <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
+    <circle cx="50" cy="50" r="40" fill="none" stroke="#ECE6D3" stroke-width="1.2"/>
+    <circle cx="50" cy="50" r="33" fill="none" stroke="#ECE6D3" stroke-width=".6" stroke-dasharray="1 3.2"/>
+    <path d="M50 8v8M50 84v8M8 50h8M84 50h8" stroke="#ECE6D3" stroke-width="1.2"/>
+    <path d="M50 20 L57 50 L50 80 L43 50 Z" fill="#ECE6D3" fill-opacity=".25"/>
+    <path d="M50 20 L57 50 L43 50 Z" fill="#F26B2A"/>
+    <circle cx="50" cy="50" r="2.6" fill="#3E432F" stroke="#ECE6D3" stroke-width="1"/>
+    <text class="t" x="50" y="6" font-size="8" text-anchor="middle" fill="#ECE6D3">N</text>
+  </svg>
+  <div class="panel">
+    <div class="top"><span>Field Issue <b>02</b></span><span>46°34′N · 8°02′E</span></div>
+    <h1>Off<br><span>grid.</span></h1>
+    <div class="lede">Layers built for the long way round. Up to 20% off the field edit this weekend.</div>
+    <div class="foot">
+      <div class="scale"><div class="bar"></div><div class="t"><span>0</span><span>2</span><span>4 km</span></div></div>
+      <div class="cta">Explore the edit <span>→</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

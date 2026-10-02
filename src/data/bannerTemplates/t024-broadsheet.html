@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@700&family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Broadsheet — a front page: blackletter masthead, ears, dateline, banner headline, photo with caption, justified columns.
+     tall → one stacked front page · square → photo left column, story right · wide → story left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #ECE7DA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #ECE7DA; color: #151412; font-family: "Old Standard TT", "Times New Roman", Georgia, serif; }
+  .banner::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background: radial-gradient(rgba(60,50,30,.10) 1px, transparent 1px) 0 0 / .9vmin .9vmin; mix-blend-mode: multiply; }
+
+  .top { position: absolute; left: 4.5vmin; right: 4.5vmin; top: 3.6vmin; display: grid; grid-template-columns: 17vmin 1fr 17vmin; align-items: center; }
+  .ear { border: 1px solid #151412; padding: .9vmin 1vmin; font-size: 1.6vmin; line-height: 1.3; text-align: center; text-transform: uppercase; letter-spacing: .08em; }
+  .ear b { display: block; font-size: 2.1vmin; letter-spacing: .02em; }
+  .mast { text-align: center; font-family: "Grenze Gotisch", "Old English Text MT", serif; font-weight: 700; font-size: 11.5vmin; line-height: 1; letter-spacing: -.01em; white-space: nowrap; }
+  .date { position: absolute; left: 4.5vmin; right: 4.5vmin; top: 19vmin; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; padding: .9vmin 0; border-top: .5vmin double #151412; border-top-width: .8vmin; border-bottom: 1px solid #151412; white-space: nowrap; }
+
+  .head { position: absolute; left: 4.5vmin; right: 4.5vmin; top: 27vmin; text-align: center; }
+  .head h1 { margin: 0; font-weight: 700; font-size: 10.4vmin; line-height: .95; letter-spacing: -.02em; text-transform: uppercase; }
+  .head h1 br { display: none; }
+  .head p { margin: 1.6vmin auto 0; max-width: 80vmin; font-style: italic; font-size: 3vmin; line-height: 1.2; }
+
+  .photo { position: absolute; left: 4.5vmin; top: 51vmin; width: calc(100% - 9vmin); height: calc(100% - 51vmin - 39vmin); object-fit: cover; object-position: 50% 20%; }
+  .cap { position: absolute; left: 4.5vmin; right: 4.5vmin; bottom: 34.4vmin; font-style: italic; font-size: 1.8vmin; line-height: 1.3; border-bottom: 1px solid #151412; padding-bottom: 1vmin; }
+  .cap b { font-style: normal; letter-spacing: .1em; text-transform: uppercase; font-size: 1.6vmin; }
+
+  .cols { position: absolute; left: 4.5vmin; right: 4.5vmin; bottom: 10vmin; height: 22vmin; overflow: hidden; column-count: 3; column-gap: 3.4vmin; column-rule: 1px solid rgba(21,20,18,.45); column-fill: auto; font-size: 1.95vmin; line-height: 1.38; text-align: justify; hyphens: auto; }
+  .cols p { margin: 0 0 .8vmin; }
+  .cols p:first-child::first-letter { float: left; font-weight: 700; font-size: 6.6vmin; line-height: .8; padding: .5vmin .8vmin 0 0; }
+  .cols .code { display: block; margin: 1vmin 0; padding: 1vmin; border: 1px solid #151412; text-align: center; font-weight: 700; letter-spacing: .12em; }
+  .foot { position: absolute; left: 4.5vmin; right: 4.5vmin; bottom: 3.6vmin; display: flex; justify-content: space-between; align-items: center; border-top: .8vmin double #151412; padding-top: 1.2vmin; font-size: 1.9vmin; letter-spacing: .1em; text-transform: uppercase; }
+  .foot b { letter-spacing: .14em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .mast { font-size: 10vmin; }
+    .date { top: 17vmin; }
+    .head { top: 24vmin; }
+    .head h1 { font-size: 9vmin; }
+    .head p { font-size: 2.6vmin; }
+    .photo { top: 44.5vmin; height: calc(100% - 44.5vmin - 32vmin); }
+    .cap { bottom: 27.4vmin; }
+    .cols { height: 15vmin; bottom: 9.6vmin; font-size: 1.8vmin; }
+  }
+  /* square — photo in the left column, story on the right */
+  @media (min-aspect-ratio: 9/10) {
+    .top { grid-template-columns: 15vmin 1fr 15vmin; }
+    .mast { font-size: 10vmin; }
+    .date { top: 16.5vmin; }
+    .photo { left: 4.5vmin; top: 23.5vmin; width: calc(48% - 4.5vmin); height: calc(100% - 23.5vmin - 11vmin); object-position: 50% 25%; }
+    .cap { left: 4.5vmin; right: 52%; bottom: 3.6vmin; border: 0; padding: 0; }
+    .head { left: calc(48% + 3vmin); right: 4.5vmin; top: 23.5vmin; text-align: left; }
+    .head h1 { font-size: 7.4vmin; }
+    .head h1 br { display: inline; }
+    .head p { margin-left: 0; font-size: 2.4vmin; }
+    .cols { left: calc(48% + 3vmin); right: 4.5vmin; top: 50vmin; bottom: 12.5vmin; height: auto; column-count: 2; font-size: 1.8vmin; }
+    .foot { left: calc(48% + 3vmin); right: 4.5vmin; bottom: 3.6vmin; font-size: 1.7vmin; }
+    .foot span:first-child { display: none; }
+  }
+  /* wide — story left in three columns, photo right */
+  @media (min-aspect-ratio: 6/5) {
+    .top { grid-template-columns: 20vmin 1fr 20vmin; }
+    .mast { font-size: 11vmin; }
+    .date { top: 17.5vmin; }
+    .photo { left: auto; right: 4.5vmin; top: 25vmin; width: 40%; height: calc(100% - 25vmin - 10vmin); }
+    .cap { left: auto; right: 4.5vmin; width: 40%; bottom: 3.6vmin; }
+    .head { left: 4.5vmin; right: calc(40% + 8vmin); top: 25vmin; }
+    .head h1 { font-size: 9vmin; }
+    .head h1 br { display: none; }
+    .cols { left: 4.5vmin; right: calc(40% + 8vmin); top: 48vmin; bottom: 12.5vmin; column-count: 3; }
+    .foot { left: 4.5vmin; right: calc(40% + 8vmin); }
+    .foot span:first-child { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <div class="ear"><b>Late Edition</b>Style section</div>
+    <div class="mast">The Daily Edit</div>
+    <div class="ear"><b>Sunny, 24°</b>Perfect to shop</div>
+  </div>
+  <div class="date"><span>Vol. XII · No. 214</span><span>Thursday, 25 September 2026</span><span>Free</span></div>
+  <div class="head">
+    <h1>Sale<br> Extended</h1>
+    <p>The collection stays at 40% off for three more days.</p>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="cap"><b>Pictured</b> — the look of the season, online and in stores now.</div>
+  <div class="cols">
+    <p>PARIS — The season’s most-wanted pieces are staying on sale. From today the entire collection is 40% off, online and in every store, with free delivery on all orders.</p>
+    <p>Our editors call it the best offer of the year. New arrivals join the edit each morning, and sizes are moving fast.</p>
+    <span class="code">Code DAILY40</span>
+    <p>The offer ends Sunday at midnight. No exceptions, no second chances — until next season.</p>
+  </div>
+  <div class="foot"><span>Continued online</span><b>dailyedit.com</b></div>
+</div>
+</body>
+</html>

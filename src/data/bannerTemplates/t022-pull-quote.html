@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,900;1,400;1,500;1,900&family=Libre+Franklin:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Pull-Quote Interview — the designer's words set as a giant pull-quote, the look beneath it.
+     tall → quote panel above, photo below · square & wide → quote left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFE9DF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFE9DF; color: #18171A; font-family: "Libre Franklin", "Helvetica Neue", Arial, sans-serif; }
+
+  .row { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; padding-bottom: 1.6vmin; border-bottom: 1px solid #18171A; }
+  .row .red { color: #C8371F; }
+  .row span:last-child { font-weight: 500; }
+  .mark { position: absolute; left: 4.6vmin; top: 8vmin; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 900; font-size: 34vmin; line-height: 1; height: 18vmin; color: #C8371F; }
+  .quote { position: absolute; left: 6vmin; right: 6vmin; top: 28vmin; margin: 0; font-family: "Playfair Display", Georgia, "Times New Roman", serif; font-style: italic; font-weight: 500; font-size: 12.6vmin; line-height: .98; letter-spacing: -.02em; }
+  .quote em { font-weight: 900; font-style: italic; color: #C8371F; }
+  .by { position: absolute; left: 6vmin; right: 6vmin; top: 70vmin; display: flex; align-items: center; gap: 2.4vmin; }
+  .by i { flex: none; display: block; width: 7vmin; height: 1px; background: #18171A; }
+  .by b { display: block; font-size: 2.3vmin; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+  .by span { display: block; margin-top: .6vmin; font-size: 2.1vmin; color: #5A554E; }
+  .qa { display: none; }
+  .cta { position: absolute; right: 6vmin; top: 70.4vmin; text-align: right; font-size: 1.9vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; line-height: 1.6; }
+  .cta u { text-decoration: none; border-bottom: .3vmin solid #C8371F; padding-bottom: .3vmin; }
+
+  .photo { position: absolute; left: 0; bottom: 0; width: 100%; height: calc(100% - 83vmin); object-fit: cover; object-position: 50% 18%; }
+  .credit { position: absolute; right: 2.2vmin; bottom: 3vmin; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 1.6vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; color: #fff; text-shadow: 0 0 1.4vmin rgba(0,0,0,.55); }
+
+  @media (min-aspect-ratio: 7/10) {
+    .row { top: 4vmin; }
+    .mark { top: 6vmin; font-size: 26vmin; height: 14vmin; }
+    .quote { top: 21vmin; font-size: 10vmin; right: 14vmin; }
+    .by { top: 54vmin; }
+    .cta { top: 54.4vmin; }
+    .photo { height: calc(100% - 66vmin); }
+  }
+  /* square — quote column left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; top: 0; width: 46%; height: 100%; object-position: 50% 25%; }
+    .row { left: 5vmin; right: calc(46% + 5vmin); top: 5vmin; }
+    .row span:last-child { display: none; }
+    .mark { left: 3.6vmin; top: 8vmin; font-size: 24vmin; height: 15vmin; }
+    .quote { left: 5vmin; right: calc(46% + 5vmin); top: 25vmin; font-size: 8.4vmin; }
+    .by { left: 5vmin; right: calc(46% + 5vmin); top: auto; bottom: 17vmin; }
+    .cta { left: 5vmin; right: auto; top: auto; bottom: 5vmin; text-align: left; }
+    .credit { right: 1.8vmin; }
+  }
+  /* wide — room for a two-line Q&A beside the quote */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 40%; }
+    .row { right: calc(40% + 6vmin); left: 6vmin; }
+    .row span:last-child { display: inline; }
+    .mark { left: 4.6vmin; }
+    .quote { left: 6vmin; right: calc(40% + 30vmin); top: 25vmin; font-size: 9.6vmin; }
+    .qa { display: block; position: absolute; right: calc(40% + 6vmin); width: 20vmin; top: 26vmin; font-size: 1.9vmin; line-height: 1.5; color: #3A3732; }
+    .qa p { margin: 0 0 2vmin; }
+    .qa b { display: block; font-weight: 800; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: #C8371F; margin-bottom: .4vmin; }
+    .by { left: 6vmin; right: auto; bottom: 7vmin; }
+    .cta { left: auto; right: calc(40% + 6vmin); bottom: 7.4vmin; text-align: right; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="credit">Studio Oro · Autumn 2026</div>
+  <div class="row"><span class="red">The Interview</span><span>No. 09</span></div>
+  <div class="mark">“</div>
+  <p class="quote">Make fewer things. <em>Make them last.</em></p>
+  <div class="qa">
+    <p><b>Where it began</b>Good cloth, honest cuts and nothing extra.</p>
+    <p><b>Who it’s for</b>Anyone who buys less, but better.</p>
+  </div>
+  <div class="by"><i></i><div><b>Léa Moreau</b><span>Creative Director, Studio Oro</span></div></div>
+  <div class="cta">New collection<br><u>Shop now</u></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Bodoni:ital,wght@0,400;1,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Fit Scale — the "fit notes" of a luxury product page after dark: a height rule runs up the photo's edge
+     with the model's 177 cm flagged in champagne, and three graded sliders read the piece — fit (true to size),
+     length (long), drape (fluid) — each with its notch marked, then the model line and "Find your size".
+     tall → ruled photo above the notes; 3:4 / square / wide → ruled photo left, notes right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1F2A2E; }
+  .banner { --panel: 74vmin; --ch: #D9C3A0; position: fixed; inset: 0; overflow: hidden; background: #1F2A2E; color: #EFE9DF; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; }
+
+  .pic { position: absolute; left: 0; right: 0; top: 0; bottom: var(--panel); }
+  .pic img { position: absolute; left: 10vmin; right: 0; top: 0; width: calc(100% - 10vmin); height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .rule { position: absolute; left: 0; top: 0; bottom: 0; width: 10vmin; }
+  .rule::before { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 2.6vmin;
+    background: repeating-linear-gradient(to top, rgba(239,233,223,.55) 0 1px, transparent 1px 1.6vmin); }
+  .rule::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 4.6vmin;
+    background: repeating-linear-gradient(to top, rgba(239,233,223,.85) 0 1px, transparent 1px 8vmin); }
+  .rule span { position: absolute; left: 1.4vmin; font-size: 1.6vmin; font-weight: 500; letter-spacing: .04em; color: #9AA3A3; transform: translateY(-50%); }
+  .rule .h { position: absolute; left: auto; right: -2vmin; top: 9.3%; z-index: 2; display: flex; align-items: center; transform: translateY(-50%); }
+  .rule .h b { padding: .7vmin 1.1vmin; background: var(--ch); color: #1F2A2E; font-size: 1.6vmin; font-weight: 600; letter-spacing: .06em; white-space: nowrap; }
+  .rule .h i { width: 0; height: 0; border-top: 1.1vmin solid transparent; border-bottom: 1.1vmin solid transparent; border-left: 1.2vmin solid var(--ch); }
+
+  .notes { position: absolute; left: 5vmin; right: 5vmin; bottom: 0; height: var(--panel); box-sizing: border-box; padding: 5vmin 0 5vmin; display: flex; flex-direction: column; }
+  .eb { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ch); white-space: nowrap; }
+  .eb span + span { color: #9AA3A3; font-weight: 500; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Libre Bodoni", "Didot", "Times New Roman", serif; font-weight: 400; font-size: 9vmin; line-height: .95; letter-spacing: -.02em; }
+  h1 i { color: var(--ch); }
+
+  .scales { margin-top: auto; }
+  .sc + .sc { margin-top: 3.4vmin; }
+  .sc .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.8vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .sc .top em { font-family: "Libre Bodoni", serif; font-style: italic; font-size: 2.6vmin; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ch); }
+  .track { position: relative; margin-top: 1.8vmin; height: 2.4vmin; }
+  .track::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(239,233,223,.45); }
+  .track::after { content: ""; position: absolute; left: 0; right: 0; top: calc(50% - .8vmin); height: 1.6vmin;
+    background: linear-gradient(90deg, rgba(239,233,223,.6) 1px, transparent 1px) 0 0 / 25% 100% repeat-x;
+    box-shadow: inset -1px 0 0 rgba(239,233,223,.6); }
+  .track b { position: absolute; top: 50%; width: 2.4vmin; height: 2.4vmin; margin: -1.2vmin 0 0 -1.2vmin; background: var(--ch); transform: rotate(45deg); z-index: 1; box-shadow: 0 0 0 .6vmin #1F2A2E; }
+  .ends { margin-top: 1.2vmin; display: flex; justify-content: space-between; font-size: 1.6vmin; color: #9AA3A3; letter-spacing: .04em; white-space: nowrap; }
+
+  .foot { margin-top: 4.4vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .model { font-size: 1.8vmin; line-height: 1.5; color: #C9CDCB; white-space: nowrap; }
+  .model b { color: #EFE9DF; font-weight: 600; }
+  .cta { flex: none; display: flex; align-items: center; gap: 1.6vmin; padding: 2vmin 2.8vmin; border: 1px solid var(--ch); color: var(--ch); font-size: 1.8vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
+  /* ── 3:4 / 4:5 and wider: ruled photo left, notes right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .pic { right: 48%; bottom: 0; }
+    .rule { width: 8vmin; }
+    .pic img { left: 8vmin; width: calc(100% - 8vmin); }
+    .rule .h { right: -1.6vmin; }
+    .notes { left: calc(52% + 4.5vmin); right: 4.5vmin; top: 0; height: auto; padding: 5vmin 0 4.5vmin; }
+    .eb span + span { display: none; }
+    h1 { font-size: 7.4vmin; }
+    .sc + .sc { margin-top: 3vmin; }
+    .sc .top em { font-size: 2.3vmin; }
+    .foot { flex-direction: column; align-items: stretch; gap: 2.2vmin; margin-top: 3.6vmin; }
+    .model { white-space: normal; }
+    .cta { justify-content: space-between; padding: 1.9vmin 2.4vmin; font-size: 1.7vmin; letter-spacing: .12em; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .pic { right: 50%; }
+    .notes { left: calc(50% + 5vmin); right: 5vmin; }
+    h1 { font-size: 7.6vmin; }
+    .sc + .sc { margin-top: 2.6vmin; }
+    .track { margin-top: 1.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .pic { right: 55%; }
+    .rule { width: 9vmin; }
+    .pic img { left: 9vmin; width: calc(100% - 9vmin); }
+    .notes { left: calc(45% + 7vmin); right: 7vmin; padding: 6vmin 0 6vmin; }
+    .eb span + span { display: inline; }
+    h1 { font-size: 8.4vmin; }
+    .sc + .sc { margin-top: 3vmin; }
+    .foot { flex-direction: row; align-items: center; margin-top: 4vmin; }
+    .model { white-space: nowrap; }
+    .cta { padding: 2vmin 2.8vmin; font-size: 1.8vmin; letter-spacing: .16em; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="pic">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="rule">
+      <span style="top: 30%">150</span><span style="top: 53%">120</span><span style="top: 76%">90</span>
+      <div class="h"><b>177 cm</b><i></i></div>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="eb"><span>Fit notes</span><span>Atelier Nord — SS26</span></div>
+    <h1>How it <i>fits.</i></h1>
+    <div class="scales">
+      <div class="sc"><div class="top"><span>Fit</span><em>True to size</em></div><div class="track"><b style="left: 50%"></b></div><div class="ends"><span>Slim</span><span>Relaxed</span></div></div>
+      <div class="sc"><div class="top"><span>Length</span><em>Long</em></div><div class="track"><b style="left: 75%"></b></div><div class="ends"><span>Cropped</span><span>Floor</span></div></div>
+      <div class="sc"><div class="top"><span>Drape</span><em>Fluid</em></div><div class="track"><b style="left: 100%"></b></div><div class="ends"><span>Structured</span><span>Fluid</span></div></div>
+    </div>
+    <div class="foot"><span class="model">Model is <b>177 cm</b> and wears <b>S</b></span><span class="cta">Find your size <span>→</span></span></div>
+  </div>
+</div>
+</body>
+</html>

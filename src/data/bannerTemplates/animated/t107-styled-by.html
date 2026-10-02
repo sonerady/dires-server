@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Mrs+Saint+Delafield&family=Cormorant+Garamond:ital,wght@0,500;1,400;1,500&family=Manrope:wght@500;600;800&display=swap" rel="stylesheet">
+<style>
+  /* Styled By — creator collab card: brand × creator lockup, the look, a big ink signature, the handle and a personal code.
+     tall → lockup / photo / signature card stacked; square / wide → photo left, the card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3EDE3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3EDE3; color: #2A201A; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+
+  .lock { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; text-align: center; }
+  .lock .x { font-size: 2.2vmin; font-weight: 800; letter-spacing: .3em; text-transform: uppercase; }
+  .lock .x i { font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-weight: 400; font-size: 3.4vmin; letter-spacing: 0; margin: 0 1.4vmin; text-transform: none; vertical-align: -.2vmin; }
+  .lock .ed { margin-top: 1vmin; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 3vmin; color: #7A6453; }
+
+  .shot { position: absolute; left: 6vmin; right: 6vmin; top: 16vmin; bottom: 47vmin; overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .picks { position: absolute; right: 0; bottom: 0; background: #F3EDE3; padding: 1.2vmin 0 0 2vmin; font-size: 1.8vmin; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+
+  .card { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: 39vmin; display: flex; flex-direction: column; }
+  .by { width: fit-content; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 4.2vmin; line-height: 1; color: #7A6453; }
+  .say { display: none; font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 3.6vmin; line-height: 1.15; }
+  .sig { margin-top: 2.2vmin; font-family: "Mrs Saint Delafield", "Snell Roundhand", cursive; font-size: 17vmin; line-height: .72; padding: .12em 0 .06em; color: #1F2B4D; white-space: nowrap; transform: rotate(-4deg); transform-origin: 0 60%; margin-left: 4vmin; }
+  .row { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; padding-top: 2vmin; border-top: 1px solid rgba(42,32,26,.25); }
+  .handle { font-size: 2.6vmin; font-weight: 800; letter-spacing: -.01em; }
+  .handle small { display: block; margin-top: .6vmin; font-size: 1.8vmin; font-weight: 500; color: #7A6453; letter-spacing: 0; }
+  .code { flex: none; border: 1px dashed #2A201A; padding: 1.3vmin 2.2vmin; text-align: center; }
+  .code small { display: block; font-size: 1.6vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #7A6453; }
+  .code b { display: block; margin-top: .4vmin; font-size: 3vmin; font-weight: 800; letter-spacing: .12em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .lock { top: 4vmin; }
+    .shot { top: 13.6vmin; bottom: 39vmin; }
+    .card { bottom: 4vmin; height: 33vmin; }
+    .sig { font-size: 14vmin; }
+    .by { font-size: 3.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .shot { left: 5vmin; top: 5vmin; bottom: 5vmin; right: auto; width: 50%; }
+    .lock { left: calc(50% + 10vmin); right: 6vmin; top: 7vmin; text-align: left; }
+    .lock .x { font-size: 2vmin; letter-spacing: .22em; }
+    .lock .x i { margin: 0 1vmin; }
+    .card { left: calc(50% + 10vmin); right: 6vmin; top: 24vmin; bottom: 7vmin; height: auto; }
+    .sig { font-size: calc((50vw - 16vmin) / 4); margin: 2vmin 0 0 1vmin; }
+    .lock .x { font-size: 1.7vmin; letter-spacing: .14em; }
+    .say { display: block; margin-top: 5vmin; max-width: 40vmin; }
+    .row { margin-top: auto; }
+    .row { flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .shot { width: 48%; }
+    .lock { left: calc(48% + 11vmin); right: 7vmin; top: 8vmin; }
+    .lock .x { font-size: 2vmin; letter-spacing: .2em; }
+    .card { left: calc(48% + 11vmin); right: 7vmin; top: 27vmin; bottom: 8vmin; }
+    .by { font-size: 4.6vmin; }
+    .sig { font-size: min(16vmin, calc((52vw - 18vmin) / 4)); margin-left: 2vmin; }
+    .say { font-size: 4vmin; }
+    .row { flex-direction: row; align-items: flex-end; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  /* slow and personal: the signature is signed again in ink, the × turns, the photo breathes, the code gets a nod */
+  .shot img { animation: push 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+  /* signature: fades off, then is written back left → right with a pen-like ease */
+  .sig { animation: sign 8s linear infinite; }
+  @keyframes sign {
+    0%, 18% { opacity: 1; clip-path: inset(-30% -10% -40% -10%); animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    23% { opacity: 0; clip-path: inset(-30% -10% -40% -10%); animation-timing-function: steps(1, end); }
+    24% { opacity: 1; clip-path: inset(-30% 110% -40% -10%); animation-timing-function: cubic-bezier(.35,.1,.45,.95); }
+    56%, 100% { opacity: 1; clip-path: inset(-30% -10% -40% -10%); }
+  }
+  /* "Styled by" and the ed. line settle with the signature */
+  .by { animation: by 8s linear infinite; }
+  @keyframes by {
+    0%, 20% { transform: translateY(0); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.7,.4); }
+    23% { transform: translateY(0); opacity: .35; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    30%, 100% { transform: translateY(0); opacity: 1; }
+  }
+  /* the × in the lockup turns a half circle once per loop */
+  .lock .x i { display: inline-block; animation: cross 8s linear infinite; }
+  @keyframes cross {
+    0%, 60% { transform: rotate(0); animation-timing-function: cubic-bezier(.6,0,.2,1); }
+    70%, 100% { transform: rotate(180deg); }
+  }
+  /* code: a lift and a dashed "ants" border travelling round once */
+  .code { position: relative; animation: code 8s linear infinite; }
+  @keyframes code {
+    0%, 76% { transform: translateY(0) rotate(0); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    80% { transform: translateY(-.8vmin) rotate(-2deg); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    86%, 100% { transform: translateY(0) rotate(0); }
+  }
+  .code b { animation: codeb 8s linear infinite; }
+  @keyframes codeb {
+    0%, 77% { color: #2A201A; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    81%, 86% { color: #1F2B4D; animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    94%, 100% { color: #2A201A; }
+  }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="lock">
+    <div class="x">Atelier Nord<i>×</i>Lena Moreau</div>
+    <div class="ed">Guest edit Nº 03</div>
+  </div>
+  <div class="shot"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="picks">Her 12 picks</div></div>
+  <div class="card">
+    <div class="by">Styled by</div>
+    <div class="sig">Lena Moreau</div>
+    <div class="say">&ldquo;Pieces I actually live in — not just shoot.&rdquo;</div>
+    <div class="row">
+      <div class="handle">@lena.moreau<small>Shop her edit on atelier.nord</small></div>
+      <div class="code"><small>15% off · code</small><b>LENA15</b></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

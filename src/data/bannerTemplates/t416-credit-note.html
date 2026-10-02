@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Credit Note — the trade-in slip from a duplicate book: canary carbon copy printed in red ink, filled in
+     by hand in blue ballpoint, a numbering-machine serial, a violet CREDITED stamp and a perforated edge
+     where the photo tears off like the stub.
+     tall / 3:4 → photo above the perforation; square / wide → photo left, slip right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E8B6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F3E8B6; color: #A8322A; font-family: "Courier Prime", "Courier New", monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  /* perforation: a row of punched holes on the seam */
+  .perf { position: absolute; left: 0; right: 0; top: calc(100% - 90vmin); height: 2.4vmin; margin-top: -1.2vmin;
+          background: radial-gradient(circle, #6E6450 0 .55vmin, transparent .65vmin) 0 50% / 2.6vmin 2.4vmin repeat-x; opacity: .55; }
+
+  .slip { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; box-sizing: border-box; padding: 5vmin 6vmin 0; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .top .no { font-size: 2.6vmin; letter-spacing: .06em; color: #C0392B; }
+  h1 { margin: 2vmin 0 0; font-family: "Libre Caslon Text", Georgia, serif; font-weight: 700; font-size: 8.6vmin; line-height: 1; letter-spacing: -.02em; }
+  h1 i { font-weight: 400; }
+
+  .form { margin-top: 3vmin; border-top: .35vmin solid #A8322A; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: space-evenly; position: relative; }
+  .f { display: grid; grid-template-columns: 17vmin 1fr; align-items: end; gap: 2vmin; }
+  .f > span { font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; padding-bottom: .8vmin; }
+  .f > b { font-family: "Caveat", "Bradley Hand", cursive; font-weight: 500; font-size: 5.6vmin; line-height: 1.1; color: #243A9A; border-bottom: 1px solid rgba(168,50,42,.55); padding: 0 0 .2vmin 1vmin;
+           text-shadow: 0 0 .15vmin rgba(36,58,154,.45); white-space: nowrap; }
+  .f.big > b { font-weight: 700; font-size: 14vmin; line-height: .9; }
+  .f.big > b small { font-size: 4.8vmin; font-weight: 500; margin-left: 1.6vmin; }
+
+  .stamp { position: absolute; right: 1vmin; bottom: 6%; padding: 1.2vmin 2.2vmin; border: .55vmin solid #6A3FA0; color: #6A3FA0; font-weight: 700; font-size: 3.6vmin; letter-spacing: .14em;
+           transform: rotate(-11deg); opacity: .78; mix-blend-mode: multiply; }
+  .stamp small { display: block; font-size: 1.6vmin; letter-spacing: .12em; text-align: center; margin-top: .3vmin; }
+
+  .foot { flex: none; height: 11vmin; display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed rgba(168,50,42,.6); font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .foot .cta { font-family: "Libre Caslon Text", Georgia, serif; font-style: italic; font-size: 3vmin; letter-spacing: 0; text-transform: none; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 76vmin); }
+    .perf { top: calc(100% - 76vmin); }
+    .slip { height: 76vmin; padding-top: 4.4vmin; }
+    h1 { font-size: 7.4vmin; }
+    .form { margin-top: 2.4vmin; }
+    .f > b { font-size: 4.8vmin; }
+    .f.big > b { font-size: 11.4vmin; }
+    .foot { height: 9vmin; }
+  }
+  /* square → photo is the stub on the left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 44%; height: 100%; object-position: 50% 25%; }
+    .perf { top: 0; bottom: 0; left: 44%; right: auto; width: 2.4vmin; height: auto; margin: 0 0 0 -1.2vmin;
+            background: radial-gradient(circle, #6E6450 0 .55vmin, transparent .65vmin) 50% 0 / 2.4vmin 2.6vmin repeat-y; }
+    .slip { left: 44%; top: 0; height: auto; padding: 4.6vmin 4.6vmin 0 5vmin; }
+    .top > span:first-child { display: none; }
+    .top { justify-content: flex-start; }
+    h1 { font-size: 6.4vmin; }
+    .f { grid-template-columns: 13vmin 1fr; gap: 1.4vmin; }
+    .f > span { font-size: 1.6vmin; letter-spacing: .04em; }
+    .f > b { font-size: 4.4vmin; }
+    .f.big > b { font-size: 10vmin; }
+    .f.big > b small { font-size: 3vmin; margin-left: .8vmin; }
+    .stamp { font-size: 2.8vmin; right: 0; }
+    .foot { height: 8.4vmin; }
+    .foot > span:first-child { display: none; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 50% 30%; }
+    .perf { left: 46%; }
+    .slip { left: 46%; padding: 5vmin 6vmin 0 6vmin; }
+    .top > span:first-child { display: inline; }
+    .top { justify-content: space-between; }
+    h1 { font-size: 7.4vmin; }
+    .f { grid-template-columns: 17vmin 1fr; gap: 2vmin; }
+    .f > span { font-size: 1.7vmin; letter-spacing: .1em; }
+    .f > b { font-size: 4.8vmin; }
+    .f.big > b { font-size: 11vmin; }
+    .f.big > b small { font-size: 4.2vmin; }
+    .stamp { font-size: 3.2vmin; right: 2vmin; }
+    .foot > span:first-child { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="perf" aria-hidden="true"></div>
+  <div class="slip">
+    <div class="top"><span>Trade-in credit note</span><span class="no">Nº 004127</span></div>
+    <h1>Your old pieces <i>have credit.</i></h1>
+    <div class="form">
+      <div class="f"><span>Handed in</span><b>3 pieces · 1×A, 2×B</b></div>
+      <div class="f big"><span>Credit</span><b>€40<small>+20% on new in</small></b></div>
+      <div class="f"><span>Valid until</span><b>25 · 12 · 26</b></div>
+      <div class="stamp">CREDITED<small>Maison Ilse</small></div>
+    </div>
+    <div class="foot"><span>Any brand · paid on the spot</span><span class="cta">Trade in now →</span></div>
+  </div>
+</div>
+</body>
+</html>

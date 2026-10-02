@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  /* Weekend Only — the week as a seven-cell strip across the top: Monday to Friday struck through in grey,
+     Saturday and Sunday blocked in cobalt. The sale lives in those two cells and nowhere else.
+     tall → week strip, photo, then text; square / wide → strip across the top, photo left, text right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F5F1; }
+  .banner { --panel: 72vmin; --wk: 15vmin; position: fixed; inset: 0; overflow: hidden; background: #F6F5F1; color: #121212; font-family: "Syne", "Helvetica Neue", Arial, sans-serif; }
+  .week { position: absolute; left: 0; right: 0; top: 0; height: var(--wk); display: grid; grid-template-columns: repeat(7, 1fr); border-bottom: 1px solid #121212; }
+  .week div { position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: 1.8vmin 1.6vmin 1.4vmin; border-right: 1px solid rgba(18,18,18,.14); }
+  .week div:last-child { border-right: 0; }
+  .week b { font-weight: 800; font-size: 6vmin; line-height: .9; letter-spacing: -.02em; }
+  .week small { font-weight: 600; font-size: 1.7vmin; letter-spacing: .1em; }
+  .week .off { color: #BAB8B1; background: linear-gradient(to top right, transparent calc(50% - .5px), #C9C7C0 calc(50% - .5px), #C9C7C0 calc(50% + .5px), transparent calc(50% + .5px)); }
+  .week .on { background: #1C3FD0; color: #F6F5F1; border-right-color: rgba(246,245,241,.25); }
+  .week .on small { color: #C9D3FF; }
+  .photo { position: absolute; left: 0; top: var(--wk); width: 100%; height: calc(100% - var(--wk) - var(--panel)); object-fit: cover; object-position: 50% 20%; }
+
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  h1 { margin: 0; font-family: "Instrument Serif", Didot, Georgia, serif; font-weight: 400; font-size: 27vmin; line-height: .8; letter-spacing: -.025em; }
+  h1 em { display: inline-block; margin-top: 2vmin; font-family: "Syne", Arial, sans-serif; font-style: normal; font-weight: 800; font-size: 6vmin; line-height: 1; letter-spacing: .02em; text-transform: uppercase; background: #1C3FD0; color: #F6F5F1; padding: 1.2vmin 2vmin 1.3vmin; }
+  .dates { display: none; margin: 2.4vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 3.4vmin; line-height: 1.2; color: #55544F; }
+  .offer { margin-top: auto; display: flex; align-items: baseline; gap: 2.4vmin; padding-top: 2.4vmin; border-top: 1px solid #121212; }
+  .offer b { font-weight: 800; font-size: 8vmin; line-height: 1; letter-spacing: -.03em; }
+  .offer span { font-family: "Instrument Serif", Georgia, serif; font-size: 3.4vmin; line-height: 1.1; }
+  .foot { margin-top: 2.6vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-weight: 600; font-size: 1.9vmin; line-height: 1.45; letter-spacing: .06em; text-transform: uppercase; color: #55544F; }
+  .cta { flex: none; background: #1C3FD0; color: #F6F5F1; padding: 2vmin 3.2vmin; font-weight: 700; font-size: 2vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 64vmin; --wk: 13vmin; }
+    .copy { bottom: 4.4vmin; height: calc(var(--panel) - 8.4vmin); }
+    .week b { font-size: 5.2vmin; }
+    h1 { font-size: 23vmin; }
+    h1 em { font-size: 5vmin; }
+    .offer b { font-size: 7vmin; }
+    .offer span { font-size: 3vmin; }
+    .foot { margin-top: 2vmin; }
+    .cta { padding: 1.7vmin 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --wk: 13vmin; }
+    .week b { font-size: 5vmin; }
+    .photo { width: 50%; height: calc(100% - var(--wk)); }
+    .copy { left: calc(50% + 5vmin); right: 5vmin; top: calc(var(--wk) + 5vmin); bottom: 5vmin; height: auto; }
+    h1 { font-size: 13.5vmin; }
+    .dates { display: block; }
+    h1 em { font-size: 4.4vmin; margin-top: 1.6vmin; }
+    .offer { flex-direction: column; gap: 1vmin; }
+    .offer b { font-size: 8.4vmin; }
+    .offer span { font-size: 3vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --wk: 14vmin; }
+    .week div { padding: 2vmin 2.4vmin 1.6vmin; }
+    .week b { font-size: 6vmin; }
+    .photo { width: 46%; object-position: 65% 25%; }
+    .copy { left: calc(46% + 7vmin); right: 7vmin; top: calc(var(--wk) + 6vmin); bottom: 6vmin; }
+    h1 { font-size: 23vmin; }
+    h1 em { font-size: 5.4vmin; margin-top: 2vmin; }
+    .offer { flex-direction: row; gap: 2.4vmin; }
+    .offer b { font-size: 8vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static design) ─────────
+          beats: 0.6s a scan runs Monday→Friday, each struck-out day dims as it passes · 1.5s Saturday then Sunday flash bright cobalt ·
+            2.4s the "Only" block wipes off and re-stamps from the left · 3.6s "−30%" punches · 4.8s sheen crosses the CTA */
+  .week .off > * { animation: dim 6s linear infinite; }
+  .week .off:nth-child(2) > * { animation-delay: -5.88s; }
+  .week .off:nth-child(3) > * { animation-delay: -5.76s; }
+  .week .off:nth-child(4) > * { animation-delay: -5.64s; }
+  .week .off:nth-child(5) > * { animation-delay: -5.52s; }
+  @keyframes dim {
+    0%, 10% { opacity: 1; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    13% { opacity: .25; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    19%, 100% { opacity: 1; }
+  }
+  .week .on { animation: flash 6s linear infinite; }
+  .week .on:nth-child(7) { animation-delay: -5.85s; }
+  @keyframes flash {
+    0%, 24% { background-color: #1C3FD0; animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    26% { background-color: #3D63FF; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    32%, 100% { background-color: #1C3FD0; }
+  }
+  .week .on b { display: inline-block; transform-origin: 0 100%; animation: jump 6s linear infinite; animation-delay: inherit; }
+  @keyframes jump {
+    0%, 24% { transform: translateY(0); animation-timing-function: cubic-bezier(.2,.7,.3,1); }
+    27% { transform: translateY(-.8vmin); animation-timing-function: cubic-bezier(.6,0,.6,1); }
+    32%, 100% { transform: translateY(0); }
+  }
+
+  h1 em { animation: stamp 6s linear infinite; }
+  @keyframes stamp {
+    0%, 38% { clip-path: inset(0 0 0 0); animation-timing-function: cubic-bezier(.6,0,.8,.3); }
+    44% { clip-path: inset(0 0 0 100%); animation-timing-function: steps(1, end); }
+    45% { clip-path: inset(0 100% 0 0); animation-timing-function: cubic-bezier(.2,.7,.25,1); }
+    55%, 100% { clip-path: inset(0 0 0 0); }
+  }
+
+  .offer b { display: inline-block; transform-origin: 0 70%; animation: punch 6s linear infinite; }
+  @keyframes punch {
+    0%, 59% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    62% { transform: scale(1.12); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    66% { transform: scale(.97); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    70%, 100% { transform: scale(1); }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -30%; bottom: -30%; left: 0; width: 30%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.32) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 80% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    94%, 100% { transform: translateX(400%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="week">
+    <div class="off"><b>M</b><small>22</small></div>
+    <div class="off"><b>T</b><small>23</small></div>
+    <div class="off"><b>W</b><small>24</small></div>
+    <div class="off"><b>T</b><small>25</small></div>
+    <div class="off"><b>F</b><small>26</small></div>
+    <div class="on"><b>S</b><small>27</small></div>
+    <div class="on"><b>S</b><small>28</small></div>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <h1>Weekend<br><em>Only</em></h1>
+    <p class="dates">Saturday 27 & Sunday 28 September.<br>Weekdays need not apply.</p>
+    <div class="offer"><b>−30%</b><span>on everything,<br>Saturday to Sunday.</span></div>
+    <div class="foot"><p>Ends Sunday 23:59<br>Full price Monday</p><span class="cta">Shop the weekend</span></div>
+  </div>
+</div>
+</body>
+</html>

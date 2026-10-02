@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+  /* Glaze Board — the potter's test board: six glaze test tiles hung on pegs, each with its drip, its raw foot
+     and a pencilled name. The colourways of the collection read as glaze tests.
+     tall → photo above, pegboard below · 3:4 / square → photo left, tiles 3×2 · wide → photo left, tiles in one row */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E3DCCF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #27221E; font-family: "DM Mono", Menlo, monospace;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(70,58,46,.30) 0 .42vmin, rgba(255,255,255,.5) .5vmin, transparent .62vmin) 2.5vmin 2.5vmin / 5vmin 5vmin,
+      #E3DCCF; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 77vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .board { position: absolute; left: 0; right: 0; bottom: 0; height: 77vmin; box-sizing: border-box; padding: 5vmin 6vmin 5.4vmin; display: flex; flex-direction: column; }
+  .board::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1.2vmin; background: linear-gradient(180deg, rgba(50,40,30,.16), rgba(50,40,30,0)); }
+
+  .k { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .k span { background: #E3DCCF; padding: .3vmin .6vmin; margin: -.3vmin -.6vmin; }
+  h1 { margin: 2.6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 10.6vmin; line-height: .92; letter-spacing: -.02em; }
+  h1 i { font-style: italic; color: #8E4A2C; }
+  h1 span { background: #E3DCCF; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+
+  .d { margin-top: 2.2vmin; font-size: 2.1vmin; line-height: 1.5; color: #4B4038; }
+  .d span { background: #E3DCCF; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .tiles { margin: auto 0; padding: 3vmin 0; display: flex; justify-content: space-between; }
+  .t { width: 12.6vmin; text-align: center; }
+  .t svg { display: block; width: 12.6vmin; height: 21vmin; overflow: visible; filter: drop-shadow(0 .5vmin .5vmin rgba(45,34,24,.28)); }
+  .t b { display: block; margin-top: 1vmin; font-family: "Caveat", "Segoe Print", cursive; font-weight: 600; font-size: 2.9vmin; line-height: 1; color: #4B4038; white-space: nowrap; }
+  .t small { display: block; margin-top: .3vmin; font-size: 1.6vmin; letter-spacing: .08em; color: #6B5F54; }
+
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; white-space: nowrap; }
+  .deal { font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; line-height: 1.7; background: #E3DCCF; }
+  .deal b { font-weight: 500; color: #8E4A2C; }
+  .cta { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 3.6vmin; line-height: 1; padding-bottom: .5vmin; border-bottom: 1px solid #27221E; background: #E3DCCF; }
+
+  /* ── 3:4 / 4:5 → photo left, board on the right, tiles 3 × 2 ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 54%; height: 100%; object-position: 50% 24%; }
+    .board { left: 54%; top: 0; height: auto; padding: 6vmin 4.6vmin 5.6vmin; }
+    .board::before { left: 0; top: 0; bottom: 0; right: auto; width: 1.2vmin; height: auto; background: linear-gradient(90deg, rgba(50,40,30,.16), rgba(50,40,30,0)); }
+    .k { flex-direction: column; gap: 1vmin; }
+    .k span { align-self: flex-start; }
+    h1 { font-size: 8.4vmin; margin-top: 3.4vmin; }
+    .tiles { display: grid; grid-template-columns: repeat(3, auto); justify-content: space-between; row-gap: 3.6vmin; margin: auto 0; padding: 3vmin 0; }
+    .d { font-size: 2vmin; }
+    .t { width: 10.4vmin; }
+    .t svg { width: 10.4vmin; height: 17.3vmin; }
+    .t b { font-size: 2.6vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.6vmin; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; }
+    .board { left: 50%; padding: 5vmin 5vmin 5vmin; }
+    .k { flex-direction: row; justify-content: space-between; font-size: 1.6vmin; letter-spacing: .1em; }
+    .k span:last-child { display: none; }
+    h1 { font-size: 7.4vmin; margin-top: 2.6vmin; }
+    .tiles { margin: auto 0; row-gap: 2.4vmin; padding: 2vmin 1vmin; }
+    .d { display: none; }
+    .t { width: 9.4vmin; }
+    .t svg { width: 9.4vmin; height: 15.6vmin; }
+    .t b { font-size: 2.3vmin; margin-top: .7vmin; }
+    .t small { display: none; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+    .deal { font-size: 1.6vmin; letter-spacing: .08em; }
+    .cta { font-size: 3vmin; }
+  }
+  /* ── wide → tiles in a single row ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 72% 30%; }
+    .board { left: 44%; padding: 6vmin 6vmin 6vmin 6.4vmin; }
+    .k { font-size: 1.7vmin; letter-spacing: .14em; }
+    .k span:last-child { display: inline; }
+    h1 { font-size: 8.4vmin; margin-top: 3vmin; }
+    .tiles { display: flex; margin: auto 0; padding: 3vmin 0; }
+    .d { display: block; font-size: 2.2vmin; }
+    .t svg { filter: drop-shadow(0 .7vmin .7vmin rgba(45,34,24,.3)); }
+    .t { width: 10.6vmin; }
+    .t svg { width: 10.6vmin; height: 17.6vmin; }
+    .t b { font-size: 2.5vmin; }
+    .t small { display: block; }
+    .foot { flex-direction: row; align-items: flex-end; }
+    .deal { font-size: 1.8vmin; letter-spacing: .1em; }
+    .cta { font-size: 3.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="clay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D8BE9F"/><stop offset="1" stop-color="#C4A383"/></linearGradient>
+      <linearGradient id="gloss" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <symbol id="tile" viewBox="0 0 60 100">
+        <rect x="1" y="1" width="58" height="98" rx="2.2" fill="url(#clay)"/>
+        <path d="M1 3.2 Q1 1 3.2 1 H56.8 Q59 1 59 3.2 V61 C59 65 56 66 55 62 C54 58 51 58 50.4 63 C49.6 71 45 72 44.4 64 C44 60 41 59.6 39.6 62 C38 65 35 64.4 34 61.4 C33 58.6 29.6 59 28.8 63.4 C27.8 69 23.4 69.6 22.8 63 C22.4 59.6 19.4 59 18 61.6 C16.6 64.6 12.4 64 11.8 60.6 C11.2 57.8 8 58 7.2 61.8 C6.4 66 2.6 66.4 1 62 Z" style="fill: var(--g)"/>
+        <path d="M59 61 C59 65 56 66 55 62 C54 58 51 58 50.4 63 C49.6 71 45 72 44.4 64 C44 60 41 59.6 39.6 62 C38 65 35 64.4 34 61.4 C33 58.6 29.6 59 28.8 63.4 C27.8 69 23.4 69.6 22.8 63 C22.4 59.6 19.4 59 18 61.6 C16.6 64.6 12.4 64 11.8 60.6 C11.2 57.8 8 58 7.2 61.8 C6.4 66 2.6 66.4 1 62" fill="none" style="stroke: var(--b)" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>
+        <rect x="1" y="1" width="58" height="10" rx="2" style="fill: var(--b)" opacity=".22"/>
+        <rect x="8" y="16" width="7" height="40" rx="3.5" fill="url(#gloss)"/>
+        <circle cx="30" cy="13" r="5.2" fill="#3A3029"/>
+        <circle cx="30" cy="12.4" r="2.6" fill="#8C7F72"/>
+        <g fill="#8B6E54" opacity=".5"><circle cx="12" cy="82" r=".8"/><circle cx="41" cy="88" r=".7"/><circle cx="27" cy="78" r=".6"/><circle cx="50" cy="80" r=".8"/><circle cx="19" cy="92" r=".6"/></g>
+      </symbol>
+    </defs>
+  </svg>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="board">
+    <div class="k"><span>Test board · Nº 26</span><span>Stoneware · Cone 6</span></div>
+    <h1><span>Fired in</span><br><span><i>six colours.</i></span></h1>
+    <div class="d"><span>Colourways tested in the kiln, chosen by hand.</span></div>
+    <div class="tiles">
+      <div class="t" style="--g:#EADBC4; --b:#C98A52"><svg viewBox="0 0 60 100"><use href="#tile"/></svg><b>Shino</b><small>G-01</small></div>
+      <div class="t" style="--g:#A9BBA3; --b:#6C8A71"><svg viewBox="0 0 60 100"><use href="#tile"/></svg><b>Celadon</b><small>G-02</small></div>
+      <div class="t" style="--g:#C0B393; --b:#7C7150"><svg viewBox="0 0 60 100"><use href="#tile"/></svg><b>Ash</b><small>G-03</small></div>
+      <div class="t" style="--g:#AAB8C3; --b:#71859A"><svg viewBox="0 0 60 100"><use href="#tile"/></svg><b>Chün</b><small>G-04</small></div>
+      <div class="t" style="--g:#9A4B2E; --b:#5A2716"><svg viewBox="0 0 60 100"><use href="#tile"/></svg><b>Iron red</b><small>G-05</small></div>
+      <div class="t" style="--g:#3F2B1F; --b:#9A6433"><svg viewBox="0 0 60 100"><use href="#tile"/></svg><b>Tenmoku</b><small>G-06</small></div>
+    </div>
+    <div class="foot">
+      <div class="deal">New collection · from $95<br>Code <b>GLAZE20</b> · −20%</div>
+      <div class="cta">Choose your glaze →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

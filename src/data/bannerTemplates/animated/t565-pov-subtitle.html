@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:ital,wght@0,400;0,600;0,700;1,400&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* POV Subtitle — a cinematic "POV:" cover: black letterbox bars carry a timecode, a big italic "POV:" and the caption
+     set like film subtitles; a bracketed sound cue and the offer sit in the lower bar.
+     tall / 3:4 → letterbox (bars above and below the photo) · square / wide → pillarbox (text bar left, photo, thin bar right) */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0B0B0C; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0B0B0C; color: #F2EFE8;
+    font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column; }
+
+  .bar { position: relative; flex: none; box-sizing: border-box; }
+  .bar.t { padding: 5vmin 6vmin 4.4vmin; }
+  .bar.b { padding: 4vmin 6vmin 5.2vmin; }
+  .tc { display: flex; justify-content: space-between; font-size: 1.7vmin; font-weight: 600; letter-spacing: .14em; color: #8A877F; font-variant-numeric: tabular-nums; }
+  .tc b { color: #FF5A3C; font-weight: 700; }
+  .pov { margin-top: 3vmin; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 17vmin; line-height: .8; color: #FFE36E; letter-spacing: -.02em; }
+  .sub { margin-top: 2.4vmin; font-size: 4.6vmin; font-weight: 600; line-height: 1.18; letter-spacing: -.01em;
+    text-shadow: 0 .3vmin .6vmin rgba(0,0,0,.9); }
+  .sub em { font-style: normal; background: #F2EFE8; color: #0B0B0C; padding: 0 1vmin; text-shadow: none; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .side { display: none; }
+
+  .cue { text-align: center; font-style: italic; font-size: 2.3vmin; color: #B5B1A8; letter-spacing: .02em; }
+  .row { display: flex; align-items: center; gap: 2.6vmin; margin-top: 3.4vmin; }
+  .brand { font-family: "Instrument Serif", Georgia, serif; font-size: 3.6vmin; line-height: 1; }
+  .brand small { display: block; margin-top: .8vmin; font-family: "Inter Tight", sans-serif; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; color: #8A877F; }
+  .price { margin-left: auto; font-size: 4.6vmin; font-weight: 700; letter-spacing: -.02em; }
+  .cta { padding: 1.9vmin 3vmin; border: 1px solid #F2EFE8; font-size: 2vmin; font-weight: 600; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .bar.t { padding: 4.2vmin 6vmin 3.4vmin; }
+    .bar.b { padding: 3vmin 6vmin 4.2vmin; }
+    .pov { font-size: 12vmin; margin-top: 2.2vmin; }
+    .sub { font-size: 3.8vmin; margin-top: 1.8vmin; }
+    .row { margin-top: 2.6vmin; }
+    .price { font-size: 4vmin; }
+  }
+  /* ── square / wide: pillarbox — text bar left, photo, thin timecode bar right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; }
+    .photo { position: absolute; top: 0; bottom: 0; right: 7vmin; width: 48%; height: 100%; }
+    .side { display: block; position: absolute; top: 0; bottom: 0; right: 0; width: 7vmin; }
+    .side span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(90deg); white-space: nowrap;
+      font-size: 1.7vmin; font-weight: 600; letter-spacing: .3em; color: #8A877F; }
+    .bar { position: absolute; left: 0; right: calc(48% + 7vmin); }
+    .bar.t { top: 0; padding: 6vmin 5.6vmin 0; }
+    .bar.b { bottom: 0; padding: 0 5.6vmin 6vmin; }
+    .pov { font-size: 15vmin; margin-top: 4vmin; }
+    .sub { font-size: 4vmin; margin-top: 2.6vmin; }
+    .cue { text-align: left; font-size: 2.1vmin; }
+    .row { flex-wrap: wrap; gap: 2vmin 2.6vmin; margin-top: 3vmin; }
+    .brand { flex: 1 0 100%; }
+    .price { margin-left: 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; right: 9vmin; }
+    .side { width: 9vmin; }
+    .bar { right: calc(44% + 9vmin); }
+    .bar.t { padding: 7vmin 7vmin 0; }
+    .bar.b { padding: 0 7vmin 6.4vmin; }
+    .pov { font-size: 17vmin; }
+    .sub { font-size: 4.6vmin; }
+    .row { flex-wrap: nowrap; }
+    .brand { flex: none; }
+    .price { margin-left: auto; }
+  }
+
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     constant: REC dot blinks (1 s), timecode seconds tick 04→09, the photo drifts in (≤1.03)
+     beats: 2.6 s subtitle cuts to black and re-types left→right, 3.9 s "the one" highlight bar sweeps in ·
+            2.6 s the sound cue dips and fades back at 4.4 s · 1.0 s POV: focus-pulls · 5.1 s a sheen crosses the CTA */
+  .photo { overflow: hidden; }
+  .photo img { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .tc b { animation: rec 1s steps(1, end) infinite; }
+  @keyframes rec { 0%, 100% { opacity: 1; } 50% { opacity: .15; } }
+  /* ticking digits: the values are stacked on one spot and switch by opacity, one per second (no sub-pixel drift) */
+  .reel { position: relative; display: inline-block; font-style: normal; }
+  .reel > * { font-style: normal; animation: tickv 6s linear infinite; }
+  .reel > * + * { position: absolute; left: 0; right: 0; top: 0; opacity: 0; }
+  .reel > :nth-child(2) { animation-delay: -5s; } .reel > :nth-child(3) { animation-delay: -4s; }
+  .reel > :nth-child(4) { animation-delay: -3s; } .reel > :nth-child(5) { animation-delay: -2s; } .reel > :nth-child(6) { animation-delay: -1s; }
+  @keyframes tickv { 0%, 16.4% { opacity: 1; } 16.45%, 100% { opacity: 0; } }
+
+  .pov { animation: focus 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes focus { 0%, 12%, 30%, 100% { filter: blur(0); opacity: 1; } 18% { filter: blur(.7vmin); opacity: .75; } 23% { filter: blur(0); opacity: 1; } }
+
+  .sub { animation: type 6s cubic-bezier(.5,0,.4,1) infinite; }
+  @keyframes type {
+    0%, 42% { clip-path: inset(-10% -10% -10% -10%); opacity: 1; }
+    43.5% { clip-path: inset(-10% -10% -10% -10%); opacity: 0; }
+    44%, 48% { clip-path: inset(-10% 110% -10% -10%); opacity: 1; }
+    64%, 100% { clip-path: inset(-10% -10% -10% -10%); opacity: 1; }
+  }
+  .sub em { background: linear-gradient(#F2EFE8, #F2EFE8) no-repeat 0 0 / 100% 100%; animation: hl 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes hl {
+    0%, 42% { background-size: 100% 100%; color: #0B0B0C; }
+    44%, 60% { background-size: 0% 100%; color: #F2EFE8; }
+    70%, 100% { background-size: 100% 100%; color: #0B0B0C; }
+  }
+
+  .cue { animation: cue 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes cue { 0%, 42%, 82%, 100% { opacity: 1; } 45%, 70% { opacity: 0; } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 60%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(242,239,232,0), rgba(242,239,232,.35), rgba(242,239,232,0));
+    transform: translateX(-120%); animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 82% { transform: translateX(-120%); } 96%, 100% { transform: translateX(260%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="bar t">
+    <div class="tc"><span><b>●</b>&nbsp; 00:00:<span class="reel"><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span><span>09</span></span>:12</span><span>2.39 : 1</span></div>
+    <div class="pov">POV:</div>
+    <div class="sub">you finally found <em>the one</em><br>that fits like it was made for you.</div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="side"><span>SCENE 04 · TAKE 1</span></div>
+  <div class="bar b">
+    <div class="cue">[ quiet gasp in the fitting room ]</div>
+    <div class="row">
+      <div class="brand">Lune &amp; Rook<small>New season</small></div>
+      <div class="price">$92</div>
+      <div class="cta">Shop the scene</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

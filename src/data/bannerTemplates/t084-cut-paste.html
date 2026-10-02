@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Cut &amp; Paste — paper collage: torn scraps, masking tape and cut-outs of the same photo */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #D9CFBF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #D9CFBF; color: #171513; font-family: "DM Mono", "Courier New", monospace; }
+  .fibre { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .35; mix-blend-mode: multiply; }
+
+  /* TALL — the photo pasted on a torn sheet, scraps of type below */
+  .sheet { position: absolute; top: 4.4vmin; left: 4.4vmin; width: calc(100% - 8.8vmin); height: calc(55% + 5.2vmin); background: #F5F0E6; clip-path: polygon(0.0% 0.3%, 5.6% 0.8%, 11.1% 0.5%, 16.7% 0.8%, 22.2% 0.9%, 27.8% 0.1%, 33.3% 0.0%, 38.9% 1.2%, 44.4% 0.4%, 50.0% 0.3%, 55.6% 1.4%, 61.1% 0.7%, 66.7% 1.2%, 72.2% 0.7%, 77.8% 0.9%, 83.3% 0.2%, 88.9% 0.9%, 94.4% 1.2%, 100.0% 0.7%, 98.8% 8.3%, 98.9% 16.7%, 99.9% 25.0%, 98.8% 33.3%, 99.1% 41.7%, 99.5% 50.0%, 100.0% 58.3%, 98.6% 66.7%, 99.2% 75.0%, 98.8% 83.3%, 98.6% 91.7%, 100.0% 99.0%, 94.4% 98.7%, 88.9% 99.4%, 83.3% 98.9%, 77.8% 99.4%, 72.2% 98.7%, 66.7% 98.8%, 61.1% 99.9%, 55.6% 99.8%, 50.0% 99.7%, 44.4% 98.6%, 38.9% 99.4%, 33.3% 99.1%, 27.8% 99.6%, 22.2% 99.3%, 16.7% 99.5%, 11.1% 99.5%, 5.6% 99.2%, 0.0% 99.2%, 1.4% 91.7%, 1.1% 83.3%, 1.5% 75.0%, 1.4% 66.7%, 1.6% 58.3%, 1.1% 50.0%, 0.3% 41.7%, 1.4% 33.3%, 1.5% 25.0%, 1.4% 16.7%, 0.9% 8.3%); transform: rotate(-1.2deg); box-shadow: 0 0 0 transparent; }
+  .photo { position: absolute; top: 7vmin; left: 7vmin; width: calc(100% - 14vmin); height: 55%; object-fit: cover; object-position: 50% 22%; }
+  .tape { position: absolute; width: 17vmin; height: 5vmin; background: rgba(236,222,176,.82); clip-path: polygon(0.0% 1.9%, 33.3% 2.2%, 66.7% 2.4%, 100.0% 2.8%, 94.1% 20.0%, 92.6% 40.0%, 99.8% 60.0%, 96.3% 80.0%, 100.0% 97.2%, 66.7% 98.1%, 33.3% 97.3%, 0.0% 99.7%, 3.8% 80.0%, 2.0% 60.0%, 4.4% 40.0%, 4.6% 20.0%); }
+  .tape.t1 { top: 4.2vmin; left: 2.4vmin; transform: rotate(-38deg); }
+  .tape.t2 { top: 4.2vmin; right: 2.4vmin; transform: rotate(36deg); }
+
+  .lab { position: absolute; left: 7vmin; top: calc(55% + 10.6vmin); background: #FBFAF6; padding: 1.2vmin 3.2vmin 1.2vmin 2.6vmin; clip-path: polygon(0.0% 3.3%, 8.3% 4.3%, 16.7% 6.9%, 25.0% 1.4%, 33.3% 1.8%, 41.7% 0.2%, 50.0% 0.9%, 58.3% 0.1%, 66.7% 1.3%, 75.0% 4.1%, 83.3% 7.9%, 91.7% 5.5%, 100.0% 3.0%, 98.8% 20.0%, 97.9% 40.0%, 99.0% 60.0%, 99.8% 80.0%, 100.0% 93.3%, 91.7% 95.1%, 83.3% 99.1%, 75.0% 99.4%, 66.7% 99.2%, 58.3% 92.3%, 50.0% 99.1%, 41.7% 95.0%, 33.3% 92.2%, 25.0% 99.7%, 16.7% 96.9%, 8.3% 96.2%, 0.0% 92.7%, 0.6% 80.0%, 0.8% 60.0%, 0.7% 40.0%, 0.1% 20.0%); font-size: 1.8vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; transform: rotate(-1deg); white-space: nowrap; }
+  .words { position: absolute; left: 6vmin; top: calc(55% + 17vmin); display: flex; flex-direction: column; align-items: flex-start; }
+  .s { display: block; white-space: nowrap; line-height: 1; }
+  .s1 { background: #171513; color: #F5F0E6; font-family: "Archivo Black", "Arial Black", sans-serif; font-size: 11vmin; letter-spacing: -.02em; padding: 1.6vmin 3.6vmin 1.2vmin 3vmin; clip-path: polygon(0.0% 4.1%, 6.2% 5.0%, 12.5% 8.3%, 18.8% 4.2%, 25.0% 4.6%, 31.2% 5.3%, 37.5% 1.7%, 43.8% 4.6%, 50.0% 5.7%, 56.2% 7.1%, 62.5% 0.8%, 68.8% 2.7%, 75.0% 0.8%, 81.2% 7.3%, 87.5% 6.2%, 93.8% 0.4%, 100.0% 8.8%, 96.1% 16.7%, 97.4% 33.3%, 97.5% 50.0%, 99.4% 66.7%, 99.9% 83.3%, 100.0% 95.2%, 93.8% 99.5%, 87.5% 98.3%, 81.2% 97.8%, 75.0% 99.7%, 68.8% 95.8%, 62.5% 96.0%, 56.2% 92.4%, 50.0% 95.3%, 43.8% 94.2%, 37.5% 95.5%, 31.2% 94.0%, 25.0% 95.9%, 18.8% 97.5%, 12.5% 91.0%, 6.2% 91.0%, 0.0% 92.4%, 2.8% 83.3%, 1.3% 66.7%, 0.9% 50.0%, 1.2% 33.3%, 0.3% 16.7%); transform: rotate(-2.5deg); }
+  .s2 { margin: -1vmin 0 0 9vmin; background: #F5F0E6; font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-size: 10.4vmin; padding: .6vmin 3.6vmin 1.8vmin 3vmin; clip-path: polygon(0.0% 8.6%, 6.2% 1.3%, 12.5% 0.2%, 18.8% 9.0%, 25.0% 1.7%, 31.2% 1.1%, 37.5% 5.9%, 43.8% 3.1%, 50.0% 8.0%, 56.2% 2.1%, 62.5% 8.6%, 68.8% 2.9%, 75.0% 5.4%, 81.2% 8.4%, 87.5% 6.2%, 93.8% 8.3%, 100.0% 6.4%, 99.8% 16.7%, 96.5% 33.3%, 97.6% 50.0%, 98.8% 66.7%, 99.2% 83.3%, 100.0% 92.4%, 93.8% 94.8%, 87.5% 91.6%, 81.2% 93.0%, 75.0% 91.3%, 68.8% 94.9%, 62.5% 93.7%, 56.2% 94.5%, 50.0% 97.7%, 43.8% 91.4%, 37.5% 97.2%, 31.2% 93.0%, 25.0% 91.4%, 18.8% 94.1%, 12.5% 98.7%, 6.2% 92.6%, 0.0% 94.0%, 0.7% 83.3%, 0.2% 66.7%, 2.1% 50.0%, 0.1% 33.3%, 3.7% 16.7%); transform: rotate(2deg); }
+  .s3 { margin: -1.2vmin 0 0 3vmin; background: #CF3A26; color: #F5F0E6; font-family: "Archivo Black", "Arial Black", sans-serif; font-size: 11vmin; letter-spacing: -.02em; padding: 1.6vmin 4vmin 1.2vmin 3.2vmin; clip-path: polygon(0.0% 5.7%, 7.1% 6.3%, 14.3% 8.2%, 21.4% 2.8%, 28.6% 6.5%, 35.7% 8.9%, 42.9% 9.1%, 50.0% 1.9%, 57.1% 6.5%, 64.3% 6.2%, 71.4% 5.0%, 78.6% 9.7%, 85.7% 5.3%, 92.9% 4.5%, 100.0% 9.4%, 96.8% 16.7%, 98.5% 33.3%, 98.5% 50.0%, 97.5% 66.7%, 99.7% 83.3%, 100.0% 93.9%, 92.9% 92.6%, 85.7% 95.7%, 78.6% 91.5%, 71.4% 90.7%, 64.3% 94.4%, 57.1% 93.2%, 50.0% 98.8%, 42.9% 99.4%, 35.7% 90.2%, 28.6% 97.2%, 21.4% 97.9%, 14.3% 91.0%, 7.1% 92.5%, 0.0% 98.8%, 1.6% 83.3%, 1.2% 66.7%, 1.4% 50.0%, 0.0% 33.3%, 2.6% 16.7%); transform: rotate(-1deg); }
+
+  .cut { position: absolute; right: 6vmin; top: calc(55% + 15vmin); width: 25vmin; height: 25vmin; transform: rotate(6deg); }
+  .cut .paper { position: absolute; inset: -1.4vmin; background: #FBFAF6; border-radius: 50%; }
+  .cut .pic { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; }
+  .cut img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 32%; transform: scale(2.2); transform-origin: 50% 32%; }
+  .sticker { position: absolute; right: -3vmin; bottom: -3.6vmin; width: 13vmin; height: 13vmin; border-radius: 50%; background: #F2C230; color: #171513; display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-14deg); font-family: "Archivo Black", sans-serif; font-size: 4.4vmin; line-height: .9; }
+  .sticker small { font-family: "DM Mono", monospace; font-size: 1.6vmin; margin-top: .6vmin; letter-spacing: .06em; }
+
+  .foot { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; display: flex; justify-content: space-between; align-items: baseline; gap: 2vmin; font-size: 2vmin; letter-spacing: .06em; text-transform: uppercase; }
+  .foot b { font-weight: 500; }
+  .cta { font-family: "Instrument Serif", Georgia, serif; font-style: italic; text-transform: none; font-size: 3.6vmin; letter-spacing: 0; border-bottom: .3vmin solid #171513; white-space: nowrap; line-height: 1.1; }
+
+  /* SHORTER PORTRAIT + SQUARE — photo left, scraps right */
+  @media (min-aspect-ratio: 7/10) {
+    .sheet { top: 4vmin; left: 4vmin; width: calc(54% - 4vmin); height: calc(100% - 8vmin); }
+    .photo { top: 6.4vmin; left: 6.4vmin; width: calc(54% - 8.8vmin); height: calc(100% - 12.8vmin); }
+    .tape.t1 { top: 3.4vmin; left: 1.6vmin; }
+    .tape.t2 { top: auto; bottom: 3.4vmin; right: auto; left: calc(54% - 16vmin); transform: rotate(-34deg); }
+    .lab { left: calc(54% + 5vmin); top: 7vmin; font-size: 1.7vmin; }
+    .words { left: calc(54% + 3vmin); top: 14vmin; }
+    .s1, .s3 { font-size: 7.4vmin; }
+    .s2 { font-size: 7vmin; margin-left: 5vmin; }
+    .cut { right: auto; left: calc(54% + 10vmin); top: auto; bottom: 16vmin; width: 19vmin; height: 19vmin; }
+    .sticker { width: 11vmin; height: 11vmin; font-size: 3.6vmin; right: -6vmin; }
+    .foot { left: calc(54% + 5vmin); right: 5vmin; bottom: 4.6vmin; flex-direction: column; gap: 1.2vmin; font-size: 1.8vmin; }
+    .cta { font-size: 3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .sheet { width: calc(50% - 4vmin); }
+    .photo { width: calc(50% - 8.8vmin); }
+    .tape.t2 { left: calc(50% - 16vmin); }
+    .lab { left: calc(50% + 5vmin); top: 6vmin; }
+    .words { left: calc(50% + 3vmin); top: 12vmin; }
+    .s1, .s3 { font-size: 7vmin; }
+    .s2 { font-size: 6.6vmin; }
+    .cut { left: auto; right: 8vmin; bottom: 15vmin; width: 16vmin; height: 16vmin; }
+    .sticker { width: 10vmin; height: 10vmin; font-size: 3.2vmin; right: -4vmin; bottom: -4vmin; }
+    .sticker small { font-size: 1.5vmin; }
+    .foot { left: calc(50% + 5vmin); }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .sheet { width: calc(44% - 4vmin); }
+    .photo { width: calc(44% - 8.8vmin); }
+    .tape.t2 { left: calc(44% - 16vmin); }
+    .lab { left: calc(44% + 6vmin); top: 8vmin; font-size: 1.8vmin; }
+    .words { left: calc(44% + 4vmin); top: 15vmin; }
+    .s1, .s3 { font-size: 10vmin; }
+    .s2 { font-size: 9.4vmin; margin-left: 8vmin; }
+    .cut { right: 9vmin; top: 12vmin; bottom: auto; width: 24vmin; height: 24vmin; }
+    .sticker { width: 12vmin; height: 12vmin; font-size: 4vmin; }
+    .foot { left: calc(44% + 6vmin); right: 7vmin; flex-direction: row; align-items: baseline; font-size: 1.9vmin; }
+    .cta { font-size: 3.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="fibre" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="f"><feTurbulence type="fractalNoise" baseFrequency=".55 .08" numOctaves="3"/><feColorMatrix values="0 0 0 0 .45  0 0 0 0 .38  0 0 0 0 .3  0 0 0 .9 -.2"/></filter><rect width="100%" height="100%" filter="url(#f)"/></svg>
+  <div class="sheet"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tape t1"></div>
+  <div class="tape t2"></div>
+  <div class="lab">The cut &amp; paste edit — SS26</div>
+  <div class="words"><span class="s s1">Made</span><span class="s s2">to stand</span><span class="s s3">out.</span></div>
+  <div class="cut"><div class="paper"></div><div class="pic"><img src="{{PRODUCT_IMAGE}}" alt=""></div><div class="sticker">−40%<small>sale</small></div></div>
+  <div class="foot"><span>code <b>PASTE40</b></span><span class="cta">Shop the edit →</span></div>
+</div>
+</body>
+</html>

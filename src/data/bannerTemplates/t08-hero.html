@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Website Hero — responsive: tall photo → nav bar, photo, copy panel below; square/wide → copy left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1EBE1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F1EBE1; color: #22303B; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .nav { position: absolute; left: 0; right: 0; top: 0; height: 9vmin; padding: 0 5vmin; display: flex; align-items: center; gap: 3vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; background: #F1EBE1; z-index: 2; }
+  .nav .logo { font-family: "Instrument Serif", Georgia, serif; font-size: 4vmin; letter-spacing: .02em; text-transform: none; font-weight: 400; margin-right: auto; }
+  .photo { position: absolute; top: 9vmin; left: 0; right: 0; height: 56%; width: 100%; object-fit: cover; object-position: 50% 20%; }
+  .melt { position: absolute; left: 0; right: 0; top: calc(9vmin + 56% - 16%); height: 16%; background: linear-gradient(0deg, rgba(241,235,225,1) 0%, rgba(241,235,225,0.985) 7.7%, rgba(241,235,225,0.943) 15.4%, rgba(241,235,225,0.874) 23.1%, rgba(241,235,225,0.784) 30.8%, rgba(241,235,225,0.677) 38.5%, rgba(241,235,225,0.56) 46.2%, rgba(241,235,225,0.44) 53.8%, rgba(241,235,225,0.323) 61.5%, rgba(241,235,225,0.216) 69.2%, rgba(241,235,225,0.126) 76.9%, rgba(241,235,225,0.057) 84.6%, rgba(241,235,225,0.015) 92.3%, rgba(241,235,225,0) 100%); }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; top: calc(9vmin + 56%); bottom: 11vmin; display: flex; flex-direction: column; justify-content: center; }
+  .k { display: inline-flex; align-items: center; gap: 1.4vmin; font-size: 1.9vmin; font-weight: 800; letter-spacing: .26em; text-transform: uppercase; color: #3F6E86; }
+  .k::before { content: ""; width: 4.2vmin; height: .25vmin; background: #3F6E86; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 12vmin; line-height: .9; letter-spacing: -.02em; }
+  h1 i { color: #3F6E86; }
+  .d { margin-top: 2vmin; font-size: 2.6vmin; font-weight: 500; line-height: 1.5; color: #45525C; max-width: 70vmin; }
+  .row { margin-top: 3vmin; display: flex; flex-wrap: wrap; align-items: center; gap: 2.4vmin 3.4vmin; }
+  .btn { background: #22303B; color: #F1EBE1; border-radius: 99vmin; padding: 2vmin 4vmin; font-size: 2vmin; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .ghost { font-size: 2vmin; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; border-bottom: .22vmin solid #22303B; padding-bottom: .5vmin; white-space: nowrap; }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; align-items: center; gap: 4vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #45525C; }
+  .dots { display: flex; gap: 1vmin; }
+  .dots i { width: 1.1vmin; height: 1.1vmin; border-radius: 50%; background: rgba(34,48,59,.25); }
+  .dots i:first-child { width: 4.2vmin; border-radius: 99vmin; background: #22303B; }
+  .chip { display: none; }
+  @media (min-aspect-ratio: 9/10) {
+    .nav { background: transparent; right: auto; width: 40%; height: 11vmin; gap: 2.4vmin; font-size: 1.6vmin; }
+    .nav .logo { margin-right: 1vmin; }
+    .photo { top: 0; left: auto; right: 0; height: 100%; width: 60%; object-position: 50% 35%; }
+    .melt { top: 0; bottom: 0; height: auto; left: 40%; right: auto; width: 13%; background: linear-gradient(90deg, rgba(241,235,225,1) 0%, rgba(241,235,225,0.985) 7.7%, rgba(241,235,225,0.943) 15.4%, rgba(241,235,225,0.874) 23.1%, rgba(241,235,225,0.784) 30.8%, rgba(241,235,225,0.677) 38.5%, rgba(241,235,225,0.56) 46.2%, rgba(241,235,225,0.44) 53.8%, rgba(241,235,225,0.323) 61.5%, rgba(241,235,225,0.216) 69.2%, rgba(241,235,225,0.126) 76.9%, rgba(241,235,225,0.057) 84.6%, rgba(241,235,225,0.015) 92.3%, rgba(241,235,225,0) 100%); }
+    .copy { top: 12vmin; bottom: 12vmin; left: 5vmin; right: auto; width: calc(40% - 7vmin); }
+    h1 { font-size: 11vmin; }
+    .d { font-size: 2.3vmin; }
+    .foot { left: 5vmin; right: auto; }
+    .chip { display: block; position: absolute; right: 3vmin; bottom: 4vmin; background: rgba(241,235,225,.92); border-radius: 99vmin; padding: 1.4vmin 2.6vmin; font-size: 1.7vmin; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="melt"></div>
+  <div class="nav"><span class="logo">Alba</span><span>New in</span><span>Women</span><span>Sale</span></div>
+  <div class="copy">
+    <div class="k">Summer 26</div>
+    <h1>Riviera<br><i>days.</i></h1>
+    <div class="d">Embroidered maxi dresses and breezy cotton made for sunlit terraces.</div>
+    <div class="row"><div class="btn">Shop women →</div><div class="ghost">Lookbook</div></div>
+  </div>
+  <div class="foot"><div class="dots"><i></i><i></i><i></i></div><span>Free shipping over $80</span></div>
+  <div class="chip">Embroidered maxi — $129</div>
+</div>
+</body>
+</html>

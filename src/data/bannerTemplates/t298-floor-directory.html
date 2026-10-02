@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Floor Directory — a Hongdae shopping building at dusk: every floor has its own lightbox sign stacked up the facade
+     (B1 archive … 5F members), each one a different colour, the sale floor glowing brightest, with an upright
+     vertical "SALE" sign and a lift indicator.
+     tall → headline, photo + sign column, code strip · square & wide → photo left, signs + copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C2130; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F4F2EC; font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Helvetica Neue", sans-serif;
+    background:
+      linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 100% 11vmin,
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px) 0 0 / 16vmin 100%,
+      radial-gradient(120% 70% at 80% 0%, #2B3350 0%, #1C2130 60%, #151925 100%); }
+
+  .head { position: absolute; left: 5vmin; right: 5vmin; top: 5vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  h1 { margin: 0; font-weight: 900; font-size: 8.6vmin; line-height: 1; letter-spacing: -.04em; }
+  h1 em { font-style: normal; color: #FFD400; }
+  .lift { flex: none; display: flex; flex-direction: column; align-items: center; gap: .6vmin; background: #0E1119; border: 1px solid rgba(255,255,255,.18); padding: 1.2vmin 1.6vmin; font-family: "IBM Plex Mono", "Courier New", monospace; font-weight: 600; font-size: 1.7vmin; letter-spacing: .08em; }
+  .lift b { font-size: 4.6vmin; line-height: 1; color: #FF5A3C; text-shadow: 0 0 1.2vmin rgba(255,90,60,.7); font-weight: 600; }
+  .lift i { font-style: normal; color: #FF5A3C; }
+
+  .photo { position: absolute; left: 5vmin; top: 27vmin; width: 58%; height: calc(100% - 50vmin); overflow: hidden; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+
+  .vsign { display: none; }
+
+  /* the stack of floor signs */
+  .floors { position: absolute; left: calc(58% + 9vmin); right: 5vmin; top: 27vmin; height: calc(100% - 50vmin); display: flex; flex-direction: column; gap: 1.8vmin; }
+  .fl { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; justify-content: center; padding: 0 2vmin; background: var(--bg); color: var(--fg); box-shadow: 0 0 3vmin var(--glow), inset 0 0 0 .35vmin rgba(255,255,255,.25); }
+  .fl b { font-weight: 900; font-size: 4.8vmin; line-height: 1; letter-spacing: -.03em; }
+  .fl span { font-weight: 700; font-size: 2.2vmin; line-height: 1.15; margin-top: .6vmin; }
+  .fl small { font-weight: 500; font-size: 1.6vmin; opacity: .8; margin-top: .3vmin; }
+  .f5 { --bg: #F4F2EC; --fg: #1C2130; --glow: rgba(244,242,236,.2); }
+  .f4 { --bg: #E8322B; --fg: #fff; --glow: rgba(232,50,43,.35); }
+  .f3 { --bg: #FFD400; --fg: #111; --glow: rgba(255,212,0,.6); flex: 1.35; }
+  .f3 b { font-size: 6vmin; }
+  .f2 { --bg: #2458E6; --fg: #fff; --glow: rgba(36,88,230,.35); }
+  .f1 { --bg: #10A36E; --fg: #fff; --glow: rgba(16,163,110,.35); }
+  .fb { --bg: #0B0D13; --fg: #FFD400; --glow: rgba(0,0,0,0); box-shadow: inset 0 0 0 .35vmin #FFD400; }
+  .f3::after { content: "SALE"; position: absolute; right: 1.4vmin; top: 1.2vmin; font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.6vmin; letter-spacing: .1em; }
+
+  .strip { position: absolute; left: 5vmin; right: 5vmin; bottom: 5vmin; height: 13vmin; display: flex; align-items: stretch; background: #F4F2EC; color: #1C2130; }
+  .strip .code { background: #FFD400; color: #111; display: flex; flex-direction: column; justify-content: center; padding: 0 3vmin; font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.7vmin; letter-spacing: .1em; }
+  .strip .code b { font-family: "Noto Sans KR", sans-serif; font-weight: 900; font-size: 4.2vmin; letter-spacing: -.01em; line-height: 1.1; }
+  .strip .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 3vmin; font-size: 2.1vmin; line-height: 1.35; font-weight: 500; }
+  .strip .txt b { font-weight: 900; font-size: 2.4vmin; }
+  .strip .go { display: flex; align-items: center; padding: 0 3vmin; background: #1C2130; color: #F4F2EC; font-weight: 700; font-size: 2.1vmin; letter-spacing: .04em; white-space: nowrap; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    h1 { font-size: 7.6vmin; }
+    .head { top: 4.4vmin; }
+    .photo, .floors { top: 24vmin; height: calc(100% - 44vmin); }
+    .floors { gap: 1.4vmin; }
+    .fl b { font-size: 4vmin; }
+    .f3 b { font-size: 5vmin; }
+    .fl small { display: none; }
+    .strip { height: 11vmin; bottom: 4.4vmin; }
+  }
+  /* SQUARE — photo left; vertical sign on the seam; copy + floors right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 0; top: 0; width: 44%; height: 100%; }
+    .vsign { display: flex; position: absolute; left: calc(44% + 3vmin); top: 5vmin; bottom: 5vmin; width: 9vmin; background: #E8322B; box-shadow: 0 0 3vmin rgba(232,50,43,.45), inset 0 0 0 .35vmin rgba(255,255,255,.3); flex-direction: column; align-items: center; justify-content: center; gap: 2vmin; }
+    .vsign b { writing-mode: vertical-rl; text-orientation: upright; font-weight: 900; font-size: 6.4vmin; letter-spacing: -.06em; line-height: 1; color: #fff; }
+    .vsign span { writing-mode: vertical-rl; font-weight: 700; font-size: 2.4vmin; color: #FFD400; }
+    .head { left: calc(44% + 16vmin); right: 5vmin; top: 5vmin; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .lift { display: none; }
+    h1 { font-size: 6.2vmin; }
+    .floors { left: calc(44% + 16vmin); right: 5vmin; top: 23vmin; height: auto; bottom: 21vmin; gap: 1.2vmin; }
+    .fl { flex-direction: row; align-items: center; justify-content: flex-start; gap: 2vmin; }
+    .fl b, .f3 b { font-size: 3.4vmin; width: 5.4vmin; flex: none; }
+    .fl span { margin-top: 0; font-size: 2vmin; }
+    .fl small { display: none; }
+    .f3 { flex: 1.25; }
+    .strip { left: calc(44% + 16vmin); right: 5vmin; bottom: 5vmin; height: 14vmin; flex-direction: column; }
+    .strip .txt { display: none; }
+    .strip .code { flex: 1; padding: 0 2.4vmin; flex-direction: row; align-items: center; justify-content: space-between; }
+    .strip .go { padding: 1vmin 2.4vmin; font-size: 1.9vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .vsign { left: calc(46% + 4vmin); top: 6vmin; bottom: 6vmin; width: 11vmin; }
+    .vsign b { font-size: 8vmin; }
+    .head { left: calc(46% + 20vmin); right: 6vmin; top: 6vmin; flex-direction: row; align-items: flex-end; }
+    .lift { display: flex; }
+    h1 { font-size: 6.6vmin; }
+    .floors { left: calc(46% + 20vmin); right: 6vmin; top: 25vmin; bottom: 23vmin; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 1.6vmin; }
+    .fl b, .f3 b { font-size: 4vmin; width: 6vmin; }
+    .fl span { font-size: 2.1vmin; }
+    .strip { left: calc(46% + 20vmin); right: 6vmin; bottom: 6vmin; height: 13vmin; flex-direction: row; }
+    .strip .code { flex-direction: column; align-items: flex-start; justify-content: center; padding: 0 3vmin; }
+    .strip .go { padding: 0 3vmin; font-size: 2.1vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head">
+    <h1>Every floor,<br><em>on sale.</em></h1>
+    <div class="lift"><i>▲ UP</i><b>3F</b>LIFT</div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="vsign"><b>SALE</b><span>세일 −40%</span></div>
+  <div class="floors">
+    <div class="fl f5"><b>5F</b><span>Members</span><small>멤버십</small></div>
+    <div class="fl f4"><b>4F</b><span>Last call −50%</span><small>마지막</small></div>
+    <div class="fl f3"><b>3F</b><span>Up to 40% off</span><small>세일</small></div>
+    <div class="fl f2"><b>2F</b><span>The Edit</span><small>에디트</small></div>
+    <div class="fl f1"><b>1F</b><span>New in</span><small>신상</small></div>
+    <div class="fl fb"><b>B1</b><span>Archive</span><small>아카이브</small></div>
+  </div>
+  <div class="strip">
+    <div class="code">CODE<b>FLOOR40</b></div>
+    <div class="txt"><b>Hongdae store &amp; online</b>Until 12 October</div>
+    <div class="go">Take the lift →</div>
+  </div>
+</div>
+</body>
+</html>

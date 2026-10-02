@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,700;0,900;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* First 100 — a first-come offer drawn as a ten-by-ten field of dots: 63 inked (claimed), one ringed in green (yours),
+     the rest open. A numbered-edition counter keeps score. tall → photo above, dot field beside the big 100;
+     square → photo left, stacked panel right; wide → photo left, field and copy side by side */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFEDE6; }
+  .banner { --panel: 74vmin; --g: 36vmin; position: fixed; inset: 0; overflow: hidden; background: #EFEDE6; color: #151515; font-family: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; height: calc(var(--panel) - 10vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; padding-bottom: 1.4vmin; border-bottom: 1px solid #151515; }
+  .kick b { font-weight: 500; color: #1E6B43; }
+  .body { display: flex; gap: 5vmin; margin-top: 3vmin; align-items: flex-start; }
+  .dots { flex: none; width: var(--g); height: var(--g); display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); gap: calc(var(--g) * .035); }
+  .dots i { border-radius: 50%; border: 1px solid rgba(21,21,21,.35); }
+  .dots i.c { background: #151515; border-color: #151515; }
+  .dots i.y { border: calc(var(--g) * .012) solid #1E6B43; background: radial-gradient(circle, #1E6B43 32%, transparent 34%); }
+  .head { flex: 1; min-width: 0; }
+  .head small { display: block; font-size: 2.4vmin; font-weight: 500; }
+  .head strong { display: block; font-weight: 900; font-size: 19vmin; line-height: .8; letter-spacing: -.06em; margin-top: 1vmin; }
+  .head p { margin: 1.8vmin 0 0; font-size: 2.5vmin; line-height: 1.3; }
+  .head p b { font-weight: 700; color: #1E6B43; }
+  .count { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .ctr { font-family: "IBM Plex Mono", monospace; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; color: #5C5A55; }
+  .ctr b { display: block; margin-top: .6vmin; font-family: "Schibsted Grotesk", sans-serif; font-size: 5vmin; font-weight: 700; letter-spacing: -.02em; color: #151515; text-transform: none; line-height: 1; font-variant-numeric: tabular-nums; }
+  .ctr b span { color: #A3A098; font-weight: 500; }
+  .cta { flex: none; background: #151515; color: #EFEDE6; padding: 2vmin 3.2vmin; font-size: 2vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .cta::after { content: " →"; color: #7FD3A4; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 64vmin; --g: 31vmin; }
+    .panel { bottom: 4.4vmin; height: calc(var(--panel) - 8vmin); }
+    .body { margin-top: 2.4vmin; }
+    .head strong { font-size: 16vmin; }
+    .head p { font-size: 2.3vmin; margin-top: 1.4vmin; }
+    .ctr b { font-size: 4.4vmin; }
+    .cta { padding: 1.7vmin 2.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --g: 32vmin; }
+    .photo { width: 52%; height: 100%; }
+    .panel { left: calc(52% + 5vmin); right: 5vmin; top: 5vmin; bottom: 5vmin; height: auto; }
+    .body { flex-direction: column-reverse; gap: 3.6vmin; margin-top: 3vmin; }
+    .head strong { font-size: 13vmin; display: inline-block; margin: 0 0 0 1vmin; }
+    .head small { display: inline; font-size: 3vmin; }
+    .head p { font-size: 2.2vmin; }
+    .count { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .kick span { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --g: 44vmin; }
+    .photo { width: 44%; object-position: 65% 25%; }
+    .panel { left: calc(44% + 7vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; }
+    .body { flex-direction: row; gap: 6vmin; margin-top: 4vmin; }
+    .head small { display: block; font-size: 2.6vmin; }
+    .head strong { display: block; font-size: 14vmin; margin: 1vmin 0 0; }
+    .head p { font-size: 2.4vmin; }
+    .count { flex-direction: row; align-items: flex-end; }
+    .kick span { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick"><span>Atelier Nord</span><b>First come, first served</b></div>
+    <div class="body">
+      <div class="dots"><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="c"></i><i class="y"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="head"><small>The first</small><strong>100</strong><p>orders get <b>30% off</b> the new collection. No code needed.</p></div>
+    </div>
+    <div class="count"><div class="ctr">Claimed so far<b>063<span> / 100</span></b></div><span class="cta">Take Nº 064</span></div>
+  </div>
+</div>
+</body>
+</html>

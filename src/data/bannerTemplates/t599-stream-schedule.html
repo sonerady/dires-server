@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Epilogue:wght@400;500;600;700;800&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Stream Schedule — a week of live shows on warm paper: "On air this week", the photo as Friday's featured piece,
+     and a Mon–Sun planner where the Friday slot is filled tomato-red; off days are left blank.
+     tall / 3:4 → headline · photo · 7-column week grid · square / wide → photo left, headline + 7-row agenda right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F0E8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F4F0E8; color: #1C1B19; font-family: "Epilogue", "Helvetica Neue", Arial, sans-serif;
+    display: flex; flex-direction: column; padding: 5vmin 6vmin 5vmin; box-sizing: border-box; }
+
+  .top { position: relative; flex: none; }
+  .meta { display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid #1C1B19;
+    font-size: 1.7vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .meta span:last-child { color: #7A746A; }
+  h1 { margin: 2.6vmin 0 0; font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .92; letter-spacing: -.02em; }
+  h1 em { font-style: normal; color: #E8482C; }
+
+  .photo { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 3.6vmin; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+  .cap { position: absolute; left: 0; top: 0; padding: 1vmin 1.6vmin 1.1vmin 0; background: #F4F0E8; font-size: 1.7vmin; color: #4A463F; letter-spacing: .02em; white-space: nowrap; }
+  .cap b { color: #E8482C; font-weight: 700; }
+
+  .rest { position: relative; flex: none; }
+  .week { margin-top: 3vmin; display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid #1C1B19; border-left: 1px solid #CFC7B8; }
+  .d { position: relative; padding: 1.4vmin 1.2vmin 1.6vmin; border-right: 1px solid #CFC7B8; border-bottom: 1px solid #CFC7B8; min-height: 16vmin; display: flex; flex-direction: column; }
+  .d .dy { font-size: 1.6vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #7A746A; }
+  .d .dt { font-family: "Gloock", Georgia, serif; font-size: 4.4vmin; line-height: 1.05; margin-top: .4vmin; }
+  .d .tm { margin-top: auto; font-size: 1.6vmin; font-weight: 700; }
+  .d .sh { margin-top: .4vmin; font-size: 1.6vmin; line-height: 1.25; color: #4A463F; }
+  .d.off .dt { color: #B5AD9F; }
+  .d.off .sh { color: #A39B8D; }
+  .d.on { background: #E8482C; color: #FFF6EE; border-color: #E8482C; }
+  .d.on .dy, .d.on .sh { color: #FFE3D6; }
+  .d.on .lv { position: absolute; right: 1vmin; top: 1.2vmin; width: 1.2vmin; height: 1.2vmin; border-radius: 50%; background: #FFF6EE; box-shadow: 0 0 0 .5vmin rgba(255,246,238,.3); }
+
+  .foot { margin-top: 3vmin; display: flex; align-items: center; gap: 3vmin; }
+  .cta { flex: none; padding: 2vmin 3.2vmin; border-radius: 99vmin; background: #1C1B19; color: #F4F0E8; font-size: 2vmin; font-weight: 700; white-space: nowrap; }
+  .small { font-size: 1.6vmin; line-height: 1.5; color: #7A746A; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.4vmin; }
+    h1 { font-size: 9.4vmin; margin-top: 2vmin; }
+    .photo { margin-top: 3vmin; }
+    .week { margin-top: 2.4vmin; }
+    .d { min-height: 14vmin; padding: 1.2vmin 1vmin 1.3vmin; }
+    .d .dt { font-size: 3.8vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  /* ── square: photo left, agenda right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .photo { position: absolute; left: 0; top: 0; bottom: 0; width: 44%; height: 100%; margin: 0; }
+    .cap { padding: 1vmin 1.6vmin 1.1vmin; }
+    .top { position: absolute; left: calc(44% + 5vmin); right: 5vmin; top: 5vmin; }
+    h1 { font-size: 7.6vmin; }
+    .rest { position: absolute; left: calc(44% + 5vmin); right: 5vmin; bottom: 5vmin; }
+    .week { margin-top: 0; grid-template-columns: 1fr; border-left: 0; }
+    .d { min-height: 0; flex-direction: row; align-items: baseline; gap: 1.6vmin; padding: .95vmin 1.2vmin; border-right: 0; }
+    .d .dy { width: 5vmin; flex: none; }
+    .d .dt { font-size: 2.6vmin; margin: 0; width: 4vmin; flex: none; }
+    .d .tm { margin: 0; width: 6.6vmin; flex: none; }
+    .d .sh { margin: 0; flex: 1 1 auto; white-space: nowrap; font-size: 1.7vmin; }
+    .d.on .lv { position: static; order: 9; margin-left: auto; flex: none; align-self: center; }
+    .foot { margin-top: 2.6vmin; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; }
+    .top { left: calc(42% + 7vmin); right: 7vmin; top: 6.4vmin; }
+    h1 { font-size: 8.6vmin; }
+    .rest { left: calc(42% + 7vmin); right: 7vmin; bottom: 6.4vmin; }
+    .d { padding: 1vmin 1.4vmin; }
+    .d .sh { font-size: 1.8vmin; }
+    .foot { flex-direction: row; align-items: center; gap: 3vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <div class="meta"><span>Studio Oriel · Live</span><span>Week 39 · 23–29 Sep</span></div>
+    <h1>On air <em>this week.</em></h1>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="cap"><b>Fri feature</b> · first look, live</div>
+  </div>
+  <div class="rest">
+    <div class="week">
+      <div class="d"><span class="dy">Mon</span><span class="dt">23</span><span class="tm">19:00</span><span class="sh">Styling Q&amp;A</span></div>
+      <div class="d off"><span class="dy">Tue</span><span class="dt">24</span><span class="tm">—</span><span class="sh">Off air</span></div>
+      <div class="d"><span class="dy">Wed</span><span class="dt">25</span><span class="tm">12:30</span><span class="sh">Lunch try-on</span></div>
+      <div class="d off"><span class="dy">Thu</span><span class="dt">26</span><span class="tm">—</span><span class="sh">Off air</span></div>
+      <div class="d on"><i class="lv"></i><span class="dy">Fri</span><span class="dt">27</span><span class="tm">20:00</span><span class="sh">The new edit</span></div>
+      <div class="d"><span class="dy">Sat</span><span class="dt">28</span><span class="tm">11:00</span><span class="sh">Restock hour</span></div>
+      <div class="d off"><span class="dy">Sun</span><span class="dt">29</span><span class="tm">—</span><span class="sh">Off air</span></div>
+    </div>
+    <div class="foot"><div class="cta">Turn on reminders</div><div class="small">All times CET · replays stay up for 7 days</div></div>
+  </div>
+</div>
+</body>
+</html>

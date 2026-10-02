@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Caveat:wght@600&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Hook Caption — a short-video cover: the scroll-stopping hook set as stacked white caption boxes (one line in acid yellow),
+     the photo held inside safe-zone corner brackets, price + CTA in the bottom band.
+     tall / 3:4 → stacked column · square / wide → photo left, hook + offer right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #17171A; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #17171A; color: #F4F2EC;
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column;
+    padding: 5vmin 6vmin 5.4vmin; box-sizing: border-box; }
+  .banner::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(90vmin 70vmin at 85% 0%, rgba(214,255,60,.10), transparent 70%), radial-gradient(80vmin 60vmin at 0% 100%, rgba(120,110,255,.12), transparent 70%); }
+
+  .top { position: relative; flex: none; }
+  .meta { display: flex; align-items: center; gap: 1.4vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #A9A7B0; }
+  .rec { width: 1.4vmin; height: 1.4vmin; border-radius: 50%; background: #FF4B3E; box-shadow: 0 0 0 .6vmin rgba(255,75,62,.22); }
+  .meta .sz { margin-left: auto; font-variation-settings: "wdth" 80; }
+  .hook { margin-top: 2.6vmin; display: flex; flex-direction: column; align-items: flex-start; gap: .9vmin; }
+  .hook span { display: block; background: #F4F2EC; color: #111114; font-weight: 900; font-variation-settings: "wdth" 88;
+    font-size: 7.4vmin; line-height: 1.02; letter-spacing: -.02em; padding: .5vmin 2vmin .9vmin; border-radius: 1.4vmin; white-space: nowrap; }
+  .hook span.hi { background: #D6FF3C; transform: rotate(-1.4deg); margin-left: 1.2vmin; }
+
+  .frame { position: relative; flex: 1 1 auto; min-height: 0; margin: 4.4vmin 2.4vmin 3.6vmin; }
+  .frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .frame i { position: absolute; width: 4vmin; height: 4vmin; border: 0 solid #D6FF3C; }
+  .frame .tl { left: -2.2vmin; top: -2.2vmin; border-left-width: .5vmin; border-top-width: .5vmin; }
+  .frame .tr { right: -2.2vmin; top: -2.2vmin; border-right-width: .5vmin; border-top-width: .5vmin; }
+  .frame .bl { left: -2.2vmin; bottom: -2.2vmin; border-left-width: .5vmin; border-bottom-width: .5vmin; }
+  .frame .br { right: -2.2vmin; bottom: -2.2vmin; border-right-width: .5vmin; border-bottom-width: .5vmin; }
+
+  .bot { position: relative; flex: none; }
+  .sub { font-family: "Caveat", cursive; font-weight: 600; font-size: 4.2vmin; line-height: 1; color: #D6FF3C; transform: rotate(-2deg); transform-origin: left; }
+  .row { display: flex; align-items: center; gap: 3vmin; margin-top: 2.2vmin; }
+  .price { font-weight: 800; font-size: 6.4vmin; letter-spacing: -.03em; line-height: 1; font-variation-settings: "wdth" 75; }
+  .price s { font-size: 2.4vmin; font-weight: 500; color: #8E8C96; margin-left: 1vmin; letter-spacing: 0; vertical-align: middle; }
+  .cta { margin-left: auto; padding: 2vmin 3.4vmin; border-radius: 99vmin; background: #D6FF3C; color: #111114; font-size: 2.2vmin; font-weight: 800; letter-spacing: .02em; white-space: nowrap; }
+  .small { margin-top: 2vmin; font-size: 1.7vmin; letter-spacing: .06em; color: #8E8C96; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.6vmin; }
+    .hook { margin-top: 2vmin; gap: .7vmin; }
+    .hook span { font-size: 6.2vmin; }
+    .frame { margin: 4vmin 2.4vmin 3.4vmin; }
+    .sub { font-size: 3.6vmin; }
+    .row { margin-top: 1.6vmin; }
+    .price { font-size: 5.6vmin; }
+    .small { margin-top: 1.4vmin; }
+  }
+  /* ── square: photo left, everything else in a right column ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .frame { position: absolute; left: 5.6vmin; top: 5.6vmin; bottom: 5.6vmin; width: 46%; height: auto; margin: 0; }
+    .top { position: absolute; left: calc(46% + 12vmin); right: 5vmin; top: 5.6vmin; }
+    .bot { position: absolute; left: calc(46% + 12vmin); right: 5vmin; bottom: 5.6vmin; }
+    .hook { margin-top: 3vmin; }
+    .hook span { font-size: 5.2vmin; white-space: normal; }
+    .sub { font-size: 3.6vmin; }
+    .row { flex-wrap: wrap; gap: 2vmin; }
+    .price { font-size: 5.6vmin; }
+    .cta { margin-left: 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .frame { width: 44%; left: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .top { left: calc(44% + 14vmin); right: 7vmin; top: 7vmin; }
+    .bot { left: calc(44% + 14vmin); right: 7vmin; bottom: 6.4vmin; }
+    .hook span { font-size: 6.6vmin; white-space: nowrap; }
+    .row { flex-wrap: nowrap; gap: 3vmin; }
+    .price { font-size: 6.4vmin; }
+    .cta { margin-left: auto; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     constant: REC dot blinks and emits a ring (1.5s); the safe-zone brackets breathe outwards (3s) ·
+     beats: 1.4s the caption boxes re-stack one by one like auto-captions (the yellow line lands last with a wobble) ·
+     3.5s the handwritten line re-writes itself · 4.6s the price bumps · 5.1s the CTA gets tapped (press + ripple) */
+  .rec { position: relative; animation: recdot 1.5s steps(1, end) infinite; }
+  @keyframes recdot { 0%, 100% { opacity: 1; } 60% { opacity: .35; } }
+  .rec::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #FF4B3E; opacity: 0; animation: recring 1.5s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes recring { 0% { opacity: 0; transform: scale(1); } 8% { opacity: .55; transform: scale(1.1); } 70%, 100% { opacity: 0; transform: scale(2.6); } }
+
+  .frame .tl { animation: tl 3s cubic-bezier(.45,0,.55,1) infinite; }
+  .frame .tr { animation: tr 3s cubic-bezier(.45,0,.55,1) infinite; }
+  .frame .bl { animation: bl 3s cubic-bezier(.45,0,.55,1) infinite; }
+  .frame .br { animation: br 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes tl { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-.8vmin, -.8vmin); } }
+  @keyframes tr { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(.8vmin, -.8vmin); } }
+  @keyframes bl { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-.8vmin, .8vmin); } }
+  @keyframes br { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(.8vmin, .8vmin); } }
+
+  .hook span { transform-origin: 0 50%; animation: cap 6s linear infinite; }
+  .hook span:nth-child(1) { animation-delay: -.36s; }
+  .hook span.hi { transform-origin: 50% 50%; animation-name: caphi; animation-delay: -.18s; }
+  .hook span:nth-child(3) { animation-delay: 0s; }
+  @keyframes cap {
+    0%, 23%, 100% { opacity: 1; transform: scale(1); }
+    25% { opacity: 0; transform: scale(.9); animation-timing-function: step-end; }
+    30% { opacity: 0; transform: scale(.7); animation-timing-function: cubic-bezier(.3,1.6,.5,1); }
+    35% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes caphi {
+    0%, 23%, 100% { opacity: 1; transform: rotate(-1.4deg) scale(1); }
+    25% { opacity: 0; transform: rotate(-1.4deg) scale(.9); animation-timing-function: step-end; }
+    30% { opacity: 0; transform: rotate(4deg) scale(.6); animation-timing-function: cubic-bezier(.3,1.6,.5,1); }
+    36% { opacity: 1; transform: rotate(-3.4deg) scale(1.06); animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    42% { opacity: 1; transform: rotate(-1.4deg) scale(1); }
+  }
+  .sub { animation: rewrite 6s linear infinite; }
+  @keyframes rewrite {
+    0%, 55% { clip-path: inset(-30% -2% -40% -2%); opacity: 1; }
+    58% { clip-path: inset(-30% -2% -40% -2%); opacity: 0; animation-timing-function: step-end; }
+    59% { clip-path: inset(-30% 102% -40% -2%); opacity: 1; animation-timing-function: cubic-bezier(.3,.1,.7,.9); }
+    72%, 100% { clip-path: inset(-30% -2% -40% -2%); opacity: 1; }
+  }
+  .price { transform-origin: 0 70%; animation: bump 6s linear infinite; }
+  @keyframes bump { 0%, 75%, 100% { transform: scale(1); } 78% { transform: scale(1.12); animation-timing-function: cubic-bezier(.3,1.5,.5,1); } 83% { transform: scale(1); } }
+  .cta { position: relative; animation: tap 6s linear infinite; }
+  @keyframes tap { 0%, 84%, 100% { transform: scale(1); } 86% { transform: scale(.92); animation-timing-function: cubic-bezier(.3,1.6,.5,1); } 91% { transform: scale(1); } }
+  .cta::after { content: ""; position: absolute; inset: 0; border-radius: 99vmin; box-shadow: 0 0 0 0 rgba(214,255,60,.7); opacity: 0; animation: ripple 6s cubic-bezier(.2,.6,.3,1) infinite; }
+  @keyframes ripple { 0%, 85% { opacity: 0; box-shadow: 0 0 0 0 rgba(214,255,60,.7); } 86% { opacity: 1; box-shadow: 0 0 0 0 rgba(214,255,60,.7); } 98%, 100% { opacity: 0; box-shadow: 0 0 0 2.4vmin rgba(214,255,60,0); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <div class="meta"><i class="rec"></i>0:01 · The hook<span class="sz">9:16 safe</span></div>
+    <div class="hook"><span>Stop scrolling.</span><span class="hi">It sold out twice</span><span>— it's back.</span></div>
+  </div>
+  <div class="frame"><img src="{{PRODUCT_IMAGE}}" alt=""><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></div>
+  <div class="bot">
+    <div class="sub">restocked for 48 hours only</div>
+    <div class="row"><div class="price">$89<s>$120</s></div><div class="cta">Tap to shop →</div></div>
+    <div class="small">Maison Vell · free returns · while stock lasts</div>
+  </div>
+</div>
+</body>
+</html>

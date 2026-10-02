@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Tissue Guard — an art-book plate page: the translucent tissue interleaf has been turned onto the facing
+     page, its printed caption and credits crisp on top, the page's big plate numeral blurred beneath it; the
+     tissue's corner is folded back and the page revealed under the fold carries the offer.
+     tall → plate above, tissued page below · square & wide → plate left, tissued page right; the fold is always bottom-right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E4D9C6; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E4D9C6; color: #2B2621; font-family: "Work Sans", "Helvetica Neue", Arial, sans-serif; --a: 34vmin; }
+  .gar { font-family: "Cormorant Garamond", Garamond, Georgia, serif; }
+
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 78vmin); object-fit: cover; object-position: 50% 22%; }
+  .page { position: absolute; left: 0; right: 0; bottom: 0; height: 78vmin; overflow: hidden; }
+  /* printed on the page itself (seen through the tissue) */
+  .numeral { position: absolute; left: 3vmin; top: 6vmin; font-family: "Cormorant Garamond", Garamond, serif; font-weight: 600; font-size: 60vmin; line-height: .8; letter-spacing: -.02em; color: #B19C7C; white-space: nowrap; }
+  .offer { position: absolute; right: 3.4vmin; bottom: 3.2vmin; text-align: right; }
+  .offer b { display: block; font-family: "Cormorant Garamond", Garamond, serif; font-weight: 600; font-size: 8vmin; line-height: .85; color: #7A2E24; }
+  .offer span { display: block; margin-top: .8vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #2B2621; }
+
+  /* the tissue */
+  .tissue { position: absolute; inset: 0; background: rgba(252,250,247,.74); -webkit-backdrop-filter: blur(.5vmin); backdrop-filter: blur(.5vmin);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--a)), calc(100% - var(--a)) 100%, 0 100%); }
+  .fibre { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .5; }
+  .flapwrap { position: absolute; right: 0; bottom: 0; width: var(--a); height: var(--a); filter: drop-shadow(.6vmin .7vmin .8vmin rgba(60,45,30,.35)); }
+  .flap { position: absolute; inset: 0; clip-path: polygon(0 0, 100% 0, 0 100%);
+    background: linear-gradient(135deg, #EDE7DC 0%, #F6F2EB 45%, #FFFEFB 100%); }
+  .flapshade { position: absolute; right: 0; bottom: 0; width: var(--a); height: var(--a); clip-path: polygon(100% 0, 100% 100%, 0 100%);
+    background: linear-gradient(315deg, rgba(60,45,30,0) 55%, rgba(60,45,30,.12) 85%, rgba(60,45,30,.3) 100%); }
+  .top-shadow { position: absolute; left: 0; right: 0; top: 0; height: 2.4vmin;
+    background: linear-gradient(to bottom, rgba(40,30,20,.16), rgba(40,30,20,.158) 7.7%, rgba(40,30,20,.151) 15.4%, rgba(40,30,20,.14) 23.1%, rgba(40,30,20,.125) 30.8%, rgba(40,30,20,.108) 38.5%, rgba(40,30,20,.09) 46.2%, rgba(40,30,20,.07) 53.8%, rgba(40,30,20,.052) 61.5%, rgba(40,30,20,.035) 69.2%, rgba(40,30,20,.02) 76.9%, rgba(40,30,20,.009) 84.6%, rgba(40,30,20,.002) 92.3%, rgba(40,30,20,0)); }
+
+  .cap { position: absolute; left: 7vmin; right: 7vmin; top: 6.4vmin; bottom: 5vmin; display: flex; flex-direction: column; }
+  .pl { display: flex; align-items: center; gap: 1.6vmin; font-size: 1.7vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; }
+  .pl i { flex: 1; height: 1px; background: #2B2621; }
+  h2 { margin: 2.6vmin 0 0; font-family: "Cormorant Garamond", Garamond, serif; font-style: italic; font-weight: 400; font-size: 11.5vmin; line-height: .92; letter-spacing: -.01em; }
+  .txt { margin: 2.4vmin 0 0; max-width: 70vmin; font-size: 2.5vmin; line-height: 1.5; color: #3B352E; }
+  .cred { margin: auto 0 0; display: grid; grid-template-columns: auto auto; justify-content: start; column-gap: 3vmin; row-gap: .7vmin; font-size: 1.8vmin; max-width: calc(100% - var(--a) + 4vmin); }
+  .cred dt { font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #6E655A; font-size: 1.6vmin; }
+  .cred dd { margin: 0; font-family: "Cormorant Garamond", Garamond, serif; font-size: 2.4vmin; line-height: 1; }
+  .lift { align-self: flex-start; margin-top: 2.6vmin; font-family: "Cormorant Garamond", Garamond, serif; font-style: italic; font-size: 2.8vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --a: 30vmin; }
+    .photo { height: calc(100% - 70vmin); }
+    .page { height: 70vmin; }
+    .numeral { font-size: 52vmin; }
+    .cap { top: 5.4vmin; bottom: 4.4vmin; }
+    h2 { font-size: 8.6vmin; margin-top: 2vmin; }
+    .txt { font-size: 2vmin; margin-top: 1.8vmin; }
+    .offer b { font-size: 7vmin; }
+    .lift { margin-top: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --a: 24vmin; }
+    .photo { width: 50%; height: 100%; object-position: 50% 24%; }
+    .page { left: 50%; top: 0; height: auto; }
+    .numeral { left: 2vmin; top: 8vmin; font-size: 44vmin; }
+    .cap { left: 5vmin; right: 5vmin; top: 5vmin; bottom: 4.6vmin; }
+    .pl { font-size: 1.55vmin; letter-spacing: .24em; }
+    h2 { font-size: 7vmin; margin-top: 2.2vmin; }
+    .txt { font-size: 1.8vmin; margin-top: 1.8vmin; }
+    .cred { font-size: 1.6vmin; grid-template-columns: auto; row-gap: .4vmin; max-width: calc(100% - var(--a) + 5vmin); }
+    .cred dd { margin-bottom: .8vmin; }
+    .cred dt { font-size: 1.5vmin; letter-spacing: .1em; }
+    .cred dd { font-size: 2.1vmin; }
+    .lift { font-size: 2.2vmin; margin-top: 1.6vmin; max-width: calc(100% - var(--a) + 5vmin); }
+    .offer { right: 2.6vmin; bottom: 2.6vmin; }
+    .offer b { font-size: 5.8vmin; }
+    .offer span { font-size: 1.5vmin; letter-spacing: .1em; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --a: 32vmin; }
+    .photo { width: 48%; }
+    .page { left: 48%; }
+    .numeral { left: 4vmin; top: 10vmin; font-size: 64vmin; }
+    .cap { left: 7vmin; right: 7vmin; top: 6.4vmin; bottom: 6vmin; }
+    .pl { font-size: 1.7vmin; letter-spacing: .3em; }
+    h2 { font-size: 9vmin; margin-top: 2.6vmin; }
+    .txt { font-size: 2.1vmin; margin-top: 2.2vmin; max-width: 60vmin; }
+    .cred { font-size: 1.75vmin; grid-template-columns: auto auto; column-gap: 3vmin; row-gap: .7vmin; max-width: calc(100% - var(--a) + 6vmin); }
+    .cred dd { margin-bottom: 0; }
+    .cred dt { font-size: 1.6vmin; }
+    .cred dd { font-size: 2.3vmin; }
+    .lift { font-size: 2.7vmin; margin-top: 2.4vmin; }
+    .offer { right: 3.4vmin; bottom: 3.2vmin; }
+    .offer b { font-size: 7.4vmin; }
+    .offer span { font-size: 1.6vmin; letter-spacing: .16em; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static plate page) — slow, restrained, paper-like ─────────
+     constant: the plate numeral drifts a breath under the tissue (parallax), the tissue's sheen breathes
+     1.8s  the folded corner lifts further (tissue, flap and its shade grow together from the corner), holds, settles
+     3.6s  "Lift the tissue →" arrow nudges twice as the fold settles */
+  .numeral { animation: drift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes drift { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(1.4vmin, -.6vmin); } }
+  .fibre { animation: sheen 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 100% { opacity: .5; } 50% { opacity: .68; } }
+  .banner { --k: 1.3; }
+  @media (min-aspect-ratio: 9/10) { .banner { --k: 1.1; } }
+  .tissue { animation: lift 6s linear infinite; }
+  @keyframes lift {
+    0%, 25% { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--a)), calc(100% - var(--a)) 100%, 0 100%); animation-timing-function: cubic-bezier(.45,0,.2,1); }
+    45%, 55% { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--a) * var(--k)), calc(100% - var(--a) * var(--k)) 100%, 0 100%); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    68% { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--a) * .97), calc(100% - var(--a) * .97) 100%, 0 100%); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    76%, 100% { clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--a)), calc(100% - var(--a)) 100%, 0 100%); }
+  }
+  .flapwrap, .flapshade { transform-origin: 100% 100%; animation: flap 6s linear infinite; }
+  @keyframes flap {
+    0%, 25% { transform: scale(1); animation-timing-function: cubic-bezier(.45,0,.2,1); }
+    45%, 55% { transform: scale(var(--k)); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    68% { transform: scale(.97); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    76%, 100% { transform: scale(1); }
+  }
+  .offer { animation: rise 6s linear infinite; }
+  @keyframes rise {
+    0%, 27% { transform: translateY(0); opacity: 1; animation-timing-function: cubic-bezier(.45,0,.2,1); }
+    45%, 55% { transform: translateY(-.6vmin); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    76%, 100% { transform: translateY(0); opacity: 1; }
+  }
+  .lift { animation: point 6s linear infinite; }
+  @keyframes point {
+    0%, 58% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    62% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    66% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    70% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    74%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="page">
+    <div class="numeral">XII</div>
+    <div class="offer"><b>−20%</b><span>Code PLATE20</span></div>
+    <div class="tissue">
+      <svg class="fibre" aria-hidden="true"><filter id="f"><feTurbulence type="fractalNoise" baseFrequency=".012 .9" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .5 -.1"/></filter><rect width="100%" height="100%" filter="url(#f)"/></svg>
+      <div class="top-shadow"></div>
+      <div class="cap">
+        <div class="pl"><span>Plate XII</span><i></i><span>Atelier Nord</span></div>
+        <h2>The quiet season</h2>
+        <p class="txt">Twelve looks for the colder months, photographed in the last of the autumn light.</p>
+        <dl class="cred">
+          <dt>Photography</dt><dd>Lea Moreau</dd>
+          <dt>Styling</dt><dd>Tomás Ruiz</dd>
+          <dt>Hair &amp; make-up</dt><dd>Ines Cho</dd>
+        </dl>
+        <div class="lift">Lift the tissue →</div>
+      </div>
+    </div>
+    <div class="flapshade"></div>
+    <div class="flapwrap"><div class="flap"></div></div>
+  </div>
+</div>
+</body>
+</html>

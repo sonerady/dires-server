@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Pinyon+Script&family=Cormorant:ital,wght@0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  /* Bridal Invitation — the wedding-season edit written as a formal invitation: engraved caps, calligraphic title,
+     a scalloped lace trim stitched to the photo's hem. tall → photo above the card; square/wide → photo left, card right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F6F1E8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F6F1E8; color: #3D3630; font-family: "Cormorant", Garamond, "Times New Roman", serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 58%; object-fit: cover; object-position: 50% 16%; }
+  /* lace: a solid band with eyelets + scallops hanging below it */
+  .lace { position: absolute; left: 0; right: 0; top: 58%; height: 5.4vmin;
+    background:
+      radial-gradient(circle at 50% 1.1vmin, #F6F1E8 0 .55vmin, transparent .6vmin) 0 0 / 3vmin 2.2vmin repeat-x,
+      linear-gradient(#E4D8C8 0 0) 0 0 / 100% 2.2vmin no-repeat,
+      radial-gradient(circle at 50% 0, transparent 0 .7vmin, #E4D8C8 .75vmin 2.9vmin, transparent 2.95vmin) 0 2.2vmin / 6vmin 3.2vmin repeat-x,
+      radial-gradient(circle at 50% 0, #F6F1E8 0 .7vmin, transparent .75vmin) 3vmin 2.2vmin / 6vmin 3.2vmin repeat-x; }
+  .card { position: absolute; left: 6vmin; right: 6vmin; top: calc(58% + 5.4vmin); bottom: 4vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .mono { font-family: "Cinzel", "Trajan Pro", Georgia, serif; font-size: 2.1vmin; font-weight: 500; letter-spacing: .42em; margin-right: -.42em; }
+  .orn { display: block; width: 26vmin; height: 2.4vmin; margin: 1.2vmin 0; }
+  .req { font-style: italic; font-size: 2.9vmin; line-height: 1.2; }
+  h1 { margin: .6vmin 0 0; font-family: "Pinyon Script", "Snell Roundhand", cursive; font-weight: 400; font-size: 12.4vmin; line-height: 1.02; color: #2E2823; }
+  .when { margin-top: 1.4vmin; font-family: "Cinzel", Georgia, serif; font-size: 1.95vmin; letter-spacing: .26em; line-height: 1.8; margin-right: -.26em; }
+  .when b { font-weight: 500; }
+  .rsvp { margin-top: 2.2vmin; display: flex; align-items: center; gap: 2.4vmin; font-family: "Cinzel", Georgia, serif; font-size: 2vmin; font-weight: 500; letter-spacing: .3em; }
+  .rsvp i { display: block; width: 7vmin; height: 1px; background: #3D3630; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 54%; }
+    .lace { top: 54%; }
+    .card { top: calc(54% + 5.4vmin); }
+    h1 { font-size: 10.6vmin; }
+    .req { font-size: 2.6vmin; }
+    .orn { margin: .6vmin 0; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 30%; }
+    .lace { top: 0; bottom: 0; left: 50%; right: auto; width: 5.4vmin; height: auto;
+      background:
+        radial-gradient(circle at 1.1vmin 50%, #F6F1E8 0 .55vmin, transparent .6vmin) 0 0 / 2.2vmin 3vmin repeat-y,
+        linear-gradient(#E4D8C8 0 0) 0 0 / 2.2vmin 100% no-repeat,
+        radial-gradient(circle at 0 50%, transparent 0 .7vmin, #E4D8C8 .75vmin 2.9vmin, transparent 2.95vmin) 2.2vmin 0 / 3.2vmin 6vmin repeat-y,
+        radial-gradient(circle at 0 50%, #F6F1E8 0 .7vmin, transparent .75vmin) 2.2vmin 3vmin / 3.2vmin 6vmin repeat-y; }
+    .card { top: 5vmin; bottom: 5vmin; left: calc(50% + 7vmin); right: 3vmin; }
+    h1 { font-size: 10vmin; }
+    .req { font-size: 2.5vmin; }
+    .when { font-size: 1.7vmin; letter-spacing: .18em; }
+    .rsvp { font-size: 1.8vmin; letter-spacing: .22em; gap: 1.6vmin; }
+    .rsvp i { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; object-position: 55% 30%; }
+    .lace { left: 48%; }
+    .card { left: calc(48% + 9vmin); right: 5vmin; }
+    h1 { font-size: 13vmin; }
+    .req { font-size: 3vmin; }
+    .orn { width: 30vmin; margin: 1.6vmin 0; }
+    .when { font-size: 2vmin; letter-spacing: .26em; }
+    .rsvp { font-size: 2vmin; letter-spacing: .3em; gap: 2.4vmin; margin-top: 3vmin; }
+    .rsvp i { display: block; width: 7vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="lace"></div>
+  <div class="card">
+    <div class="mono">Atelier Nord</div>
+    <svg class="orn" viewBox="0 0 260 24" aria-hidden="true"><g fill="none" stroke="#3D3630" stroke-width="1"><path d="M0 12 H 104"/><path d="M156 12 H 260"/><path d="M130 3 L 139 12 L 130 21 L 121 12 Z"/><path d="M104 12 C 110 4, 118 6, 121 12 C 118 18, 110 20, 104 12"/><path d="M156 12 C 150 4, 142 6, 139 12 C 142 18, 150 20, 156 12"/></g><circle cx="130" cy="12" r="2" fill="#3D3630"/></svg>
+    <div class="req">requests the pleasure of your company<br>at the unveiling of</div>
+    <h1>The Bridal Edit</h1>
+    <div class="when">Saturday, the sixth of June<br><b>Gowns · Guests · 15% off</b></div>
+    <div class="rsvp"><i></i>RSVP — Book a fitting<i></i></div>
+  </div>
+</div>
+</body>
+</html>

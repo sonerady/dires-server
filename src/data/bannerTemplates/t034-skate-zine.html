@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@800;900&family=Special+Elite&family=Caveat+Brush&display=swap" rel="stylesheet">
+<style>
+  /* Skate Zine — photocopied DIY zine page: stencil headline, riso-red misregistered block, scissor-cut photo, typewriter + marker notes.
+     tall → headline, photo, notes stacked; square / wide → text column left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEEBE3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EEEBE3; color: #141414; font-family: "Special Elite", "Courier New", monospace; }
+  .toner { position: absolute; inset: 0; width: 100%; height: 100%; mix-blend-mode: multiply; }
+  .staple { position: absolute; top: 2.4vmin; width: 7vmin; height: .9vmin; background: linear-gradient(180deg, #D8D8D8, #8C8C8C); box-shadow: 0 .2vmin .3vmin rgba(0,0,0,.35); }
+  .st1 { left: 22%; } .st2 { right: 22%; }
+  .folio { position: absolute; left: 6vmin; right: 6vmin; top: 5.6vmin; display: flex; justify-content: space-between; font-size: 2vmin; letter-spacing: .08em; text-transform: uppercase; padding-bottom: 1.2vmin; border-bottom: .35vmin solid #141414; }
+  .head { position: absolute; left: 5vmin; right: 5vmin; top: 11vmin; font-family: "Big Shoulders Stencil Display", Impact, sans-serif; font-weight: 900; text-transform: uppercase; line-height: .8; }
+  .head span { display: block; font-size: 22vmin; letter-spacing: -.01em; }
+  .head span + span { margin-left: 13vmin; color: #E5392A; }
+  .riso { position: absolute; left: 12vmin; right: 5vmin; top: 60vmin; bottom: 33vmin; background: radial-gradient(circle, rgba(120,10,0,.28) 34%, transparent 36%) 0 0 / 1.1vmin 1.1vmin, #E5392A; transform: rotate(-2deg); }
+  .cut { position: absolute; left: 8vmin; right: 9vmin; top: 57vmin; bottom: 36vmin; transform: rotate(1.2deg); filter: drop-shadow(0 .5vmin .6vmin rgba(0,0,0,.28));
+    clip-path: polygon(0 .6%, 12% 0, 31% .5%, 56% 0, 78% .7%, 100% 0, 99.4% 22%, 100% 47%, 99.3% 71%, 100% 100%, 74% 99.4%, 48% 100%, 23% 99.3%, 0 100%, .6% 76%, 0 51%, .7% 27%); }
+  .cut img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .note { position: absolute; left: 6vmin; bottom: 5vmin; width: 52vmin; }
+  .note p { margin: 0; font-size: 2.5vmin; line-height: 1.4; }
+  .note .cta { display: inline-block; margin-top: 2.2vmin; font-size: 2.8vmin; border-bottom: .4vmin solid #141414; padding-bottom: .4vmin; }
+  .hand { position: absolute; right: 5vmin; bottom: 7vmin; width: 32vmin; text-align: center; font-family: "Caveat Brush", "Marker Felt", cursive; color: #1537C9; transform: rotate(-6deg); line-height: .95; }
+  .hand .big { position: relative; display: inline-block; font-size: 12vmin; padding: 0 2vmin; }
+  .hand .big svg { position: absolute; left: -2vmin; top: -1.5vmin; width: calc(100% + 4vmin); height: calc(100% + 3vmin); overflow: visible; }
+  .hand .small { display: block; font-size: 4.6vmin; margin-top: .6vmin; }
+  .hand .small b { font-weight: 400; color: #141414; background: #F7E53C; padding: 0 1vmin; }
+  .arrow { position: absolute; right: 26vmin; bottom: 22vmin; width: 14vmin; height: 12vmin; color: #1537C9; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .head { top: 10.5vmin; }
+    .head span { font-size: 17vmin; }
+    .head span + span { margin-left: 30vmin; margin-top: -1vmin; }
+    .riso { left: 14vmin; right: 12vmin; top: 44vmin; bottom: 30vmin; }
+    .cut { left: 11vmin; right: 16vmin; top: 41vmin; bottom: 33vmin; }
+    .note { width: 50vmin; bottom: 4.5vmin; }
+    .hand { bottom: 5vmin; }
+    .arrow { right: 28vmin; bottom: 19vmin; }
+  }
+  /* square / wide → text column left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .st1 { left: 18%; } .st2 { right: 18%; }
+    .folio { font-size: 1.8vmin; }
+    .head { left: 5vmin; right: auto; top: 12vmin; width: 44%; }
+    .head span { font-size: 12.6vmin; }
+    .head span + span { margin-left: 0; margin-top: 0; }
+    .riso { left: calc(50% + 4vmin); right: 3vmin; top: 15vmin; bottom: 3.5vmin; }
+    .cut { left: 50%; right: 6vmin; top: 12vmin; bottom: 7vmin; }
+    .note { left: 5vmin; bottom: 5vmin; width: calc(50% - 10vmin); }
+    .note p { font-size: 2.1vmin; }
+    .note .cta { font-size: 2.4vmin; margin-top: 1.6vmin; }
+    .hand { left: 7vmin; right: auto; bottom: auto; top: 50vmin; width: 32vmin; }
+    .hand .big { font-size: 9.6vmin; }
+    .hand .small { font-size: 3.8vmin; }
+    .arrow { left: calc(50% - 15vmin); right: auto; bottom: auto; top: 42vmin; transform: rotate(-20deg); }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .head { width: 40%; }
+    .head span { font-size: 15.5vmin; }
+    .riso { left: calc(45% + 4vmin); }
+    .cut { left: 45%; }
+    .note { width: calc(45% - 12vmin); }
+    .hand { top: 50vmin; left: 34vmin; }
+    .arrow { left: calc(45% - 13vmin); top: 36vmin; transform: scaleX(-1) rotate(20deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="toner" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><filter id="t"><feTurbulence type="fractalNoise" baseFrequency=".55" numOctaves="2" seed="9"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.4 1.25"/></filter><rect width="100%" height="100%" filter="url(#t)" opacity=".22"/></svg>
+  <i class="staple st1"></i><i class="staple st2"></i>
+  <div class="folio"><span>Issue Nº 12 — Summer ’26</span><span>Pg. 07</span></div>
+  <div class="head"><span>Street</span><span>Sessions</span></div>
+  <div class="riso"></div>
+  <div class="cut"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <svg class="arrow" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M92 72 C 70 70, 40 60, 22 18"/><path d="M8 30 L 21 14 L 38 24"/></svg>
+  <div class="note">
+    <p>The new drop hits the shop &amp; the site this Friday. A free copy of the zine ships with every order.</p>
+    <span class="cta">Shop the drop →</span>
+  </div>
+  <div class="hand">
+    <span class="big">−25%<svg viewBox="0 0 100 60" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 34 C 4 12, 40 2, 70 6 C 96 10, 100 38, 80 50 C 56 62, 14 58, 6 38 C 2 28, 14 16, 30 12"/></svg></span>
+    <span class="small">code <b>ZINE25</b></span>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Rating Breakdown — the score is the headline: a condensed 4.8, part-filled stars, a five-bar histogram,
+     a re-buy figure and review keyword tags. tall → narrow data column beside a full-height photo; wide → two data columns */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1EEE8; }
+  .banner { --pw: 56%; position: fixed; inset: 0; overflow: hidden; background: #F1EEE8; color: #121110; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; right: 0; top: 0; width: var(--pw); height: 100%; object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .panel { position: absolute; left: 5vmin; top: 6vmin; bottom: 5vmin; width: calc(100% - var(--pw) - 9.5vmin); display: grid; grid-template-columns: 100%; grid-template-areas: "k" "s" "h" "r" "q" "c" "cta"; align-content: space-between; }
+  .kick { grid-area: k; display: flex; justify-content: space-between; gap: 1vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid #121110; font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+
+  .sc { grid-area: s; }
+  .num { font-weight: 700; font-stretch: 75%; font-variation-settings: "wdth" 75, "opsz" 96; font-size: 25vmin; line-height: .8; letter-spacing: -.035em; white-space: nowrap; }
+  .num small { font-size: .3em; font-weight: 500; letter-spacing: 0; color: #7A746B; margin-left: .6vmin; }
+  .stars { display: flex; gap: .7vmin; margin-top: 2.4vmin; }
+  .stars svg { width: 6vmin; height: 6vmin; }
+  .count { margin-top: 1.4vmin; font-family: "DM Mono", Menlo, monospace; font-size: 2vmin; letter-spacing: .04em; color: #4A4640; }
+
+  .hist { grid-area: h; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 2vmin 1.4vmin; font-family: "DM Mono", Menlo, monospace; font-size: 2vmin; }
+  .hist span { white-space: nowrap; }
+  .hist span:first-child, .hist .l { color: #4A4640; }
+  .hist .bar { position: relative; height: 1.6vmin; background: rgba(18,17,16,.1); }
+  .hist .bar i { position: absolute; left: 0; top: 0; bottom: 0; background: #121110; }
+  .hist .bar.top i { background: #E0442B; }
+  .hist .p { text-align: right; min-width: 4.6vmin; }
+
+  .rebuy { grid-area: r; display: flex; align-items: center; gap: 2vmin; padding: 2vmin 0; border-top: 1px solid rgba(18,17,16,.25); border-bottom: 1px solid rgba(18,17,16,.25); }
+  .rebuy b { font-weight: 700; font-variation-settings: "wdth" 75, "opsz" 96; font-size: 10vmin; line-height: .9; letter-spacing: -.02em; color: #E0442B; }
+  .rebuy span { font-size: 2.3vmin; font-weight: 500; line-height: 1.2; }
+
+  .quote { grid-area: q; margin: 0; font-size: 3.6vmin; font-weight: 500; line-height: 1.08; letter-spacing: -.01em; }
+  .quote small { display: block; margin-top: 1.4vmin; font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .04em; color: #7A746B; }
+  .chips { grid-area: c; display: flex; flex-wrap: wrap; gap: 1.2vmin; }
+  .chips span { display: inline-flex; align-items: center; gap: 1vmin; border: 1px solid rgba(18,17,16,.4); border-radius: 99vmin; padding: .9vmin 1.8vmin; font-size: 1.8vmin; font-weight: 500; white-space: nowrap; }
+  .chips em { font-style: normal; font-family: "DM Mono", Menlo, monospace; font-size: 1.6vmin; color: #7A746B; }
+
+  .cta { grid-area: cta; display: flex; justify-content: space-between; align-items: center; background: #121110; color: #F1EEE8; padding: 2.1vmin 2.4vmin; font-size: 2vmin; font-weight: 600; letter-spacing: .02em; white-space: nowrap; }
+  .cta i { font-style: normal; color: #E0442B; font-size: 2.6vmin; }
+
+  .tag { position: absolute; right: 3.6vmin; bottom: 3.6vmin; display: flex; align-items: center; gap: 1vmin; background: #F1EEE8; padding: 1.1vmin 1.6vmin; font-family: "DM Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .tag svg { width: 2.2vmin; height: 2.2vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pw: 54%; }
+    .num { font-size: 21vmin; }
+    .stars svg { width: 4.8vmin; height: 4.8vmin; }
+    .hist { gap: 1.2vmin 1.2vmin; }
+    .rebuy { padding: 1.6vmin 0; }
+    .rebuy b { font-size: 8vmin; }
+    .quote { font-size: 3vmin; }
+    .hist { gap: 1.5vmin 1.2vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pw: 50%; }
+    .panel { top: 5vmin; bottom: 4.6vmin; width: calc(100% - var(--pw) - 9.6vmin); }
+    .sc { display: grid; grid-template-columns: auto 1fr; column-gap: 2.4vmin; align-items: end; }
+    .num { font-size: 15vmin; grid-row: 1 / span 2; }
+    .stars { margin-top: 0; gap: .4vmin; }
+    .stars svg { width: 3.6vmin; height: 3.6vmin; }
+    .count { margin-top: 1vmin; font-size: 1.6vmin; }
+    .hist { gap: .9vmin 1.2vmin; font-size: 1.6vmin; }
+    .hist .bar { height: 1.1vmin; }
+    .rebuy { padding: 1.3vmin 0; }
+    .rebuy b { font-size: 5.6vmin; }
+    .rebuy span { font-size: 1.8vmin; }
+    .chips { gap: .9vmin; }
+    .chips span { padding: .7vmin 1.4vmin; font-size: 1.6vmin; }
+    .chips span:nth-child(3), .quote { display: none; }
+    .cta { padding: 1.7vmin 2vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pw: 42%; }
+    .panel { left: 6vmin; top: 6.4vmin; bottom: 6vmin; width: calc(100% - var(--pw) - 12vmin); grid-template-columns: 1fr 1.2fr; column-gap: 6vmin; grid-template-areas: "k k" "s h" "r c" "cta c"; align-content: stretch; grid-template-rows: auto 1fr auto auto; row-gap: 3vmin; }
+    .sc { display: block; align-self: center; }
+    .num { font-size: 20vmin; }
+    .stars { margin-top: 2vmin; }
+    .stars svg { width: 4.2vmin; height: 4.2vmin; }
+    .hist { align-self: center; gap: 1.5vmin 1.4vmin; font-size: 1.8vmin; }
+    .hist .bar { height: 1.3vmin; }
+    .chips { align-self: end; }
+    .chips span:nth-child(3) { display: inline-flex; }
+    .chips span { padding: .9vmin 1.8vmin; font-size: 1.8vmin; }
+    .cta { align-self: end; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="tag"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#E0442B"/><path d="M7 12.3l3.2 3.1L17 8.8" fill="none" stroke="#F1EEE8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Top rated</div>
+
+  <div class="panel">
+    <div class="kick"><span>Customer rating</span><span>SS26</span></div>
+
+    <div class="sc">
+      <div class="num">4.8<small>/5</small></div>
+      <div class="stars">
+        <svg viewBox="0 0 24 24"><path d="M12 1.8l3.1 6.6 7.1.9-5.2 5 1.3 7.1L12 18l-6.3 3.4L7 14.3l-5.2-5 7.1-.9z" fill="#E0442B"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 1.8l3.1 6.6 7.1.9-5.2 5 1.3 7.1L12 18l-6.3 3.4L7 14.3l-5.2-5 7.1-.9z" fill="#E0442B"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 1.8l3.1 6.6 7.1.9-5.2 5 1.3 7.1L12 18l-6.3 3.4L7 14.3l-5.2-5 7.1-.9z" fill="#E0442B"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 1.8l3.1 6.6 7.1.9-5.2 5 1.3 7.1L12 18l-6.3 3.4L7 14.3l-5.2-5 7.1-.9z" fill="#E0442B"/></svg>
+        <svg viewBox="0 0 24 24"><defs><linearGradient id="part"><stop offset=".78" stop-color="#E0442B"/><stop offset=".78" stop-color="#E0442B" stop-opacity="0"/></linearGradient></defs><path d="M12 1.8l3.1 6.6 7.1.9-5.2 5 1.3 7.1L12 18l-6.3 3.4L7 14.3l-5.2-5 7.1-.9z" fill="url(#part)" stroke="#E0442B" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="count">3,412 ratings</div>
+    </div>
+
+    <div class="hist">
+      <span>5★</span><span class="bar top"><i style="width:86%"></i></span><span class="p">86%</span>
+      <span>4★</span><span class="bar"><i style="width:9%"></i></span><span class="p">9%</span>
+      <span>3★</span><span class="bar"><i style="width:3%"></i></span><span class="p">3%</span>
+      <span>2★</span><span class="bar"><i style="width:1%"></i></span><span class="p">1%</span>
+      <span>1★</span><span class="bar"><i style="width:1%"></i></span><span class="p">1%</span>
+    </div>
+
+    <div class="rebuy"><b>97%</b><span>would buy<br>it again</span></div>
+
+    <p class="quote">“Better in person than in the photos.”<small>— Verified buyer, size M</small></p>
+
+    <div class="chips">
+      <span>Soft to the touch <em>412</em></span>
+      <span>True to size <em>389</em></span>
+      <span>Looks pricier <em>201</em></span>
+    </div>
+
+    <div class="cta">Shop top rated <i>→</i></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Saira+Extra+Condensed:wght@600;700;800&family=Saira:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Heat Sheet — the scoreboard on a surf-contest scaffold: final heat, an amber countdown, the priority disc,
+     and four competitors in contest singlets (red, yellow, white, blue) whose "best two waves" are the offers.
+     House rule on the footer: best two waves count — buy two, take an extra 10%.
+     tall → photo above, board below · square/wide → board left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0F1B33; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #0F1B33; color: #F4F4F0; font-family: "Saira", "Arial Narrow", sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 90vmin); object-fit: cover; object-position: 50% 20%; }
+  .board { position: absolute; left: 0; right: 0; bottom: 0; height: 90vmin; background: linear-gradient(180deg, #13223F, #0F1B33 40%); }
+  .scaffold { position: absolute; left: 0; right: 0; top: 0; height: 1.6vmin; background: repeating-linear-gradient(90deg, #F5C518 0 3vmin, #0F1B33 3vmin 6vmin); }
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; justify-content: space-between; align-items: baseline; font-family: "Saira Extra Condensed", "Arial Narrow", sans-serif; font-weight: 700; font-size: 2.8vmin; letter-spacing: .14em; text-transform: uppercase; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(244,244,240,.35); }
+  .head span:last-child { color: #FFB020; }
+  .clock { position: absolute; left: 6vmin; top: 12vmin; display: flex; align-items: flex-end; gap: 3vmin; }
+  .clock .t { font-family: "Saira Extra Condensed", "Arial Narrow", sans-serif; font-weight: 800; font-size: 21vmin; line-height: .8; color: #FFB020; font-variant-numeric: tabular-nums; text-shadow: 0 0 2.4vmin rgba(255,176,32,.35); }
+  .clock .l { font-size: 1.9vmin; letter-spacing: .2em; text-transform: uppercase; line-height: 1.5; padding-bottom: .6vmin; color: #B9C1D3; }
+  .clock .l b { display: block; color: #F4F4F0; font-weight: 600; font-size: 2.4vmin; letter-spacing: .08em; }
+  .prio { position: absolute; right: 6vmin; top: 13vmin; width: 13vmin; height: 13vmin; border-radius: 50%; background: #F4F4F0; color: #0F1B33; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: "Saira Extra Condensed", sans-serif; font-weight: 800; line-height: .9; box-shadow: 0 0 0 .8vmin #E23B3B; }
+  .prio b { font-size: 7vmin; }
+  .prio small { font-size: 1.7vmin; letter-spacing: .14em; }
+  .rows { position: absolute; left: 6vmin; right: 6vmin; top: 36vmin; margin: 0; padding: 0; list-style: none; }
+  .rows li { display: grid; grid-template-columns: 3vmin 1fr auto 13vmin; align-items: center; column-gap: 2.4vmin; height: 8.6vmin; border-bottom: 1px solid rgba(244,244,240,.18); }
+  .rows li.hd { height: auto; padding-bottom: 1vmin; font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; color: #B9C1D3; }
+  .rows i { width: 3vmin; height: 6vmin; }
+  .rows li.hd i { height: 0; }
+  .rows .n { font-family: "Saira Extra Condensed", sans-serif; font-weight: 700; font-size: 4.2vmin; text-transform: uppercase; letter-spacing: .02em; line-height: 1; white-space: nowrap; }
+  .rows .w { font-size: 2.2vmin; font-variant-numeric: tabular-nums; color: #B9C1D3; white-space: nowrap; }
+  .rows .o { font-family: "Saira Extra Condensed", sans-serif; font-weight: 800; font-size: 5.2vmin; text-align: right; line-height: 1; }
+  .rows li.hd .o, .rows li.hd .w, .rows li.hd .n { font-family: inherit; font-weight: 400; font-size: 1.7vmin; color: #B9C1D3; }
+  .rows li.lead { background: linear-gradient(90deg, rgba(255,176,32,.16), rgba(255,176,32,0)); }
+  .rows li.lead .o { color: #FFB020; }
+  .red { background: #E23B3B; } .yel { background: #F5C518; } .wht { background: #F4F4F0; } .blu { background: #2C6CE0; }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-size: 2.1vmin; line-height: 1.4; color: #B9C1D3; }
+  .foot p b { color: #F4F4F0; font-weight: 600; }
+  .foot .cta { flex: none; padding: 1.6vmin 3vmin; background: #FFB020; color: #0F1B33; font-family: "Saira Extra Condensed", sans-serif; font-weight: 800; font-size: 3vmin; letter-spacing: .1em; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 82vmin); }
+    .board { height: 82vmin; }
+    .clock { top: 11vmin; }
+    .clock .t { font-size: 18vmin; }
+    .prio { top: 11.5vmin; width: 11.5vmin; height: 11.5vmin; }
+    .prio b { font-size: 6vmin; }
+    .rows { top: 31vmin; }
+    .rows li { height: 7.6vmin; }
+    .foot { bottom: 4vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 68vmin); }
+    .board { height: 68vmin; }
+    .head { top: 4vmin; font-size: 2.4vmin; padding-bottom: 1vmin; }
+    .clock { top: 10vmin; }
+    .clock .t { font-size: 13vmin; }
+    .prio { top: 9.5vmin; width: 9.5vmin; height: 9.5vmin; box-shadow: 0 0 0 .6vmin #E23B3B; }
+    .prio b { font-size: 5vmin; } .prio small { font-size: 1.6vmin; }
+    .rows { top: 25vmin; left: 12vmin; right: 12vmin; }
+    .rows li { height: 6.2vmin; }
+    .rows i { height: 4.6vmin; }
+    .rows .n { font-size: 3.4vmin; }
+    .rows .o { font-size: 4.2vmin; }
+    .foot { bottom: 3.4vmin; }
+    .foot p { font-size: 1.9vmin; }
+    .foot .cta { padding: 1.2vmin 2.4vmin; font-size: 2.6vmin; }
+  }
+  /* square / wide → board left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 48%; height: 100%; object-position: 50% 25%; }
+    .board { right: 48%; top: 0; height: auto; }
+    .scaffold { left: auto; right: 0; top: 0; bottom: 0; width: 1.4vmin; height: auto; background: repeating-linear-gradient(180deg, #F5C518 0 3vmin, #0F1B33 3vmin 6vmin); }
+    .head { left: 5vmin; right: 5vmin; top: 5vmin; font-size: 2.2vmin; padding-bottom: 1vmin; }
+    .clock { left: 5vmin; top: 11.5vmin; gap: 1.6vmin; flex-direction: column; align-items: flex-start; }
+    .clock .t { font-size: 13vmin; }
+    .clock .l { font-size: 1.6vmin; }
+    .clock .l b { font-size: 2vmin; }
+    .prio { right: 5vmin; top: 11vmin; width: 9vmin; height: 9vmin; box-shadow: 0 0 0 .6vmin #E23B3B; }
+    .prio b { font-size: 4.6vmin; } .prio small { font-size: 1.6vmin; }
+    .rows { left: 5vmin; right: 5vmin; top: 34vmin; }
+    .rows li { height: 7.6vmin; grid-template-columns: 2.4vmin 1fr 9vmin; column-gap: 1.8vmin; }
+    .rows li .w { display: none; }
+    .rows i { width: 2.4vmin; height: 5vmin; }
+    .rows .n { font-size: 3.2vmin; }
+    .rows .o { font-size: 4vmin; }
+    .foot { left: 5vmin; right: 5vmin; bottom: 5vmin; flex-direction: column; align-items: stretch; gap: 1.8vmin; }
+    .foot p { font-size: 1.8vmin; }
+    .foot .cta { text-align: center; padding: 1.3vmin 2vmin; font-size: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; }
+    .board { right: 45%; }
+    .head { left: 6vmin; right: 6vmin; font-size: 2.4vmin; }
+    .clock { left: 6vmin; top: 12vmin; flex-direction: row; align-items: flex-end; gap: 3vmin; }
+    .clock .t { font-size: 15vmin; }
+    .prio { right: 6vmin; top: 12vmin; width: 11vmin; height: 11vmin; }
+    .prio b { font-size: 5.6vmin; }
+    .rows { left: 6vmin; right: 6vmin; top: 31vmin; }
+    .rows li { height: 7.4vmin; grid-template-columns: 2.6vmin 1fr auto 11vmin; column-gap: 2.4vmin; }
+    .rows li .w { display: block; }
+    .rows .n { font-size: 3.6vmin; }
+    .rows .o { font-size: 4.4vmin; }
+    .foot { left: 6vmin; right: 6vmin; bottom: 5.5vmin; flex-direction: row; align-items: center; }
+    .foot p { font-size: 2vmin; }
+    .foot .cta { padding: 1.4vmin 2.8vmin; font-size: 2.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="board">
+    <div class="scaffold"></div>
+    <div class="head"><span>Oro Summer Pro · Final</span><span>Heat 4 / 4</span></div>
+    <div class="clock"><span class="t">47:59</span><span class="l">Time left<b>hrs · min</b></span></div>
+    <div class="prio"><b>P</b><small>PRIORITY</small></div>
+    <ul class="rows">
+      <li class="hd"><i></i><span class="n">Singlet</span><span class="w">Best 2 waves</span><span class="o">Offer</span></li>
+      <li class="lead"><i class="red"></i><span class="n">New season</span><span class="w">9.50 · 9.10</span><span class="o">−40%</span></li>
+      <li><i class="yel"></i><span class="n">Best sellers</span><span class="w">8.70 · 8.35</span><span class="o">−30%</span></li>
+      <li><i class="wht"></i><span class="n">Summer edit</span><span class="w">7.90 · 7.60</span><span class="o">−25%</span></li>
+      <li><i class="blu"></i><span class="n">Everything else</span><span class="w">6.80 · 6.25</span><span class="o">−20%</span></li>
+    </ul>
+    <div class="foot"><p><b>Best two waves count:</b> buy two, take an extra 10%.</p><span class="cta">Paddle out →</span></div>
+  </div>
+</div>
+</body>
+</html>

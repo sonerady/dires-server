@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Space+Mono:wght@400;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* GRWM Timeline — a "get ready with me" cover: a morning routine as a timestamped rail (coffee, skin, the piece, out the door)
+     running beside the photo; the 07:18 stop is the product.
+     tall / 3:4 → title, rail + photo side by side, offer · square / wide → title, rail and offer left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3DCD3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #3A2420; font-family: "Fraunces", Georgia, serif;
+    background: linear-gradient(170deg, #F7E6DD 0%, #F3DCD3 45%, #EDCFC4 100%);
+    display: flex; flex-direction: column; padding: 5.4vmin 6vmin 5.4vmin; box-sizing: border-box; }
+
+  .top { position: relative; flex: none; }
+  .kick { font-family: "Space Mono", monospace; font-size: 1.7vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #B8573E; display: flex; gap: 2vmin; }
+  .kick span:last-child { margin-left: auto; color: #3A2420; opacity: .6; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 400; font-size: 13vmin; line-height: .86; letter-spacing: -.035em; }
+  h1 i { font-weight: 300; color: #B8573E; }
+
+  .mid { position: relative; flex: 1 1 auto; min-height: 0; display: flex; gap: 4.4vmin; margin-top: 4.4vmin; }
+  .tl { position: relative; flex: none; width: 27vmin; display: flex; flex-direction: column; justify-content: space-evenly; padding-left: 4vmin; box-sizing: border-box; }
+  .tl::before { content: ""; position: absolute; left: .9vmin; top: 2vmin; bottom: 2vmin; width: 0; border-left: 1px dashed rgba(58,36,32,.45); }
+  .st { position: relative; }
+  .st::before { content: ""; position: absolute; left: -4vmin; top: .5vmin; width: 1.8vmin; height: 1.8vmin; border-radius: 50%; box-sizing: border-box; border: 1px solid #3A2420; background: #F3DCD3; }
+  .st b { display: block; font-family: "Space Mono", monospace; font-size: 1.9vmin; font-weight: 700; letter-spacing: .04em; color: #7B5A52; }
+  .st span { display: block; margin-top: .6vmin; font-size: 2.8vmin; line-height: 1.08; }
+  .st.on::before { background: #B8573E; border-color: #B8573E; box-shadow: 0 0 0 .8vmin rgba(184,87,62,.18); }
+  .st.on b { color: #B8573E; }
+  .st.on span { font-style: italic; font-weight: 600; font-size: 3.4vmin; }
+  .photo { position: relative; flex: 1 1 auto; min-width: 0; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .foot { position: relative; flex: none; margin-top: 4vmin; display: flex; align-items: center; gap: 3vmin; }
+  .price { font-size: 6vmin; font-weight: 600; letter-spacing: -.03em; line-height: 1; }
+  .small { font-family: "Space Mono", monospace; font-size: 1.7vmin; line-height: 1.45; color: #7B5A52; }
+  .cta { margin-left: auto; padding: 2vmin 3.2vmin; border-radius: 99vmin; background: #3A2420; color: #F7E6DD; font-family: "Space Mono", monospace; font-size: 1.9vmin; font-weight: 700; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.6vmin 6vmin 4.6vmin; }
+    h1 { font-size: 10.4vmin; }
+    .mid { margin-top: 3.4vmin; }
+    .st span { font-size: 2.4vmin; }
+    .st.on span { font-size: 3vmin; }
+    .foot { margin-top: 3.2vmin; }
+    .price { font-size: 5.2vmin; }
+  }
+  /* ── square: copy column left, photo right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; padding: 0; }
+    .mid { display: contents; }
+    .photo { position: absolute; right: 5.6vmin; top: 5.6vmin; bottom: 5.6vmin; width: 46%; }
+    .top, .tl, .foot { position: absolute; left: 5.6vmin; right: calc(46% + 10vmin); }
+    .top { top: 5.6vmin; }
+    h1 { font-size: 9.6vmin; }
+    .tl { width: auto; top: 33vmin; bottom: 22vmin; justify-content: space-between; }
+    .tl::before { top: 1vmin; bottom: 1vmin; }
+    .st span { font-size: 2.3vmin; }
+    .st.on span { font-size: 2.8vmin; }
+    .foot { bottom: 5.6vmin; margin: 0; flex-wrap: wrap; row-gap: 1.4vmin; }
+    .small { display: none; }
+    .cta { margin-left: 0; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 42%; right: 6vmin; top: 6vmin; bottom: 6vmin; }
+    .top, .foot { left: 7vmin; right: calc(42% + 13vmin); }
+    .top { top: 6.4vmin; }
+    h1 { font-size: 12vmin; }
+    .tl { left: 7vmin; right: calc(42% + 13vmin); top: 38vmin; bottom: 20vmin; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; align-items: center; column-gap: 4vmin; padding-left: 4vmin; }
+    .tl::before { display: none; }
+    .st span { font-size: 2.6vmin; }
+    .st.on span { font-size: 3vmin; }
+    .foot { bottom: 6.4vmin; flex-wrap: nowrap; }
+    .small { display: block; }
+    .cta { margin-left: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top">
+    <div class="kick"><span>GRWM · Episode 12</span><span>Tue, 7 am</span></div>
+    <h1>Get ready<br><i>with me</i></h1>
+  </div>
+  <div class="mid">
+    <div class="tl">
+      <div class="st"><b>07:02</b><span>Coffee, no rush</span></div>
+      <div class="st"><b>07:10</b><span>Skin &amp; hair</span></div>
+      <div class="st on"><b>07:18</b><span>The piece</span></div>
+      <div class="st"><b>07:25</b><span>Out the door</span></div>
+    </div>
+    <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  </div>
+  <div class="foot">
+    <div class="price">$68</div>
+    <div class="small">Solenne Studio<br>Linked in bio</div>
+    <div class="cta">Get the look →</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Libre+Caslon+Text:ital@0;1&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  /* Apothecary Label — old parfumerie bottle label (chamfered paper, double rule, script name, wax seal)
+     glued onto bottle-green glass. tall → photo above the glass; square/wide → glass left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1C3A2F; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #1F3F33; font-family: "Libre Caslon Text", "Baskerville", Georgia, serif;
+    background:
+      linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 7%, rgba(255,255,255,.09) 10%, rgba(255,255,255,0) 15%, rgba(255,255,255,0) 83%, rgba(255,255,255,.05) 88%, rgba(255,255,255,0) 91%),
+      radial-gradient(120% 90% at 50% 70%, #24493B 0%, #1C3A2F 55%, #142A22 100%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 54%; object-fit: cover; object-position: 50% 22%; }
+  .lip { position: absolute; left: 0; right: 0; top: 54%; height: 4vmin; background: linear-gradient(180deg, rgba(0,0,0,0.35) 0.0%, rgba(0,0,0,0.345) 7.7%, rgba(0,0,0,0.33) 15.4%, rgba(0,0,0,0.306) 23.1%, rgba(0,0,0,0.274) 30.8%, rgba(0,0,0,0.237) 38.5%, rgba(0,0,0,0.196) 46.2%, rgba(0,0,0,0.154) 53.8%, rgba(0,0,0,0.113) 61.5%, rgba(0,0,0,0.076) 69.2%, rgba(0,0,0,0.044) 76.9%, rgba(0,0,0,0.02) 84.6%, rgba(0,0,0,0.005) 92.3%, rgba(0,0,0,0.0) 100.0%); }
+
+  .lbl { position: absolute; left: 8vmin; right: 8vmin; top: calc(54% + 6.5vmin); bottom: 10vmin; --c: 4vmin;
+    background: repeating-linear-gradient(0deg, rgba(90,70,30,.035) 0 1px, transparent 1px .5vmin), linear-gradient(160deg, #F4ECD9, #E9DDC2);
+    box-shadow: 0 1.4vmin 3vmin rgba(0,0,0,.35); }
+  .cut { clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c)); }
+  .lbl.cut { filter: drop-shadow(0 1.2vmin 1.6vmin rgba(0,0,0,.35)); box-shadow: none; }
+  .r1, .r2 { position: absolute; background: #2B5444; }
+  .r1 { inset: 1.3vmin; --c: 3.4vmin; }
+  .r2 { inset: 2.4vmin; --c: 2.9vmin; }
+  .r1::after, .r2::after { content: ""; position: absolute; background: #F1E8D3; clip-path: inherit; }
+  .r1::after { inset: .45vmin; }
+  .r2::after { inset: 1px; }
+  .in { position: absolute; inset: 4.4vmin 4vmin; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; text-align: center; }
+
+  .pre { font-family: "Cinzel", "Trajan Pro", Georgia, serif; font-size: 1.7vmin; letter-spacing: .34em; margin-right: -.34em; text-transform: uppercase; color: #6A5A3C; }
+  .house { margin-top: .6vmin; font-family: "Cinzel", Georgia, serif; font-weight: 600; font-size: 3.8vmin; letter-spacing: .14em; margin-right: -.14em; text-transform: uppercase; }
+  .orn { width: 60%; height: 2vmin; flex: none; }
+  .orn line { stroke: #2B5444; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .orn path { fill: #2B5444; }
+  .no { font-style: italic; font-size: 2.6vmin; color: #6A5A3C; }
+  .script { margin: -.6vmin 0 -1.2vmin; font-family: "Pinyon Script", "Snell Roundhand", cursive; font-size: 10vmin; line-height: 1.15; color: #1F4A3A; white-space: nowrap; }
+  .sub { font-style: italic; font-size: 2.5vmin; color: #3F4A3F; }
+  .off { font-family: "Cinzel", Georgia, serif; font-weight: 600; font-size: 5vmin; letter-spacing: .08em; margin-right: -.08em; text-transform: uppercase; color: #7E2A20; white-space: nowrap; }
+  .off span { white-space: nowrap; }
+  .small { margin-top: .6vmin; font-family: "Cinzel", Georgia, serif; font-size: 1.7vmin; letter-spacing: .2em; margin-right: -.2em; text-transform: uppercase; color: #5A4E36; white-space: nowrap; }
+
+  .seal { position: absolute; width: 11vmin; height: 11vmin; right: 4.5vmin; top: calc(54% + 2vmin); border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #B0473A 0%, #8C2A20 45%, #6A1C15 100%);
+    box-shadow: 0 .8vmin 1.6vmin rgba(0,0,0,.4), inset 0 0 0 .9vmin rgba(0,0,0,.12); display: flex; align-items: center; justify-content: center; transform: rotate(-12deg); }
+  .seal::before { content: ""; position: absolute; inset: 1.5vmin; border-radius: 50%; border: 1px solid rgba(255,220,200,.35); }
+  .seal span { font-family: "Cinzel", Georgia, serif; font-weight: 600; font-size: 4.4vmin; color: #E8B9A8; text-shadow: 0 -1px 0 rgba(0,0,0,.45), 0 1px 0 rgba(255,200,180,.25); }
+
+  .foot { position: absolute; left: 8vmin; right: 8vmin; bottom: 4vmin; display: flex; justify-content: space-between; gap: 3vmin; font-style: italic; font-size: 2.2vmin; color: #E6DCC4; white-space: nowrap; }
+  .foot b { font-family: "Cinzel", Georgia, serif; font-style: normal; font-weight: 400; font-size: 1.8vmin; letter-spacing: .24em; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo, .lip { display: block; }
+    .photo { height: 50%; }
+    .lip { top: 50%; }
+    .lbl { top: calc(50% + 5vmin); bottom: 8.6vmin; left: 12vmin; right: 12vmin; }
+    .seal { top: calc(50% + 1vmin); right: 8.5vmin; width: 10vmin; height: 10vmin; }
+    .script { font-size: 8.4vmin; }
+    .off { font-size: 4.4vmin; }
+    .foot { left: 12vmin; right: 12vmin; bottom: 3.2vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: auto; right: 0; width: 50%; height: 100%; object-position: 50% 25%; }
+    .lip { top: 0; bottom: 0; height: auto; left: auto; right: 50%; width: 4vmin; background: linear-gradient(270deg, rgba(0,0,0,0.35) 0.0%, rgba(0,0,0,0.345) 7.7%, rgba(0,0,0,0.33) 15.4%, rgba(0,0,0,0.306) 23.1%, rgba(0,0,0,0.274) 30.8%, rgba(0,0,0,0.237) 38.5%, rgba(0,0,0,0.196) 46.2%, rgba(0,0,0,0.154) 53.8%, rgba(0,0,0,0.113) 61.5%, rgba(0,0,0,0.076) 69.2%, rgba(0,0,0,0.044) 76.9%, rgba(0,0,0,0.02) 84.6%, rgba(0,0,0,0.005) 92.3%, rgba(0,0,0,0.0) 100.0%); }
+    .lbl { left: 5.5vmin; right: calc(50% + 5.5vmin); top: 8vmin; bottom: 12vmin; --c: 3.4vmin; }
+    .r1 { inset: 1.1vmin; --c: 2.9vmin; } .r2 { inset: 2vmin; --c: 2.5vmin; }
+    .in { inset: 3.4vmin 2.6vmin; }
+    .pre { font-size: 1.6vmin; letter-spacing: .26em; margin-right: -.26em; }
+    .house { font-size: 3vmin; }
+    .script { font-size: 6.6vmin; }
+    .sub { font-size: 2vmin; }
+    .off { font-size: 4vmin; white-space: normal; line-height: 1.15; }
+    .small { font-size: 1.6vmin; letter-spacing: .14em; margin-right: -.14em; }
+    .seal { top: 3.4vmin; right: calc(50% + 1.8vmin); width: 9vmin; height: 9vmin; }
+    .seal span { font-size: 3.6vmin; }
+    .foot { left: 5.5vmin; right: calc(50% + 5.5vmin); bottom: 4.4vmin; flex-direction: column; align-items: center; gap: 1vmin; font-size: 2vmin; }
+    .foot b { font-size: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 48%; }
+    .lip { right: 48%; }
+    .lbl { left: 8vmin; right: calc(48% + 8vmin); top: 8vmin; bottom: 13vmin; --c: 4vmin; }
+    .r1 { inset: 1.3vmin; --c: 3.4vmin; } .r2 { inset: 2.4vmin; --c: 2.9vmin; }
+    .in { inset: 4vmin 4vmin; }
+    .house { font-size: 3.6vmin; }
+    .script { font-size: 9.4vmin; }
+    .sub { font-size: 2.4vmin; }
+    .off { font-size: 4.8vmin; white-space: nowrap; }
+    .small { font-size: 1.7vmin; letter-spacing: .2em; margin-right: -.2em; }
+    .seal { top: 3.6vmin; right: calc(48% + 4vmin); width: 11vmin; height: 11vmin; }
+    .seal span { font-size: 4.4vmin; }
+    .foot { left: 8vmin; right: calc(48% + 8vmin); bottom: 4.6vmin; flex-direction: row; font-size: 2.2vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ───────── */
+  /* a highlight drifts across the bottle-green glass */
+  .banner::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 26%; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.04) 30%, rgba(255,255,255,.11) 50%, rgba(255,255,255,.04) 70%, rgba(255,255,255,0) 100%);
+    transform: translateX(-100%); animation: glass 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glass { 0% { transform: translateX(-100%); } 100% { transform: translateX(385%); } }
+  /* the script name is wiped away and written back on in ink */
+  .script { clip-path: inset(-25% -12% -25% -12%); animation: ink 8s linear infinite; }
+  @keyframes ink {
+    0%, 30% { clip-path: inset(-25% -12% -25% -12%); opacity: 1; animation-timing-function: cubic-bezier(.5,0,.75,.6); }
+    36% { clip-path: inset(-25% -12% -25% -12%); opacity: 0; animation-timing-function: steps(1, end); }
+    37% { clip-path: inset(-25% 112% -25% -12%); opacity: 1; animation-timing-function: cubic-bezier(.45,.05,.4,1); }
+    56%, 100% { clip-path: inset(-25% -12% -25% -12%); opacity: 1; }
+  }
+  /* the wax seal is pressed again once the ink is dry */
+  .seal { animation: stamp 8s linear infinite; }
+  @keyframes stamp {
+    0%, 62% { scale: 1; rotate: 0deg; box-shadow: 0 .8vmin 1.6vmin rgba(0,0,0,.4), inset 0 0 0 .9vmin rgba(0,0,0,.12); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    67% { scale: 1.12; rotate: -6deg; box-shadow: 0 2vmin 2.8vmin rgba(0,0,0,.34), inset 0 0 0 .9vmin rgba(0,0,0,.12); animation-timing-function: cubic-bezier(.7,0,1,.6); }
+    69.5% { scale: .93; rotate: 1deg; box-shadow: 0 .3vmin .6vmin rgba(0,0,0,.5), inset 0 0 0 .9vmin rgba(0,0,0,.12); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    74% { scale: 1.02; rotate: 0deg; animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    78%, 100% { scale: 1; rotate: 0deg; box-shadow: 0 .8vmin 1.6vmin rgba(0,0,0,.4), inset 0 0 0 .9vmin rgba(0,0,0,.12); }
+  }
+  /* the offer line warms as the seal lands */
+  .off { animation: offer 8s linear infinite; }
+  @keyframes offer {
+    0%, 69% { color: #7E2A20; text-shadow: 0 0 0 rgba(176,71,58,0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    72% { color: #A33A2C; text-shadow: 0 0 1.2vmin rgba(176,71,58,.3); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    86%, 100% { color: #7E2A20; text-shadow: 0 0 0 rgba(176,71,58,0); }
+  }
+
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="lip"></div>
+  <div class="lbl cut">
+    <div class="r1 cut"></div>
+    <div class="r2 cut"></div>
+    <div class="in">
+      <div>
+        <div class="pre">Parfumerie · Est. 1926</div>
+        <div class="house">Maison du Midi</div>
+      </div>
+      <svg class="orn" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="10" x2="88" y2="10"/><line x1="112" y1="10" x2="200" y2="10"/><path d="M100 3 L106 10 L100 17 L94 10 Z"/></svg>
+      <div>
+        <div class="no">Nº 26</div>
+        <div class="script">Eau de Saison</div>
+        <div class="sub">the spring–summer collection</div>
+      </div>
+      <svg class="orn" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="10" x2="200" y2="10"/></svg>
+      <div>
+        <div class="off">30% off <span>the edit</span></div>
+        <div class="small">Code MIDI30 · until 30.06</div>
+      </div>
+    </div>
+  </div>
+  <div class="seal"><span>M</span></div>
+  <div class="foot"><span>Apply generously.</span><b>maisondumidi.com</b></div>
+</div>
+</body>
+</html>

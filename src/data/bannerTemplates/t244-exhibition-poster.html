@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Newsreader:ital,opsz,wght@1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  /* Exhibition Poster — a photography-museum poster for the season: the show title runs up the spine in a
+     condensed grotesque, the print hangs beside it, and the practical block (dates, vernissage, hours, admission)
+     sits in a hairline table with the opening-night offer.
+     tall → spine left, print + info stacked right · square & wide → spine | print | info */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1F0EC; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F1F0EC; color: #0F0F0E; font-family: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif; font-variation-settings: "opsz" 14; }
+  .sheet { position: absolute; inset: 0; box-sizing: border-box; padding: 5vmin 5vmin 5vmin 3.6vmin; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; grid-template-areas: "spine photo" "spine info"; column-gap: 3.6vmin; }
+
+  .spine { grid-area: spine; display: flex; flex-direction: column; justify-content: space-between; align-items: center; }
+  .spine h1 { margin: 0; writing-mode: vertical-rl; transform: rotate(180deg); font-stretch: 75%; font-weight: 800; font-variation-settings: "opsz" 96; font-size: 20vmin; line-height: .8; letter-spacing: -.035em; text-transform: uppercase; white-space: nowrap; }
+  .spine .yr { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 1.8vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; }
+
+  .photo { grid-area: photo; position: relative; min-height: 0; }
+  .photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+
+  .info { grid-area: info; padding-top: 3.6vmin; display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .lede { margin: 1.6vmin 0 0; font-family: "Newsreader", Georgia, serif; font-style: italic; font-size: 4.6vmin; line-height: 1.04; letter-spacing: -.015em; }
+  .tab { margin-top: 3vmin; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid #0F0F0E; }
+  .tab div { padding: 1.4vmin 0 1.5vmin; border-bottom: 1px solid #0F0F0E; font-size: 2.1vmin; font-weight: 500; line-height: 1.25; }
+  .tab div:nth-child(odd) { padding-right: 2vmin; }
+  .tab div:nth-child(even) { padding-left: 2vmin; border-left: 1px solid #0F0F0E; }
+  .tab small { display: block; margin-bottom: .4vmin; font-size: 1.6vmin; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: #6B6963; }
+  .offer { margin-top: 2.8vmin; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; background: #0F0F0E; color: #F1F0EC; padding: 1.6vmin 2.2vmin; }
+  .offer b { font-stretch: 75%; font-weight: 800; font-variation-settings: "opsz" 72; font-size: 4.6vmin; line-height: .9; white-space: nowrap; }
+  .offer span { font-size: 1.7vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; text-align: right; line-height: 1.35; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .sheet { grid-template-columns: auto 50% minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); grid-template-areas: "spine photo info"; column-gap: 3.4vmin; padding: 4.6vmin 4.6vmin 4.6vmin 3vmin; }
+    .spine h1 { font-size: 15vmin; }
+    .info { padding-top: 0; justify-content: space-between; }
+    .kick { flex-direction: column; gap: .5vmin; font-size: 1.6vmin; }
+    .lede { font-size: 4vmin; margin-top: 3vmin; }
+    .tab { grid-template-columns: 1fr; }
+    .tab div { font-size: 1.8vmin; padding: 1vmin 0 1.1vmin; }
+    .tab div:nth-child(odd) { padding-right: 0; }
+    .tab div:nth-child(even) { padding-left: 0; border-left: 0; }
+    .offer { flex-direction: column; align-items: flex-start; gap: .8vmin; }
+    .offer b { font-size: 4.2vmin; white-space: normal; }
+    .offer span { text-align: left; font-size: 1.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .sheet { grid-template-columns: auto 46% minmax(0, 1fr); }
+    .spine h1 { font-size: 13.4vmin; }
+    .lede { font-size: 3.7vmin; margin-top: 2vmin; }
+    .tab { margin-top: 2vmin; }
+    .tab div { padding: .8vmin 0 .9vmin; }
+    .tab small { font-size: 1.6vmin; margin-bottom: .2vmin; }
+    .offer { margin-top: 2vmin; padding: 1.4vmin 1.8vmin; }
+    .offer b { font-size: 3.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .sheet { grid-template-columns: auto 40% minmax(0, 1fr); column-gap: 4.4vmin; padding: 5vmin 5.4vmin 5vmin 3.6vmin; }
+    .spine h1 { font-size: 14.6vmin; }
+    .kick { flex-direction: row; font-size: 1.7vmin; }
+    .lede { font-size: 4.6vmin; margin-top: 2.4vmin; }
+    .tab { grid-template-columns: 1fr 1fr; margin-top: 2.4vmin; }
+    .tab div { font-size: 2vmin; padding: 1.2vmin 0 1.3vmin; }
+    .tab div:nth-child(odd) { padding-right: 2vmin; }
+    .tab div:nth-child(even) { padding-left: 2vmin; border-left: 1px solid #0F0F0E; }
+    .offer { flex-direction: row; align-items: center; }
+    .offer b { font-size: 4.4vmin; white-space: nowrap; }
+    .offer span { text-align: right; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sheet">
+    <div class="spine"><h1>Exposures</h1><span class="yr">Photographs · 2026</span></div>
+    <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+    <div class="info">
+      <div class="kick"><span>Studio Oro presents</span><span>Hall 2</span></div>
+      <p class="lede">The new season,<br>hung in full colour.</p>
+      <div class="tab">
+        <div><small>Dates</small>25.09 — 12.10</div>
+        <div><small>Vernissage</small>Thu 25.09, 19:00</div>
+        <div><small>Hours</small>Tue–Sun, 11–19</div>
+        <div><small>Admission</small>Free, online too</div>
+      </div>
+      <div class="offer"><b>−20% opening night</b><span>Code<br>VERNISSAGE</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

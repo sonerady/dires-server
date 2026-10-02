@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Out Now — kinetic typography poster: a wall of repeated words, stretching in width, the photo cut through it */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EFEEE8; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EFEEE8; color: #121212; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+
+  .wall { position: absolute; left: 0; right: 0; top: 0; bottom: 17vmin; overflow: hidden; display: flex; flex-direction: column; padding-top: 3vmin; }
+  .w { flex: none; white-space: nowrap; font-weight: 900; font-size: 17vmin; line-height: .8; letter-spacing: -.02em; text-transform: uppercase; }
+  .o { color: transparent; -webkit-text-stroke: .28vmin #121212; }
+  .f { color: #121212; }
+  .b { color: #2433FF; }
+  .w1 { font-stretch: 62%; margin-left: -6vmin; }
+  .w2 { font-stretch: 125%; margin-left: -2vmin; }
+  .w3 { font-stretch: 88%; margin-left: -14vmin; }
+  .w4 { font-stretch: 110%; margin-left: -30vmin; }
+  .w5 { font-stretch: 70%; margin-left: -4vmin; }
+  .w6 { font-stretch: 100%; margin-left: -22vmin; }
+  .w7 { font-stretch: 62%; margin-left: -12vmin; }
+  .w8 { font-stretch: 125%; margin-left: -40vmin; }
+  .w9 { font-stretch: 80%; margin-left: -8vmin; }
+  .w10 { font-stretch: 115%; margin-left: -26vmin; }
+  .w11 { font-stretch: 68%; margin-left: -2vmin; }
+  .w12 { font-stretch: 100%; margin-left: -18vmin; }
+
+  /* TALL — two full rows above, the photo cuts through the rest */
+  .photo { position: absolute; left: 16%; width: 68%; top: 31vmin; height: calc(100% - 53vmin); object-fit: cover; object-position: 50% 22%; }
+  .idx { position: absolute; left: 16%; top: calc(100% - 22vmin); background: #EFEEE8; padding: .4vmin 1vmin .4vmin 0; font-family: "Martian Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .04em; text-transform: uppercase; }
+  .idx2 { left: auto; right: 16%; padding: .4vmin 0 .4vmin 1vmin; }
+
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 17vmin; display: flex; align-items: stretch; border-top: .5vmin solid #121212; background: #EFEEE8; font-family: "Martian Mono", Menlo, monospace; }
+  .bar .cell { flex: 1; min-width: 0; padding: 2.4vmin 3.4vmin; display: flex; flex-direction: column; justify-content: space-between; border-right: 1px solid rgba(18,18,18,.3); }
+  .bar small { font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; color: #55544F; }
+  .bar b { font-family: "Archivo", sans-serif; font-stretch: 75%; font-weight: 800; font-size: 4.8vmin; line-height: .9; text-transform: uppercase; white-space: nowrap; }
+  .bar .cell:nth-child(2) { flex: none; }
+  .bar .cta { flex: none; background: #2433FF; color: #EFEEE8; border-right: 0; justify-content: center; align-items: center; padding: 0 4vmin; }
+  .bar .cta b { font-size: 4.2vmin; font-stretch: 100%; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .wall { bottom: 15vmin; padding-top: 2vmin; }
+    .w { font-size: 14.4vmin; }
+    .photo { left: 22%; width: 56%; top: 26vmin; height: calc(100% - 45vmin); }
+    .idx { left: 22%; top: calc(100% - 19vmin); }
+    .idx2 { left: auto; right: 22%; }
+    .bar { height: 15vmin; }
+    .bar b { font-size: 4.6vmin; }
+    .bar .cta b { font-size: 4vmin; }
+  }
+  /* SQUARE — the photo becomes a narrow column through the wall */
+  @media (min-aspect-ratio: 9/10) {
+    .wall { bottom: 14vmin; }
+    .w { font-size: 12vmin; }
+    .photo { left: 29%; width: 42%; top: 4vmin; height: calc(100% - 22vmin); }
+    .idx { display: none; }
+    .bar { height: 14vmin; }
+    .bar .cell { padding: 2vmin 2.6vmin; }
+    .bar b { font-size: 4.2vmin; }
+    .bar .cta { padding: 0 4vmin; }
+    .bar .cta b { font-size: 3.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .w { font-size: 13vmin; }
+    .photo { left: 34%; width: 32%; }
+    .bar b { font-size: 4.8vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="wall">
+    <div class="w w1 o">New drop new drop new drop new drop new drop new drop</div>
+    <div class="w w2 b">Out now out now out now out now</div>
+    <div class="w w3 o">New drop new drop new drop new drop new drop</div>
+    <div class="w w4 f">New drop new drop new drop new drop</div>
+    <div class="w w5 o">Out now out now out now out now out now out now</div>
+    <div class="w w6 o">New drop new drop new drop new drop new drop</div>
+    <div class="w w7 f">New drop new drop new drop new drop new drop new drop</div>
+    <div class="w w8 o">Out now out now out now out now</div>
+    <div class="w w9 o">New drop new drop new drop new drop new drop</div>
+    <div class="w w10 b">Out now out now out now out now</div>
+    <div class="w w11 o">New drop new drop new drop new drop new drop new drop</div>
+    <div class="w w12 f">New drop new drop new drop new drop new drop</div>
+  </div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="idx">Look 01 / 24</div>
+  <div class="idx idx2">SS26</div>
+  <div class="bar">
+    <div class="cell"><small>Drop 07 · Fri</small><b>The new edit</b></div>
+    <div class="cell"><small>From</small><b>$59</b></div>
+    <div class="cell cta"><b>Shop now →</b></div>
+  </div>
+</div>
+</body>
+</html>

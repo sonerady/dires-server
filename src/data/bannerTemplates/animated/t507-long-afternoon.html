@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Archivo+Narrow:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  /* Long Afternoon — a de Chirico piazza: green-black sky fading to sulphur at the horizon, an ochre arcade
+     receding into the distance, a far wall with a tiny steaming train, a terracotta floor. The photo stands on a
+     plinth like the square's statue — and its long shadow falls the wrong way, against the arcade's.
+     tall / 3:4 → headline in the sky, arcade left, photo right · square / wide → mirrored: photo left, arcade and
+     copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #B8703C; }
+  .banner { --hz: 56%; --pl: 36vmin; --pw: 56vmin; --pt: 44vmin; --pb: 26vmin;
+    position: fixed; inset: 0; overflow: hidden; color: #F6E9CF; font-family: "Archivo Narrow", "Arial Narrow", Arial, sans-serif; background: #B8703C; }
+  .sky { position: absolute; left: 0; right: 0; top: 0; height: var(--hz);
+    background: linear-gradient(180deg, #132F30 0%, #1E4643 30%, #3F6B5A 58%, #9DB07A 84%, #E3D48E 100%); }
+  .wall { position: absolute; left: 0; right: 0; top: calc(var(--hz) - 2.6vmin); height: 2.6vmin; background: linear-gradient(180deg, #8A3B24, #6E2B19); }
+  .train { position: absolute; right: 12vmin; top: calc(var(--hz) - 4.6vmin); width: 8vmin; height: 2vmin; background: #2A1A12; border-radius: .3vmin .3vmin 0 0; }
+  .train::before { content: ""; position: absolute; left: -.2vmin; top: -1.6vmin; width: 1vmin; height: 1.6vmin; background: #2A1A12; }
+  .train::after { content: ""; position: absolute; left: -2vmin; top: -5vmin; width: 5vmin; height: 3.4vmin; border-radius: 50%; background: radial-gradient(circle at 30% 60%, rgba(250,244,230,.9) 0 30%, transparent 32%), radial-gradient(circle at 70% 40%, rgba(250,244,230,.75) 0 26%, transparent 28%); }
+  .tower { display: none; position: absolute; top: calc(var(--hz) - 26vmin); height: 23.4vmin; width: 5vmin;
+    background: repeating-linear-gradient(180deg, #D9A864 0 5.4vmin, #6E2B19 5.4vmin 6vmin), #D9A864; box-shadow: inset -1.6vmin 0 0 rgba(90,40,20,.35); }
+  .tower::before { content: ""; position: absolute; left: 50%; top: -5vmin; width: 1px; height: 5vmin; background: #2A1A12; }
+  .tower::after { content: ""; position: absolute; left: 50%; top: -5vmin; width: 3vmin; height: 1.8vmin; background: #C8322A; clip-path: polygon(0 0, 100% 30%, 60% 55%, 100% 100%, 0 80%); }
+  .floor { position: absolute; left: 0; right: 0; top: var(--hz); bottom: 0; background: linear-gradient(180deg, #D39A5B 0%, #C47F45 40%, #A9612F 100%); }
+  /* the arcade's shadow, raking right */
+  .ashade { position: absolute; inset: 0; background: rgba(62,24,10,.42); clip-path: polygon(0 11vmin, 28vmin 5vmin, 72% 100%, 0 100%); }
+  .arcade { position: absolute; left: 0; width: 32vmin; height: 42vmin; top: calc(var(--hz) - 32vmin); transform-origin: 0 50%; transform: perspective(50vmin) rotateY(46deg);
+    background:
+      radial-gradient(2.8vmin 2.8vmin at 5vmin 9vmin, #22140E 97%, transparent 100%) 0 0 / 10vmin 100% repeat-x,
+      linear-gradient(90deg, transparent 2.2vmin, #22140E 2.2vmin 7.8vmin, transparent 7.8vmin) 0 9vmin / 10vmin 100% repeat-x,
+      linear-gradient(180deg, #F0C98D 0%, #E3B274 100%);
+    box-shadow: inset 0 3vmin 0 -1vmin #D6A263; }
+  .arcade::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3.4vmin; background: #C9955A; }
+
+  /* statue: photo on its plinth, with the impossible shadow */
+  .pshade { position: absolute; left: calc(var(--pl) - 2vmin); width: calc(var(--pw) + 4vmin); top: calc(100% - var(--pb) + 5vmin); height: 12vmin;
+    transform-origin: 0 0; transform: skewX(-62deg); background: linear-gradient(180deg, rgba(40,16,6,.62), rgba(40,16,6,.12)); }
+  .plinth { position: absolute; left: calc(var(--pl) - 2vmin); width: calc(var(--pw) + 4vmin); top: calc(100% - var(--pb)); height: 5vmin;
+    background: linear-gradient(180deg, #F2DDB6 0 1vmin, #DDBF8E 1vmin 100%); box-shadow: inset -2vmin 0 0 rgba(120,70,30,.2); }
+  .photo { position: absolute; left: var(--pl); top: var(--pt); width: var(--pw); height: calc(100% - var(--pt) - var(--pb)); object-fit: cover; object-position: 50% 25%; display: block; }
+
+  /* type */
+  .mast { position: absolute; left: 6vmin; right: 6vmin; top: 5vmin; display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; color: #E3D48E; }
+  .mast span + span { font-weight: 400; color: rgba(246,233,207,.75); }
+  .head { position: absolute; left: 6vmin; right: 6vmin; top: 10vmin; }
+  h1 { margin: 0; font-family: "Marcellus", Georgia, serif; font-weight: 400; font-size: 11.4vmin; line-height: 1; letter-spacing: -.01em; white-space: nowrap; text-transform: uppercase; }
+  .sub { margin-top: 2.2vmin; max-width: 62vmin; font-size: 2.2vmin; line-height: 1.4; color: rgba(246,233,207,.88); }
+  .foot { position: absolute; left: 6vmin; right: 6vmin; bottom: 0; height: calc(var(--pb) - 7vmin); display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-size: 2.1vmin; font-weight: 500; line-height: 1.35; }
+  .offer b { display: block; font-family: "Marcellus", Georgia, serif; font-weight: 400; font-size: 5.6vmin; line-height: 1.05; }
+  .offer small { display: block; margin-top: .4vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #F2D79B; }
+  .cta { flex: none; padding: 1.8vmin 3.2vmin; background: #F6E9CF; color: #2A1A12; font-size: 2vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --hz: 58%; --pl: 34vmin; --pw: 60vmin; --pt: 32vmin; --pb: 22vmin; }
+    h1 { font-size: 9.6vmin; }
+    .sub { position: absolute; left: 0; top: 24vmin; width: 25vmin; font-size: 1.7vmin; }
+    .head { right: 6vmin; }
+    .arcade { width: 28vmin; height: 32vmin; top: calc(var(--hz) - 21vmin); }
+    .ashade { clip-path: polygon(0 10vmin, 24vmin 5vmin, 72% 100%, 0 100%); }
+    .offer b { font-size: 5vmin; }
+    .train { right: auto; left: 10vmin; }
+  }
+  /* square → mirrored: photo left, arcade + copy right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --hz: 60%; --pl: 7vmin; --pw: 44%; --pt: 6vmin; --pb: 14vmin; }
+    .arcade { left: auto; right: 0; width: 26vmin; height: 30vmin; top: calc(var(--hz) - 22vmin); transform-origin: 100% 50%; transform: perspective(50vmin) rotateY(-46deg); }
+    .ashade { clip-path: polygon(100% 8vmin, calc(100% - 22vmin) 4vmin, 34% 100%, 100% 100%); }
+    .pshade { transform: skewX(62deg); height: 9vmin; }
+    .head { left: calc(44% + 14vmin); right: 5vmin; top: 13vmin; }
+    .mast { left: calc(44% + 14vmin); right: 5vmin; top: 6vmin; flex-direction: column; gap: 1vmin; }
+    h1 { font-size: 6.8vmin; white-space: normal; }
+    .sub { position: static; width: auto; font-size: 1.8vmin; }
+    .foot { left: calc(44% + 14vmin); right: 5vmin; height: auto; bottom: 5vmin; flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .offer b { font-size: 4.4vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.5vmin 2.6vmin; }
+    .train { left: auto; right: 30vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --hz: 58%; --pl: 8vmin; --pw: 38%; --pt: 7vmin; --pb: 14vmin; }
+    .head { left: calc(38% + 20vmin); right: 7vmin; top: 14vmin; }
+    .mast { left: calc(38% + 20vmin); right: 7vmin; top: 7vmin; flex-direction: row; }
+    h1 { font-size: 7.6vmin; }
+    .sub { max-width: 56vmin; font-size: 2vmin; }
+    .foot { left: calc(38% + 20vmin); right: 7vmin; bottom: 5vmin; flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    .offer b { font-size: 5vmin; }
+    .arcade { width: 34vmin; height: 34vmin; top: calc(var(--hz) - 24vmin); }
+    .ashade { clip-path: polygon(100% 10vmin, calc(100% - 28vmin) 5vmin, 44% 100%, 100% 100%); }
+    .tower { display: block; left: calc(38% + 10vmin); }
+    .train { right: 40vmin; }
+  }
+
+  /* ───────── motion (6s loop, restrained) ─────────
+     constant: the little train puffs steam (3s), the horizon's sulphur glow breathes, the tower pennant flutters (wide) ·
+     beats: the statue's impossible shadow slowly stretches and draws back across the loop · 2.4s the headline
+     grows its own long raking shadow and loses it again · 4.8s a low sun glint passes over the CTA */
+  .train::after { transform-origin: 50% 100%; animation: steam 3s cubic-bezier(.3,0,.5,1) infinite; }
+  @keyframes steam {
+    0%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
+    62% { transform: translate(-1.6vmin, -2.6vmin) scale(1.7); opacity: 0; animation-timing-function: step-end; }
+    63% { transform: translate(.4vmin, 1.4vmin) scale(.3); opacity: 0; animation-timing-function: cubic-bezier(.2,.6,.4,1); }
+  }
+  .sky::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40%;
+    background: linear-gradient(180deg, rgba(240,220,140,0), rgba(240,220,140,.38)); opacity: 0; animation: glow 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glow { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+  .pshade { animation: stretchL 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes stretchL { 0%, 100% { transform: skewX(-62deg) scaleY(1); opacity: 1; } 50% { transform: skewX(-70deg) scaleY(1.5); opacity: .85; } }
+  @keyframes stretchR { 0%, 100% { transform: skewX(62deg) scaleY(1); opacity: 1; } 50% { transform: skewX(70deg) scaleY(1.5); opacity: .85; } }
+  .tower::after { transform-origin: 0 50%; animation: pennant 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes pennant { 0%, 100% { transform: skewY(0) scaleX(1); } 50% { transform: skewY(-8deg) scaleX(.88); } }
+  h1 { animation: longshade 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes longshade {
+    0%, 30%, 80%, 100% { text-shadow: 0 0 0 rgba(40,16,6,0), 0 0 0 rgba(40,16,6,0), 0 0 0 rgba(40,16,6,0); }
+    52%, 58% { text-shadow: .5vmin .4vmin 0 rgba(40,16,6,.3), 1.1vmin .8vmin .2vmin rgba(40,16,6,.18), 2vmin 1.4vmin .6vmin rgba(40,16,6,.1); }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: -45%; width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(255,210,120,.55), transparent); opacity: 0; animation: glint 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes glint { 0%, 78% { transform: translateX(0); opacity: 0; } 79% { opacity: 1; } 94% { transform: translateX(330%); opacity: 1; } 95%, 100% { transform: translateX(330%); opacity: 0; } }
+  .ashade { transform-origin: 0 0; animation: rakeL 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes rakeL { 0%, 100% { transform: skewX(0); } 50% { transform: skewX(-14deg); } }
+  @keyframes rakeR { 0%, 100% { transform: skewX(0); } 50% { transform: skewX(14deg); } }
+  @media (min-aspect-ratio: 9/10) { .pshade { animation-name: stretchR; } .ashade { transform-origin: 100% 0; animation-name: rakeR; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sky"></div>
+  <div class="tower"></div>
+  <div class="wall"></div>
+  <div class="train"></div>
+  <div class="floor"><div class="ashade"></div></div>
+  <div class="arcade"></div>
+  <div class="pshade"></div>
+  <div class="plinth"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="mast"><span>Ferrante</span><span>Piazza sale</span></div>
+  <div class="head">
+    <h1>The long<br>afternoon.</h1>
+    <div class="sub">From four to eight the shadows stretch — and so do the markdowns.</div>
+  </div>
+  <div class="foot">
+    <div class="offer"><b>Up to 35% off</b>every afternoon<small>4 pm – 8 pm daily</small></div>
+    <span class="cta">Enter the piazza →</span>
+  </div>
+</div>
+</body>
+</html>

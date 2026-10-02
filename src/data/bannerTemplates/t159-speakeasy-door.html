@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Speakeasy Door — a secret sale behind a lacquered emerald door: brass mouldings, a sliding peephole
+     slot asking for the password, and the password itself engraved on a brass plate as the promo code.
+     tall → photo above, door below; square/wide → door left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0F382B; }
+  .banner { --panel: 88vmin; position: fixed; inset: 0; overflow: hidden; background: #0F382B; color: #F2EAD6; font-family: "Josefin Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+  .door { position: absolute; left: 0; bottom: 0; width: 100%; height: var(--panel); overflow: hidden;
+    background: linear-gradient(100deg, rgba(255,255,255,0) 20%, rgba(255,255,255,.07) 34%, rgba(255,255,255,0) 48%), linear-gradient(180deg, #13463A, #0B2C22); }
+  .mould { position: absolute; left: 4vmin; right: 4vmin; top: 4vmin; bottom: 4vmin; border: 1px solid rgba(218,184,112,.75); box-shadow: 0 0 0 .5vmin rgba(0,0,0,.18), inset 0 0 0 .9vmin #0F3A2D, inset 0 0 0 calc(.9vmin + 1px) rgba(218,184,112,.5), inset 0 1vmin 2vmin rgba(0,0,0,.35); }
+  .copy { position: absolute; left: 10vmin; right: 10vmin; bottom: 9vmin; height: calc(var(--panel) - 18vmin); display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+  /* peephole slot */
+  .slot { position: relative; flex: none; width: 46vmin; padding: 1.8vmin 3.6vmin; border-radius: 1vmin; background: linear-gradient(170deg, #F4DDA0, #C39545 40%, #8F6828 75%, #D9B46A); box-shadow: 0 1.2vmin 2vmin rgba(0,0,0,.45); box-sizing: border-box; }
+  .slot::before, .slot::after { content: ""; position: absolute; top: 50%; width: 1.2vmin; height: 1.2vmin; margin-top: -.6vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #FBE8B8, #7A5520); }
+  .slot::before { left: 1.2vmin; } .slot::after { right: 1.2vmin; }
+  .hole { height: 6.4vmin; background: linear-gradient(180deg, #050807, #111A16); box-shadow: inset 0 .8vmin 1.2vmin rgba(0,0,0,.9); display: flex; align-items: center; justify-content: center; font-size: 1.8vmin; font-weight: 600; letter-spacing: .5em; margin-right: 0; padding-left: .5em; text-transform: uppercase; color: #E3C27E; }
+
+  .kick { margin-top: auto; font-size: 1.8vmin; font-weight: 600; letter-spacing: .4em; margin-right: -.4em; text-transform: uppercase; color: #DAB870; }
+  h1 { margin: 2.6vmin 0 0; font-family: "DM Serif Display", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .92; letter-spacing: -.01em; }
+  h1 em { font-style: italic; color: #E7C98A; }
+  .say { margin-top: 3vmin; font-size: 1.9vmin; letter-spacing: .2em; text-transform: uppercase; color: rgba(242,234,214,.75); }
+  .pw { margin-top: 1.4vmin; padding: 1.4vmin 4vmin 1vmin; background: linear-gradient(170deg, #F4DDA0, #C39545 45%, #9A7230 80%, #D9B46A); color: #2A1E0C; font-family: "DM Serif Display", Georgia, serif; font-size: 6vmin; line-height: 1; letter-spacing: .24em; margin-right: -.24em; text-shadow: 0 .15vmin 0 rgba(255,240,200,.55); box-shadow: 0 1vmin 1.6vmin rgba(0,0,0,.4); }
+  .info { margin: auto 0 0; display: flex; gap: 2.4vmin; align-items: center; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; color: rgba(242,234,214,.85); }
+  .info i { width: .8vmin; height: .8vmin; transform: rotate(45deg); background: #DAB870; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 76vmin; }
+    .copy { bottom: 8vmin; height: calc(var(--panel) - 16vmin); }
+    .slot { width: 40vmin; padding: 1.4vmin 3.2vmin; }
+    .hole { height: 5.4vmin; }
+    h1 { font-size: 11vmin; }
+    .say { margin-top: 2.2vmin; }
+    .pw { font-size: 5.2vmin; }
+  }
+  /* square — door left, photo right */
+  @media (min-aspect-ratio: 9/10) {
+    .door { width: 50%; height: 100%; }
+    .photo { left: 50%; width: 50%; height: 100%; }
+    .mould { left: 3.4vmin; right: 3.4vmin; top: 3.4vmin; bottom: 3.4vmin; }
+    .copy { left: 8vmin; right: auto; width: calc(50% - 16vmin); top: 9vmin; bottom: 8vmin; height: auto; }
+    .slot { width: 30vmin; padding: 1.2vmin 2.8vmin; }
+    .hole { height: 5vmin; font-size: 1.6vmin; letter-spacing: .36em; }
+    .kick { font-size: 1.6vmin; letter-spacing: .3em; margin-right: -.3em; }
+    h1 { font-size: 8.6vmin; }
+    .say { font-size: 1.6vmin; letter-spacing: .14em; }
+    .pw { font-size: 4.4vmin; padding: 1.2vmin 3vmin .8vmin; }
+    .info { flex-direction: column; gap: .8vmin; font-size: 1.6vmin; letter-spacing: .12em; }
+    .info i { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .door { width: 48%; }
+    .photo { left: 48%; width: 52%; }
+    .copy { left: 9vmin; width: calc(48% - 18vmin); top: 9vmin; bottom: 9vmin; }
+    .slot { width: 36vmin; }
+    h1 { font-size: 10.4vmin; }
+    .pw { font-size: 5vmin; }
+    .info { flex-direction: row; gap: 2vmin; }
+    .info i { display: block; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="door"><div class="mould"></div></div>
+  <div class="copy">
+    <div class="slot"><div class="hole">Password?</div></div>
+    <div class="kick">The hidden rail</div>
+    <h1>Knock <em>twice.</em></h1>
+    <div class="say">Then say the word</div>
+    <div class="pw">VELVET</div>
+    <div class="info"><span>25% off</span><i></i><span>Members only</span><i></i><span>Fri – Sun</span></div>
+  </div>
+</div>
+</body>
+</html>

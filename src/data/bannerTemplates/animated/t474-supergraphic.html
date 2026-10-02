@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Supergraphic — a 70s interior-wall supergraphic: four fat stripes (gold, orange, rust, cocoa) sweep in from the
+     edge and bend round the photo's corner on one shared centre, wide space-age type on a cream wall.
+     tall / 3:4 / square → copy on top, stripes hug the photo's top-left corner · wide → copy left, stripes hug its bottom-left corner */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F3E6CC; }
+  .banner { --pl: 26vmin; --pt: 84vmin; --pb: 0vmin; --w: 4.4vmin; --g: 1.3vmin; --g0: 2.2vmin; --rc: 3vmin;
+    position: fixed; inset: 0; overflow: hidden; background: #F3E6CC; color: #3B1D12; font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: var(--pl); right: 0; top: var(--pt); bottom: var(--pb); width: calc(100% - var(--pl)); height: calc(100% - var(--pt) - var(--pb)); object-fit: cover; object-position: 50% 20%; display: block; }
+  .s { --o: calc(var(--g0) + var(--i) * (var(--w) + var(--g))); position: absolute; box-sizing: border-box;
+    left: calc(var(--pl) - var(--o) - var(--w)); top: calc(var(--pt) - var(--o) - var(--w)); right: 0; bottom: 0;
+    border-style: solid; border-color: var(--c); border-width: var(--w) 0 0 var(--w); border-top-left-radius: calc(var(--rc) + var(--o) + var(--w)); }
+  .s1 { --i: 0; --c: #F2A93B; } .s2 { --i: 1; --c: #E8702A; } .s3 { --i: 2; --c: #B9432A; } .s4 { --i: 3; --c: #5B2C1A; }
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: 7vmin; }
+  .k { display: flex; justify-content: space-between; font-size: 1.9vmin; font-weight: 700; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  .k span + span { color: #B9432A; }
+  h1 { margin: 4.6vmin 0 0; font-family: "Unbounded", "Futura", "Arial Black", sans-serif; font-weight: 900; font-size: 14.4vmin; line-height: .96; letter-spacing: -.035em; text-transform: uppercase; }
+  h1 span { display: block; color: #E8702A; }
+  .row { margin-top: 4vmin; display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .off { font-family: "Unbounded", "Futura", sans-serif; font-weight: 400; font-size: 2.9vmin; line-height: 1.25; letter-spacing: -.01em; }
+  .off b { font-weight: 900; font-size: 7.4vmin; letter-spacing: -.04em; display: block; line-height: 1; color: #B9432A; }
+  .side { display: flex; flex-direction: column; align-items: flex-end; gap: 1.6vmin; }
+  .cta { background: #3B1D12; color: #F3E6CC; padding: 1.9vmin 3.4vmin; border-radius: 99vmin; font-size: 2.2vmin; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .code { font-size: 1.9vmin; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+  .code b { font-weight: 700; color: #B9432A; }
+  .fol { display: none; position: absolute; left: 3vmin; bottom: 3vmin; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 1.7vmin; font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: #3B1D12; white-space: nowrap; }
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pl: 30vmin; --pt: 70vmin; --w: 3.8vmin; --g: 1.1vmin; }
+    .copy { top: 6vmin; }
+    h1 { margin-top: 3.4vmin; font-size: 11vmin; }
+    .row { margin-top: 3vmin; }
+    .off b { font-size: 5.4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pl: 34vmin; --pt: 46vmin; --w: 3.2vmin; --g: 1vmin; --g0: 1.8vmin; }
+    .copy { top: 5.5vmin; }
+    .k { font-size: 1.7vmin; }
+    h1 { margin-top: 3vmin; font-size: 7vmin; }
+    h1 span { display: inline; }
+    .row { margin-top: 2.6vmin; }
+    .off { font-size: 2.2vmin; }
+    .off b { font-size: 4.6vmin; }
+    .side { flex-direction: row; align-items: center; gap: 2.4vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.5vmin 2.8vmin; }
+    .code { font-size: 1.7vmin; }
+    .fol { display: block; left: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pl: 60%; --pt: 0vmin; --pb: 20vmin; --w: 3.4vmin; --g: 1vmin; --g0: 2vmin; }
+    .s { top: 0; bottom: calc(var(--pb) - var(--o) - var(--w)); border-width: 0 0 var(--w) var(--w); border-top-left-radius: 0; border-bottom-left-radius: calc(var(--rc) + var(--o) + var(--w)); }
+    .copy { left: 8vmin; right: auto; width: calc(60% - 36vmin); top: 8vmin; bottom: 8vmin; display: flex; flex-direction: column; }
+    .k { font-size: 1.8vmin; }
+    h1 { margin-top: 6vmin; font-size: 11vmin; }
+    h1 span { display: block; }
+    .row { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .off { font-size: 2.4vmin; }
+    .off b { display: block; font-size: 6vmin; margin: 0; }
+    .side { flex-direction: row; align-items: center; gap: 3vmin; }
+    .cta { font-size: 2.1vmin; }
+    .fol { display: none; }
+  }
+
+  /* ───────── motion (6s loop) — graphic, rhythmic ─────────
+     beat 1.6–3.4s: the wall is repainted — each stripe is rolled off from the wall edge and rolled back on, outer cocoa
+     first, gold last (120 ms apart), and "finds" runs through the stripe colours as the roller passes ·
+     4.2s "40% off" punches · 5.0s "Shop the stripe" gets a gold sheen */
+  .s { animation: repaint 6s cubic-bezier(.65,0,.35,1) infinite; }
+  .s4 { animation-delay: -.36s; } .s3 { animation-delay: -.24s; } .s2 { animation-delay: -.12s; } .s1 { animation-delay: 0s; }
+  @keyframes repaint {
+    0%, 32%, 55%, 100% { clip-path: inset(-1vmin -1vmin -1vmin -1vmin); }
+    43% { clip-path: inset(-1vmin -1vmin -1vmin 100%); }
+    43.01% { clip-path: inset(-1vmin 100% -1vmin -1vmin); }
+  }
+
+  h1 span { animation: hue 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes hue { 0%, 30%, 62%, 100% { color: #E8702A; } 40% { color: #F2A93B; } 50% { color: #B9432A; } }
+
+  .off b { transform-origin: 0 80%; animation: punch 6s cubic-bezier(.3,1.6,.5,1) infinite; }
+  @keyframes punch { 0%, 68%, 78%, 100% { transform: scale(1); } 72% { transform: scale(1.1); } }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(242,169,59,0), rgba(242,169,59,.55), rgba(242,169,59,0));
+    transform: translateX(-120%); animation: sheen 6s cubic-bezier(.5,0,.3,1) infinite; }
+  @keyframes sheen { 0%, 80% { transform: translateX(-120%); } 94%, 100% { transform: translateX(360%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="s s4"></div><div class="s s3"></div><div class="s s2"></div><div class="s s1"></div>
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="copy">
+    <div class="k"><span>Atelier Nord</span><span>Archive sale</span></div>
+    <h1>Far out <span>finds</span></h1>
+    <div class="row">
+      <div class="off"><b>40% off</b>the archive, this week only</div>
+      <div class="side"><span class="cta">Shop the stripe</span><span class="code">Code <b>STRIPE40</b></span></div>
+    </div>
+  </div>
+  <div class="fol">Nº 474 — Wall Series</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700;1,900&family=Antonio:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Old-Hollywood premiere poster — the photo as the film still melting into a dark velvet field, a gold italic title,
+     a tall condensed billing block and "now showing" line. tall: still on top, poster type below · square & wide: still right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #150D0C; }
+  .banner { --bg: #150D0C; --cream: #F2E6CC; --gold: #DDBA6E; --red: #B3262B;
+    position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: var(--cream); font-family: "Antonio", "Arial Narrow", "Helvetica Neue", sans-serif; }
+  .beam { position: absolute; inset: 0; background: conic-gradient(from 150deg at 0% 100%, rgba(255,226,170,0) 0deg, rgba(255,226,170,.09) 10deg, rgba(255,226,170,0) 22deg), conic-gradient(from 188deg at 100% 100%, rgba(255,226,170,0) 0deg, rgba(255,226,170,.09) 12deg, rgba(255,226,170,0) 24deg); }
+  .ph { position: absolute; left: 0; right: 0; top: 0; height: calc(100% - 50vmin); }
+  .ph img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .fb { position: absolute; left: 0; right: 0; bottom: -1px; height: 20vmin; background: linear-gradient(to top, rgba(21,13,12,1) 0%, rgba(21,13,12,0.985) 7.7%, rgba(21,13,12,0.943) 15.4%, rgba(21,13,12,0.874) 23.1%, rgba(21,13,12,0.784) 30.8%, rgba(21,13,12,0.677) 38.5%, rgba(21,13,12,0.56) 46.2%, rgba(21,13,12,0.44) 53.8%, rgba(21,13,12,0.323) 61.5%, rgba(21,13,12,0.216) 69.2%, rgba(21,13,12,0.126) 76.9%, rgba(21,13,12,0.057) 84.6%, rgba(21,13,12,0.015) 92.3%, rgba(21,13,12,0) 100%); }
+  .ft { position: absolute; left: 0; right: 0; top: 0; height: 16vmin; background: linear-gradient(to bottom, rgba(21,13,12,0.62) 0%, rgba(21,13,12,0.611) 7.7%, rgba(21,13,12,0.585) 15.4%, rgba(21,13,12,0.542) 23.1%, rgba(21,13,12,0.486) 30.8%, rgba(21,13,12,0.42) 38.5%, rgba(21,13,12,0.347) 46.2%, rgba(21,13,12,0.273) 53.8%, rgba(21,13,12,0.2) 61.5%, rgba(21,13,12,0.134) 69.2%, rgba(21,13,12,0.078) 76.9%, rgba(21,13,12,0.035) 84.6%, rgba(21,13,12,0.009) 92.3%, rgba(21,13,12,0) 100%); }
+  .fl { display: none; }
+  .pres { position: absolute; left: 0; right: 0; top: 4.4vmin; text-align: center; font-size: 2vmin; font-weight: 600; letter-spacing: .5em; padding-left: .5em; text-transform: uppercase; color: var(--cream); text-shadow: 0 .2vmin 1vmin rgba(0,0,0,.5); }
+  .copy { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; text-align: center; }
+  .tag { font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 700; font-size: 2.6vmin; color: var(--cream); opacity: .9; }
+  h1 { margin: 1.2vmin 0 0; font-family: "Playfair Display", Georgia, serif; font-style: italic; font-weight: 900; font-size: 12vmin; line-height: 1; letter-spacing: -.01em; white-space: nowrap;
+    background: linear-gradient(180deg, #F7E3AE 0%, #DDBA6E 45%, #A87F37 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h1 br { display: none; }
+  .now { margin-top: 2vmin; display: flex; align-items: center; justify-content: center; gap: 2.4vmin; font-size: 2.6vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+  .now i { flex: 1; max-width: 12vmin; height: 1px; background: var(--gold); }
+  .now b { color: var(--gold); font-weight: 700; }
+  .bill { margin-top: 2.2vmin; color: var(--cream); opacity: .78; text-transform: uppercase; line-height: 1.02; }
+  .bill div { font-size: 1.7vmin; letter-spacing: .12em; }
+  .bill .big { font-size: 3.8vmin; font-weight: 700; letter-spacing: .02em; line-height: 1.05; }
+  .bill .big small { font-size: 1.7vmin; font-weight: 400; letter-spacing: .12em; vertical-align: .9vmin; margin: 0 .8vmin; }
+  .foot { margin-top: 2.2vmin; display: flex; align-items: center; justify-content: center; gap: 2.4vmin; }
+  .rate { border: .25vmin solid var(--cream); padding: .6vmin 1.2vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; line-height: 1.1; text-align: left; }
+  .rate b { display: block; font-size: 2.6vmin; white-space: nowrap; }
+  .lau { position: relative; flex: none; width: 15vmin; height: 15vmin; display: flex; align-items: center; justify-content: center; text-align: center; }
+  .lau svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .lau span { position: relative; font-size: 1.6vmin; font-weight: 600; letter-spacing: .12em; line-height: 1.15; text-transform: uppercase; color: var(--gold); }
+  .lau b { display: block; margin-top: .4vmin; font-size: 1.9vmin; color: var(--cream); }
+  .date { font-size: 2.2vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--gold); }
+  .date span { display: block; white-space: nowrap; margin-top: .6vmin; font-size: 1.8vmin; font-weight: 400; color: var(--cream); letter-spacing: .2em; }
+  @media (min-aspect-ratio: 7/10) {
+    .ph { height: calc(100% - 45vmin); }
+    .fb { height: 16vmin; }
+    h1 { font-size: 10vmin; }
+    .tag { font-size: 2.4vmin; }
+    .bill { margin-top: 1.8vmin; }
+    .foot { margin-top: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .ph { left: 44%; height: 100%; }
+    .fb, .ft { display: none; }
+    .fl { display: block; position: absolute; left: -1px; top: 0; bottom: 0; width: 20vmin; background: linear-gradient(to right, rgba(21,13,12,1) 0%, rgba(21,13,12,0.985) 7.7%, rgba(21,13,12,0.943) 15.4%, rgba(21,13,12,0.874) 23.1%, rgba(21,13,12,0.784) 30.8%, rgba(21,13,12,0.677) 38.5%, rgba(21,13,12,0.56) 46.2%, rgba(21,13,12,0.44) 53.8%, rgba(21,13,12,0.323) 61.5%, rgba(21,13,12,0.216) 69.2%, rgba(21,13,12,0.126) 76.9%, rgba(21,13,12,0.057) 84.6%, rgba(21,13,12,0.015) 92.3%, rgba(21,13,12,0) 100%); }
+    .pres { left: 6vmin; right: auto; top: 6vmin; width: calc(44% - 9vmin); text-align: left; letter-spacing: .34em; padding-left: 0; font-size: 1.8vmin; }
+    .copy { left: 6vmin; right: auto; width: calc(44% - 9vmin); bottom: auto; top: 50%; transform: translateY(-44%); text-align: left; }
+    .tag { font-size: 2.3vmin; }
+    .foot { flex-wrap: wrap; gap: 1.6vmin 2.4vmin; }
+    .lau { width: 13vmin; height: 13vmin; }
+    .lau span { font-size: 1.4vmin; } .lau b { font-size: 1.7vmin; }
+    h1 { font-size: 8.6vmin; white-space: normal; line-height: .98; }
+    h1 br { display: inline; }
+    .now { justify-content: flex-start; }
+    .now i { display: none; }
+    .bill .big { font-size: 2.9vmin; }
+    .foot { justify-content: flex-start; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .ph { left: 46%; }
+    .fl { width: 24vmin; }
+    .pres { left: 8vmin; width: calc(46% - 12vmin); }
+    .copy { left: 8vmin; width: calc(46% - 12vmin); }
+    .foot { flex-wrap: nowrap; }
+    .lau { width: 15vmin; height: 15vmin; }
+    h1 { font-size: 10.4vmin; }
+    .tag { font-size: 2.8vmin; }
+    .bill .big { font-size: 2.9vmin; }
+  }
+
+  /* ───────── motion: 8s loop, t=0 = the static design ─────────
+     (each @keyframes carries an invisible outline-color so no effect is compositor-only: the frame-stepped
+      video renderer parallel tabs otherwise freeze transform/opacity-only animations) */
+  /* the still: a slow dolly-in across the whole loop, with a faint projector flutter */
+  .ph { overflow: hidden; }
+  .ph img { transform-origin: 50% 30%; animation: dolly 8s cubic-bezier(.45,0,.55,1) infinite, flutter 2s linear infinite; }
+  @keyframes dolly { 0%, 100% { outline-color: transparent; transform: scale(1); } 50% { transform: scale(1.04); } }
+  @keyframes flutter {
+    0%, 100% { outline-color: transparent; filter: brightness(1); } 7% { filter: brightness(1.035); } 11% { filter: brightness(.985); } 16% { filter: brightness(1.02); } 22% { filter: brightness(1); }
+    51% { filter: brightness(1); } 55% { filter: brightness(1.03); } 60% { filter: brightness(.99); } 66% { filter: brightness(1); }
+  }
+  /* searchlight beams: breathe up as the title glints */
+  .beam { animation: beams 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes beams { 0%, 18% { outline-color: transparent; opacity: 1; } 38% { opacity: 1.8; filter: brightness(1.9); } 60%, 100% { opacity: 1; filter: brightness(1); } }
+  /* "presents": unveils again from the centre like a curtain line */
+  .pres { animation: presents 8s linear infinite; }
+  @keyframes presents {
+    0%, 4% { outline-color: transparent; clip-path: inset(-20% 0 -20% 0); opacity: 1; animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    10% { clip-path: inset(-20% 0 -20% 0); opacity: 0; animation-timing-function: steps(1, end); }
+    12% { clip-path: inset(-20% 50% -20% 50%); opacity: 0; animation-timing-function: cubic-bezier(.2,.7,.2,1); }
+    26%, 100% { clip-path: inset(-20% 0 -20% 0); opacity: 1; }
+  }
+  /* gold title: a slow specular glint travels through the italic letters */
+  h1 { background-image: linear-gradient(105deg, rgba(255,250,230,0) 40%, rgba(255,250,230,.95) 49%, rgba(255,236,190,.8) 51%, rgba(255,250,230,0) 60%), linear-gradient(180deg, #F7E3AE 0%, #DDBA6E 45%, #A87F37 100%);
+    background-size: 300% 100%, 100% 100%; background-repeat: no-repeat; background-position: 100% 0, 0 0; animation: glint 8s linear infinite; }
+  @keyframes glint {
+    0%, 26% { outline-color: transparent; background-position: 100% 0, 0 0; animation-timing-function: cubic-bezier(.55,0,.35,1); }
+    50%, 100% { background-position: 0% 0, 0 0; }
+  }
+  /* "now showing" rules draw out from the line, the offer warms up */
+  .now i { animation: rules 8s linear infinite; }
+  .now i:first-child { transform-origin: 100% 50%; } .now i:last-child { transform-origin: 0% 50%; }
+  @keyframes rules {
+    0%, 50% { outline-color: transparent; transform: scaleX(1); animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    55% { transform: scaleX(0); animation-timing-function: cubic-bezier(.15,.7,.25,1); }
+    68%, 100% { transform: scaleX(1); }
+  }
+  .now b { display: inline-block; animation: warm 8s linear infinite; }
+  @keyframes warm {
+    0%, 54% { outline-color: transparent; text-shadow: 0 0 0 rgba(255,210,120,0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    62% { text-shadow: 0 0 1.6vmin rgba(255,210,120,.75); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    80%, 100% { text-shadow: 0 0 0 rgba(255,210,120,0); }
+  }
+  /* laurel: a gold flash rolls across the festival wreath */
+  .lau svg { animation: laurel 8s linear infinite; }
+  @keyframes laurel {
+    0%, 70% { outline-color: transparent; filter: brightness(1) drop-shadow(0 0 0 rgba(255,215,130,0)); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    76% { filter: brightness(1.45) drop-shadow(0 0 1.2vmin rgba(255,215,130,.7)); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    90%, 100% { filter: brightness(1) drop-shadow(0 0 0 rgba(255,215,130,0)); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="beam"></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="ft"></div><div class="fb"></div><div class="fl"></div></div>
+  <div class="pres">Atelier Nord Pictures presents</div>
+  <div class="copy">
+    <div class="tag">This season, every look steals the scene.</div>
+    <h1>A Star <br>Is Worn</h1>
+    <div class="now"><i></i><span>Premiere sale <b>30% off</b></span><i></i></div>
+    <div class="bill">
+      <div>A Studio Oro production · in colour</div>
+      <div class="big">The New Collection<small>with</small>Every Piece in Store</div>
+      <div>Costumes by the Atelier · code PREMIERE30 at checkout</div>
+    </div>
+    <div class="foot"><div class="rate">Rated<b>★ Must-have</b></div><div class="lau"><svg viewBox="0 0 100 100" fill="#DDBA6E"><ellipse cx="40.2" cy="86.7" rx="6.5" ry="2.6" transform="rotate(160 40.2 86.7)"/><ellipse cx="59.8" cy="86.7" rx="6.5" ry="2.6" transform="rotate(20 59.8 86.7)"/><ellipse cx="27.1" cy="80.3" rx="6.5" ry="2.6" transform="rotate(182 27.1 80.3)"/><ellipse cx="72.9" cy="80.3" rx="6.5" ry="2.6" transform="rotate(-2 72.9 80.3)"/><ellipse cx="17.4" cy="69.6" rx="6.5" ry="2.6" transform="rotate(204 17.4 69.6)"/><ellipse cx="82.6" cy="69.6" rx="6.5" ry="2.6" transform="rotate(-24 82.6 69.6)"/><ellipse cx="12.5" cy="55.9" rx="6.5" ry="2.6" transform="rotate(226 12.5 55.9)"/><ellipse cx="87.5" cy="55.9" rx="6.5" ry="2.6" transform="rotate(-46 87.5 55.9)"/><ellipse cx="13.0" cy="41.5" rx="6.5" ry="2.6" transform="rotate(248 13.0 41.5)"/><ellipse cx="87.0" cy="41.5" rx="6.5" ry="2.6" transform="rotate(-68 87.0 41.5)"/><ellipse cx="18.9" cy="28.2" rx="6.5" ry="2.6" transform="rotate(270 18.9 28.2)"/><ellipse cx="81.1" cy="28.2" rx="6.5" ry="2.6" transform="rotate(-90 81.1 28.2)"/><ellipse cx="29.3" cy="18.1" rx="6.5" ry="2.6" transform="rotate(292 29.3 18.1)"/><ellipse cx="70.7" cy="18.1" rx="6.5" ry="2.6" transform="rotate(-112 70.7 18.1)"/></svg><span>Official<br>selection<b>Season 26</b></span></div><div class="date">Now showing<span>Online &amp; in stores</span></div></div>
+  </div>
+</div>
+</body>
+</html>

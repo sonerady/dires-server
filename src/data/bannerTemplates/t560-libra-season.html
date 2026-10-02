@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&family=Lora:ital,wght@0,400;1,400;1,500&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Libra Season — the scales of the zodiac as a promotion: a ground split evenly into blush and powder blue, the photo
+     at the centre above a hairline balance beam on a fulcrum, two pans hanging from its ends that carry the offer
+     ("one piece · full price" / "the second · −50%"). tall → title on top, photo, scales below
+     · 3:4 / square / wide → symmetrical: copy in the side columns, photo centred, scales across the foot */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2D9D3; }
+  .banner { --ink: #2F2B3A; --by: 36vmin; --sh: 9vmin; --pw: 28vmin; --pl: 6vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Tenor Sans", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(90deg, #F2D9D3 0 50%, #D6E1EC 50% 100%); }
+  .photo { position: absolute; left: 16vmin; right: 16vmin; top: 33vmin; width: calc(100% - 32vmin); height: calc(100% - 33vmin - 45vmin); object-fit: cover; object-position: 50% 26%; display: block; box-shadow: 0 2vmin 5vmin rgba(47,43,58,.18); }
+
+  .left, .right { position: absolute; display: flex; flex-direction: column; }
+  .left { left: 8vmin; right: 8vmin; top: 6vmin; align-items: center; text-align: center; }
+  .right { left: 8vmin; right: 8vmin; top: 23vmin; align-items: center; text-align: center; }
+  .kick { font-size: 1.7vmin; letter-spacing: .3em; text-transform: uppercase; white-space: nowrap; }
+  h1 { margin: 1.4vmin 0 0; font-family: "Lora", Georgia, serif; font-weight: 400; font-size: 11vmin; line-height: .95; letter-spacing: -.02em; }
+  h1 i { font-weight: 400; }
+  .dates { display: flex; align-items: center; gap: 1.6vmin; font-size: 2.2vmin; letter-spacing: .16em; white-space: nowrap; }
+  .dates b { font-family: "Apple Symbols", "Segoe UI Symbol", "Noto Sans Symbols", "DejaVu Sans", serif; font-weight: 400; font-size: 3.2vmin; letter-spacing: 0; line-height: 1; }
+  .sub { display: none; margin-top: 1.4vmin; font-family: "Lora", serif; font-style: italic; font-size: 2.2vmin; line-height: 1.4; }
+  .fine { display: none; margin-top: 1.6vmin; font-size: 1.6vmin; letter-spacing: .04em; line-height: 1.4; color: #5B566A; }
+
+  .beam { position: absolute; left: 6vmin; right: 6vmin; bottom: var(--by); height: .5vmin; background: var(--ink); border-radius: 1vmin; }
+  .beam::before, .beam::after { content: ""; position: absolute; top: 50%; width: 1.6vmin; height: 1.6vmin; margin-top: -.8vmin; border-radius: 50%; background: var(--ink); }
+  .beam::before { left: calc(var(--pl) - 6vmin + var(--pw) / 2 - .8vmin); }
+  .beam::after { right: calc(var(--pl) - 6vmin + var(--pw) / 2 - .8vmin); }
+  .fulc { position: absolute; left: 50%; bottom: calc(var(--by) - 5vmin); width: 6vmin; height: 5vmin; margin-left: -3vmin; background: var(--ink); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .pivot { position: absolute; left: 50%; bottom: calc(var(--by) - .75vmin); width: 2vmin; height: 2vmin; margin-left: -1vmin; border-radius: 50%; background: #F7F2EE; border: .4vmin solid var(--ink); box-sizing: border-box; }
+
+  .pan { position: absolute; width: var(--pw); bottom: calc(var(--by) - var(--sh) - 4vmin); height: calc(var(--sh) + 4vmin); }
+  .pan.l { left: var(--pl); } .pan.r { right: var(--pl); }
+  .str { height: var(--sh);
+    background:
+      linear-gradient(to top right, transparent calc(50% - 1px), var(--ink) calc(50% - 1px) 50%, transparent 50%) left / 50% 100% no-repeat,
+      linear-gradient(to top left, transparent calc(50% - 1px), var(--ink) calc(50% - 1px) 50%, transparent 50%) right / 50% 100% no-repeat; }
+  .bowl { height: 4vmin; border-radius: 0 0 50% 50% / 0 0 100% 100%; background: var(--ink); }
+  .lab { position: absolute; left: -2vmin; right: -2vmin; top: calc(100% + 1.4vmin); text-align: center; font-size: 1.7vmin; letter-spacing: .18em; text-transform: uppercase; white-space: nowrap; }
+  .lab b { display: block; margin-bottom: .4vmin; font-family: "Lora", serif; font-style: italic; font-weight: 500; font-size: 3.4vmin; letter-spacing: -.01em; text-transform: none; }
+
+  .cta { position: absolute; left: 50%; bottom: 5vmin; transform: translateX(-50%); padding: 1.5vmin 3vmin; border: 1px solid var(--ink); background: rgba(247,242,238,.7); font-size: 1.7vmin; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --by: 32vmin; --sh: 8vmin; --pw: 24vmin; --pl: 6vmin; }
+    .photo { left: 31vmin; right: auto; top: 6vmin; width: 38vmin; height: calc(100% - 44vmin); }
+    .left { left: 5vmin; right: auto; width: 23vmin; top: 7vmin; align-items: flex-start; text-align: left; }
+    .right { left: auto; right: 5vmin; width: 23vmin; top: 7vmin; align-items: flex-end; text-align: right; }
+    h1 { font-size: 6.4vmin; margin-top: 2vmin; }
+    .kick { white-space: normal; line-height: 1.6; }
+    .dates { flex-direction: column; align-items: flex-end; gap: 1vmin; font-size: 1.9vmin; }
+    .sub { display: block; font-size: 2vmin; margin-top: 2.4vmin; }
+    .fine { display: block; }
+    .lab b { font-size: 3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --by: 30vmin; --sh: 8vmin; --pw: 24vmin; --pl: 6vmin; }
+    .photo { left: 30%; width: 40%; top: 6vmin; height: calc(100% - 42vmin); }
+    .left, .right { width: calc(30% - 9vmin); top: 8vmin; }
+    h1 { font-size: 7vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --by: 30vmin; --sh: 8vmin; --pw: 30vmin; --pl: 9vmin; }
+    .photo { left: 33%; width: 34%; }
+    .left, .right { width: calc(33% - 12vmin); top: 9vmin; }
+    .left { left: 7vmin; } .right { right: 7vmin; }
+    h1 { font-size: 8.6vmin; }
+    .sub { font-size: 2.3vmin; }
+    .kick { white-space: nowrap; }
+    .dates { flex-direction: row; gap: 1.6vmin; font-size: 2.1vmin; }
+    .lab b { font-size: 3.6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="left">
+    <div class="kick">Maison Équinoxe</div>
+    <h1>Libra <i>season</i></h1>
+  </div>
+  <div class="right">
+    <div class="dates"><b>&#9806;&#xFE0E;</b><span>23.09 — 22.10</span></div>
+    <div class="sub">Find your balance. Pieces that weigh just right.</div>
+    <div class="fine">Lowest-priced piece discounted. Until 22 Oct.</div>
+  </div>
+  <div class="beam"></div>
+  <div class="fulc"></div>
+  <div class="pivot"></div>
+  <div class="pan l"><div class="str"></div><div class="bowl"></div><div class="lab"><b>Full price</b>first piece</div></div>
+  <div class="pan r"><div class="str"></div><div class="bowl"></div><div class="lab"><b>−50%</b>second piece</div></div>
+  <div class="cta">Balance your basket</div>
+</div>
+</body>
+</html>

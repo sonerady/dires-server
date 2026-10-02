@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* Membrane Cutaway — the exploded 3-layer shell diagram from an outdoor catalogue: face fabric beaded with
+     rain, the orange waterproof membrane, the mesh liner, pulled apart in isometric slabs with vapour rising
+     through the gaps, numbered leader-line callouts and the 20K/20K rating. Glacier-white page, navy ink.
+     tall → photo above, diagram below · square/wide → photo left, diagram right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E6EEF1; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #E6EEF1; color: #0F2433; font-family: "Sora", "Helvetica Neue", Arial, sans-serif; --o: #FF6B1A; --n: #0F2433; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 96vmin); object-fit: cover; object-position: 50% 20%; }
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 96vmin; box-sizing: border-box; padding: 4.6vmin 6vmin 5vmin; display: flex; flex-direction: column;
+    background: linear-gradient(0deg, rgba(15,36,51,.05) 1px, transparent 1px) 0 0 / 100% 4vmin, #E6EEF1; }
+  .mono { font-family: "JetBrains Mono", Menlo, monospace; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; color: #4D6573; }
+  .kick b { color: var(--o); font-weight: 700; }
+  h1 { margin: 2.2vmin 0 0; font-weight: 800; font-size: 8.8vmin; line-height: .98; letter-spacing: -.045em; }
+  h1 span { color: var(--o); }
+
+  .fig { position: relative; flex: 1; min-height: 0; display: flex; margin-top: 3vmin; }
+  .stack { position: relative; width: 56%; display: flex; flex-direction: column; justify-content: center; padding-top: 7vmin; box-sizing: border-box; }
+  .layers { position: relative; display: flex; flex-direction: column; gap: 3.6vmin; }
+  /* rain */
+  .rain { position: absolute; left: 6vmin; right: 0; top: -8.4vmin; height: 8vmin;
+    background: repeating-linear-gradient(105deg, transparent 0 2.6vmin, rgba(15,36,51,.55) 2.6vmin 2.85vmin, transparent 2.85vmin 5.2vmin);
+    -webkit-mask: linear-gradient(180deg, #000, rgba(0,0,0,.985) 7.7%, rgba(0,0,0,.943) 15.4%, rgba(0,0,0,.874) 23.1%, rgba(0,0,0,.784) 30.8%, rgba(0,0,0,.677) 38.5%, rgba(0,0,0,.56) 46.2%, rgba(0,0,0,.44) 53.8%, rgba(0,0,0,.323) 61.5%, rgba(0,0,0,.216) 69.2%, rgba(0,0,0,.126) 76.9%, rgba(0,0,0,.057) 84.6%, rgba(0,0,0,.015) 92.3%, transparent);
+            mask: linear-gradient(180deg, #000, rgba(0,0,0,.985) 7.7%, rgba(0,0,0,.943) 15.4%, rgba(0,0,0,.874) 23.1%, rgba(0,0,0,.784) 30.8%, rgba(0,0,0,.677) 38.5%, rgba(0,0,0,.56) 46.2%, rgba(0,0,0,.44) 53.8%, rgba(0,0,0,.323) 61.5%, rgba(0,0,0,.216) 69.2%, rgba(0,0,0,.126) 76.9%, rgba(0,0,0,.057) 84.6%, rgba(0,0,0,.015) 92.3%, transparent); }
+  /* vapour rising through the gaps */
+  .vap { position: absolute; top: -5vmin; bottom: -3.4vmin; width: 0; border-left: .35vmin dashed var(--o); }
+  .vap::before { content: ""; position: absolute; left: -1.25vmin; top: -1vmin; border: 1.1vmin solid transparent; border-bottom: 1.6vmin solid var(--o); border-top: 0; }
+  .v1 { left: 30%; } .v2 { left: 62%; }
+  .layer { position: relative; z-index: 1; height: 6.4vmin; }
+  .slab { position: absolute; inset: 0; clip-path: polygon(7vmin 0, 100% 0, calc(100% - 7vmin) 100%, 0 100%); }
+  .layer::after { content: ""; position: absolute; left: 0; right: 7vmin; bottom: -1.2vmin; height: 1.2vmin; background: rgba(15,36,51,.55); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  .l1 .slab { background: repeating-linear-gradient(0deg, rgba(255,255,255,.14) 0 1px, transparent 1px 1.4vmin), repeating-linear-gradient(90deg, rgba(255,255,255,.14) 0 1px, transparent 1px 1.4vmin), #1C3D52; }
+  .l2 .slab { background: radial-gradient(circle, rgba(255,255,255,.55) 0 .22vmin, transparent .28vmin) 0 0 / 1.2vmin 1.2vmin, var(--o); }
+  .l2::after { background: #B8460C; }
+  .l3 .slab { background: repeating-linear-gradient(45deg, rgba(15,36,51,.22) 0 1px, transparent 1px .9vmin), repeating-linear-gradient(-45deg, rgba(15,36,51,.22) 0 1px, transparent 1px .9vmin), #C9D6DC; }
+  .l3::after { background: #8FA3AD; }
+  /* water beading on the face */
+  .drop { position: absolute; z-index: 2; width: 2.4vmin; height: 1.9vmin; border-radius: 50% 50% 46% 46% / 60% 60% 40% 40%;
+    background: radial-gradient(circle at 34% 30%, #fff 0 18%, rgba(160,205,230,.95) 26%, rgba(64,130,170,.95) 100%); box-shadow: 0 .3vmin .3vmin rgba(15,36,51,.35); }
+  .d1 { left: 18%; top: -1.3vmin; } .d2 { left: 44%; top: .6vmin; width: 1.8vmin; height: 1.4vmin; } .d3 { left: 70%; top: -1vmin; } .d4 { left: 56%; top: 2.8vmin; width: 1.4vmin; height: 1.1vmin; }
+
+  .notes { position: relative; width: 44%; display: flex; flex-direction: column; justify-content: center; gap: 3.6vmin; padding-top: 7vmin; box-sizing: border-box; }
+  .note { position: relative; height: 6.4vmin; display: flex; flex-direction: column; justify-content: center; padding-left: 3vmin; }
+  .note::before { content: ""; position: absolute; left: -4vmin; width: 5.6vmin; top: 50%; border-top: 1px solid var(--n); }
+  .note::after { content: ""; position: absolute; left: -4.5vmin; top: calc(50% - .5vmin); width: 1vmin; height: 1vmin; border-radius: 50%; background: var(--n); }
+  .note small { font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; color: #4D6573; white-space: nowrap; }
+  .note b { font-weight: 800; font-size: 3.2vmin; letter-spacing: -.03em; line-height: 1.05; white-space: nowrap; }
+  .note:nth-child(2) b { color: var(--o); }
+
+  .foot { display: flex; align-items: center; gap: 3vmin; margin-top: 4vmin; padding-top: 3vmin; border-top: 1px solid var(--n); }
+  .pct { font-weight: 800; font-size: 10vmin; line-height: .8; letter-spacing: -.06em; white-space: nowrap; }
+  .fx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .8vmin; }
+  .fx b { font-weight: 600; font-size: 2.6vmin; white-space: nowrap; }
+  .fx small { font-family: "JetBrains Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .08em; text-transform: uppercase; color: #4D6573; white-space: nowrap; }
+  .go { padding: 1.8vmin 2.6vmin; background: var(--n); color: #E6EEF1; font-weight: 600; font-size: 2.2vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 3/5) {
+    .photo { height: calc(100% - 86vmin); }
+    .panel { height: 86vmin; padding-top: 4vmin; padding-bottom: 4.4vmin; }
+    h1 { font-size: 8vmin; margin-top: 1.8vmin; }
+    .fig { margin-top: 2vmin; }
+    .stack, .notes { padding-top: 6vmin; } .layers, .notes { gap: 3vmin; }
+    .layer, .note { height: 5.8vmin; }
+    .rain { height: 7vmin; top: -7.4vmin; }
+    .foot { margin-top: 3vmin; padding-top: 2.6vmin; }
+    .pct { font-size: 9vmin; }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 68vmin); }
+    .panel { height: 68vmin; padding: 3.4vmin 6vmin 3.6vmin; }
+    h1 { font-size: 6.6vmin; margin-top: 1.4vmin; }
+    h1 br { display: none; }
+    .fig { margin-top: 1vmin; }
+    .stack, .notes { padding-top: 5vmin; } .layers, .notes { gap: 2.4vmin; }
+    .layer, .note { height: 4.8vmin; }
+    .rain { height: 5.6vmin; top: -6vmin; }
+    .vap { top: -4vmin; bottom: -2.6vmin; }
+    .note b { font-size: 2.8vmin; }
+    .note small { font-size: 1.6vmin; }
+    .foot { margin-top: 2.4vmin; padding-top: 2.2vmin; }
+    .pct { font-size: 7.4vmin; }
+    .go { padding: 1.4vmin 2.2vmin; font-size: 2vmin; }
+  }
+  /* square / wide → photo left, diagram right */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 25%; }
+    .panel { left: 48%; top: 0; height: auto; padding: 4.6vmin 4.4vmin 4.4vmin 4.8vmin; }
+    .kick { flex-direction: column; gap: .5vmin; font-size: 1.6vmin; }
+    h1 { font-size: 6.2vmin; margin-top: 2vmin; }
+    h1 br { display: inline; }
+    .fig { margin-top: 2vmin; }
+    .stack { width: 48%; }
+    .notes { width: 52%; }
+    .stack, .notes { padding-top: 7vmin; } .layers, .notes { gap: 4.4vmin; }
+    .layer, .note { height: 6vmin; }
+    .slab { clip-path: polygon(4.4vmin 0, 100% 0, calc(100% - 4.4vmin) 100%, 0 100%); }
+    .layer::after { right: 4.4vmin; }
+    .rain { left: 3vmin; height: 6vmin; top: -6.4vmin; }
+    .note { padding-left: 2.4vmin; }
+    .note::before { left: -2.6vmin; width: 4.4vmin; }
+    .note::after { left: -3vmin; }
+    .note b { font-size: 2.3vmin; }
+    .note small { font-size: 1.6vmin; letter-spacing: .04em; }
+    .foot { flex-wrap: wrap; gap: 1.6vmin 2.4vmin; margin-top: 2.6vmin; padding-top: 2.4vmin; }
+    .pct { font-size: 7.6vmin; }
+    .fx b { font-size: 2.2vmin; }
+    .fx small { font-size: 1.6vmin; letter-spacing: .04em; }
+    .go { width: 100%; box-sizing: border-box; text-align: center; padding: 1.3vmin; font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; }
+    .panel { left: 46%; padding: 5vmin 6vmin 5vmin 6.4vmin; }
+    .kick { flex-direction: row; font-size: 1.7vmin; }
+    h1 { font-size: 7.4vmin; }
+    h1 br { display: none; }
+    .stack { width: 54%; }
+    .notes { width: 46%; }
+    .stack, .notes { padding-top: 8vmin; } .layers, .notes { gap: 4.6vmin; }
+    .layer, .note { height: 7.2vmin; }
+    .rain { height: 7.6vmin; top: -8vmin; }
+    .slab { clip-path: polygon(6vmin 0, 100% 0, calc(100% - 6vmin) 100%, 0 100%); }
+    .layer::after { right: 6vmin; }
+    .note b { font-size: 3vmin; }
+    .note small { font-size: 1.7vmin; letter-spacing: .08em; }
+    .foot { flex-wrap: nowrap; }
+    .pct { font-size: 9vmin; }
+    .fx b { font-size: 2.5vmin; }
+    .go { width: auto; padding: 1.7vmin 2.4vmin; font-size: 2.2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick mono"><span>Fig. 03 — <b>3-layer cutaway</b></span><span>Rated 20K / 20K</span></div>
+    <h1>Rain on. <br><span>Prices off.</span></h1>
+    <div class="fig">
+      <div class="stack">
+        <div class="layers">
+        <i class="rain"></i>
+        <i class="vap v1"></i><i class="vap v2"></i>
+        <div class="layer l1"><i class="slab"></i><i class="drop d1"></i><i class="drop d2"></i><i class="drop d3"></i><i class="drop d4"></i></div>
+        <div class="layer l2"><i class="slab"></i></div>
+        <div class="layer l3"><i class="slab"></i></div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="note"><small>01 · Face</small><b>Rain beads off</b></div>
+        <div class="note"><small>02 · Membrane</small><b>20 000 mm</b></div>
+        <div class="note"><small>03 · Liner</small><b>Breathes out</b></div>
+      </div>
+    </div>
+    <div class="foot">
+      <span class="pct">−30%</span>
+      <div class="fx"><b>The weather edit</b><small>Code DRY30 · Ends Sun</small></div>
+      <span class="go">Shop dry →</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

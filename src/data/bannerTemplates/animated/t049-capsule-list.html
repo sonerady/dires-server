@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Capsule List — soft neutrals and a five-piece wardrobe checklist, every box ticked.
+     tall → photo on top, heading + list side by side below; square/wide → photo left, heading over list right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #EEE9E2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #EEE9E2; color: #2F2B27; font-family: "Instrument Sans", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 58%; object-fit: cover; object-position: 50% 16%; }
+  .panel { position: absolute; left: 6vmin; right: 6vmin; top: calc(58% + 5vmin); bottom: 6vmin; display: flex; gap: 5vmin; }
+  .head { width: 44%; display: flex; flex-direction: column; }
+  .k { font-size: 1.8vmin; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: #8A7D70; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 7.4vmin; line-height: .98; letter-spacing: -.01em; }
+  h1 i { color: #8A7D70; }
+  .sub { margin-top: 1.8vmin; font-size: 2.4vmin; line-height: 1.45; color: #5B534B; }
+  .cta { margin-top: auto; font-size: 2vmin; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .cta span { display: inline-block; margin-left: 1vmin; }
+  ol { flex: 1; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: center; }
+  li { display: flex; align-items: center; gap: 2vmin; padding: 1.9vmin 0; border-bottom: 1px solid rgba(47,43,39,.2); font-size: 3vmin; }
+  li:first-child { border-top: 1px solid rgba(47,43,39,.2); }
+  li em { font-style: normal; font-size: 1.8vmin; font-weight: 500; color: #8A7D70; width: 3vmin; letter-spacing: .04em; }
+  li span { flex: 1; }
+  /* hand-feel tick in a soft box */
+  li svg { width: 3.4vmin; height: 3.4vmin; flex: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 55%; }
+    .panel { top: calc(55% + 4vmin); bottom: 4.6vmin; }
+    h1 { font-size: 6.6vmin; }
+    li { padding: 1.3vmin 0; font-size: 2.6vmin; }
+    .sub { font-size: 2.1vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 22%; }
+    .panel { left: calc(50% + 6vmin); right: 6vmin; top: 6vmin; bottom: 6vmin; flex-direction: column; gap: 3.4vmin; }
+    .head { width: auto; }
+    h1 { font-size: 5.8vmin; }
+    .sub { font-size: 2vmin; }
+    .cta { margin-top: 2.4vmin; }
+    ol { flex: 1; justify-content: space-between; }
+    li { font-size: 2.4vmin; padding: 0 0 .6vmin; }
+    li svg { width: 3vmin; height: 3vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 52%; object-position: 60% 22%; }
+    .panel { left: calc(52% + 7vmin); right: 7vmin; top: 7vmin; bottom: 7vmin; }
+    h1 { font-size: 7.6vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design — the checklist is ticked again, piece by piece ───────── */
+  /* ticks: a quick wave lifts them off (bottom first), then each box is re-ticked top to bottom with a pen stroke */
+  li path { stroke-dasharray: 1 1; animation: tick 6s linear infinite; }
+  @keyframes tick {
+    0%, 30% { stroke-dashoffset: 0; animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    34% { stroke-dashoffset: 1; animation-timing-function: steps(1, end); }
+    48% { stroke-dashoffset: 1; animation-timing-function: cubic-bezier(.35,0,.15,1); }
+    56%, 100% { stroke-dashoffset: 0; }
+  }
+  /* the box gives a tiny nod as its tick lands */
+  li svg { animation: nod 6s linear infinite; }
+  @keyframes nod {
+    0%, 52% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    55% { transform: scale(1.14); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    61%, 100% { transform: scale(1); }
+  }
+  /* the row name darkens in sync, the number turns ink */
+  li span { animation: name 6s linear infinite; }
+  @keyframes name {
+    0%, 30% { color: #2F2B27; animation-timing-function: ease-in; }
+    36%, 48% { color: #9E9387; animation-timing-function: steps(1, end); }
+    50%, 100% { color: #2F2B27; }
+  }
+  /* stagger: each row runs 0.18s after the one above — a wave down the list, off and back on */
+  li:nth-child(1) path, li:nth-child(1) svg, li:nth-child(1) span { animation-delay: -0.72s; }
+  li:nth-child(2) path, li:nth-child(2) svg, li:nth-child(2) span { animation-delay: -0.54s; }
+  li:nth-child(3) path, li:nth-child(3) svg, li:nth-child(3) span { animation-delay: -0.36s; }
+  li:nth-child(4) path, li:nth-child(4) svg, li:nth-child(4) span { animation-delay: -0.18s; }
+  /* headline italic line glows faintly once all five are back */
+  h1 i { animation: glow 6s linear infinite; }
+  @keyframes glow {
+    0%, 62% { color: #8A7D70; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    70% { color: #2F2B27; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    86%, 100% { color: #8A7D70; }
+  }
+  /* CTA arrow: two small steps forward */
+  .cta span { animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 74% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    78% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    82% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    86% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    90%, 100% { transform: translateX(0); }
+  }
+  /* the photo: soft push-in */
+  .photo { animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="head">
+      <div class="k">The capsule</div>
+      <h1>Five pieces,<br><i>endless looks.</i></h1>
+      <div class="sub">A wardrobe that works together, season after season.</div>
+      <div class="cta">Build yours <span>→</span></div>
+    </div>
+    <ol>
+      <li><em>01</em><span>The coat</span><svg viewBox="0 0 30 30"><rect x="1" y="1" width="28" height="28" fill="none" stroke="#8A7D70" stroke-width="1.5"/><path d="M7 15.5 L12.5 21 L23.5 8.5" fill="none" stroke="#2F2B27" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg></li>
+      <li><em>02</em><span>The shirt</span><svg viewBox="0 0 30 30"><rect x="1" y="1" width="28" height="28" fill="none" stroke="#8A7D70" stroke-width="1.5"/><path d="M7 15.5 L12.5 21 L23.5 8.5" fill="none" stroke="#2F2B27" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg></li>
+      <li><em>03</em><span>The trouser</span><svg viewBox="0 0 30 30"><rect x="1" y="1" width="28" height="28" fill="none" stroke="#8A7D70" stroke-width="1.5"/><path d="M7 15.5 L12.5 21 L23.5 8.5" fill="none" stroke="#2F2B27" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg></li>
+      <li><em>04</em><span>The knit</span><svg viewBox="0 0 30 30"><rect x="1" y="1" width="28" height="28" fill="none" stroke="#8A7D70" stroke-width="1.5"/><path d="M7 15.5 L12.5 21 L23.5 8.5" fill="none" stroke="#2F2B27" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg></li>
+      <li><em>05</em><span>The bag</span><svg viewBox="0 0 30 30"><rect x="1" y="1" width="28" height="28" fill="none" stroke="#8A7D70" stroke-width="1.5"/><path d="M7 15.5 L12.5 21 L23.5 8.5" fill="none" stroke="#2F2B27" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="1"/></svg></li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>

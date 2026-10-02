@@ -211,9 +211,15 @@ function sanitizeSkill(skill, raw = {}) {
     platform: pickOne(OPTIONS.platform, i.platform),
     ugcStyle: pickOne(OPTIONS.ugcStyle, i.ugcStyle),
     presenterGender: pickOne(OPTIONS.presenterGender, i.presenterGender, "auto"),
-    presenterAge: pickOne(OPTIONS.presenterAge, i.presenterAge, "auto"),
+    presenterAge: typeof i.presenterAge === "number" && Number.isFinite(i.presenterAge) ? Math.max(0, Math.min(99, Math.round(i.presenterAge))) : pickOne(OPTIONS.presenterAge, i.presenterAge, "auto"),
+    presenterHijab: i.presenterGender === "woman" && i.presenterHijab === true,
     focus: pickMany(OPTIONS.focus, i.focus),
     background: pickOne(OPTIONS.background, i.background),
+    location: skill === "spin360" ? str(i.location, 180) : "",
+    locationPrompt: skill === "spin360" ? str(i.locationPrompt, 1600) : "",
+    backgroundColorHex: skill === "spin360" && /^#[0-9a-f]{6}$/i.test(i.backgroundColorHex) ? i.backgroundColorHex : null,
+    weather: skill === "spin360" && ["sunny", "cloudy", "rainy", "snowy", "foggy", "stormy"].includes(i.weather) ? i.weather : null,
+    timeOfDay: skill === "spin360" && ["dawn", "morning", "golden_hour", "afternoon", "sunset", "twilight", "night"].includes(i.timeOfDay) ? i.timeOfDay : null,
     spinSpeed: pickOne(OPTIONS.spinSpeed, i.spinSpeed),
     adType: pickOne(OPTIONS.adType, i.adType),
     remixKeep: pickMany(OPTIONS.remixKeep, i.remixKeep),
@@ -223,7 +229,26 @@ function sanitizeSkill(skill, raw = {}) {
   };
 }
 
-function briefLines(s, { audio, duration, imageCount }) {
+function presenterDirection(s, presenterImageIndex = null) {
+  if (s.skill !== "ugc") return "";
+  const age = typeof s.presenterAge === "number" ? `aged ${s.presenterAge} years` : OPTIONS.presenterAge[s.presenterAge];
+  const who = [OPTIONS.presenterGender[s.presenterGender], age].filter(Boolean).join(" ");
+  return `Presenter: ${who || "a relatable creator who fits the product's target buyer"}; ${presenterImageIndex ? `use @Image${presenterImageIndex} ONLY as the chosen presenter's face and identity reference, never as a product reference. Preserve that person's recognizable identity while applying the selected age` : "a fictional person"}. Film selfie-style on a phone in natural home light.${s.presenterHijab ? " The presenter wears a modest hijab covering the hair and neck; preserve the product's design." : ""}`;
+}
+
+function locationDirection(s, locationImageIndex = null) {
+  if (s.skill !== "spin360") return "";
+  const parts = [];
+  if (locationImageIndex) parts.push(`Use @Image${locationImageIndex} ONLY as the selected location/background reference, never as a product reference. Recreate its environment and surfaces; do not copy any people or products from that image.`);
+  if (s.backgroundColorHex) parts.push(`Use a seamless solid background in exactly ${s.backgroundColorHex}.`);
+  else if (s.locationPrompt || s.location) parts.push(`Selected location: ${s.locationPrompt || s.location}.`);
+  if (s.weather) parts.push(`Weather: ${s.weather}.`);
+  if (s.timeOfDay) parts.push(`Time and lighting: ${s.timeOfDay.replace(/_/g, " ")}.`);
+  if (parts.length) parts.push("These explicit setting and lighting choices override the default studio backdrop/light. Keep this environment fixed throughout the rotation, with the product clearly visible and accurately lit.");
+  return parts.join(" ");
+}
+
+function briefLines(s, { audio, duration, imageCount, presenterImageIndex, locationImageIndex }) {
   const lines = [SKILLS[s.skill].concept];
   if (s.productName) lines.push(`Product: ${s.productName}.`);
   if (s.sellingPoints) lines.push(`Key selling points to show (never invent others): ${s.sellingPoints}.`);
@@ -232,12 +257,12 @@ function briefLines(s, { audio, duration, imageCount }) {
   if (s.platform) lines.push(OPTIONS.platform[s.platform]);
   if (s.ugcStyle) lines.push(OPTIONS.ugcStyle[s.ugcStyle]);
   if (s.skill === "ugc") {
-    const who = [OPTIONS.presenterGender[s.presenterGender], OPTIONS.presenterAge[s.presenterAge]].filter(Boolean).join(" ");
-    lines.push(`Presenter: ${who || "a relatable creator who fits the product's target buyer"}; a fictional person, filmed selfie-style on a phone, natural home light.`);
+    lines.push(presenterDirection(s, presenterImageIndex));
   }
   if (s.adType) lines.push(OPTIONS.adType[s.adType]);
   if (s.focus.length) lines.push(`Focus the close-ups on: ${s.focus.map((f) => OPTIONS.focus[f]).join(", ")}.`);
-  if (s.background) lines.push(`Background: ${OPTIONS.background[s.background]}.`);
+  if (locationDirection(s, locationImageIndex)) lines.push(locationDirection(s, locationImageIndex));
+  if (s.background && !locationDirection(s, locationImageIndex)) lines.push(`Background: ${OPTIONS.background[s.background]}.`);
   if (s.spinSpeed) lines.push(`Rotation: ${OPTIONS.spinSpeed[s.spinSpeed]}.`);
   if (s.skill === "spin360" && imageCount > 1) lines.push(`The ${imageCount} reference images are different angles of the SAME product — use them to render every side accurately.`);
   if (s.skill === "remix") {
@@ -260,6 +285,14 @@ function briefLines(s, { audio, duration, imageCount }) {
   return lines;
 }
 
+/** Storyboards and final videos share the same sanitized creative brief. */
+function buildSkillPreviewDirection(s, ctx) {
+  return [SKILLS[s.skill].craft, SKILLS[s.skill].suffix, ...briefLines(s, ctx),
+    `Plan ${shotsFor(s.skill, ctx.duration)} across the six storyboard cells; consecutive cells may show successive moments of the same continuous shot.`,
+    "This is a visual storyboard: show the delivery and action, never render dialogue or directions as text."
+  ].join(" ");
+}
+
 function buildSkillGeminiPrompt(s, ctx) {
   return `
 You are a senior e-commerce video DIRECTOR writing the prompt for an AI video model (Seedance). READ the product image(s) carefully: what the product is, category, material, color, size and who buys it.
@@ -274,7 +307,7 @@ DIRECTOR'S CRAFT FOR THIS FORMAT: ${SKILLS[s.skill].craft}
 OUTPUT FORMAT (this exact shape works best for the video model):
 "<one-line concept for the product>, ${ctx.duration} seconds, <pace>: 1) <shot> 2) <shot> 3) <shot> … <mood words>."
 - ${shotsFor(s.skill, ctx.duration)}; each shot = ONE concrete, filmable action + setting + light + camera move, specific to THIS product (material, color, how it is used).
-- Choose a real, attractive setting that fits the product and its buyer${s.skill === "spin360" ? " (here: a clean studio backdrop as briefed)" : ""}.${ctx.audio ? "\n- Put the exact spoken lines in quotes in the requested language inside the shots where they are said, plus a short sound-design note." : ""}
+- Choose a real, attractive setting that fits the product and its buyer${s.skill === "spin360" ? " (use the selected location/background when provided; otherwise a clean studio backdrop)" : ""}.${ctx.audio ? "\n- Put the exact spoken lines in quotes in the requested language inside the shots where they are said, plus a short sound-design note." : ""}
 - Refer to the product as @Image1${s.skill === "remix" ? " and the reference as @Video1" : ""}.
 
 HARD RULES:
@@ -282,7 +315,7 @@ HARD RULES:
 - Default to bright natural daylight or clean studio light; NO golden-hour, sunset or sunrise glow unless the seller asks for it.
 - The product stays identical in every shot: shape, color, material, logo, label, proportions. Never invent features, text, prices or claims.
 - No on-screen text, captions, subtitles, watermarks or third-party brand names.
-- Any person is fictional. Realistic physics and scale; the product is clearly visible and in focus in the hero moments.
+- ${ctx.presenterImageIndex ? `Use the chosen presenter identity from @Image${ctx.presenterImageIndex}.` : "Any person is fictional."} Realistic physics and scale; the product is clearly visible and in focus in the hero moments.
 `;
 }
 
@@ -293,13 +326,15 @@ function buildSkillFallbackPrompt(s, ctx) {
 /** Seedance promptunun sonuna DEĞİŞMEDEN eklenen kalite kilidi (kart örneklerinin stil bloğu) */
 const skillStyleSuffix = (s) => SKILLS[s.skill].suffix;
 
-function skillIdentityClause(s, imageCount) {
+function skillIdentityClause(s, imageCount, presenterImageIndex = null, locationImageIndex = null) {
   return (
     `The product is the exact item shown in @Image1${imageCount > 1 ? `–@Image${imageCount} (same product, different views)` : ""}` +
     " — keep its shape, color, material, logo, label and proportions identical in every shot. Ignore the backgrounds of the reference photos." +
     (s.skill === "remix" ? " Use @Video1 only for structure, pacing, camera and transitions — never its people, products, logos or text." : "") +
+    (s.skill === "ugc" ? ` ${presenterDirection(s, presenterImageIndex)}` : "") +
+    ` ${locationDirection(s, locationImageIndex)}` +
     " No on-screen text, no subtitles, no added logos or brand names."
   );
 }
 
-module.exports = { SKILLS, sanitizeSkill, buildSkillGeminiPrompt, buildSkillFallbackPrompt, skillIdentityClause, skillStyleSuffix, LANGUAGES };
+module.exports = { buildSkillPreviewDirection, locationDirection, presenterDirection, SKILLS, sanitizeSkill, buildSkillGeminiPrompt, buildSkillFallbackPrompt, skillIdentityClause, skillStyleSuffix, LANGUAGES };

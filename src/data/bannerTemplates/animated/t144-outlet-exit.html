@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&family=Overpass+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Outlet Exit — the sale as motorway signage: a green gantry sign with its white inset rule, EXIT 70, a road arrow and destinations whose distances are markdowns */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0A5E3A; }
+  .banner { --panel: 78vmin; position: fixed; inset: 0; overflow: hidden; background: #0A5E3A; color: #fff; font-family: "Overpass", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--panel)); object-fit: cover; object-position: 50% 22%; }
+
+  .sign { position: absolute; left: 0; right: 0; bottom: 0; height: var(--panel); background: linear-gradient(180deg, #0C6640 0%, #0A5E3A 100%); }
+  .sign::before { content: ""; position: absolute; inset: 2.2vmin; border: .7vmin solid #fff; border-radius: 2.6vmin; }
+  .in { position: absolute; inset: 6.4vmin 7vmin 6.4vmin 7vmin; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .tab { font-weight: 800; font-size: 2.6vmin; letter-spacing: .06em; padding: .9vmin 1.8vmin .5vmin; border: .45vmin solid #fff; border-radius: 1vmin; white-space: nowrap; }
+  .top span { font-family: "Overpass Mono", Menlo, monospace; font-weight: 500; font-size: 1.8vmin; letter-spacing: .16em; text-transform: uppercase; }
+  .dest { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; margin-top: 3vmin; }
+  h1 { margin: 0; font-weight: 800; font-size: 17vmin; line-height: .8; letter-spacing: -.02em; padding-top: 1.6vmin; }
+  .arrow { flex: none; width: 15vmin; height: 15vmin; }
+  .rule { height: .5vmin; background: #fff; margin: 3.4vmin 0 1.4vmin; }
+  .rows { display: flex; flex-direction: column; }
+  .r { display: flex; justify-content: space-between; align-items: baseline; padding: 1.2vmin 0; font-size: 3.6vmin; font-weight: 600; line-height: 1.1; }
+  .r b { font-weight: 800; font-size: 4.6vmin; letter-spacing: -.01em; }
+  .r + .r { border-top: 1px solid rgba(255,255,255,.35); }
+  .r i { font-style: normal; display: inline-block; width: 2.6vmin; margin-right: 1.4vmin; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 3vmin; }
+  .foot p { margin: 0; font-family: "Overpass Mono", Menlo, monospace; font-size: 1.8vmin; line-height: 1.5; letter-spacing: .08em; text-transform: uppercase; }
+  .cta { flex: none; background: #fff; color: #0A5E3A; font-weight: 800; font-size: 2.3vmin; letter-spacing: .06em; text-transform: uppercase; padding: 1.5vmin 2.6vmin 1.1vmin; border-radius: 1vmin; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 66vmin; }
+    .in { inset: 5.6vmin 6.4vmin; }
+    h1 { font-size: 14.6vmin; }
+    .arrow { width: 12.6vmin; height: 12.6vmin; }
+    .dest { margin-top: 2.4vmin; }
+    .rule { margin: 2.6vmin 0 .8vmin; }
+    .r { font-size: 3.2vmin; padding: 1vmin 0; }
+    .r b { font-size: 4vmin; }
+  }
+  /* square — photo left, the sign fills the right half */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 25%; }
+    .sign { left: 50%; top: 0; height: auto; }
+    .in { inset: 6.4vmin 6vmin; }
+    .top span { display: none; }
+    .dest { margin-top: 4.4vmin; flex-direction: column-reverse; align-items: flex-start; gap: 2.4vmin; }
+    h1 { font-size: 12.4vmin; }
+    .arrow { width: 11vmin; height: 11vmin; margin-left: -1vmin; }
+    .rule { margin: 3.4vmin 0 1vmin; }
+    .r { font-size: 2.8vmin; padding: 1.7vmin 0; }
+    .r b { font-size: 3.6vmin; }
+    .r i { width: 2vmin; margin-right: 1vmin; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; }
+    .foot p { font-size: 1.6vmin; }
+    .cta { font-size: 2vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 64% 25%; }
+    .sign { left: 46%; }
+    .in { inset: 7vmin 7.4vmin; }
+    .top span { display: inline; }
+    .dest { margin-top: 5vmin; flex-direction: row; align-items: center; }
+    h1 { font-size: 16vmin; }
+    .arrow { width: 13vmin; height: 13vmin; margin-left: 0; }
+    .rule { margin: 4vmin 0 1.4vmin; }
+    .r { font-size: 3.6vmin; padding: 1.6vmin 0; }
+    .r b { font-size: 4.6vmin; }
+    .r i { width: 2.6vmin; margin-right: 1.4vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+  /* ───────── motion (6s loop, t=0 = the static sign) ─────────
+     constant: the look in a slow push-in
+     beats: 0.5s headlights sweep across the reflective sign face · 1.8s the arrow pushes twice along its heading ·
+            2.9s the three markdowns roll over like distance plates, top to bottom · 4.4s the EXIT tab double-flashes ·
+            5.0s a sheen crosses the CTA */
+  .photo { animation: look 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes look { 0%, 100% { transform: scale(1); clip-path: inset(0); } 50% { transform: scale(1.03); clip-path: inset(1.456%); } }
+
+  .sign::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,255,255,0) 35%, rgba(255,255,255,.07) 43%, rgba(255,255,255,.2) 50%, rgba(255,255,255,.07) 57%, rgba(255,255,255,0) 65%) 100% 0 / 300% 100% no-repeat;
+    animation: lights 6s linear infinite; }
+  @keyframes lights {
+    0%, 8% { background-position: 100% 0; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    30% { background-position: 0% 0; animation-timing-function: steps(1, end); }
+    30.5%, 100% { background-position: 100% 0; }
+  }
+
+  .arrow { animation: go 6s linear infinite; }
+  @keyframes go {
+    0%, 29% { transform: translate(0, 0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    33% { transform: translate(1.2vmin, -1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    37% { transform: translate(0, 0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    41% { transform: translate(1.2vmin, -1.2vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    46%, 100% { transform: translate(0, 0); }
+  }
+
+  .r b { display: inline-block; transform-origin: 50% 50%; animation: plate 6s linear infinite; }
+  .r:nth-child(2) b { animation-delay: -5.85s; }
+  .r:nth-child(3) b { animation-delay: -5.7s; }
+  @keyframes plate {
+    0%, 48% { transform: perspective(30vmin) rotateX(0deg); opacity: 1; animation-timing-function: cubic-bezier(.55,0,.9,.4); }
+    52% { transform: perspective(30vmin) rotateX(-90deg); opacity: .5; animation-timing-function: steps(1, end); }
+    52.5% { transform: perspective(30vmin) rotateX(90deg); opacity: .5; animation-timing-function: cubic-bezier(.15,.6,.3,1.2); }
+    58%, 100% { transform: perspective(30vmin) rotateX(0deg); opacity: 1; }
+  }
+
+  .tab { animation: tab 6s linear infinite; }
+  @keyframes tab {
+    0%, 72.9%, 75.1%, 76.9%, 79.1%, 100% { background-color: rgba(255,255,255,0); color: #fff; }
+    73%, 75%, 77%, 79% { background-color: #fff; color: #0A5E3A; }
+  }
+
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 40%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.6) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 80% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    93%, 100% { transform: translateX(300%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="sign">
+    <div class="in">
+      <div class="top"><div class="tab">EXIT 70</div><span>End of season</span></div>
+      <div class="dest">
+        <h1>Outlet</h1>
+        <svg class="arrow" viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><path d="M50 4 L88 44 L62 44 L62 96 L38 96 L38 44 L12 44 Z" fill="#fff"/></g></svg>
+      </div>
+      <div class="rule"></div>
+      <div class="rows">
+        <div class="r"><span><i>↑</i>Final reductions</span><b>−70%</b></div>
+        <div class="r"><span><i>↗</i>Last sizes</span><b>−50%</b></div>
+        <div class="r"><span><i>→</i>New markdowns</span><b>−30%</b></div>
+      </div>
+      <div class="foot"><p>Online &amp; in store<br>Ends Sunday</p><div class="cta">Take the exit</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

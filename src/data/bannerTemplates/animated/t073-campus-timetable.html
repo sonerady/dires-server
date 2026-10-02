@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Kalam:wght@700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Campus Timetable — back to school: graph-paper notebook page, varsity slab headline, the offer as a class timetable,
+     ballpoint doodles. tall → photo above the page; square/wide → photo left, page right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FBFAF3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #182848; font-family: "IBM Plex Mono", "Courier New", monospace;
+    background-color: #FBFAF3;
+    background-image: linear-gradient(rgba(64,112,196,.17) 1px, transparent 1px), linear-gradient(90deg, rgba(64,112,196,.17) 1px, transparent 1px);
+    background-size: 4.5vmin 4.5vmin; background-position: 0 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 56%; object-fit: cover; object-position: 50% 16%; }
+  .page { position: absolute; left: 0; right: 0; top: 56%; bottom: 0; }
+  .holes { position: absolute; left: 0; right: 0; top: 2vmin; height: 2.6vmin; background: radial-gradient(circle, #2A3140 0 .95vmin, rgba(42,49,64,.25) 1.05vmin, transparent 1.3vmin) 1.6vmin 0 / 6.4vmin 2.6vmin repeat-x; }
+  .margin { position: absolute; top: 0; bottom: 0; left: 11vmin; width: .9vmin; border-left: 1px solid #E0584C; border-right: 1px solid #E0584C; }
+  .kick { position: absolute; left: 14vmin; top: 7vmin; font-size: 1.8vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #3B5AA8; }
+  h1 { position: absolute; left: 13.4vmin; top: 10.6vmin; margin: 0; font-family: "Alfa Slab One", Rockwell, Georgia, serif; font-weight: 400; font-size: 11.2vmin; line-height: .95; letter-spacing: -.01em; text-transform: uppercase; }
+  h1 span { position: relative; z-index: 0; }
+  h1 span::before { content: ""; position: absolute; z-index: -1; left: -1.2vmin; right: -1.4vmin; top: 42%; height: 48%; background: #F4E35C; transform: rotate(-1.4deg) skewX(-8deg); border-radius: .4vmin; }
+  .tt { position: absolute; left: 14vmin; right: 5vmin; top: 33.4vmin; margin: 0; padding: 0; list-style: none; }
+  .tt li { display: flex; gap: 2.4vmin; align-items: baseline; padding: .7vmin 0; border-bottom: 1px solid rgba(24,40,72,.55); font-size: 2.2vmin; font-weight: 500; }
+  .tt li:first-child { border-top: .3vmin solid #182848; }
+  .tt time { flex: none; width: 8vmin; font-weight: 600; color: #3B5AA8; }
+  .note { position: absolute; right: 5vmin; top: 9vmin; font-family: "Kalam", "Comic Sans MS", cursive; font-weight: 700; font-size: 3.4vmin; line-height: 1; color: #2446B0; text-align: center; transform: rotate(-7deg); }
+  .note svg { display: block; margin: .6vmin auto 0; width: 12vmin; height: 5vmin; overflow: visible; }
+  .code { position: absolute; left: 14vmin; bottom: 4.6vmin; font-family: "Kalam", cursive; font-weight: 700; font-size: 4vmin; color: #2446B0; padding: 1vmin 2.6vmin; }
+  .code svg { position: absolute; inset: -1.2vmin -1.4vmin; width: calc(100% + 2.8vmin); height: calc(100% + 2.4vmin); overflow: visible; }
+  .cta { position: absolute; right: 5vmin; bottom: 6vmin; font-size: 2.1vmin; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; padding: 1.3vmin 2.2vmin; background: #182848; color: #FBFAF3; }
+  .grade { position: absolute; right: 5vmin; top: calc(56% - 7vmin); width: 12vmin; height: 12vmin; font-family: "Kalam", cursive; font-weight: 700; font-size: 6vmin; line-height: 12vmin; text-align: center; color: #D8392C; transform: rotate(10deg); }
+  .grade svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 52%; }
+    .page { top: 52%; }
+    .grade { top: calc(52% - 7vmin); }
+    h1 { font-size: 10vmin; }
+    .tt { top: 31vmin; }
+    .tt li { padding: .6vmin 0; font-size: 2vmin; }
+    .tt li:nth-child(4) { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 50%; height: 100%; object-position: 50% 30%; }
+    .page { top: 0; left: 50%; }
+    .holes { top: 0; bottom: 0; left: 1.8vmin; right: auto; width: 2.6vmin; height: auto; background: radial-gradient(circle, #2A3140 0 .95vmin, rgba(42,49,64,.25) 1.05vmin, transparent 1.3vmin) 0 1.6vmin / 2.6vmin 6.4vmin repeat-y; }
+    .margin { left: 7.6vmin; }
+    .grade { top: 27vmin; right: 3vmin; width: 11vmin; height: 11vmin; line-height: 11vmin; font-size: 5.4vmin; }
+    .kick { left: 10.5vmin; top: 7vmin; }
+    h1 { left: 10vmin; top: 11vmin; font-size: 6.6vmin; }
+    .note { display: none; }
+    .tt { left: 10.5vmin; right: 4vmin; top: 42vmin; }
+    .tt li { font-size: 1.85vmin; gap: 1.6vmin; padding: .8vmin 0; }
+    .tt li:nth-child(4) { display: flex; }
+    .tt time { width: 6.6vmin; }
+    .code { left: 10.5vmin; bottom: 13vmin; font-size: 3.4vmin; }
+    .cta { left: 10.5vmin; right: auto; bottom: 4.5vmin; font-size: 1.9vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 55% 30%; }
+    .page { left: 46%; }
+    .margin { left: 8vmin; }
+    .grade { top: 37vmin; right: 8vmin; width: 13vmin; height: 13vmin; line-height: 13vmin; font-size: 6.4vmin; }
+    .kick { left: 11vmin; top: 7vmin; }
+    h1 { left: 10.6vmin; top: 11vmin; font-size: 11.2vmin; }
+    .note { display: block; right: 6vmin; top: auto; bottom: 18vmin; }
+    .tt { left: 11vmin; right: 26vmin; top: 37vmin; }
+    .tt li { font-size: 2.1vmin; }
+    .code { left: 11vmin; bottom: 5vmin; font-size: 3.8vmin; }
+    .cta { left: auto; right: 6vmin; bottom: 6vmin; font-size: 2.1vmin; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ───────── */
+  /* the timetable: each period lights up in turn, like the bell moving through the day */
+  .tt li { position: relative; }
+  .tt li::before { content: ""; position: absolute; left: -1vmin; right: 0; top: 0; bottom: 0; z-index: -1; background: rgba(64,112,196,.13); opacity: 0; animation: period 6s linear infinite; }
+  .tt li:nth-child(2)::before { animation-delay: -5.55s; }
+  .tt li:nth-child(3)::before { animation-delay: -5.1s; }
+  .tt li:nth-child(4)::before { animation-delay: -4.65s; }
+  .tt { isolation: isolate; }
+  @keyframes period {
+    0%, 3% { opacity: 0; transform: scaleX(.6); transform-origin: 0 50%; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    7% { opacity: 1; transform: scaleX(1); transform-origin: 0 50%; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    13%, 100% { opacity: 0; transform: scaleX(1); transform-origin: 0 50%; }
+  }
+  /* "don't be late!" arrow is scribbled again: curve, then head */
+  .note path.a1 { stroke-dasharray: 100 100; animation: a1 6s linear infinite; }
+  .note path.a2 { stroke-dasharray: 100 100; animation: a2 6s linear infinite; }
+  @keyframes a1 {
+    0%, 12% { stroke-dashoffset: 0; opacity: 1; } 14% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    15% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.4,.1,.5,1); } 25%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+  @keyframes a2 {
+    0%, 12% { stroke-dashoffset: 0; opacity: 1; } 14% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    25% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.4,.1,.5,1); } 30%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+  /* highlighter: wipes off to the right, then is swiped back on */
+  h1 span::before { animation: hl 6s linear infinite; }
+  @keyframes hl {
+    0%, 36% { clip-path: inset(-20% -5% -20% -5%); animation-timing-function: cubic-bezier(.7,0,.3,1); }
+    42% { clip-path: inset(-20% -5% -20% 105%); animation-timing-function: steps(1, end); }
+    43% { clip-path: inset(-20% 105% -20% -5%); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    54%, 100% { clip-path: inset(-20% -5% -20% -5%); }
+  }
+  /* the A+ is circled again, then stamped */
+  .grade svg path { stroke-dasharray: 100 100; animation: gring 6s linear infinite; }
+  @keyframes gring {
+    0%, 58% { stroke-dashoffset: 0; opacity: 1; } 61% { stroke-dashoffset: 0; opacity: 0; animation-timing-function: steps(1, end); }
+    62% { stroke-dashoffset: 100; opacity: 1; animation-timing-function: cubic-bezier(.4,.1,.4,1); } 76%, 100% { stroke-dashoffset: 0; opacity: 1; }
+  }
+  .grade { animation: gpop 6s linear infinite; }
+  @keyframes gpop {
+    0%, 75% { scale: 1; animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    78% { scale: 1.16; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    83% { scale: .97; animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    87%, 100% { scale: 1; }
+  }
+  /* CTA arrow nudges */
+  .cta span { display: inline-block; animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 86% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    89% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    92% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    95% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    98%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="page">
+    <div class="margin"></div>
+    <div class="holes"></div>
+    <div class="kick">Fall term 2026 — Timetable</div>
+    <h1>Back to<br><span>campus.</span></h1>
+    <div class="note">don't be late!
+      <svg viewBox="0 0 120 50" aria-hidden="true"><path class="a1" pathLength="100" d="M8 6 C 30 40, 70 46, 104 34" fill="none" stroke="#2446B0" stroke-width="4" stroke-linecap="round"/><path class="a2" pathLength="100" d="M90 24 L 106 34 L 92 46" fill="none" stroke="#2446B0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <ol class="tt">
+      <li><time>09:00</time>New-season drop</li>
+      <li><time>11:15</time>20% off with student ID</li>
+      <li><time>13:00</time>Free shipping, all term</li>
+      <li><time>15:30</time>Final bell — 15 Sept</li>
+    </ol>
+    <div class="code">code: CLASS26
+      <svg viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M20 8 C 70 -2, 160 0, 190 16 C 206 30, 184 54, 110 56 C 40 58, 2 46, 6 28 C 9 14, 40 6, 70 5" fill="none" stroke="#2446B0" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>
+    </div>
+    <div class="cta">Enrol in style <span>→</span></div>
+  </div>
+  <div class="grade">A+
+    <svg viewBox="0 0 100 100" aria-hidden="true"><path pathLength="100" d="M50 6 C 80 4, 96 26, 94 52 C 92 80, 70 96, 46 94 C 18 92, 4 70, 6 46 C 8 22, 28 8, 58 9" fill="none" stroke="#D8392C" stroke-width="3.4" stroke-linecap="round"/></svg>
+  </div>
+</div>
+</body>
+</html>

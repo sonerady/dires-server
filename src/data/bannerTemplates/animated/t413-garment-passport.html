@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Garment Passport — the data page of a garment's passport: guilloche security print, the photo as the
+     holder portrait, an ownership chain (owner 01, 02 … and a blank line for the next one) and a
+     machine-readable zone along the bottom.
+     tall → portrait on top, data below; 3:4 same; square / wide → portrait left, data right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #E4EBE5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #15302A; font-family: "IBM Plex Mono", Menlo, monospace;
+            background-color: #E4EBE5;
+            background-image:
+              repeating-radial-gradient(circle at 110% 120%, transparent 0 1.1vmin, rgba(21,48,42,.07) 1.1vmin calc(1.1vmin + 1px)),
+              repeating-radial-gradient(circle at -10% 130%, transparent 0 1.4vmin, rgba(160,60,70,.06) 1.4vmin calc(1.4vmin + 1px)); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 92vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+
+  .page { position: absolute; left: 0; right: 0; bottom: 0; height: 92vmin; box-sizing: border-box; padding: 4.6vmin 6vmin 0; display: flex; flex-direction: column; }
+  .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .top b { font-weight: 600; }
+  .top span { color: #A03C46; }
+  h1 { margin: 2.2vmin 0 0; font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 13vmin; line-height: .9; letter-spacing: -.02em; }
+  h1 i { color: #A03C46; }
+  .hd { position: relative; }
+  .stamp { position: absolute; right: 1vmin; bottom: -3vmin; width: 25vmin; height: 25vmin; color: #A03C46; opacity: .82; transform: rotate(-14deg); mix-blend-mode: multiply; }
+
+  /* ownership chain */
+  .chain { list-style: none; margin: 3.6vmin 0 0; padding: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+  .chain li { position: relative; display: grid; grid-template-columns: 6vmin 1fr auto; align-items: baseline; gap: 2vmin; padding: 1.5vmin 0; border-top: 1px solid rgba(21,48,42,.28); }
+  .chain li:last-child { border-bottom: 1px solid rgba(21,48,42,.28); }
+  .chain i { font-style: normal; font-size: 1.7vmin; color: #5A6F69; letter-spacing: .08em; }
+  .chain b { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 4.6vmin; line-height: 1; white-space: nowrap; }
+  .chain span { font-size: 1.8vmin; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; color: #33504A; }
+  .chain .next b { font-style: italic; color: #A03C46; }
+  .chain .next span { color: #A03C46; font-weight: 600; }
+  .chain .next::after { content: ""; position: absolute; left: 8vmin; right: 22vmin; bottom: 1.6vmin; border-bottom: 1px dashed rgba(160,60,70,.6); }
+
+  .deal { display: flex; justify-content: space-between; align-items: center; margin-top: 2.6vmin; font-size: 1.8vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .deal strong { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 5vmin; letter-spacing: -.01em; text-transform: none; }
+  .deal .cta { font-weight: 600; border-bottom: .3vmin solid #15302A; padding-bottom: .3vmin; }
+
+  /* machine-readable zone */
+  .mrz { flex: none; margin: 3vmin -6vmin 0; padding: 1.8vmin 6vmin 2.2vmin; background: rgba(255,255,255,.55); font-weight: 500; font-size: 2.35vmin; line-height: 1.45; letter-spacing: .12em; white-space: nowrap; overflow: hidden; color: #1C2A27; text-overflow: clip; }
+  .mrz div { overflow: hidden; }
+
+  /* 3:4 / 4:5 */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: calc(100% - 76vmin); }
+    .page { height: 76vmin; padding-top: 4vmin; }
+    h1 { font-size: 10vmin; margin-top: 1.6vmin; }
+    .stamp { width: 20vmin; height: 20vmin; bottom: -2vmin; }
+    .chain { margin-top: 2vmin; }
+    .chain li { padding: 1.1vmin 0; }
+    .chain b { font-size: 3.6vmin; }
+    .deal { margin-top: 1.8vmin; }
+    .deal strong { font-size: 4.2vmin; }
+    .mrz { margin-top: 2.4vmin; font-size: 2vmin; padding: 1.4vmin 6vmin 1.8vmin; }
+  }
+  /* square → portrait left */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 42%; height: calc(100% - 11vmin); object-position: 50% 25%; }
+    .page { left: 42%; top: 0; height: auto; padding: 4.4vmin 4.6vmin 0; }
+    .top span { display: none; }
+    h1 { font-size: 8.6vmin; }
+    .stamp { width: 17vmin; height: 17vmin; right: 0; bottom: -16vmin; }
+    .chain li { grid-template-columns: 5vmin 1fr auto; gap: 1.4vmin; }
+    .chain b { font-size: 3.4vmin; }
+    .chain span { font-size: 1.6vmin; letter-spacing: .02em; }
+    .chain .next::after { left: 6.4vmin; right: 16vmin; }
+    .deal strong { font-size: 3.8vmin; }
+    .deal > span:first-child { display: none; }
+    .mrz { position: absolute; left: -72.414%; right: 0; bottom: 0; margin: 0; height: 11vmin; box-sizing: border-box; padding: 1.8vmin 4.6vmin 0; font-size: 2.3vmin; background: #F2F5F2; }
+    .page { bottom: 0; padding-bottom: 12vmin; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 44%; object-position: 50% 30%; }
+    .page { left: 44%; padding: 5vmin 5.4vmin 12vmin; }
+    .top span { display: inline; }
+    h1 { font-size: 10vmin; }
+    .stamp { width: 21vmin; height: 21vmin; right: 2vmin; bottom: -12vmin; }
+    .chain { margin-top: 2.4vmin; }
+    .chain li { grid-template-columns: 6vmin 1fr auto; gap: 2vmin; }
+    .chain b { font-size: 3.8vmin; }
+    .chain span { font-size: 1.7vmin; letter-spacing: .06em; }
+    .deal > span:first-child { display: inline; }
+    .mrz { left: -78.571%; font-size: 2.5vmin; padding-left: 5.4vmin; }
+  }
+
+  /* ───────── motion (6s loop) ─────────
+     beats: 0.5s a scanner beam reads the MRZ strip left→right · 1.9s the blank line for owner 03 is signed again (dashed rule re-drawn) ·
+            3.1s the transfer stamp lifts off and slams back down with an ink-press overshoot · 4.6s a holographic security sheen crosses the page ·
+            "From today" blinks like a cursor after the stamp lands */
+  @media not all and (min-aspect-ratio: 9/10) { .mrz { position: relative; } }
+  .mrz::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 26%; pointer-events: none;
+    background: linear-gradient(90deg, transparent 0%, rgba(90,220,170,.18) 60%, rgba(90,220,170,.55) 96%, rgba(40,160,120,.9) 98%, transparent 100%);
+    transform: translateX(-110%); animation: scan 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes scan { 0%, 8% { transform: translateX(-110%); } 30%, 100% { transform: translateX(400%); } }
+
+  .chain .next::after { animation: sign 6s cubic-bezier(.6,0,.3,1) infinite; }
+  @keyframes sign {
+    0%, 31% { clip-path: inset(-2px 0 -2px 0); }
+    33%, 36% { clip-path: inset(-2px 0 -2px 100%); }
+    36.1% { clip-path: inset(-2px 100% -2px 0); }
+    47%, 100% { clip-path: inset(-2px 0 -2px 0); }
+  }
+  .stamp { animation: stamp 6s cubic-bezier(.3,.7,.3,1) infinite; }
+  @keyframes stamp {
+    0%, 50% { transform: rotate(-14deg); opacity: .82; }
+    55% { transform: translate(1vmin, -3vmin) rotate(-4deg) scale(1.3); opacity: 0; }
+    55.1%, 62% { transform: translate(0, -2vmin) rotate(-20deg) scale(1.35); opacity: 0; }
+    65.5% { transform: rotate(-14deg) scale(.95); opacity: 1; }
+    68.5% { transform: rotate(-14deg) scale(1.015); opacity: .9; }
+    72%, 100% { transform: rotate(-14deg); opacity: .82; }
+  }
+  .chain .next span { animation: blink 6s steps(1, end) infinite; }
+  @keyframes blink { 0%, 68%, 71%, 74%, 100% { opacity: 1; } 69.5%, 72.5% { opacity: 0; } }
+
+  .page::before { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background: linear-gradient(100deg, transparent 0%, rgba(255,200,225,.22) 30%, rgba(190,255,235,.34) 50%, rgba(200,210,255,.22) 70%, transparent 100%) no-repeat;
+    background-size: 45% 100%; background-position: -100% 0; animation: holo 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes holo { 0%, 74% { background-position: -100% 0; } 94%, 100% { background-position: 200% 0; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="page">
+    <div class="top"><b>Garment passport</b><span>Nº AN-0417-26</span></div>
+    <div class="hd"><h1>Third owner<br><i>wanted.</i></h1>
+      <svg class="stamp" viewBox="0 0 100 100" aria-hidden="true"><defs><path id="ring" d="M50 50m-36 0a36 36 0 1 1 72 0a36 36 0 1 1-72 0"/></defs>
+        <circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="50" cy="50" r="42.5" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="50" cy="50" r="27" fill="none" stroke="currentColor" stroke-width="1"/>
+        <text font-family="IBM Plex Mono, monospace" font-size="8.4" font-weight="600" letter-spacing="1.6" fill="currentColor"><textPath href="#ring">RESALE · VERIFIED · TRANSFER ·</textPath></text>
+        <text x="50" y="47" text-anchor="middle" font-family="Instrument Serif, Georgia, serif" font-size="22" fill="currentColor">02→03</text>
+        <text x="50" y="60" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="6.4" font-weight="600" letter-spacing="1" fill="currentColor">25.09.26</text></svg></div>
+    <ol class="chain">
+      <li><i>01</i><b>Milan</b><span>2019 · 3 yrs</span></li>
+      <li><i>02</i><b>Lisbon</b><span>2022 · 4 yrs</span></li>
+      <li class="next"><i>03</i><b>You?</b><span>From today</span></li>
+    </ol>
+    <div class="deal"><span>Pre-owned</span><strong>€68</strong><span class="cta">Adopt it →</span></div>
+    <div class="mrz" aria-hidden="true">
+      <div>P&lt;ANR&lt;&lt;ATELIER&lt;NORD&lt;&lt;PRE&lt;LOVED&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</div>
+      <div>AN0417264&lt;9ANR1903&lt;&lt;&lt;&lt;OWNER&lt;03&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

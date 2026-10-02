@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Riviera Poster — a 1930s railway travel poster in flat lithographic colour: apricot sky with fanned rays,
+     a vermilion sun setting behind the photo, a stepped sea of blues, deco display title, a timetable line,
+     litho grain and a printer's credit. tall → centred poster; square / wide → photo right, lettering on the sea left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1D9A7; }
+  .banner { --sky: #F1D9A7; --sun: #E4553A; --cream: #F7EEDB; --ink: #1B2336;
+    --sx: 50%; --sy: 36vmin; --sd: 78vmin; --sea: 50vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--cream); font-family: "Josefin Sans", "Futura", "Century Gothic", sans-serif;
+    background: repeating-conic-gradient(from 0deg at var(--sx) var(--sy), rgba(228,140,70,.16) 0deg 5deg, rgba(228,140,70,0) 5deg 12deg), var(--sky); }
+  .sun { position: absolute; left: var(--sx); top: var(--sy); width: var(--sd); height: var(--sd); margin: calc(var(--sd) / -2) 0 0 calc(var(--sd) / -2); border-radius: 50%; background: var(--sun); }
+  .sea { position: absolute; left: 0; right: 0; bottom: 0; height: var(--sea);
+    background: linear-gradient(180deg, #4B86C2 0 4vmin, #3A73B2 4vmin 9vmin, #2C60A0 9vmin 15vmin, #214E8B 15vmin 23vmin, #183E73 23vmin); }
+  .sea::before { content: ""; position: absolute; left: 0; right: 0; top: 4vmin; height: 19vmin; background: repeating-linear-gradient(180deg, rgba(247,238,219,.18) 0 .3vmin, transparent .3vmin 2.6vmin); }
+  .grain { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .16; mix-blend-mode: multiply; pointer-events: none; }
+  .photo { position: absolute; left: 18vmin; right: 18vmin; top: 17vmin; bottom: 40vmin; box-shadow: 1.4vmin 1.4vmin 0 rgba(27,35,54,.28); }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+  .line { position: absolute; left: 6vmin; right: 6vmin; top: 6vmin; display: flex; align-items: center; gap: 2vmin; color: var(--ink); font-weight: 700; font-size: 2vmin; letter-spacing: .4em; text-transform: uppercase; white-space: nowrap; }
+  .line::before, .line::after { content: ""; flex: 1; height: .35vmin; background: var(--ink); }
+  .line span { background: var(--sky); padding: .6vmin 1.4vmin .3vmin; }
+  .lett { position: absolute; left: 6vmin; right: 6vmin; bottom: 5vmin; text-align: center; }
+  .title { font-family: "Limelight", "Didot", serif; font-size: 14.4vmin; line-height: 1; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .sub { margin-top: 1.4vmin; font-weight: 600; font-size: 2.3vmin; letter-spacing: .42em; text-transform: uppercase; white-space: nowrap; }
+  .tt { margin-top: 3.2vmin; display: flex; justify-content: center; gap: 0; border-top: 1px solid rgba(247,238,219,.55); border-bottom: 1px solid rgba(247,238,219,.55); }
+  .tt div { flex: 1; padding: 1.3vmin 0 1vmin; font-size: 1.9vmin; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .tt div + div { border-left: 1px solid rgba(247,238,219,.55); }
+  .tt b { font-weight: 700; color: #F4C77C; }
+  .imp { position: absolute; right: 2.4vmin; top: 50%; transform: translateY(-50%) rotate(180deg); writing-mode: vertical-rl; font-size: 1.6vmin; letter-spacing: .2em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --sy: 32vmin; --sd: 70vmin; --sea: 44vmin; }
+    .photo { left: 22vmin; right: 22vmin; top: 15vmin; bottom: 36vmin; }
+    .line { top: 5vmin; }
+    .title { font-size: 13vmin; }
+    .tt { margin-top: 2.4vmin; }
+    .lett { bottom: 4vmin; }
+    .imp { display: none; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --sx: 72vmin; --sy: 38vmin; --sd: 62vmin; --sea: 44vmin; }
+    .photo { left: auto; right: 6vmin; width: 44vmin; top: 7vmin; bottom: 7vmin; }
+    .line { left: 6vmin; right: auto; width: 40vmin; top: 7vmin; font-size: 1.7vmin; letter-spacing: .26em; }
+    .line::after { display: none; }
+    .line::before { flex: 0 0 5vmin; }
+    .line span { padding-left: 0; }
+    .lett { left: 6vmin; right: auto; width: 40vmin; bottom: 6vmin; text-align: left; }
+    .title { font-size: 8.4vmin; letter-spacing: .04em; }
+    .sub { font-size: 1.8vmin; letter-spacing: .26em; }
+    .tt { flex-direction: column; margin-top: 2.6vmin; border-bottom: 0; }
+    .tt div { padding: 1vmin 0 .8vmin; font-size: 1.7vmin; letter-spacing: .08em; border-bottom: 1px solid rgba(247,238,219,.55); }
+    .tt div + div { border-left: 0; }
+    .imp { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --sx: 100vmin; --sy: 40vmin; --sd: 72vmin; --sea: 42vmin; }
+    .photo { right: 7vmin; width: 50vmin; top: 7vmin; bottom: 7vmin; }
+    .line { left: 7vmin; width: 60vmin; top: 8vmin; font-size: 1.9vmin; letter-spacing: .36em; }
+    .lett { left: 7vmin; width: 70vmin; bottom: 6vmin; }
+    .title { font-size: 13.4vmin; letter-spacing: .06em; }
+    .sub { font-size: 2.2vmin; letter-spacing: .4em; }
+    .tt { flex-direction: row; border-bottom: 1px solid rgba(247,238,219,.55); }
+    .tt div { padding: 1.3vmin 1.4vmin 1vmin; font-size: 1.8vmin; border-bottom: 0; }
+    .tt div:first-child { padding-left: 0; }
+    .tt div + div { border-left: 1px solid rgba(247,238,219,.55); }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the static poster) — slow, sun-drenched ─────────
+     constant: the fanned rays turn one ray-step (12°) per loop round the sun, the sea's light lines roll shoreward (2 per loop),
+               the sun breathes and settles a touch lower mid-loop
+     beats: 1.4s a warm glint travels across the deco "Riviera" · 3.6s a light runs along the timetable rail like a train ·
+            4.6s the −25% fare warms */
+  .banner { background: var(--sky); }
+  .banner::before { content: ""; position: absolute; left: calc(var(--sx) - 160vmax); top: calc(var(--sy) - 160vmax); width: 320vmax; height: 320vmax; pointer-events: none;
+    background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(228,140,70,.16) 0deg 5deg, rgba(228,140,70,0) 5deg 12deg);
+    animation: rays 6s linear infinite; }
+  @keyframes rays { from { transform: rotate(0deg); } to { transform: rotate(12deg); } }
+  .sun { animation: sun 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sun { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(1.6vmin) scale(1.025); } }
+  .sea::before { animation: roll 6s linear infinite; }
+  @keyframes roll { from { background-position: 0 0; } to { background-position: 0 5.2vmin; } }
+  .title span { background: linear-gradient(100deg, var(--cream) 0 38%, #FFE2A6 46%, #FFF6E0 50%, #FFE2A6 54%, var(--cream) 62% 100%) 100% 0 / 320% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: glint 6s linear infinite; }
+  @keyframes glint {
+    0%, 20% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.35,1); }
+    48%, 100% { background-position: 0% 0; }
+  }
+  .tt { position: relative; }
+  .tt::before { content: ""; position: absolute; left: 0; top: -1px; width: 22%; height: 1px; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,236,190,0), #FFF3D6 80%, #FFFFFF);
+    box-shadow: 0 0 .8vmin rgba(255,230,170,.9); opacity: 0; transform: translateX(-100%); animation: train 6s linear infinite; }
+  @keyframes train {
+    0%, 58% { transform: translateX(-100%); opacity: 0; animation-timing-function: linear; }
+    60% { opacity: 1; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    60.1% { transform: translateX(-60%); opacity: 1; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    78% { transform: translateX(455%); opacity: 1; animation-timing-function: linear; }
+    80%, 100% { transform: translateX(455%); opacity: 0; }
+  }
+  .tt div:nth-child(2) b { display: inline-block; animation: fare 6s linear infinite; }
+  @keyframes fare {
+    0%, 74% { color: #F4C77C; transform: scale(1); text-shadow: 0 0 0 rgba(255,210,130,0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    78% { color: #FFE0A0; transform: scale(1.15); text-shadow: 0 0 1.2vmin rgba(255,210,130,.8); animation-timing-function: cubic-bezier(.4,0,.4,1); }
+    86%, 100% { color: #F4C77C; transform: scale(1); text-shadow: 0 0 0 rgba(255,210,130,0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sun"></div>
+  <div class="sea"></div>
+  <svg class="grain" aria-hidden="true"><filter id="gr"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .08  0 0 0 0 .06  0 0 0 1.2 -.4"/></filter><rect width="100%" height="100%" filter="url(#gr)"/></svg>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="line"><span>Ligne du Soleil</span></div>
+  <div class="lett">
+    <div class="title"><span>Riviera</span></div>
+    <div class="sub">The Resort Collection</div>
+    <div class="tt"><div>From <b>14 June</b></div><div><b>−25%</b> first class</div><div>Code <b>RIVIERA25</b></div></div>
+  </div>
+  <div class="imp">Imp. Atelier Nord · Paris</div>
+</div>
+</body>
+</html>

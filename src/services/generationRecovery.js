@@ -61,29 +61,56 @@ async function recoverStaleGenerations(db, { now = Date.now(), userId, generatio
 
   // Retry mirror synchronization independently. A previous sweep may have
   // updated the canonical row before a temporary mirror-table write failure.
+  // ⚠️ 25 Eyl 2026: one generation_id can own SEVERAL canonical rows (the same
+  // job submitted twice seconds apart, ~1 every few days). `.maybeSingle()` threw
+  // "JSON object requested, multiple (or no) rows returned" on it and aborted the
+  // whole sweep every minute, so every later mirror stayed "processing" forever.
+  // Now: read all canonical rows, pick per mirror, and one bad mirror no longer
+  // blocks the rest (errors are collected and rethrown at the end for the log).
+  const errors = [];
   for (const table of MIRRORS) {
     const { data: mirrors, error: readError } = await scope(db.from(table)
-      .select("id,generation_id,user_id,updated_at")
+      .select("id,generation_id,user_id,updated_at,created_at")
       .in("status", ACTIVE).is("result_image_url", null)
       .lt("updated_at", cutoff).order("updated_at").limit(limit).abortSignal(AbortSignal.timeout(15000)));
     if (readError) throw readError;
     for (const mirror of mirrors || []) {
-      const { data: canonical, error: canonicalError } = await db.from("reference_results")
-        .select("status,result_image_url").eq("generation_id", mirror.generation_id)
-        .eq("user_id", mirror.user_id).maybeSingle().abortSignal(AbortSignal.timeout(15000));
-      if (canonicalError) throw canonicalError;
-      if (!canonical || !["failed", "completed"].includes(canonical.status)) continue;
-      if (canonical.status === "completed" && !canonical.result_image_url) continue;
-      const update = { status: canonical.status, updated_at: new Date(now).toISOString() };
-      if (canonical.result_image_url) update.result_image_url = canonical.result_image_url;
-      const { data, error: mirrorError } = await db.from(table).update(update)
-        .eq("id", mirror.id).eq("user_id", mirror.user_id).eq("updated_at", mirror.updated_at)
-        .in("status", ACTIVE).is("result_image_url", null).select("generation_id").abortSignal(AbortSignal.timeout(15000));
-      if (mirrorError) throw mirrorError;
-      if (data?.length) summary.mirrors.push({ table, generationId: mirror.generation_id, status: canonical.status });
+      try {
+        const { data: canonicals, error: canonicalError } = await db.from("reference_results")
+          .select("status,result_image_url,created_at").eq("generation_id", mirror.generation_id)
+          .eq("user_id", mirror.user_id).limit(20).abortSignal(AbortSignal.timeout(15000));
+        if (canonicalError) throw canonicalError;
+        const canonical = pickCanonical(canonicals, mirror.created_at);
+        if (!canonical) continue;
+        const update = { status: canonical.status, updated_at: new Date(now).toISOString() };
+        if (canonical.result_image_url) update.result_image_url = canonical.result_image_url;
+        const { data, error: mirrorError } = await db.from(table).update(update)
+          .eq("id", mirror.id).eq("user_id", mirror.user_id).eq("updated_at", mirror.updated_at)
+          .in("status", ACTIVE).is("result_image_url", null).select("generation_id").abortSignal(AbortSignal.timeout(15000));
+        if (mirrorError) throw mirrorError;
+        if (data?.length) summary.mirrors.push({ table, generationId: mirror.generation_id, status: canonical.status });
+      } catch (error) {
+        errors.push(`${table}:${mirror.generation_id}: ${error?.message || error}`);
+      }
     }
   }
+  if (errors.length) throw Object.assign(new Error(`mirror sync failed (${errors.length}) — ${errors.slice(0, 3).join(" | ")}`), { summary });
   return summary;
+}
+
+// Canonical row(s) → the state a stale mirror should adopt, or null to leave it.
+// Several rows (duplicate submit): a completed image wins, closest in time to the
+// mirror row; "failed" only when every canonical row failed.
+function pickCanonical(rows, mirrorCreatedAt) {
+  const list = (rows || []).filter(Boolean);
+  if (!list.length) return null;
+  const done = list.filter(r => r.status === "completed" && r.result_image_url);
+  if (done.length) {
+    const at = Date.parse(mirrorCreatedAt || "") || 0;
+    const gap = r => Math.abs((Date.parse(r.created_at || "") || 0) - at);
+    return done.slice().sort((a, b) => gap(a) - gap(b))[0];
+  }
+  return list.every(r => r.status === "failed") ? { status: "failed", result_image_url: null } : null;
 }
 
 function startGenerationRecovery(db, { intervalMs = 60000, logger = console } = {}) {
@@ -103,4 +130,4 @@ function startGenerationRecovery(db, { intervalMs = 60000, logger = console } = 
   return () => clearInterval(timer);
 }
 
-module.exports = { recoverStaleGenerations, startGenerationRecovery, startGenerationHeartbeat, STALE_MS };
+module.exports = { pickCanonical, recoverStaleGenerations, startGenerationRecovery, startGenerationHeartbeat, STALE_MS };

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Cruise Log — a resort collection as a ship's log: twisted-rope seam, fine compass rose,
+     coordinates and a three-port itinerary. Navy on sail-white, one signal red.
+     tall → photo above the log; square/wide → log left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F7F5EF; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F7F5EF; color: #172B57; font-family: "IBM Plex Mono", "Courier New", monospace; }
+  .photo { position: absolute; top: 0; left: 0; width: 100%; height: 58%; object-fit: cover; object-position: 50% 18%; }
+  .rope { position: absolute; left: 0; right: 0; top: 58%; height: 1.4vmin; background: repeating-linear-gradient(-58deg, #172B57 0 .55vmin, #F7F5EF .55vmin .8vmin, #8FA3C8 .8vmin 1.05vmin, #F7F5EF 1.05vmin 1.3vmin); }
+  .log { position: absolute; left: 6vmin; right: 6vmin; top: calc(58% + 5vmin); bottom: 5vmin; display: flex; flex-direction: column; }
+  .meta { display: flex; justify-content: space-between; gap: 3vmin; font-size: 1.9vmin; letter-spacing: .12em; text-transform: uppercase; padding-bottom: 1.4vmin; border-bottom: 1px solid rgba(23,43,87,.3); }
+  .meta span:first-child { color: #C23B2A; font-weight: 500; }
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 4vmin; margin: auto 0; }
+  .h { font-family: "Marcellus", "Trajan Pro", serif; font-size: min(13vmin, 7.4vh); line-height: .95; letter-spacing: -.01em; }
+  .h small { display: block; margin-top: 1.6vmin; font-family: "IBM Plex Mono", monospace; font-size: 2.1vmin; letter-spacing: .24em; text-transform: uppercase; line-height: 1.4; }
+  .compass { flex: none; width: min(22vmin, 12.4vh); height: min(22vmin, 12.4vh); }
+  .route { position: relative; display: flex; justify-content: space-between; padding-top: .2vmin; }
+  .route::before { content: ""; position: absolute; left: .8vmin; right: .8vmin; top: .95vmin; border-top: .25vmin dashed rgba(23,43,87,.55); }
+  .stop { position: relative; display: flex; flex-direction: column; align-items: flex-start; font-size: 1.9vmin; letter-spacing: .1em; text-transform: uppercase; }
+  .stop:nth-child(2) { align-items: center; }
+  .stop:last-child { align-items: flex-end; }
+  .stop i { width: 1.4vmin; height: 1.4vmin; border-radius: 50%; border: .3vmin solid #172B57; background: #F7F5EF; margin-bottom: 1vmin; }
+  .stop:first-child i { background: #C23B2A; border-color: #C23B2A; }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; margin-top: 3.4vmin; }
+  .foot .d { font-size: 1.9vmin; letter-spacing: .08em; line-height: 1.5; color: #3B4C74; }
+  .cta { flex: none; padding: 1.5vmin 3.4vmin; background: #172B57; color: #F7F5EF; font-size: 2vmin; font-weight: 500; letter-spacing: .24em; text-transform: uppercase; }
+  @media (min-aspect-ratio: 7/10) {
+    .photo { height: 55%; }
+    .rope { top: 55%; }
+    .log { top: calc(55% + 4.4vmin); bottom: 4.4vmin; }
+    .h { font-size: 10.6vmin; }
+    .compass { width: 17vmin; height: 17vmin; }
+    .foot { margin-top: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .photo { left: 48%; width: 52%; height: 100%; object-position: 50% 25%; }
+    .rope { top: 0; bottom: 0; left: calc(48% - 1.4vmin); right: auto; width: 1.4vmin; height: auto; background: repeating-linear-gradient(-32deg, #172B57 0 .55vmin, #F7F5EF .55vmin .8vmin, #8FA3C8 .8vmin 1.05vmin, #F7F5EF 1.05vmin 1.3vmin); }
+    .log { left: 5vmin; right: auto; width: calc(48% - 10vmin); top: 5vmin; bottom: 5vmin; }
+    .meta { flex-direction: column; gap: .6vmin; font-size: 1.7vmin; }
+    .head { flex-direction: column-reverse; align-items: flex-start; gap: 3vmin; }
+    .h { font-size: 8.6vmin; }
+    .h small { font-size: 1.8vmin; letter-spacing: .16em; }
+    .compass { width: 13vmin; height: 13vmin; }
+    .stop { font-size: 1.7vmin; letter-spacing: .04em; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2vmin; margin-top: 3vmin; }
+    .foot .d { font-size: 1.7vmin; }
+    .cta { font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { left: 45%; width: 55%; }
+    .rope { left: calc(45% - 1.4vmin); }
+    .log { left: 6vmin; width: calc(45% - 12vmin); top: 6vmin; bottom: 6vmin; }
+    .meta { flex-direction: row; font-size: 1.9vmin; }
+    .head { flex-direction: row; align-items: center; }
+    .h { font-size: 10.4vmin; }
+    .h small { font-size: 2vmin; letter-spacing: .22em; }
+    .compass { width: 17vmin; height: 17vmin; }
+    .stop { font-size: 1.9vmin; letter-spacing: .1em; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 2.4vmin; margin-top: 3.4vmin; }
+    .foot .d { font-size: 1.9vmin; }
+    .cta { font-size: 2vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="rope"></div>
+  <div class="log">
+    <div class="meta"><span>Croisière 2027</span><span>43°33′N · 7°01′E</span></div>
+    <div class="head">
+      <div class="h">Set Sail.<small>The Cruise Collection</small></div>
+      <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
+        <g fill="none" stroke="#172B57">
+          <circle cx="50" cy="54" r="34" stroke-width=".8"/>
+          <circle cx="50" cy="54" r="30" stroke-width=".4" stroke-dasharray=".8 2.34"/>
+        </g>
+        <path d="M50 16 L54 50 L50 54 L46 50Z" fill="#C23B2A"/>
+        <path d="M50 92 L54 58 L50 54 L46 58Z M88 54 L54 58 L50 54 L54 50Z M12 54 L46 50 L50 54 L46 58Z" fill="none" stroke="#172B57" stroke-width=".9" stroke-linejoin="round"/>
+        <path d="M50 54 L66 38 M50 54 L34 38 M50 54 L66 70 M50 54 L34 70" stroke="#172B57" stroke-width=".6"/>
+        <circle cx="50" cy="54" r="2" fill="#F7F5EF" stroke="#172B57" stroke-width=".8"/>
+        <text x="50" y="10.5" text-anchor="middle" font-family="Marcellus, serif" font-size="10" fill="#172B57">N</text>
+      </svg>
+    </div>
+    <div class="route">
+      <div class="stop"><i></i>Portofino</div>
+      <div class="stop"><i></i>Hydra</div>
+      <div class="stop"><i></i>Capri</div>
+    </div>
+    <div class="foot">
+      <div class="d">Sun-bleached tones for long days at sea.<br>Arrives 12.11 — online &amp; in store.</div>
+      <div class="cta">Shop now</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

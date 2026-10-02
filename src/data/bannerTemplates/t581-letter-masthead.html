@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&subset=latin-ext&display=swap" rel="stylesheet">
+<style>
+  /* Letter Masthead — the top of a weekly brand newsletter: preheader line, a big serif masthead with
+     issue number and date rules, the cover photo with a caption, and an "in this issue" contents list.
+     tall → stacked like an email · 3:4 → masthead over photo + contents column · square → tighter · wide → letter left, cover right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EEE5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F2EEE5; color: #1B1A17; font-family: "IBM Plex Mono", Menlo, monospace; }
+
+  .pre { position: absolute; left: 5vmin; right: 5vmin; top: 2.6vmin; display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.6vmin; color: #7A7466; white-space: nowrap; }
+  .pre u { text-decoration: none; border-bottom: 1px solid #A9A293; }
+
+  .mast { position: absolute; left: 5vmin; right: 5vmin; top: 7vmin; text-align: center; }
+  .mast .top, .mast .bot { display: flex; justify-content: space-between; align-items: center; font-size: 1.6vmin; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+  .mast .top { padding-bottom: 1.2vmin; border-bottom: 1px solid #1B1A17; }
+  .mast .bot { padding-top: 1.2vmin; border-top: 1px solid #1B1A17; box-shadow: 0 -.6vmin 0 -.3vmin #F2EEE5, 0 -.7vmin 0 -.3vmin #1B1A17; }
+  .mast h2 { margin: 1.4vmin 0 1.6vmin; font-family: "Fraunces", Georgia, serif; font-weight: 300; font-size: 12.4vmin; line-height: .92; letter-spacing: -.035em; white-space: nowrap; }
+  .mast h2 i { font-weight: 400; color: #B5462B; }
+  .no { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 400; font-size: 2.8vmin; letter-spacing: 0; text-transform: none; color: #B5462B; }
+
+  .cover { position: absolute; left: 5vmin; right: 5vmin; top: 33vmin; height: calc(100% - 80vmin); }
+  .cover img { display: block; width: 100%; height: calc(100% - 4.4vmin); object-fit: cover; object-position: 50% 22%; }
+  .cap { display: flex; justify-content: space-between; gap: 2vmin; margin-top: 1.4vmin; font-size: 1.6vmin; color: #5E594D; white-space: nowrap; }
+  .cap b { font-weight: 500; color: #1B1A17; }
+
+  .toc { position: absolute; left: 5vmin; right: 5vmin; bottom: 4.4vmin; height: 38vmin; display: flex; flex-direction: column; }
+  .toc h3 { margin: 0; font-family: "Fraunces", Georgia, serif; font-weight: 300; font-style: italic; font-size: 4.6vmin; line-height: 1; letter-spacing: -.01em; }
+  .toc ol { list-style: none; margin: 1.8vmin 0 0; padding: 0; }
+  .toc li { display: grid; grid-template-columns: 5vmin 1fr auto; align-items: baseline; gap: 1.4vmin; padding: 1.3vmin 0; border-top: 1px solid #CFC8B8; }
+  .toc li:last-child { border-bottom: 1px solid #CFC8B8; }
+  .toc .n { font-size: 1.6vmin; color: #B5462B; font-weight: 500; }
+  .toc .t { font-family: "Fraunces", Georgia, serif; font-size: 2.6vmin; font-weight: 400; line-height: 1.15; }
+  .toc .p { font-size: 1.6vmin; color: #7A7466; white-space: nowrap; }
+  .note { display: none; margin: 3.4vmin 0 0; padding-left: 2.4vmin; border-left: .4vmin solid #B5462B; font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 300; font-size: 2.8vmin; line-height: 1.3; }
+  .note span { display: block; margin-top: 1.2vmin; font-family: "IBM Plex Mono", Menlo, monospace; font-style: normal; font-size: 1.6vmin; color: #7A7466; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .cta { background: #1B1A17; color: #F2EEE5; padding: 1.7vmin 3vmin; font-size: 1.8vmin; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .fine { font-size: 1.6vmin; color: #7A7466; text-align: right; line-height: 1.35; }
+
+  /* ── 3:4 — masthead across, cover left, contents right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .mast h2 { font-size: 11.6vmin; }
+    .cover { right: auto; width: 52vmin; top: 32vmin; bottom: 4.4vmin; height: auto; }
+    .toc { left: 61vmin; right: 5vmin; top: 32vmin; bottom: 4.4vmin; height: auto; }
+    .toc .t { font-size: 2.3vmin; }
+    .toc li { grid-template-columns: 4vmin 1fr; }
+    .toc .p { grid-column: 2; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .fine { text-align: left; }
+    .note { display: block; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .pre { top: 2.2vmin; }
+    .mast { top: 6vmin; }
+    .mast h2 { font-size: 9.4vmin; margin: 1vmin 0 1.2vmin; }
+    .cover { top: 27vmin; bottom: 4vmin; width: 48%; }
+    .cap { font-size: 1.6vmin; }
+    .toc { left: calc(48% + 9vmin); top: 27vmin; bottom: 4vmin; }
+    .toc h3 { font-size: 4vmin; }
+    .toc ol { margin-top: 1.2vmin; }
+    .toc li { padding: 1vmin 0; }
+    .toc .t { font-size: 2.2vmin; }
+    .note { font-size: 2.4vmin; margin-top: 2.6vmin; }
+  }
+  /* ── wide — the letter left, cover right ── */
+  @media (min-aspect-ratio: 6/5) {
+    .pre { right: calc(44% + 5vmin); flex-direction: column; gap: .6vmin; }
+    .mast { right: calc(44% + 5vmin); top: 10vmin; text-align: left; }
+    .mast h2 { font-size: 8.6vmin; }
+    .cover { left: auto; right: 5vmin; width: calc(44% - 5vmin); top: 5vmin; bottom: 5vmin; }
+    .toc { left: 5vmin; right: calc(44% + 5vmin); top: 36vmin; bottom: 5vmin; }
+    .toc li { grid-template-columns: 4.4vmin 1fr auto; padding: 1.1vmin 0; }
+    .toc .p { grid-column: auto; }
+    .foot { flex-direction: row; align-items: center; }
+    .fine { text-align: right; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="pre"><span>Five minutes, one good piece.</span><span><u>View in browser</u></span></div>
+  <div class="mast">
+    <div class="top"><span>Est. 2019</span><span class="no">Nº 47</span><span>Thu · 25 Sep</span></div>
+    <h2>The Loret <i>Letter</i></h2>
+    <div class="bot"><span>Weekly</span><span>Autumn issue</span><span>Free</span></div>
+  </div>
+  <div class="cover">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="cap"><span>Cover — <b>The Column</b>, in bone</span><span>$148</span></div>
+  </div>
+  <div class="toc">
+    <h3>In this issue</h3>
+    <ol>
+      <li><span class="n">01</span><span class="t">The one piece we'd keep all year</span><span class="p">2 min</span></li>
+      <li><span class="n">02</span><span class="t">Three ways to wear it this week</span><span class="p">1 min</span></li>
+      <li><span class="n">03</span><span class="t">Readers get early access Friday</span><span class="p">News</span></li>
+    </ol>
+    <p class="note">“Buy less, wear it longer. This week, that means one easy piece.”<span>— Mira, editor</span></p>
+    <div class="foot">
+      <div class="cta">Read issue 47 →</div>
+      <div class="fine">Free shipping over $90<br>Unsubscribe anytime</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

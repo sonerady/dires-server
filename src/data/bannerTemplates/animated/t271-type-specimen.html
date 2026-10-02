@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@100..900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Type Specimen — the banner is a foundry specimen sheet for the new collection:
+     a giant "Aa", a weight ladder 100→900, a size waterfall with point sizes, a latin-ext glyph line.
+     TALL → specimen column left of the photo, waterfall + offer across the bottom
+     7/10+ → photo left, the whole specimen stacked in the right column; wide → hero row + waterfall */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1EFEA; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F1EFEA; color: #121212; font-family: "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+    display: grid; grid-template-columns: 38% 62%; grid-template-rows: 1fr auto; grid-template-areas: "side photo" "bottom bottom"; }
+  .mono { font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.6vmin; letter-spacing: .04em; text-transform: uppercase; font-weight: 400; }
+
+  .ph { grid-area: photo; position: relative; min-height: 0; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .side { grid-area: side; min-height: 0; padding: 4.6vmin 4vmin 3vmin 4.6vmin; display: flex; flex-direction: column; }
+  .hd { display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid #121212; }
+  .aa { margin-top: 3vmin; font-weight: 800; font-size: 21vmin; line-height: .8; letter-spacing: -.075em; margin-left: -.8vmin; }
+  .aa-l { margin-top: 1.8vmin; color: #6B6A66; }
+  .aa-l b { color: #FF4D1C; font-weight: 500; }
+  .glyphs { display: none; }
+  @media (max-aspect-ratio: 5/8) {
+    .glyphs { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 4vmin; border-top: 1px solid #121212; border-left: 1px solid rgba(18,18,18,.22); }
+    .glyphs span { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 6vmin; font-weight: 300; border-right: 1px solid rgba(18,18,18,.22); border-bottom: 1px solid rgba(18,18,18,.22); }
+    .glyphs span:nth-child(5) { background: #121212; color: #F1EFEA; font-weight: 800; }
+    .glyphs span:nth-child(3) { color: #FF4D1C; font-weight: 600; }
+  }
+  .wts { margin-top: auto; }
+  .r { display: flex; justify-content: space-between; align-items: baseline; gap: 1.4vmin; padding: 1.1vmin 0 .9vmin; border-top: 1px solid rgba(18,18,18,.22); }
+  .r b { font-size: 5.6vmin; line-height: 1; letter-spacing: -.035em; }
+  .r .mono { color: #6B6A66; white-space: nowrap; }
+  .w1 b { font-weight: 100; } .w3 b { font-weight: 300; } .w5 b { font-weight: 500; } .w7 b { font-weight: 700; }
+  .w9 b { font-weight: 900; color: #FF4D1C; }
+
+  .bottom { grid-area: bottom; padding: 2.6vmin 4.6vmin 4.4vmin; border-top: .5vmin solid #121212; }
+  .l { display: flex; align-items: baseline; gap: 2vmin; padding: 1vmin 0 .8vmin; border-bottom: 1px solid rgba(18,18,18,.22); white-space: nowrap; overflow: hidden; }
+  .l i { flex: none; width: 4.4vmin; font-style: normal; color: #6B6A66; }
+  .l b { line-height: 1; letter-spacing: -.03em; font-weight: 500; }
+  .l1 b { font-size: 9vmin; font-weight: 700; letter-spacing: -.055em; }
+  .l2 b { font-size: 5.4vmin; }
+  .l3 b { font-size: 3.4vmin; font-weight: 400; letter-spacing: -.01em; }
+  .l4 b { font-size: 2.2vmin; font-weight: 400; letter-spacing: 0; }
+  .ft { margin-top: 2.8vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .off { display: flex; align-items: center; gap: 2.2vmin; }
+  .off b { font-size: 8.4vmin; font-weight: 900; letter-spacing: -.06em; line-height: .8; color: #FF4D1C; }
+  .off .mono { line-height: 1.5; }
+  .cta { background: #121212; color: #F1EFEA; font-size: 2.5vmin; font-weight: 600; padding: 2.2vmin 3.2vmin; white-space: nowrap; letter-spacing: -.01em; }
+
+  /* SHORTER PORTRAIT — photo left, the specimen stacks in the right column */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { grid-template-columns: 50% 50%; grid-template-rows: auto 1fr; grid-template-areas: "photo side" "photo bottom"; }
+    .side { padding: 4.4vmin 4.4vmin 0 4.4vmin; }
+    .aa { font-size: 20vmin; margin-top: 2.6vmin; }
+    .wts { margin-top: 2.6vmin; }
+    .r { padding: .8vmin 0 .7vmin; }
+    .r b { font-size: 4.6vmin; }
+    .bottom { border-top: 0; padding: 2vmin 4.4vmin 4.4vmin; display: flex; flex-direction: column; }
+    .wf { margin-top: auto; }
+    .l1 b { font-size: 6.4vmin; }
+    .l2 b { font-size: 3.4vmin; }
+    .l3 b { font-size: 2.3vmin; }
+    .l4 { display: none; }
+    .ft { margin-top: 2.4vmin; flex-direction: column; align-items: stretch; gap: 2vmin; }
+    .off b { font-size: 6.4vmin; }
+    .off .mono { white-space: nowrap; }
+    .cta { font-size: 2.2vmin; padding: 1.8vmin 2.4vmin; text-align: center; }
+  }
+  /* SQUARE */
+  @media (min-aspect-ratio: 9/10) {
+    .side { padding: 3.6vmin 3.6vmin 0 3.8vmin; }
+    .hd .mono:nth-child(2) { display: none; }
+    .aa { font-size: 15vmin; margin-top: 2vmin; }
+    .aa-l { margin-top: 1.2vmin; }
+    .wts { margin-top: 1.6vmin; }
+    .r { padding: .5vmin 0 .4vmin; }
+    .r b { font-size: 3.6vmin; }
+    .bottom { padding: 1.4vmin 3.8vmin 3.6vmin; }
+    .l { padding: .7vmin 0 .5vmin; }
+    .l1 b { font-size: 5.2vmin; }
+    .l2 b { font-size: 2.9vmin; }
+    .l3 { display: none; }
+    .ft { margin-top: 2vmin; gap: 1.6vmin; }
+    .off b { font-size: 5.4vmin; }
+    .off { gap: 1.6vmin; }
+    .cta { font-size: 1.9vmin; padding: 1.6vmin 2vmin; }
+  }
+  /* WIDE — hero row (Aa beside the weight ladder), waterfall below */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { grid-template-columns: 46% 54%; }
+    .side { padding: 4.4vmin 5vmin 0 5vmin; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto; column-gap: 4.4vmin; }
+    .hd { grid-column: 1 / -1; }
+    .hd .mono:nth-child(2) { display: inline; }
+    .aa { grid-column: 1; grid-row: 2; font-size: 20vmin; margin-top: 3vmin; }
+    .aa-l { grid-column: 1; grid-row: 3; }
+    .wts { grid-column: 2; grid-row: 2 / 4; margin-top: 2.6vmin; }
+    .r b { font-size: 3.9vmin; }
+    .bottom { padding: 1.6vmin 5vmin 4.4vmin; }
+    .l3 { display: flex; }
+    .l1 b { font-size: 7.6vmin; }
+    .l2 b { font-size: 4.2vmin; }
+    .l3 b { font-size: 2.6vmin; }
+    .ft { flex-direction: row; align-items: center; }
+    .off b { font-size: 6.4vmin; }
+    .cta { font-size: 2.2vmin; padding: 1.9vmin 2.8vmin; }
+  }
+
+  /* ───────── motion (6s loop, t=0 = the specimen sheet) ─────────
+     0.0s  a weight wave runs down the ladder: each "Edit" swells to Black and relaxes back to its own weight
+     1.3s  the giant "Aa" thins to Thin and swells back to Extra Bold (the variable axis in action)
+     2.3s  (tall) the black highlight hops across the glyph grid, cell by cell, and lands back on R
+     3.4s  the waterfall is re-set line by line, a type-cursor wipe left→right
+     4.2s  the −30% pops · 4.7s a sheen crosses the CTA */
+  .w1 b { --w: 100; } .w3 b { --w: 300; } .w5 b { --w: 500; } .w7 b { --w: 700; }
+  .r b { animation: wv 6s linear infinite; }
+  @keyframes wv {
+    0%, 3% { font-weight: var(--w); animation-timing-function: cubic-bezier(.45,0,.2,1); }
+    9% { font-weight: 900; animation-timing-function: cubic-bezier(.45,0,.2,1); }
+    17%, 100% { font-weight: var(--w); }
+  }
+  .w9 b { display: inline-block; transform-origin: 0 80%; animation: wv9 6s linear infinite; }
+  @keyframes wv9 {
+    0%, 3% { transform: scale(1); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    8% { transform: scale(1.06); animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    14%, 100% { transform: scale(1); }
+  }
+  .w3 b { animation-delay: -5.85s; } .w5 b { animation-delay: -5.7s; } .w7 b { animation-delay: -5.55s; } .w9 b { animation-delay: -5.4s; }
+  .aa { animation: aa 6s linear infinite; }
+  @keyframes aa {
+    0%, 22% { font-weight: 800; animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    31%, 34% { font-weight: 100; animation-timing-function: cubic-bezier(.6,0,.3,1); }
+    44%, 100% { font-weight: 800; }
+  }
+  .aa-l b { animation: blink 1.5s steps(1, end) infinite; }
+  @keyframes blink { 0%, 60% { opacity: 1; } 61%, 85% { opacity: .35; } 86%, 100% { opacity: 1; } }
+  @keyframes hop {
+    0%, 1% { background: rgba(18,18,18,0); color: #121212; animation-timing-function: steps(1, end); }
+    1.5%, 4% { background: #121212; color: #F1EFEA; animation-timing-function: steps(1, end); }
+    4.5%, 100% { background: rgba(18,18,18,0); color: #121212; }
+  }
+  @keyframes hop3 {
+    0%, 1% { background: rgba(18,18,18,0); animation-timing-function: steps(1, end); }
+    1.5%, 4% { background: #121212; animation-timing-function: steps(1, end); }
+    4.5%, 100% { background: rgba(18,18,18,0); }
+  }
+  @keyframes hop5 {
+    0%, 38.3% { background: #121212; color: #F1EFEA; animation-timing-function: steps(1, end); }
+    38.4%, 51.6% { background: rgba(18,18,18,0); color: #121212; animation-timing-function: steps(1, end); }
+    51.7%, 54.1% { background: #121212; color: #F1EFEA; animation-timing-function: steps(1, end); }
+    54.2%, 73.2% { background: rgba(18,18,18,0); color: #121212; animation-timing-function: steps(1, end); }
+    73.3%, 100% { background: #121212; color: #F1EFEA; }
+  }
+  @media (max-aspect-ratio: 5/8) {
+    .glyphs span { animation: hop 6s linear infinite; }
+    .glyphs span:nth-child(3) { animation-name: hop3; }
+    .glyphs span:nth-child(5) { animation-name: hop5; animation-delay: 0s; }
+    .glyphs span:nth-child(1) { animation-delay: -3.79s; }
+    .glyphs span:nth-child(2) { animation-delay: -3.59s; }
+    .glyphs span:nth-child(3) { animation-delay: -3.39s; }
+    .glyphs span:nth-child(4) { animation-delay: -3.19s; }
+    .glyphs span:nth-child(6) { animation-delay: -2.79s; }
+    .glyphs span:nth-child(7) { animation-delay: -2.59s; }
+    .glyphs span:nth-child(8) { animation-delay: -2.39s; }
+    .glyphs span:nth-child(9) { animation-delay: -2.19s; }
+  }
+  .l b { animation: set 6s linear infinite; }
+  @keyframes set {
+    0%, 56% { clip-path: inset(-20% -2% -30% -2%); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    59% { clip-path: inset(-20% -2% -30% 102%); animation-timing-function: steps(1, end); }
+    59.5% { clip-path: inset(-20% 102% -30% -2%); animation-timing-function: cubic-bezier(.35,.1,.25,1); }
+    67%, 100% { clip-path: inset(-20% -2% -30% -2%); }
+  }
+  .l2 b { animation-delay: -.15s; } .l3 b { animation-delay: -.3s; } .l4 b { animation-delay: -.45s; }
+  .off b { display: inline-block; animation: pop 6s linear infinite; transform-origin: 50% 60%; }
+  @keyframes pop {
+    0%, 70% { transform: scale(1); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    73% { transform: scale(1.1); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    78%, 100% { transform: scale(1); }
+  }
+  .cta { position: relative; overflow: hidden; }
+  .cta::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.18) 50%, rgba(255,255,255,0));
+    transform: translateX(-160%) skewX(-18deg); animation: sheen 6s linear infinite; }
+  @keyframes sheen {
+    0%, 78% { transform: translateX(-160%) skewX(-18deg); animation-timing-function: cubic-bezier(.45,0,.25,1); }
+    90%, 100% { transform: translateX(330%) skewX(-18deg); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="ph"><img class="photo" src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="side">
+    <div class="hd mono"><span>Specimen Nº 26</span><span>SS26</span></div>
+    <div class="aa">Aa</div>
+    <div class="aa-l mono">Studio Oro Grotesk<br><b>Variable 100—900</b></div>
+    <div class="glyphs"><span>g</span><span>&amp;</span><span>%</span><span>Ş</span><span>R</span><span>Ø</span><span>2</span><span>6</span><span>→</span></div>
+    <div class="wts">
+      <div class="r w1"><b>Edit</b><span class="mono">Thin 100</span></div>
+      <div class="r w3"><b>Edit</b><span class="mono">Light 300</span></div>
+      <div class="r w5"><b>Edit</b><span class="mono">Medium 500</span></div>
+      <div class="r w7"><b>Edit</b><span class="mono">Bold 700</span></div>
+      <div class="r w9"><b>Edit</b><span class="mono">Black 900</span></div>
+    </div>
+  </div>
+  <div class="bottom">
+    <div class="wf">
+      <div class="l l1"><i class="mono">96</i><b>New season.</b></div>
+      <div class="l l2"><i class="mono">60</i><b>The collection, set in full</b></div>
+      <div class="l l3"><i class="mono">36</i><b>Every new piece, 30% off this week</b></div>
+      <div class="l l4"><i class="mono">24</i><b>Aa Çç Ğğ Łł Öö Şş Üü Øø 0123456789 &amp; % € $</b></div>
+    </div>
+    <div class="ft">
+      <div class="off"><b>−30%</b><span class="mono">Code SPEC30<br>Ends Sunday</span></div>
+      <div class="cta">Shop the edit →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

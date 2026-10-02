@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* Cobalt Chip — the whole look becomes one oversized paint chip pinned to a cobalt wall:
+     the photo is the swatch, the pale label below carries code, name and the three values.
+     Crop marks at the chip corners for print-shop precision.
+     tall → chip centred, offer on the wall below; square/wide → copy on the wall left, chip right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1F43B5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #1F43B5; color: #EEF1FB; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; }
+
+  .top { position: absolute; left: 7vmin; right: 7vmin; top: 3.4vmin; display: flex; justify-content: space-between; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #C9D3F4; white-space: nowrap; }
+
+  .chip { position: absolute; left: 7vmin; right: 7vmin; top: 9vmin; bottom: 30vmin; background: #F2F4FB; box-shadow: 0 2.2vmin 4vmin rgba(8,20,70,.35); }
+  .chip img { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 29vmin); object-fit: cover; object-position: 50% 18%; display: block; }
+  .label { position: absolute; left: 0; right: 0; bottom: 0; height: 29vmin; box-sizing: border-box; padding: 3.2vmin 4.4vmin 3.6vmin; color: #0F2270; display: flex; flex-direction: column; justify-content: space-between; }
+  .lr { display: flex; justify-content: space-between; align-items: baseline; font-family: "IBM Plex Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+  .lr b { font-family: "Archivo", sans-serif; font-weight: 900; font-stretch: 125%; letter-spacing: .06em; font-size: 2.2vmin; }
+  .name { display: flex; justify-content: space-between; align-items: flex-end; gap: 2vmin; }
+  h1 { margin: 0; font-weight: 800; font-stretch: 70%; font-size: 13vmin; line-height: .8; letter-spacing: -.02em; text-transform: uppercase; }
+  .vals { display: flex; gap: .9vmin; padding-bottom: .6vmin; }
+  .vals i { display: block; width: 4.6vmin; height: 4.6vmin; }
+  .v1 { background: #9FB1EE; } .v2 { background: #1F43B5; } .v3 { background: #0F2270; }
+  .sub { font-size: 1.9vmin; font-weight: 500; letter-spacing: .02em; color: #33458C; }
+
+  /* crop marks */
+  .cm { position: absolute; width: 3vmin; height: 3vmin; border-color: #9FB1EE; border-style: solid; border-width: 0; }
+  .cm.a { left: calc(7vmin - 4.2vmin); top: calc(9vmin - 4.2vmin); border-right-width: 1px; border-bottom-width: 1px; }
+  .cm.b { right: calc(7vmin - 4.2vmin); top: calc(9vmin - 4.2vmin); border-left-width: 1px; border-bottom-width: 1px; }
+  .cm.c { left: calc(7vmin - 4.2vmin); bottom: calc(30vmin - 4.2vmin); border-right-width: 1px; border-top-width: 1px; }
+  .cm.d { right: calc(7vmin - 4.2vmin); bottom: calc(30vmin - 4.2vmin); border-left-width: 1px; border-top-width: 1px; }
+
+  .wall { position: absolute; left: 7vmin; right: 7vmin; bottom: 6vmin; height: 16vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 4vmin; }
+  .off { font-weight: 900; font-stretch: 62%; font-size: 15vmin; line-height: .78; letter-spacing: -.02em; text-transform: uppercase; white-space: nowrap; }
+  .off span { font-size: .42em; font-stretch: 100%; font-weight: 700; letter-spacing: .0em; vertical-align: top; margin-left: .6vmin; }
+  .act { text-align: right; font-size: 2vmin; line-height: 1.45; }
+  .act .code { display: inline-block; font-family: "IBM Plex Mono", Menlo, monospace; font-weight: 600; font-size: 1.9vmin; letter-spacing: .14em; padding: .8vmin 1.4vmin; background: #EEF1FB; color: #0F2270; margin-bottom: 1.4vmin; }
+  .act .cta { display: block; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; font-size: 1.8vmin; }
+  .copy { display: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .chip { left: 12vmin; right: 12vmin; top: 8vmin; bottom: 27vmin; }
+    .cm.a, .cm.c { left: calc(12vmin - 4.2vmin); } .cm.b, .cm.d { right: calc(12vmin - 4.2vmin); }
+    .cm.a, .cm.b { top: calc(8vmin - 4.2vmin); } .cm.c, .cm.d { bottom: calc(27vmin - 4.2vmin); }
+    .chip img { height: calc(100% - 25vmin); }
+    .label { height: 25vmin; padding: 2.6vmin 3.6vmin 3vmin; }
+    h1 { font-size: 11vmin; }
+    .wall { left: 12vmin; right: 12vmin; bottom: 5vmin; height: 15vmin; }
+    .off { font-size: 13vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .top { left: 7vmin; right: auto; top: 6vmin; width: calc(48% - 12vmin); flex-direction: column; gap: 1vmin; }
+    .chip { left: 48%; right: 7vmin; top: 8vmin; bottom: 8vmin; }
+    .cm.a, .cm.c { left: calc(48% - 4.2vmin); } .cm.b, .cm.d { right: calc(7vmin - 4.2vmin); }
+    .cm.a, .cm.b { top: calc(8vmin - 4.2vmin); } .cm.c, .cm.d { bottom: calc(8vmin - 4.2vmin); }
+    .chip img { height: calc(100% - 22vmin); object-position: 50% 22%; }
+    .label { height: 22vmin; padding: 2.4vmin 3.2vmin 2.8vmin; }
+    h1 { font-size: 8.4vmin; }
+    .vals i { width: 3.2vmin; height: 3.2vmin; }
+    .sub { font-size: 1.7vmin; }
+    .copy { display: block; position: absolute; left: 7vmin; top: 22vmin; width: calc(48% - 13vmin); }
+    .copy h2 { margin: 0; font-weight: 800; font-stretch: 62%; font-size: 12vmin; line-height: .86; letter-spacing: -.01em; text-transform: uppercase; }
+    .copy p { margin: 3vmin 0 0; font-size: 2.2vmin; line-height: 1.45; color: #C9D3F4; max-width: 34vmin; }
+    .wall { left: 7vmin; right: auto; width: calc(48% - 13vmin); bottom: 8vmin; height: auto; flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .off { font-size: 11vmin; }
+    .act { text-align: left; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .chip { left: 54%; }
+    .cm.a, .cm.c { left: calc(54% - 4.2vmin); }
+    .top { width: calc(54% - 16vmin); }
+    .copy { width: calc(54% - 16vmin); top: 20vmin; }
+    .copy h2 { font-size: 13vmin; }
+    h1 { font-size: 9.6vmin; }
+    .wall { width: calc(54% - 16vmin); flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    .act { text-align: right; }
+  }
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     print-shop precision: the crop marks register in, the chip lifts off the wall and settles,
+     the three value squares are read one by one, "exactly." is stamped again, 30% OFF punches */
+  .chip { overflow: hidden; animation: cc-lift 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes cc-lift { 0%, 30%, 70%, 100% { transform: translateY(0); box-shadow: 0 2.2vmin 4vmin rgba(8,20,70,.35); } 50% { transform: translateY(-.8vmin); box-shadow: 0 3.4vmin 5.4vmin rgba(8,20,70,.42); } }
+  .chip img { transform-origin: 50% 20%; animation: cc-push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes cc-push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .cm { animation: cc-a 6s cubic-bezier(.6,0,.2,1) infinite; }
+  .cm.b { animation-name: cc-b; } .cm.c { animation-name: cc-c; } .cm.d { animation-name: cc-d; }
+  @keyframes cc-a { 0%, 4%, 22%, 100% { transform: translate(0, 0); opacity: 1; } 10% { transform: translate(-1.4vmin, -1.4vmin); opacity: .3; } 16% { transform: translate(.3vmin, .3vmin); opacity: 1; } }
+  @keyframes cc-b { 0%, 4%, 22%, 100% { transform: translate(0, 0); opacity: 1; } 10% { transform: translate(1.4vmin, -1.4vmin); opacity: .3; } 16% { transform: translate(-.3vmin, .3vmin); opacity: 1; } }
+  @keyframes cc-c { 0%, 4%, 22%, 100% { transform: translate(0, 0); opacity: 1; } 10% { transform: translate(-1.4vmin, 1.4vmin); opacity: .3; } 16% { transform: translate(.3vmin, -.3vmin); opacity: 1; } }
+  @keyframes cc-d { 0%, 4%, 22%, 100% { transform: translate(0, 0); opacity: 1; } 10% { transform: translate(1.4vmin, 1.4vmin); opacity: .3; } 16% { transform: translate(-.3vmin, -.3vmin); opacity: 1; } }
+
+  .vals i { animation: cc-v1 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .vals .v2 { animation-name: cc-v2; } .vals .v3 { animation-name: cc-v3; }
+  @keyframes cc-v1 { 0%, 34%, 46%, 100% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(15,34,112,0); } 40% { transform: translateY(-.8vmin); box-shadow: 0 .8vmin 1.2vmin rgba(15,34,112,.25); } }
+  @keyframes cc-v2 { 0%, 40%, 52%, 100% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(15,34,112,0); } 46% { transform: translateY(-.8vmin); box-shadow: 0 .8vmin 1.2vmin rgba(15,34,112,.25); } }
+  @keyframes cc-v3 { 0%, 46%, 58%, 100% { transform: translateY(0); box-shadow: 0 0 0 0 rgba(15,34,112,0); } 52% { transform: translateY(-.8vmin); box-shadow: 0 .8vmin 1.2vmin rgba(15,34,112,.25); } }
+
+  .copy h2 .ln { display: inline-block; animation: cc-stamp 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes cc-stamp {
+    0%, 56%, 100% { clip-path: inset(-10% 0 -10% 0); }
+    63% { clip-path: inset(-10% 100% -10% 0); }
+    64% { clip-path: inset(-10% 0 -10% 100%); }
+    74% { clip-path: inset(-10% 0 -10% 0); }
+  }
+
+  .off { transform-origin: 0 100%; animation: cc-off 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes cc-off { 0%, 76%, 90%, 100% { transform: scale(1); } 80% { transform: scale(1.07); } 85% { transform: scale(.985); } }
+  .act .code { background-image: linear-gradient(105deg, rgba(159,177,238,0) 35%, rgba(159,177,238,.7) 50%, rgba(159,177,238,0) 65%);
+    background-size: 300% 100%; background-repeat: no-repeat; background-position: 100% 0; animation: cc-code 6s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes cc-code { 0%, 80% { background-position: 100% 0; } 96%, 100% { background-position: 0% 0; } }
+  .act .cta .ar { display: inline-block; animation: cc-ar 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes cc-ar { 0%, 60%, 90%, 100% { transform: translateX(0); } 75% { transform: translateX(.7vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="top"><span>Colour of the season</span><span>Ref. 19-4150 / SS27</span></div>
+  <div class="copy">
+    <h2>Blue,<br><span class="ln">exactly.</span></h2>
+    <p>One shade, matched head to toe. The cobalt edit is in.</p>
+  </div>
+  <div class="chip">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="label">
+      <div class="lr"><b>CHROMA</b><span>19-4150 TC</span></div>
+      <div class="name"><h1>Cobalt</h1><div class="vals"><i class="v1"></i><i class="v2"></i><i class="v3"></i></div></div>
+      <div class="sub">The new collection, in one exact blue</div>
+    </div>
+  </div>
+  <i class="cm a"></i><i class="cm b"></i><i class="cm c"></i><i class="cm d"></i>
+  <div class="wall">
+    <div class="off">30%<span>off</span></div>
+    <div class="act"><span class="code">CODE BLUE30</span><span class="cta">Shop the colour <span class="ar">→</span></span></div>
+  </div>
+</div>
+</body>
+</html>

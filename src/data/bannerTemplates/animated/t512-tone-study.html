@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300;1,9..144,400&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Tone Study — an "Homage to the Square": three nested fields of one warm hue, set the Albers way
+     (wide band on one side, thin on the other). Each band carries one line of copy; the photo is the innermost plane.
+     tall & 3:4: bands stack at the top · square & wide: bands step in from the left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #A8401B; }
+  .banner { position: fixed; inset: 0; overflow: hidden; font-family: "Karla", "Helvetica Neue", Arial, sans-serif; }
+  .f { box-sizing: border-box; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .a { position: absolute; inset: 0; background: #A8401B; color: #FFEBD2; padding: 0 5vmin 3.4vmin; }
+  .b { flex: 1 1 0; background: #D26A29; color: #FFF1DE; padding: 0 4vmin 2.6vmin; }
+  .c { flex: 1 1 0; background: #EDA23A; color: #3A1A08; padding: 0 3.4vmin 2vmin; }
+  .photo { flex: 1 1 0; display: block; width: 100%; min-height: 0; object-fit: cover; object-position: 50% 22%; }
+  .band { flex: none; box-sizing: border-box; display: flex; }
+  .a > .band { padding: 5vmin 0 3.6vmin; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-size: 1.7vmin; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; opacity: .92; }
+  h1 { margin: 3vmin 0 0; font-family: "Fraunces", Georgia, serif; font-weight: 300; font-size: 14vmin; line-height: .88; letter-spacing: -.03em; }
+  h1 i { font-weight: 400; }
+  .b > .band { padding: 2.2vmin 0 2vmin; align-items: baseline; justify-content: space-between; gap: 2vmin; font-size: 2.1vmin; font-weight: 500; }
+  .b > .band b { font-weight: 700; }
+  .c > .band { padding: 2vmin 0 1.8vmin; align-items: center; justify-content: space-between; gap: 2vmin; }
+  .offer { font-size: 2vmin; font-weight: 500; white-space: nowrap; }
+  .offer b { font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 4.4vmin; letter-spacing: -.02em; margin-right: .8vmin; }
+  .cta { font-size: 2vmin; font-weight: 700; white-space: nowrap; padding: 1.3vmin 2.4vmin; background: #3A1A08; color: #FBE2BE; }
+  .note, .c > .band > span { display: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .a > .band { padding: 4.4vmin 0 3vmin; }
+    h1 { font-size: 9vmin; margin-top: 2.2vmin; }
+    h1 br { display: none; }
+    .b > .band { padding: 1.8vmin 0 1.6vmin; }
+    .c > .band { padding: 1.6vmin 0 1.5vmin; }
+    .offer b { font-size: 3.8vmin; }
+  }
+  /* square & wide: the Albers offset turns sideways — copy lives in the wide left bands */
+  @media (min-aspect-ratio: 9/10) {
+    .f { flex-direction: row; }
+    .a { padding: 4vmin 4vmin 4vmin 0; }
+    .b { padding: 3.4vmin 3.4vmin 3.4vmin 0; }
+    .c { padding: 2.8vmin 2.8vmin 2.8vmin 0; }
+    .photo { width: auto; height: 100%; min-width: 0; }
+    .a > .band { width: 42vmin; padding: 1vmin 4vmin 1vmin 5vmin; justify-content: flex-start; }
+    .kick { flex-direction: column; gap: 1vmin; }
+    h1 { font-size: 9.4vmin; margin-top: 4vmin; }
+    h1 br { display: inline; }
+    .note { display: block; margin-top: auto; font-size: 2vmin; line-height: 1.42; }
+    .note b { display: block; font-family: "Fraunces", Georgia, serif; font-weight: 500; font-size: 5.4vmin; letter-spacing: -.02em; line-height: 1; margin-bottom: 1.2vmin; }
+    .note span { display: inline-block; margin-top: 2.4vmin; font-size: 2vmin; font-weight: 700; padding: 1.3vmin 2.4vmin; background: #FFEBD2; color: #7A2A0E; white-space: nowrap; }
+    .b > .band, .c > .band { width: 7.6vmin; padding: 0; flex-direction: column; justify-content: flex-end; align-items: center; }
+    .c > .band { width: 7vmin; }
+    .c > .band > span { display: block; }
+    .b > .band span, .c > .band span { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; font-size: 1.8vmin; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+    .b > .band span:first-child, .c > .band > *:not(span) { display: none; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .a { padding: 5vmin 5vmin 5vmin 0; }
+    .b { padding: 4vmin 4vmin 4vmin 0; }
+    .c { padding: 3vmin 3vmin 3vmin 0; }
+    .a > .band { width: 50vmin; padding: 1vmin 5vmin 1vmin 6vmin; }
+    h1 { font-size: 11vmin; }
+    .b > .band { width: 9vmin; }
+    .c > .band { width: 8vmin; }
+  }
+
+  /* ───────── motion (8s loop, slow and restrained — an Albers study in time) ─────────
+     the three fields breathe their value in a staggered wave (outer → middle → inner), like the eye re-reading
+     simultaneous contrast · 3.4s "on warm." dissolves and settles back · 5.2s the −25% figure swells softly ·
+     6.4s a warm light passes across the CTA · the photo drifts a few points inside its plane */
+  .a { animation: toneA 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes toneA { 0%, 100% { background-color: #A8401B; } 30% { background-color: #943516; } 55% { background-color: #A8401B; } }
+  .b { animation: toneB 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes toneB { 0%, 12% { background-color: #D26A29; } 42% { background-color: #DC7A33; } 70%, 100% { background-color: #D26A29; } }
+  .c { animation: toneC 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes toneC { 0%, 24% { background-color: #EDA23A; } 54% { background-color: #F4B24C; } 84%, 100% { background-color: #EDA23A; } }
+  h1 i { display: inline-block; animation: settle 8s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes settle { 0%, 40%, 62%, 100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+    47% { opacity: 0; transform: translateY(-1.2vmin); filter: blur(.5vmin); } 49% { opacity: 0; transform: translateY(1.2vmin); filter: blur(.5vmin); } }
+  .offer b, .note b { display: inline-block; transform-origin: 0 70%; animation: swell 8s cubic-bezier(.45,0,.3,1) infinite; }
+  .offer b { transform-origin: 100% 70%; }
+  .note b { display: block; }
+  @keyframes swell { 0%, 64%, 80%, 100% { transform: scale(1); } 71% { transform: scale(1.08); } }
+  .cta, .note span { position: relative; overflow: hidden; }
+  .cta::after, .note span::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,214,150,.45) 50%, transparent 65%) -150% 0 / 200% 100% no-repeat;
+    animation: warmth 8s cubic-bezier(.5,0,.4,1) infinite; }
+  @keyframes warmth { 0%, 78% { background-position: -150% 0; } 92%, 100% { background-position: 250% 0; } }
+  .photo { animation: drift 8s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes drift { 0%, 100% { object-position: 50% 22%; } 50% { object-position: 50% 28%; } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="f a">
+    <div class="band">
+      <div class="kick"><span>Oker Atelier</span><span>Tone study N°4</span></div>
+      <h1>Warm <br><i>on warm.</i></h1>
+      <div class="note"><b>−25%</b>One hue, three depths. The autumn layers, cut in wool and linen.<br><span>Shop the study →</span></div>
+    </div>
+    <div class="f b">
+      <div class="band"><span>One hue, three depths — the <b>autumn layers</b>.</span><span>Wool · linen · suede</span></div>
+      <div class="f c">
+        <div class="band"><div class="offer"><b>−25%</b>this week only</div><div class="cta">Shop the study →</div><span>Code TONE25 · ends Sun</span></div>
+        <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

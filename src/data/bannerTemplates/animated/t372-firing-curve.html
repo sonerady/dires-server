@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,300;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Firing Curve — a page torn from the studio kiln log: squared paper, the firing schedule plotted in red pencil
+     (ramp, hold, peak, cool) and the drop calendar pinned to the curve — preview on the ramp, launch at peak,
+     last call as the kiln cools. tall → photo above, log sheet below · 3:4 and wider → photo left, log right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EDE3; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F2EDE3; color: #22211F; font-family: "IBM Plex Mono", Menlo, monospace; }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 82vmin); object-fit: cover; object-position: 50% 20%; display: block; }
+  .log { position: absolute; left: 0; right: 0; bottom: 0; height: 82vmin; box-sizing: border-box; padding: 4.6vmin 6vmin 5vmin; display: flex; flex-direction: column; }
+
+  .head { display: flex; justify-content: space-between; gap: 2vmin; padding-bottom: 1.4vmin; border-bottom: 1px solid #22211F; font-size: 1.7vmin; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .head b { font-weight: 600; color: #B4412C; }
+  h1 { margin: 3vmin 0 0; font-family: "Newsreader", Georgia, serif; font-weight: 300; font-style: italic; font-size: 11vmin; line-height: .92; letter-spacing: -.025em; }
+  h1 em { font-style: normal; font-weight: 400; }
+
+  /* the plot */
+  .plot { position: relative; flex: 1; min-height: 0; margin: 4vmin 0 0 7vmin; }
+  .grid { position: absolute; inset: 0 0 3.4vmin 0;
+    background:
+      linear-gradient(90deg, rgba(70,100,120,.30) 1px, transparent 1px) 0 0 / 25% 100%,
+      linear-gradient(0deg, rgba(70,100,120,.30) 1px, transparent 1px) 0 100% / 100% 25%,
+      linear-gradient(90deg, rgba(70,100,120,.12) 1px, transparent 1px) 0 0 / 5% 100%,
+      linear-gradient(0deg, rgba(70,100,120,.12) 1px, transparent 1px) 0 100% / 100% 10%;
+    border-left: 1px solid #22211F; border-bottom: 1px solid #22211F; }
+  .grid svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .y { position: absolute; left: -7vmin; width: 6vmin; text-align: right; font-size: 1.6vmin; color: #5F5A52; transform: translateY(-50%); white-space: nowrap; }
+  .x { position: absolute; bottom: -3vmin; font-size: 1.6vmin; color: #5F5A52; transform: translateX(-50%); white-space: nowrap; }
+  
+  .pt { position: absolute; width: 1.8vmin; height: 1.8vmin; margin: -.9vmin 0 0 -.9vmin; border-radius: 50%; background: #F2EDE3; border: .45vmin solid #B4412C; box-sizing: border-box; }
+  .lab { position: absolute; font-size: 1.7vmin; line-height: 1.35; white-space: nowrap; }
+  .lab b { display: block; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #B4412C; }
+  .lab span { background: #F2EDE3; padding: 0 .4vmin; margin: 0 -.4vmin; }
+  .l1 { left: calc(30% + 1vmin); top: calc(46% + 1.8vmin); }
+  .l2 { left: calc(70% + 2vmin); top: 3%; }
+  .l3 { right: 0; top: calc(66% + 2vmin); text-align: right; }
+  .l3 i { font-style: normal; font-weight: 600; background: #B4412C; color: #F2EDE3; padding: .1vmin .8vmin; }
+
+  .foot { margin-top: 3.4vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; white-space: nowrap; }
+  .foot .d { font-size: 1.8vmin; line-height: 1.6; letter-spacing: .06em; color: #45423D; }
+  .cta { font-family: "Newsreader", Georgia, serif; font-size: 3.4vmin; font-style: italic; line-height: 1; padding-bottom: .5vmin; border-bottom: .3vmin solid #B4412C; }
+
+  /* ── 3:4 / 4:5 → photo left, log right ── */
+  @media (min-aspect-ratio: 7/10) {
+    .photo { width: 48%; height: 100%; object-position: 50% 24%; }
+    .log { left: 48%; top: 0; height: auto; padding: 6vmin 4.6vmin 5.6vmin 5vmin; box-shadow: -.8vmin 0 1.6vmin rgba(40,30,20,.12); }
+    .head em { display: none; }
+    h1 { font-size: 8.6vmin; margin-top: 4vmin; }
+    .plot { margin: 6vmin 0 0 6.4vmin; max-height: 62vmin; }
+    .y { left: -6.4vmin; width: 5.4vmin; }
+    .l2 { left: auto; right: 0; top: -1vmin; text-align: right; }
+    .l2 span:last-child { display: none; }
+    .foot { margin-top: auto; padding-top: 4vmin; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+  }
+  /* ── square ── */
+  @media (min-aspect-ratio: 9/10) {
+    .photo { width: 46%; }
+    .log { left: 46%; padding: 5vmin 5vmin 5vmin; }
+    .head { font-size: 1.6vmin; letter-spacing: .08em; }
+    h1 { font-size: 7.4vmin; margin-top: 3vmin; }
+    .plot { margin-top: 4vmin; max-height: none; }
+    .lab { font-size: 1.6vmin; }
+    .l2 { top: -1.6vmin; }
+    .foot { padding-top: 5vmin; gap: 1.8vmin; }
+    .foot .d { font-size: 1.6vmin; letter-spacing: .04em; }
+    .cta { font-size: 3vmin; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 45%; object-position: 74% 30%; }
+    .log { left: 45%; padding: 6vmin 6vmin 6vmin 6.4vmin; }
+    .head { font-size: 1.7vmin; letter-spacing: .12em; }
+    .head em { display: inline; }
+    h1 { font-size: 8.8vmin; margin-top: 3.4vmin; }
+    .plot { margin: 5vmin 0 0 7vmin; }
+    .y { left: -7vmin; width: 6vmin; }
+    .lab { font-size: 1.7vmin; }
+    .l2 { left: calc(70% + 2vmin); right: auto; top: 3%; text-align: left; }
+    .l2 span:last-child { display: inline; }
+    .foot { flex-direction: row; align-items: flex-end; padding-top: 4vmin; }
+    .foot .d { font-size: 1.8vmin; letter-spacing: .06em; }
+    .cta { font-size: 3.4vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = the static design) ─────────
+     1.7s the red-pencil schedule is rubbed out, then 2.2–3.6s plotted again from 0 h —
+     each calendar point pops in as the line reaches it (preview on the ramp, the drop at peak, last call cooling)
+     and its note follows · 3.9s the −25% tag punches */
+  .grid svg { animation: plot 6s linear infinite; }
+  @keyframes plot {
+    0%, 28% { clip-path: inset(-5% -5% -5% -5%); animation-timing-function: cubic-bezier(.5,0,.8,.6); }
+    34% { clip-path: inset(-5% -5% -5% 105%); }
+    34.1% { clip-path: inset(-5% 105% -5% -5%); }
+    36% { clip-path: inset(-5% 105% -5% -5%); animation-timing-function: linear; }
+    60%, 100% { clip-path: inset(-5% -5% -5% -5%); }
+  }
+  .grid > i:nth-of-type(1) { animation: pt1 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .grid > i:nth-of-type(2) { animation: pt2 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .grid > i:nth-of-type(3) { animation: pt3 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes pt1 { 0%, 28%, 47.5%, 100% { transform: scale(1); } 30%, 43% { transform: scale(0); } 45.5% { transform: scale(1.35); } }
+  @keyframes pt2 { 0%, 28%, 57%, 100% { transform: scale(1); } 30%, 52.6% { transform: scale(0); } 55% { transform: scale(1.35); } }
+  @keyframes pt3 { 0%, 28%, 64.5%, 100% { transform: scale(1); } 30%, 59.8% { transform: scale(0); } 62.3% { transform: scale(1.35); } }
+
+  .lab { animation: note1 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .l2 { animation-name: note2; } .l3 { animation-name: note3; }
+  @keyframes note1 { 0%, 27%, 51%, 100% { opacity: 1; transform: translateY(0); } 30%, 45% { opacity: 0; transform: translateY(.8vmin); } }
+  @keyframes note2 { 0%, 27%, 60%, 100% { opacity: 1; transform: translateY(0); } 30%, 54.5% { opacity: 0; transform: translateY(.8vmin); } }
+  @keyframes note3 { 0%, 27%, 67%, 100% { opacity: 1; transform: translateY(0); } 30%, 61.5% { opacity: 0; transform: translateY(.8vmin); } }
+
+  .l3 i { display: inline-block; animation: tag 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes tag { 0%, 64%, 74%, 100% { transform: scale(1); } 67.5% { transform: scale(1.22) rotate(-3deg); } 71% { transform: scale(.97); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="log">
+    <div class="head"><span>Kiln log</span><span>Firing Nº <b>214</b></span><em>Cone 6 · Oxidation</em></div>
+    <h1>Fresh from<br><em>the kiln.</em></h1>
+    <div class="plot">
+      <div class="grid">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 100 L30 46 L46 46 L70 10 L79 10 L100 66" fill="none" stroke="#B4412C" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity=".92"/>
+          <path d="M0 100 L30 46 L46 46 L70 10 L79 10 L100 66 L100 100 Z" fill="#B4412C" opacity=".07"/>
+        </svg>
+        <i class="pt" style="left:30%; top:46%"></i>
+        <i class="pt" style="left:70%; top:10%"></i>
+        <i class="pt" style="left:100%; top:66%"></i>
+        <div class="lab l1"><b>Thu · 09:00</b><span>Members preview</span></div>
+        <div class="lab l2"><b>Fri · Peak</b><span>The drop</span><br><span>1240 °C</span></div>
+        <div class="lab l3"><b>Sun · Cooling</b><span>Last call</span> <i>−25%</i></div>
+        <span class="y" style="top:10%">1240°</span>
+        <span class="y" style="top:46%">1000°</span>
+        <span class="y" style="top:73%">500°</span>
+        <span class="x" style="left:0; transform:none">0 h</span>
+        <span class="x" style="left:50%">6 h</span>
+        <span class="x" style="left:100%; transform: translateX(-100%)">12 h</span>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="d">New collection · opens Fri 10.10<br>Stoneware tones, from $85</div>
+      <div class="cta">Shop the firing →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

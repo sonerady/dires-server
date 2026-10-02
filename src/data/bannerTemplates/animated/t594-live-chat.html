@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Figtree:wght@400;500;600;700;800&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Live Chat — the comment column of a live Q&A: viewers' chat bubbles stack beside the product,
+     the host's answer highlighted in lime, a "join the chat" bar as the CTA.
+     tall / 3:4 → stream on top, chat column below · square / wide → stream left, chat column right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #140C22; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #F3EEFA; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #1B1029 0%, #2A1642 100%); display: flex; flex-direction: column; box-sizing: border-box; }
+
+  .stage { position: relative; flex: 1 1 auto; min-height: 0; }
+  .stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 24%; display: block; }
+  .scrim { position: absolute; left: 0; right: 0; top: 0; height: 14vmin;
+    background: linear-gradient(180deg, rgba(20,12,34,1) 0%, rgba(20,12,34,.985) 7.69%, rgba(20,12,34,.943) 15.38%, rgba(20,12,34,.874) 23.08%, rgba(20,12,34,.784) 30.77%, rgba(20,12,34,.677) 38.46%, rgba(20,12,34,.56) 46.15%, rgba(20,12,34,.44) 53.85%, rgba(20,12,34,.323) 61.54%, rgba(20,12,34,.216) 69.23%, rgba(20,12,34,.126) 76.92%, rgba(20,12,34,.057) 84.62%, rgba(20,12,34,.015) 92.31%, rgba(20,12,34,0) 100%); }
+  .tag { position: absolute; left: 5vmin; top: 4vmin; display: flex; align-items: center; gap: 1.4vmin; font-size: 1.8vmin; font-weight: 700; letter-spacing: .06em; white-space: nowrap; }
+  .tag .lv { padding: .8vmin 1.4vmin; border-radius: .7vmin; background: #FF3B5C; letter-spacing: .14em; }
+  .tag .q { color: #E4DAF2; }
+
+  .panel { position: relative; flex: none; padding: 4vmin 5.4vmin 4.6vmin; }
+  h1 { margin: 0; font-family: "Syne", "Helvetica Neue", sans-serif; font-weight: 800; font-size: 6vmin; line-height: 1.02; letter-spacing: -.02em; }
+  h1 em { font-style: normal; color: #C8F560; }
+  .chat { margin-top: 3vmin; display: flex; flex-direction: column; gap: 1.4vmin; }
+  .msg { display: flex; align-items: flex-end; gap: 1.4vmin; }
+  .msg .av { flex: none; width: 4.4vmin; height: 4.4vmin; border-radius: 50%; display: grid; place-items: center; font-size: 1.7vmin; font-weight: 800; color: #1B1029; }
+  .msg .bub { padding: 1.2vmin 2vmin 1.3vmin; border-radius: 2.2vmin 2.2vmin 2.2vmin .5vmin; background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.08); }
+  .msg .bub b { display: block; font-size: 1.6vmin; font-weight: 700; color: #B9A8D6; letter-spacing: .02em; }
+  .msg .bub span { display: block; margin-top: .3vmin; font-size: 2.2vmin; font-weight: 500; line-height: 1.25; }
+  .msg.host .bub { background: #C8F560; border-color: #C8F560; color: #1B1029; }
+  .msg.host .bub b { color: #3F5A08; }
+  .msg.host .bub b i { font-style: normal; margin-left: .8vmin; padding: .1vmin .8vmin; border-radius: .5vmin; background: #1B1029; color: #C8F560; font-size: 1.6vmin; letter-spacing: .08em; }
+  .a1 { background: #FFB4C8; } .a2 { background: #9FD8FF; } .a3 { background: #C8F560; } .a4 { background: #FFD58A; }
+  .join { margin-top: 3vmin; display: flex; align-items: center; gap: 1.6vmin; padding: 1vmin 1vmin 1vmin 2.6vmin; border-radius: 99vmin; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); }
+  .join span { flex: 1 1 auto; font-size: 2vmin; color: #B9A8D6; white-space: nowrap; }
+  .join b { flex: none; padding: 1.7vmin 3vmin; border-radius: 99vmin; background: #F3EEFA; color: #1B1029; font-size: 2vmin; font-weight: 800; white-space: nowrap; }
+  .small { margin-top: 2.2vmin; font-size: 1.6vmin; color: #8D7DAA; letter-spacing: .03em; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .panel { padding: 3.4vmin 5.4vmin 4vmin; }
+    h1 { font-size: 5.4vmin; }
+    .chat { margin-top: 2.4vmin; gap: 1.1vmin; }
+    .msg .bub { padding: 1vmin 1.8vmin 1.1vmin; }
+    .join { margin-top: 2.4vmin; }
+  }
+  /* ── square: stream left, chat right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { display: block; }
+    .stage { position: absolute; left: 0; top: 0; bottom: 0; width: 48%; height: 100%; }
+    .tag { left: 3.6vmin; top: 3.6vmin; }
+    .panel { position: absolute; left: 48%; right: 0; top: 0; bottom: 0; padding: 5.4vmin 5vmin 5vmin; display: flex; flex-direction: column; }
+    h1 { font-size: 5.4vmin; }
+    .chat { margin-top: auto; }
+    .msg .bub span { font-size: 2vmin; }
+    .join span { font-size: 1.8vmin; }
+    .join b { padding: 1.5vmin 2.4vmin; font-size: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .stage { width: 50%; }
+    .panel { left: 50%; padding: 6.4vmin 7vmin 6vmin; }
+    h1 { font-size: 6vmin; }
+    .msg .bub span { font-size: 2.2vmin; }
+    .join span { font-size: 2vmin; }
+    .join b { padding: 1.7vmin 3vmin; font-size: 2vmin; }
+  }
+
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     constant: LIVE tag breathes (1.5 s), a text caret blinks in the chat field (1 s), the stream drifts in (≤1.03)
+     beats: 0.7 s the host's lime answer glows and nudges · 2.5 s the newest message (@lea.s) drops out and 2.8 s re-posts,
+            springing up from the bottom · 3.5 s "in chat" count rolls 3.1K→3.2K (back at 5.6 s) · 4.0 s "this one." glows ·
+            4.8 s a sheen crosses the Join button */
+  .stage { overflow: hidden; }
+  .stage img { transform-origin: 50% 30%; animation: push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .tag .lv { animation: lv 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes lv { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,59,92,.5); } 50% { box-shadow: 0 0 0 .7vmin rgba(255,59,92,0); } }
+  .reel { display: inline-block; height: 1.2em; line-height: 1.2em; overflow: hidden; vertical-align: top; }
+  .reel > span { display: block; animation: views 6s cubic-bezier(.6,0,.2,1) infinite; }
+  @keyframes views { 0%, 56% { transform: translateY(0); } 61%, 88% { transform: translateY(-1.2em); } 94%, 100% { transform: translateY(0); } }
+  .tag .q { line-height: 1.2em; }
+
+  .msg.host .bub { transform-origin: 0 100%; animation: host 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes host {
+    0%, 9%, 26%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(200,245,96,0); }
+    13% { transform: scale(1.04); box-shadow: 0 0 2.6vmin rgba(200,245,96,.55); }
+    18% { transform: scale(1); box-shadow: 0 0 1.4vmin rgba(200,245,96,.3); }
+  }
+  .msg:last-child { transform-origin: 0 100%; animation: repost 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes repost {
+    0%, 40% { opacity: 1; transform: translateY(0) scale(1); }
+    44% { opacity: 0; transform: translateY(0) scale(.96); }
+    46% { opacity: 0; transform: translateY(2vmin) scale(.85); }
+    51% { opacity: 1; transform: translateY(-.5vmin) scale(1.03); }
+    55%, 100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  h1 em { animation: glow 6s cubic-bezier(.3,0,.3,1) infinite; }
+  @keyframes glow { 0%, 62%, 82%, 100% { text-shadow: 0 0 0 rgba(200,245,96,0); } 68% { text-shadow: 0 0 2.4vmin rgba(200,245,96,.6); } }
+
+  .join span::after { content: ""; display: inline-block; width: 1px; height: 1.1em; margin-left: .4vmin; vertical-align: -.2em; background: #C8F560;
+    animation: caret 1s steps(1, end) infinite; }
+  @keyframes caret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  .join b { position: relative; overflow: hidden; }
+  .join b::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 60%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(200,245,96,0), rgba(200,245,96,.55), rgba(200,245,96,0));
+    transform: translateX(-120%); animation: sheen 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sheen { 0%, 78% { transform: translateX(-120%); } 92%, 100% { transform: translateX(260%); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="stage">
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <div class="scrim"></div>
+    <div class="tag"><span class="lv">LIVE</span><span class="q">Fit Q&amp;A · 3.<span class="reel"><span>1<br>2</span></span>K in chat</span></div>
+  </div>
+  <div class="panel">
+    <h1>Everyone's asking about <em>this one.</em></h1>
+    <div class="chat">
+      <div class="msg"><div class="av a1">MK</div><div class="bub"><b>@mira.k</b><span>does it come in black??</span></div></div>
+      <div class="msg"><div class="av a2">JO</div><div class="bub"><b>@jonas_o</b><span>just ordered two!!</span></div></div>
+      <div class="msg host"><div class="av a3">EV</div><div class="bub"><b>@elva.studio<i>HOST</i></b><span>Black + sand, both restocked live.</span></div></div>
+      <div class="msg"><div class="av a4">LS</div><div class="bub"><b>@lea.s</b><span>true to size? I'm between M/L</span></div></div>
+    </div>
+    <div class="join"><span>Ask your question live…</span><b>Join at 7 PM</b></div>
+    <div class="small">Elva Studio · live Q&amp;A every Wednesday · chat-only codes</div>
+  </div>
+</div>
+</body>
+</html>

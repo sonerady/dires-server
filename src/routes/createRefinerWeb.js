@@ -1,3 +1,5 @@
+const { refinerBackgroundMode, refinerBackgroundInput } = require("../utils/refinerBackground");
+const { prepareRefinerResultImage } = require("../utils/refinerResultImage");
 const { recordRefundCharge } = require("../services/refundChargeEvidence");
 const { GPT25_EDIT_MODEL, buildEditInput, gpt25NearestRatio, probeImageDims, getGpt25QualityV2 } = require("../utils/gpt25Edit");
 const express = require("express");
@@ -97,10 +99,11 @@ async function callFalAiGptImageEditForRefiner(
   imageUrl,
   maxRetries = 3,
   aspectRatio = "auto",
+  backgroundMode = "opaque",
 ) {
   const modelEndpoint = GPT25_EDIT_MODEL;
   const modelLabel = "GPT Image 2.5";
-  const input = buildEditInput(modelEndpoint, {prompt, image_urls: Array.isArray(imageUrl) ? imageUrl : [imageUrl], aspect_ratio: aspectRatio, output_format: "jpeg"});
+  const input = buildEditInput(modelEndpoint, {...refinerBackgroundInput(prompt, backgroundMode), image_urls: Array.isArray(imageUrl) ? imageUrl : [imageUrl], aspect_ratio: aspectRatio});
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -324,7 +327,7 @@ async function checkUserProStatus(userId) {
 }
 
 // Result image'ı user-specific bucket'e kaydetme fonksiyonu
-async function saveResultImageToUserBucket(resultImageUrl, userId) {
+async function saveResultImageToUserBucket(resultImageUrl, userId, alphaSourceUrl = null) {
   try {
     logger.log("📤 Result image user bucket'ine kaydediliyor...");
     logger.log("🖼️ Result image URL:", resultImageUrl);
@@ -334,17 +337,22 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
       throw new Error("Result image URL ve User ID gereklidir");
     }
 
+    if (!alphaSourceUrl && resultImageUrl.startsWith(`${supabaseUrl}/storage/v1/object/public/user_image_results/${userId}/`)) return resultImageUrl;
+
     // Result image'ı indir
     const imageResponse = await axios.get(resultImageUrl, {
       responseType: "arraybuffer",
       timeout: 30000, // 30 saniye timeout
     });
-    const imageBuffer = Buffer.from(imageResponse.data);
+    const alphaResponse = alphaSourceUrl ? await axios.get(alphaSourceUrl, { responseType: "arraybuffer", timeout: 30000 }) : null;
+    const { buffer: imageBuffer, extension, contentType } = await prepareRefinerResultImage(
+      Buffer.from(imageResponse.data), alphaResponse ? Buffer.from(alphaResponse.data) : null,
+    );
 
     // User klasörü için dosya adı oluştur
     const timestamp = Date.now();
     const randomId = uuidv4().substring(0, 8);
-    const fileName = `${userId}/${timestamp}_result_${randomId}.jpg`;
+    const fileName = `${userId}/${timestamp}_result_${randomId}.${extension}`;
 
     logger.log("📁 User bucket dosya adı:", fileName);
 
@@ -352,7 +360,7 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
     const { data, error } = await supabase.storage
       .from("user_image_results")
       .upload(fileName, imageBuffer, {
-        contentType: "image/jpeg",
+        contentType,
         cacheControl: "3600",
         upsert: false,
       });
@@ -375,6 +383,7 @@ async function saveResultImageToUserBucket(resultImageUrl, userId) {
   } catch (error) {
     console.error("❌ Result image user bucket'e kaydedilemedi:", error);
     // Hata durumunda orijinal URL'yi döndür
+    if (alphaSourceUrl) throw error; // The caller keeps the original alpha result and does not charge for failed finishing.
     return resultImageUrl;
   }
 }
@@ -4694,6 +4703,7 @@ router.post("/generate", async (req, res) => {
           finalImage,
           3,
           formattedRatio,
+          refinerBackgroundMode(req.body),
         );
 
         logger.log("✅ [REFINER MODE] GPT Image 2.5 başarılı:", gptImageResult);
@@ -4701,6 +4711,8 @@ router.post("/generate", async (req, res) => {
         const upscaleOutcome = await finishRefinerMainResult({
           request: req.body,
           imageUrl: gptImageResult,
+          transformResult: refinerBackgroundMode(req.body) === "transparent"
+            ? url => saveResultImageToUserBucket(url, userId, gptImageResult) : undefined,
           userId,
           generationId: finalGenerationId,
         });

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Plate Book — an open photographic monograph: the colour plate sits on the recto with its plate number and caption;
+     the verso carries the book title, a list of plates with dotted leaders and a tipped-in silver (B&W) proof of the
+     same image, plus the offer set like a colophon. A soft eased gutter shadow runs down the fold.
+     tall → a single recto page (plate above, list + offer below) · square & wide → the full two-page spread */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F2EEE5; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #F2EEE5; color: #1E1B17; font-family: "EB Garamond", Garamond, Georgia, serif; }
+  .book { position: absolute; inset: 0; display: flex; flex-direction: column-reverse; }
+  .page { position: relative; box-sizing: border-box; display: flex; flex-direction: column; }
+  .run { flex: none; display: flex; justify-content: space-between; gap: 2vmin; font-family: "Work Sans", Arial, sans-serif; font-size: 1.6vmin; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; color: #6E675C; }
+
+  /* recto: the plate */
+  .recto { flex: 1 1 auto; min-height: 0; padding: 5vmin 7vmin 0 11vmin; }
+  .plate { position: relative; flex: 1 1 auto; min-height: 0; margin-top: 3.4vmin; }
+  .plate img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; box-shadow: 0 .2vmin .5vmin rgba(60,48,30,.12); }
+  .cap { flex: none; display: flex; gap: 2.6vmin; align-items: baseline; margin-top: 2.4vmin; }
+  .cap b { flex: none; font-weight: 500; font-size: 3vmin; }
+  .cap p { margin: 0; font-style: italic; font-size: 2.6vmin; line-height: 1.25; }
+
+  /* verso: title, plates list, tipped-in proof, colophon offer */
+  .verso { flex: none; padding: 4.6vmin 7vmin 5.4vmin 11vmin; }
+  .verso .run, .verso h1 { display: none; }
+  h1 { margin: 0; font-weight: 400; font-size: 9vmin; line-height: .95; letter-spacing: -.02em; }
+  h1 i { display: block; }
+  .idx { display: flex; gap: 3.4vmin; align-items: stretch; }
+  .proof { flex: none; position: relative; width: 14vmin; height: 18vmin; background: #FBF9F4; padding: .8vmin .8vmin 2.8vmin; box-sizing: border-box; box-shadow: 0 .3vmin .9vmin rgba(60,48,30,.2); transform: rotate(-2deg); }
+  .proof img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; filter: grayscale(1) contrast(1.08); }
+  .proof span { position: absolute; left: 0; right: 0; bottom: .6vmin; text-align: center; font-family: "Work Sans", Arial, sans-serif; font-size: 1.6vmin; letter-spacing: .12em; color: #6E675C; }
+  .list { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: .9vmin; }
+  .list div { display: flex; align-items: baseline; gap: 1.2vmin; font-size: 2.5vmin; line-height: 1.15; }
+  .list div i { flex: 1; border-bottom: 1px dotted #8C8476; transform: translateY(-.6vmin); }
+  .list div b { font-weight: 500; min-width: 3.4vmin; }
+  .list .on { font-style: italic; }
+  .colo { margin-top: 3.4vmin; padding-top: 2vmin; border-top: 1px solid #1E1B17; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .colo .pct { font-size: 8vmin; line-height: .8; letter-spacing: -.03em; }
+  .colo .pct small { font-style: italic; font-size: 3vmin; letter-spacing: 0; margin-left: 1vmin; }
+  .colo .fine { text-align: right; font-family: "Work Sans", Arial, sans-serif; font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; line-height: 1.5; }
+  .colo .fine b { font-weight: 600; color: #1E1B17; }
+
+  /* the fold: eased shadow on the gutter side of the recto */
+  .gutter { position: absolute; top: 0; bottom: 0; left: 0; width: 7vmin; pointer-events: none;
+    background: linear-gradient(90deg, rgba(70,56,36,.24), rgba(70,56,36,.236) 7.7%, rgba(70,56,36,.226) 15.4%, rgba(70,56,36,.21) 23.1%, rgba(70,56,36,.188) 30.8%, rgba(70,56,36,.162) 38.5%, rgba(70,56,36,.134) 46.2%, rgba(70,56,36,.106) 53.8%, rgba(70,56,36,.078) 61.5%, rgba(70,56,36,.052) 69.2%, rgba(70,56,36,.03) 76.9%, rgba(70,56,36,.014) 84.6%, rgba(70,56,36,.004) 92.3%, rgba(70,56,36,0)); }
+  .gutter.l { display: none; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .book { flex-direction: row; }
+    .verso, .recto { width: 50%; flex: none; }
+    .verso { padding: 5vmin 6vmin 5vmin 5vmin; background: #EEE9DF; display: flex; flex-direction: column; }
+    .recto { padding: 5vmin 5vmin 5vmin 6vmin; }
+    .verso .run, .verso h1 { display: flex; }
+    .verso h1 { display: block; margin-top: auto; font-size: 6.6vmin; }
+    .idx { margin-top: 4vmin; flex-direction: column; gap: 3vmin; }
+    .proof { width: 12vmin; height: 15vmin; padding-bottom: 2.6vmin; }
+    .list div { font-size: 2.1vmin; }
+    .colo { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 1.4vmin; }
+    .colo .pct { font-size: 6.4vmin; }
+    .colo .fine { text-align: left; font-size: 1.6vmin; }
+    .cap { margin-top: 2vmin; }
+    .cap b { font-size: 2.4vmin; }
+    .cap p { font-size: 2.1vmin; }
+    .gutter { left: 50%; width: 6vmin; }
+    .gutter.l { display: block; left: auto; right: 50%; transform: scaleX(-1); width: 4vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .verso { padding: 4.6vmin 5vmin 4.6vmin 4.6vmin; }
+    .recto { padding: 4.6vmin 4.6vmin 4.6vmin 5vmin; }
+    .verso h1 { font-size: 6vmin; }
+    .idx { margin-top: 3vmin; flex-direction: row; gap: 2.6vmin; }
+    .proof { width: 11vmin; height: 14vmin; }
+    .list div { font-size: 2vmin; }
+    .colo .pct { font-size: 6vmin; }
+    .plate { margin-top: 2.6vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .verso { padding: 5vmin 7vmin 5.4vmin 6vmin; }
+    .recto { padding: 5vmin 6vmin 5.4vmin 7vmin; }
+    .verso h1 { font-size: 8.4vmin; }
+    .idx { margin-top: 4vmin; gap: 3.4vmin; }
+    .proof { width: 14vmin; height: 18vmin; padding-bottom: 2.8vmin; }
+    .list div { font-size: 2.4vmin; }
+    .colo { flex-direction: row; align-items: flex-end; }
+    .colo .pct { font-size: 7.4vmin; }
+    .colo .fine { text-align: right; font-size: 1.7vmin; }
+    .cap b { font-size: 2.8vmin; }
+    .cap p { font-size: 2.4vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="book">
+    <div class="page verso">
+      <div class="run"><span>Studio Oro</span><span>13</span></div>
+      <h1>The Season<i>Book</i></h1>
+      <div class="idx">
+        <div class="proof"><img src="{{PRODUCT_IMAGE}}" alt=""><span>Pl. 23</span></div>
+        <div class="list">
+          <div><b>22</b>The edit, first light<i></i>11</div>
+          <div><b>23</b>The edit, in silver<i></i>12</div>
+          <div class="on"><b>24</b>The edit, in colour<i></i>14</div>
+        </div>
+      </div>
+      <div class="colo"><div class="pct">−30%<small>on every plate</small></div><div class="fine">Until 12 October<br>Code <b>PLATE30</b></div></div>
+    </div>
+    <div class="page recto">
+      <div class="run"><span>The Season Book</span><span>14</span></div>
+      <div class="plate"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+      <div class="cap"><b>Pl. 24</b><p>The new season, as it is worn. Autumn/Winter 2026.</p></div>
+    </div>
+  </div>
+  <div class="gutter"></div><div class="gutter l"></div>
+</div>
+</body>
+</html>

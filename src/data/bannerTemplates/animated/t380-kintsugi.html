@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Kintsugi — the photo is a shard broken off a dark stoneware glaze and mended back with a seam of gold; hairline
+     gold repairs run on through the glaze. For a repair / made-to-last service. tall → photo above a jagged gold
+     seam, glaze below · 3:4 and wider → photo left, the gold seam running down its broken edge */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #262421; }
+  .banner { position: fixed; inset: 0; overflow: hidden; color: #EDE5D6; font-family: "Figtree", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(90% 70% at 70% 90%, #34302B 0%, #262421 60%, #1E1C1A 100%); }
+  .glaze { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .6; }
+  .shard { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 68vmin); }
+  .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block;
+    clip-path: polygon(0 0, 100% 0, 100% 95.6%, 88% 93.4%, 79% 97.2%, 64% 94.2%, 57% 98.6%, 41% 95%, 30% 97.6%, 17% 93.6%, 8% 96.8%, 0 94.8%); }
+  .seam { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .seam path, .cracks path { fill: none; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+  .seam .s-h { stroke-width: .75vmin; }
+  .seam .s-v { display: none; stroke-width: .75vmin; }
+  .cracks { position: absolute; overflow: visible; }
+  .cracks path { stroke-width: .3vmin; opacity: .9; }
+  .cracks.h { left: 0; right: 0; top: calc(100% - 71vmin); height: 71vmin; width: 100%; }
+  .cracks.v { display: none; top: 45%; right: 0; left: 52%; height: 20%; width: 48%; }
+
+  .copy { position: absolute; left: 7vmin; right: 7vmin; bottom: 7vmin; height: 54vmin; display: flex; flex-direction: column; }
+  .k { font-size: 1.7vmin; font-weight: 600; letter-spacing: .3em; text-transform: uppercase; color: #CDAE6E; white-space: nowrap; }
+  h1 { margin: 2.6vmin 0 0; font-family: "Marcellus", Georgia, serif; font-weight: 400; font-size: 12vmin; line-height: .95; letter-spacing: -.01em; }
+  h1 span { background: linear-gradient(100deg, #B8893F 0%, #F3D98D 38%, #C99A48 62%, #F0D48A 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .d { margin-top: 3vmin; max-width: 58vmin; font-size: 2.5vmin; line-height: 1.5; color: #CFC6B6; }
+  .stat { display: none; margin-top: auto; padding-top: 2vmin; border-top: 1px solid rgba(205,174,110,.5); max-width: 40vmin; }
+  .stat b { display: block; font-family: "Marcellus", Georgia, serif; font-weight: 400; font-size: 6vmin; line-height: 1.1; color: #F0D48A; }
+  .stat span { display: block; margin-top: .6vmin; font-size: 1.8vmin; line-height: 1.45; color: #B9AF9F; }
+  .row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; white-space: nowrap; }
+  .fine { font-size: 1.7vmin; letter-spacing: .14em; text-transform: uppercase; color: #A79D8D; }
+  .cta { font-size: 1.9vmin; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: #F0D48A; padding: 1.5vmin 2.6vmin; border: 1px solid #CDAE6E; }
+
+  /* ── 3:4 / 4:5 → photo left, seam down the broken edge ── */
+  @media (min-aspect-ratio: 7/10) {
+    .shard { width: 52%; height: 100%; }
+    .photo { object-position: 50% 22%; clip-path: polygon(0 0, 95.4% 0, 92% 9%, 97.4% 17%, 93.6% 29%, 98.4% 41%, 94.8% 52%, 97.8% 63%, 93.4% 74%, 97% 86%, 94.2% 100%, 0 100%); }
+    .seam .s-h { display: none; } .seam .s-v { display: block; }
+    .cracks.h { display: none; } .cracks.v { display: block; }
+    .copy { left: calc(52% + 5.4vmin); right: 5vmin; top: 7vmin; bottom: 7vmin; height: auto; }
+    .k { letter-spacing: .22em; }
+    h1 { font-size: 10vmin; margin-top: 3.4vmin; }
+    .d { font-size: 2.3vmin; }
+    .row { flex-direction: column-reverse; align-items: flex-start; gap: 2.4vmin; margin-top: 5vmin; }
+    .stat { display: block; margin-top: auto; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .shard { width: 50%; }
+    .cracks.v { left: 50%; width: 50%; }
+    .copy { left: calc(50% + 5vmin); top: 6vmin; bottom: 6vmin; }
+    .k { font-size: 1.6vmin; letter-spacing: .18em; }
+    h1 { font-size: 8.8vmin; margin-top: 2.6vmin; }
+    .d { font-size: 2.1vmin; margin-top: 2.4vmin; }
+    .cta { font-size: 1.7vmin; padding: 1.3vmin 2.2vmin; }
+  }
+  /* ── wide ── */
+  @media (min-aspect-ratio: 6/5) {
+    .shard { width: 46%; }
+    .cracks.v { left: 46%; width: 54%; }
+    .photo { object-position: 72% 30%; }
+    .copy { left: calc(46% + 7vmin); right: 7vmin; top: 8vmin; bottom: 8vmin; }
+    .k { font-size: 1.7vmin; letter-spacing: .26em; }
+    h1 { font-size: 11vmin; margin-top: 3vmin; }
+    .d { font-size: 2.3vmin; max-width: 54vmin; }
+    .row { flex-direction: row; align-items: center; margin-top: 4vmin; }
+    .cta { font-size: 1.8vmin; padding: 1.5vmin 2.6vmin; }
+  }
+
+  /* ───────── motion (6s loop · t=0 = static design) ─────────
+     0.5s  a bead of molten light runs the length of the gold seam (left→right when tall, top→bottom when side-by-side)
+     1.9s  the hairline repairs in the glaze flare as it passes · 2.5s a shine sweeps through "in gold."
+     3.7s  (3:4+) the mended count glows · 4.3s the CTA frame warms and a sheen crosses it */
+  .seam.glint .s-h, .seam.glint .s-v { stroke-width: .42vmin; }
+  .seam.glint { filter: drop-shadow(0 0 .8vmin rgba(255,214,130,.95));
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 50%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0%, #000 50%, transparent 100%);
+    -webkit-mask-size: 22% 100%; mask-size: 22% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-position: -30% 0; mask-position: -30% 0;
+    animation: runH 6s cubic-bezier(.45,0,.4,1) infinite; }
+  @keyframes runH {
+    0%, 8% { -webkit-mask-position: -30% 0; mask-position: -30% 0; }
+    32%, 100% { -webkit-mask-position: 130% 0; mask-position: 130% 0; }
+  }
+  .cracks { animation: flare 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes flare {
+    0%, 28% { filter: drop-shadow(0 0 0 rgba(255,214,130,0)) brightness(1); }
+    36% { filter: drop-shadow(0 0 .7vmin rgba(255,214,130,.9)) brightness(1.35); }
+    52%, 100% { filter: drop-shadow(0 0 0 rgba(255,214,130,0)) brightness(1); }
+  }
+  h1 span { background: linear-gradient(100deg, transparent 42%, rgba(255,250,232,.95) 50%, transparent 58%) 130% 0 / 300% 100% no-repeat,
+                        linear-gradient(100deg, #B8893F 0%, #F3D98D 38%, #C99A48 62%, #F0D48A 100%) 0 0 / 100% 100% no-repeat;
+    -webkit-background-clip: text; background-clip: text; animation: shine 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes shine { 0%, 40% { background-position: 130% 0, 0 0; } 62%, 100% { background-position: -30% 0, 0 0; } }
+  .stat b { animation: count 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes count { 0%, 58% { text-shadow: 0 0 0 rgba(240,212,138,0); color: #F0D48A; } 68% { text-shadow: 0 0 2vmin rgba(240,212,138,.55); color: #FFE9AE; } 84%, 100% { text-shadow: 0 0 0 rgba(240,212,138,0); color: #F0D48A; } }
+  .cta { background-image: linear-gradient(105deg, transparent 40%, rgba(240,212,138,.3) 50%, transparent 60%); background-size: 300% 100%; background-repeat: no-repeat; background-position: 130% 0;
+    animation: cta 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes cta {
+    0%, 70% { background-position: 130% 0; box-shadow: 0 0 0 rgba(240,212,138,0); }
+    80% { box-shadow: 0 0 1.8vmin rgba(240,212,138,.35); }
+    86% { background-position: -30% 0; }
+    96%, 100% { background-position: -30% 0; box-shadow: 0 0 0 rgba(240,212,138,0); }
+  }
+  @media (min-aspect-ratio: 7/10) {
+    .seam.glint { -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 50%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0%, #000 50%, transparent 100%);
+      -webkit-mask-size: 100% 22%; mask-size: 100% 22%; -webkit-mask-position: 0 -30%; mask-position: 0 -30%; animation-name: runV; }
+  }
+  @keyframes runV {
+    0%, 8% { -webkit-mask-position: 0 -30%; mask-position: 0 -30%; }
+    32%, 100% { -webkit-mask-position: 0 130%; mask-position: 0 130%; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <svg class="glaze" preserveAspectRatio="none" aria-hidden="true">
+    <filter id="speck" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="5" result="a"/>
+      <feColorMatrix in="a" type="matrix" values="0 0 0 0 .62  0 0 0 0 .52  0 0 0 0 .4  0 0 0 -8 4.6" result="sp"/>
+      <feTurbulence type="fractalNoise" baseFrequency=".004 .012" numOctaves="3" seed="2" result="b"/>
+      <feColorMatrix in="b" type="matrix" values="0 0 0 0 .1  0 0 0 0 .07  0 0 0 0 .05  0 0 0 -1.2 .8" result="run"/>
+      <feMerge><feMergeNode in="run"/><feMergeNode in="sp"/></feMerge>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#speck)" opacity=".55"/>
+  </svg>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B8893F"/><stop offset=".3" stop-color="#F6DE97"/><stop offset=".55" stop-color="#C4933F"/><stop offset=".8" stop-color="#F1D48A"/><stop offset="1" stop-color="#A97C35"/></linearGradient>
+    </defs>
+  </svg>
+  <svg class="cracks h" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <path stroke="url(#gold)" d="M79 2.6 L82 12 L80.6 17 L86 24 L91 25 L95 33 L100 36"/>
+    <path stroke="url(#gold)" d="M86 24 L88 31 L86.4 38"/>
+  </svg>
+  <svg class="cracks v" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <path stroke="url(#gold)" d="M-5 30 L4 42 L3 55 L9 68 L8 80"/>
+    <path stroke="url(#gold)" d="M3 55 L12 58 L16 52"/>
+  </svg>
+  <div class="shard">
+    <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+    <svg class="seam" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path class="s-h" stroke="url(#gold)" d="M0 94.8 L8 96.8 L17 93.6 L30 97.6 L41 95 L57 98.6 L64 94.2 L79 97.2 L88 93.4 L100 95.6"/>
+      <path class="s-v" stroke="url(#gold)" d="M95.4 0 L92 9 L97.4 17 L93.6 29 L98.4 41 L94.8 52 L97.8 63 L93.4 74 L97 86 L94.2 100"/>
+    </svg>
+    <svg class="seam glint" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path class="s-h" stroke="#FFF6DA" d="M0 94.8 L8 96.8 L17 93.6 L30 97.6 L41 95 L57 98.6 L64 94.2 L79 97.2 L88 93.4 L100 95.6"/>
+      <path class="s-v" stroke="#FFF6DA" d="M95.4 0 L92 9 L97.4 17 L93.6 29 L98.4 41 L94.8 52 L97.8 63 L93.4 74 L97 86 L94.2 100"/>
+    </svg>
+  </div>
+  <div class="copy">
+    <div class="k">The repair service</div>
+    <h1>Mended<br><span>in gold.</span></h1>
+    <div class="d">Free repairs for life on every piece in the collection. Worn longer, loved longer.</div>
+    <div class="stat"><b>4,812</b><span>pieces mended in gold<br>since we opened the atelier</span></div>
+    <div class="row">
+      <div class="fine">Members · no receipt needed</div>
+      <div class="cta">Book a repair</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

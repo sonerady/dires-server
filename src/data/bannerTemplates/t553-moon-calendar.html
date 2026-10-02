@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=Space+Mono:wght@400;700&display=swap&subset=latin-ext" rel="stylesheet">
+<style>
+  /* Moon Calendar — a lunar-cycle launch calendar: eight silver moon phases (pure CSS crescents) with their dates,
+     the full moon ringed in gold as the drop night. Night-black panel, Fraunces + Space Mono.
+     tall → photo on top, phases in one row · 3:4 → photo left, phases as a vertical almanac list
+     · square → photo left, 4 × 2 phase grid · wide → copy + phase row left, photo right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #101014; }
+  .banner { --silver: #E7E2D6; --dark: #24242B; --gold: #D9C08A; --ms: 7vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--silver); font-family: "Fraunces", Georgia, serif;
+    background: radial-gradient(ellipse 70% 50% at 50% 100%, #1D1D26 0%, #101014 70%); }
+  .photo { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - 66vmin); object-fit: cover; object-position: 50% 26%; display: block; }
+  .panel { position: absolute; left: 6vmin; right: 6vmin; bottom: 6vmin; height: 54vmin; display: flex; flex-direction: column; }
+  .kick { font-family: "Space Mono", monospace; font-size: 1.6vmin; letter-spacing: .18em; text-transform: uppercase; color: #9C988E; white-space: nowrap; }
+  h1 { margin: 1.8vmin 0 0; font-weight: 300; font-size: 7.4vmin; line-height: 1; letter-spacing: -.02em; }
+  h1 i { font-weight: 300; color: var(--gold); }
+  .sub { margin-top: 1.6vmin; font-size: 2.2vmin; font-weight: 300; line-height: 1.35; color: #BDB8AC; }
+
+  .moons { margin-top: auto; display: grid; grid-template-columns: repeat(8, 1fr); column-gap: 1vmin; border-top: 1px solid rgba(231,226,214,.2); padding-top: 2.6vmin; }
+  .m { display: flex; flex-direction: column; align-items: center; gap: 1.2vmin; }
+  .moon { width: var(--ms); height: var(--ms); border-radius: 50%; background: var(--dark); flex: none; }
+  .d { font-family: "Space Mono", monospace; font-size: 1.6vmin; color: #9C988E; white-space: nowrap; }
+  .p { display: none; font-family: "Space Mono", monospace; font-size: 1.6vmin; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+  .m:nth-child(1) .moon { box-shadow: inset 0 0 0 1px rgba(231,226,214,.45); background: #17171C; }
+  .m:nth-child(2) .moon { box-shadow: inset calc(var(--ms) * -.26) 0 0 0 var(--silver); }
+  .m:nth-child(3) .moon { box-shadow: inset calc(var(--ms) * -.5) 0 0 0 var(--silver); }
+  .m:nth-child(4) .moon { background: var(--silver); box-shadow: inset calc(var(--ms) * .24) 0 0 0 var(--dark); }
+  .m:nth-child(5) .moon { background: radial-gradient(circle at 38% 36%, #FFFDF6 0%, var(--silver) 55%, #CFC8B6 100%); box-shadow: 0 0 0 .9vmin #101014, 0 0 0 calc(.9vmin + 1px) var(--gold), 0 0 4vmin rgba(255,240,200,.35); }
+  .m:nth-child(6) .moon { background: var(--silver); box-shadow: inset calc(var(--ms) * -.24) 0 0 0 var(--dark); }
+  .m:nth-child(7) .moon { box-shadow: inset calc(var(--ms) * .5) 0 0 0 var(--silver); }
+  .m:nth-child(8) .moon { box-shadow: inset calc(var(--ms) * .26) 0 0 0 var(--silver); }
+  .m:nth-child(5) .d { color: var(--gold); font-weight: 700; }
+  .m:nth-child(5) .p { display: block; color: var(--gold); }
+
+  .foot { margin-top: 3vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .offer { font-family: "Space Mono", monospace; font-size: 1.7vmin; letter-spacing: .06em; color: #BDB8AC; white-space: nowrap; }
+  .offer b { font-family: "Fraunces", serif; font-weight: 400; font-style: italic; font-size: 4vmin; letter-spacing: -.01em; color: var(--silver); margin-right: 1.2vmin; }
+  .cta { padding: 1.6vmin 3.2vmin; border-radius: 99vmin; background: var(--silver); color: #101014; font-family: "Space Mono", monospace; font-size: 1.7vmin; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+
+  /* 3:4 → almanac list */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --ms: 4.6vmin; }
+    .photo { width: 50vmin; height: 100%; }
+    .panel { left: 55vmin; right: 5vmin; top: 6vmin; bottom: 5vmin; height: auto; }
+    h1 { font-size: 5.8vmin; }
+    .sub { font-size: 1.9vmin; }
+    .moons { margin-top: 2.6vmin; grid-template-columns: 1fr; row-gap: 1.1vmin; padding-top: 2vmin; }
+    .m { flex-direction: row; gap: 2vmin; }
+    .d { width: 7vmin; }
+    .p { display: block; color: #BDB8AC; }
+    .foot { margin-top: auto; flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+  }
+  /* square → 4 × 2 grid */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --ms: 7vmin; }
+    .photo { width: 50%; }
+    .panel { left: calc(50% + 5vmin); right: 5vmin; top: 6vmin; bottom: 6vmin; }
+    h1 { font-size: 6.2vmin; }
+    .moons { margin-top: auto; grid-template-columns: repeat(4, 1fr); row-gap: 2.4vmin; padding-top: 2.4vmin; }
+    .m { flex-direction: column; gap: 1vmin; }
+    .d { width: auto; }
+    .p { display: none; }
+    .m:nth-child(5) .p { display: block; }
+    .foot { margin-top: 3vmin; }
+  }
+  /* wide → photo right */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --ms: 6vmin; }
+    .photo { left: auto; right: 0; width: 46%; }
+    .panel { left: 7vmin; right: calc(46% + 6vmin); top: 7vmin; bottom: 7vmin; }
+    h1 { font-size: 10.4vmin; margin-top: 2.6vmin; }
+    .sub { font-size: 2.6vmin; margin-top: 2.4vmin; }
+    .moons { grid-template-columns: repeat(8, 1fr); column-gap: .6vmin; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="panel">
+    <div class="kick">Lune &amp; Loom · Lunar calendar</div>
+    <h1>Rise with the <i>full moon.</i></h1>
+    <div class="sub">The Nocturne collection lands at moonrise.</div>
+    <div class="moons">
+      <div class="m"><i class="moon"></i><span class="d">10.10</span><span class="p">New</span></div>
+      <div class="m"><i class="moon"></i><span class="d">14.10</span><span class="p">Crescent</span></div>
+      <div class="m"><i class="moon"></i><span class="d">18.10</span><span class="p">First quarter</span></div>
+      <div class="m"><i class="moon"></i><span class="d">22.10</span><span class="p">Gibbous</span></div>
+      <div class="m"><i class="moon"></i><span class="d">26.10</span><span class="p">Drop</span></div>
+      <div class="m"><i class="moon"></i><span class="d">30.10</span><span class="p">Gibbous</span></div>
+      <div class="m"><i class="moon"></i><span class="d">03.11</span><span class="p">Last quarter</span></div>
+      <div class="m"><i class="moon"></i><span class="d">07.11</span><span class="p">Crescent</span></div>
+    </div>
+    <div class="foot">
+      <div class="offer"><b>−20%</b>first night only</div>
+      <div class="cta">Shop at moonrise</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

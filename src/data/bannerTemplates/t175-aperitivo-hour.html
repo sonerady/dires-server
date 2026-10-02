@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Happy Hour — an Italian aperitivo bar: a scalloped red-and-cream awning, a line-drawn coupe,
+     and the offer set as a bar menu with dotted leaders. Two hours a day, 17:00–19:00.
+     tall → awning, photo, then the menu card; square / wide → awning across, photo left, menu right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4EAD9; }
+  .banner { --panel: 72vmin; --aw: 11vmin; position: fixed; inset: 0; overflow: hidden; background: #F4EAD9; color: #2A1A14; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif; }
+  .photo { position: absolute; left: 0; top: calc(var(--aw) - 2vmin); width: 100%; height: calc(100% - var(--panel) - var(--aw) + 2vmin); object-fit: cover; object-position: 50% 10%; }
+  .fade { position: absolute; left: 0; right: 0; top: calc(100% - var(--panel) - 10vmin); height: 10vmin; background: linear-gradient(to top, rgba(244,234,217,1.0) 0.0%, rgba(244,234,217,0.985) 7.69%, rgba(244,234,217,0.943) 15.38%, rgba(244,234,217,0.874) 23.08%, rgba(244,234,217,0.784) 30.77%, rgba(244,234,217,0.677) 38.46%, rgba(244,234,217,0.56) 46.15%, rgba(244,234,217,0.44) 53.85%, rgba(244,234,217,0.323) 61.54%, rgba(244,234,217,0.216) 69.23%, rgba(244,234,217,0.126) 76.92%, rgba(244,234,217,0.057) 84.62%, rgba(244,234,217,0.015) 92.31%, rgba(244,234,217,0.0) 100.0%); }
+  .awning { position: absolute; left: 0; right: 0; top: 0; height: calc(var(--aw) + 2.6vmin);
+    background: linear-gradient(rgba(0,0,0,.16), rgba(0,0,0,0) 45%, rgba(0,0,0,.08)), repeating-linear-gradient(90deg, #C23B2A 0 5.2vmin, #F6EEDF 5.2vmin 10.4vmin);
+    -webkit-mask: linear-gradient(#000, #000) 0 0 / 100% var(--aw) no-repeat, radial-gradient(circle at 50% 0, #000 2.55vmin, transparent 2.6vmin) 0 calc(var(--aw) - .05vmin) / 5.2vmin 2.6vmin repeat-x;
+            mask: linear-gradient(#000, #000) 0 0 / 100% var(--aw) no-repeat, radial-gradient(circle at 50% 0, #000 2.55vmin, transparent 2.6vmin) 0 calc(var(--aw) - .05vmin) / 5.2vmin 2.6vmin repeat-x;
+    filter: drop-shadow(0 .8vmin .8vmin rgba(42,26,20,.3)); }
+  .rod { position: absolute; left: 0; right: 0; top: 0; height: 1.4vmin; background: #2A1A14; }
+
+  .menu { position: absolute; left: 7vmin; right: 7vmin; bottom: 5vmin; height: calc(var(--panel) - 8vmin); display: flex; flex-direction: column; }
+  .kick { display: flex; justify-content: space-between; font-size: 1.8vmin; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: #C23B2A; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; margin-top: 1.8vmin; }
+  h1 { margin: 0; font-family: "Gloock", "Didot", Georgia, serif; font-weight: 400; font-size: 12.5vmin; line-height: .88; letter-spacing: -.015em; }
+  .coupe { flex: none; width: 12vmin; height: 14vmin; margin-bottom: .4vmin; }
+  .hours { margin-top: 2.2vmin; display: flex; align-items: center; gap: 2vmin; font-size: 2.3vmin; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+  .hours::after { content: ""; flex: 1; height: 1px; background: #2A1A14; }
+  .hours span { font-weight: 500; letter-spacing: .08em; text-transform: none; color: #6B5249; }
+  ul { list-style: none; margin: 2.2vmin 0 0; padding: 0; }
+  li { display: flex; align-items: baseline; gap: 1.4vmin; padding: 1vmin 0; font-size: 2.6vmin; font-weight: 500; }
+  li i { flex: 1; border-bottom: .4vmin dotted rgba(42,26,20,.55); transform: translateY(-.6vmin); }
+  li b { font-family: "Gloock", Georgia, serif; font-weight: 400; font-size: 4vmin; line-height: 1; color: #C23B2A; }
+  li.code b { font-family: "Manrope", sans-serif; font-weight: 800; font-size: 2.4vmin; letter-spacing: .2em; color: #2A1A14; border: 1px solid #2A1A14; padding: .6vmin 1.2vmin; }
+  .foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .foot p { margin: 0; font-family: "Gloock", Georgia, serif; font-size: 2.6vmin; line-height: 1.2; color: #6B5249; }
+  .cta { flex: none; background: #C23B2A; color: #FBF3E6; border-radius: 99vmin; padding: 2vmin 3.4vmin; font-size: 1.9vmin; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --panel: 64vmin; --aw: 9vmin; }
+    .photo { object-position: 50% 18%; }
+    .menu { bottom: 4.4vmin; height: calc(var(--panel) - 7vmin); }
+    h1 { font-size: 10.5vmin; }
+    .coupe { width: 10vmin; height: 12vmin; }
+    .hours { margin-top: 1.8vmin; }
+    ul { margin-top: 1.4vmin; }
+    li { padding: .7vmin 0; font-size: 2.4vmin; }
+    li b { font-size: 3.6vmin; }
+    .cta { padding: 1.7vmin 3vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --aw: 9vmin; }
+    .photo { width: 50%; height: calc(100% - var(--aw) + 2vmin); object-position: 50% 22%; }
+    .fade { top: 0; bottom: 0; left: calc(50% - 8vmin); right: auto; width: 8vmin; height: auto; background: linear-gradient(to left, rgba(244,234,217,1.0) 0.0%, rgba(244,234,217,0.985) 7.69%, rgba(244,234,217,0.943) 15.38%, rgba(244,234,217,0.874) 23.08%, rgba(244,234,217,0.784) 30.77%, rgba(244,234,217,0.677) 38.46%, rgba(244,234,217,0.56) 46.15%, rgba(244,234,217,0.44) 53.85%, rgba(244,234,217,0.323) 61.54%, rgba(244,234,217,0.216) 69.23%, rgba(244,234,217,0.126) 76.92%, rgba(244,234,217,0.057) 84.62%, rgba(244,234,217,0.015) 92.31%, rgba(244,234,217,0.0) 100.0%); }
+    .menu { left: calc(50% + 4vmin); right: 5vmin; top: calc(var(--aw) + 6vmin); bottom: 5vmin; height: auto; }
+    .kick { flex-direction: column; gap: .8vmin; }
+    .head { flex-direction: column-reverse; align-items: flex-start; gap: 2vmin; }
+    h1 { font-size: 10vmin; }
+    .coupe { width: 8vmin; height: 9.6vmin; }
+    li { font-size: 2.2vmin; padding: .8vmin 0; }
+    li b { font-size: 3.4vmin; }
+    li.code b { font-size: 2vmin; }
+    .hours { font-size: 2vmin; flex-wrap: wrap; }
+    .foot { flex-direction: column; align-items: flex-start; gap: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .photo { width: 46%; object-position: 65% 25%; }
+    .fade { left: calc(46% - 8vmin); }
+    .menu { left: calc(46% + 7vmin); right: 7vmin; top: calc(var(--aw) + 7vmin); bottom: 6vmin; }
+    .kick { flex-direction: row; }
+    .head { flex-direction: row; align-items: flex-end; }
+    h1 { font-size: 11.5vmin; }
+    .coupe { width: 10vmin; height: 12vmin; }
+    li { font-size: 2.5vmin; padding: .9vmin 0; }
+    li b { font-size: 3.8vmin; }
+    .hours { font-size: 2.2vmin; flex-wrap: nowrap; }
+    .foot { flex-direction: row; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="fade"></div>
+  <div class="awning"></div>
+  <div class="rod"></div>
+  <div class="menu">
+    <div class="kick"><span>Studio Oro</span><span>Aperitivo sale</span></div>
+    <div class="head">
+      <h1>Happy<br>Hour</h1>
+      <svg class="coupe" viewBox="0 0 60 72" fill="none" stroke="#2A1A14" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 10 Q30 12 54 10 Q52 30 30 32 Q8 30 6 10 Z" fill="#E8836F" fill-opacity=".35"/>
+        <path d="M8 16 Q30 18 52 16"/>
+        <path d="M30 32 L30 62"/>
+        <path d="M16 66 Q30 60 44 66 Z"/>
+        <circle cx="46" cy="7" r="6.5" fill="#F6EEDF"/>
+        <path d="M46 1 L46 13 M40 7 L52 7 M41.5 2.5 L50.5 11.5 M50.5 2.5 L41.5 11.5" stroke-width=".9"/>
+      </svg>
+    </div>
+    <div class="hours">17:00 — 19:00 <span>daily</span></div>
+    <ul>
+      <li>The whole edit<i></i><b>−25%</b></li>
+      <li>Your second piece<i></i><b>−40%</b></li>
+      <li class="code">At the bar<i></i><b>SPRITZ</b></li>
+    </ul>
+    <div class="foot"><p>Last orders at seven.</p><span class="cta">Order now</span></div>
+  </div>
+</div>
+</body>
+</html>

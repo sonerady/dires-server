@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Fit Notes — the "product info" block of a Seoul online store detail page: a hairline-ruled table of
+     three-step scales (weight, feel, shape, season) with the right step lit in a soft sky pill, a numbered
+     section header, a "shown in" chip and a member price. Quiet, exact, measured.
+     tall → photo, then headline + scale table · square & wide → photo left, the notes right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FAFAF7; }
+  .banner { position: fixed; inset: 0; overflow: hidden; box-sizing: border-box; padding: 5vmin 6vmin 5.5vmin;
+    background: #FAFAF7; color: #1D2230; font-family: "Manrope", "Helvetica Neue", Arial, sans-serif;
+    display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas: "head" "ph" "copy" "tbl" "buy"; }
+
+  .head { grid-area: head; display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 1.6vmin; margin-bottom: 2.6vmin; border-bottom: 1px solid #1D2230; white-space: nowrap; }
+  .head b { font-weight: 800; font-size: 2vmin; letter-spacing: .2em; }
+  .head span { font-family: "IBM Plex Mono", monospace; font-size: 1.7vmin; color: #6E7384; }
+  .ph { grid-area: ph; position: relative; overflow: hidden; min-height: 0; background: #ECEBE6; }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .shown { position: absolute; left: 1.6vmin; bottom: 1.6vmin; font-size: 1.7vmin; font-weight: 600; background: rgba(255,255,255,.94); border-radius: 3vmin; padding: .7vmin 1.5vmin; display: flex; align-items: center; gap: .9vmin; white-space: nowrap; }
+  .shown i { width: 1.8vmin; height: 1.8vmin; border-radius: 50%; background: #E9DFCB; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+
+  .copy { grid-area: copy; margin-top: 3.2vmin; display: flex; justify-content: space-between; align-items: flex-end; gap: 3vmin; }
+  .copy .n { font-family: "IBM Plex Mono", monospace; font-size: 1.7vmin; color: #6E7384; letter-spacing: .04em; }
+  h1 { margin: 1vmin 0 0; font-weight: 700; font-size: 7.6vmin; line-height: 1.04; letter-spacing: -.035em; }
+  .kr { flex: none; font-size: 1.8vmin; font-weight: 600; color: #4D79D8; background: #E3EEFF; border-radius: 3vmin; padding: .7vmin 1.5vmin; white-space: nowrap; }
+
+  .tbl { grid-area: tbl; margin-top: 3vmin; border-top: 1px solid #D9DAE0; }
+  .row { display: grid; grid-template-columns: 12vmin repeat(3, minmax(0, 1fr)); align-items: center; height: 6.4vmin; border-bottom: 1px solid #E6E7EC; white-space: nowrap; }
+  .row .l { font-size: 2.1vmin; font-weight: 700; letter-spacing: .04em; }
+  .row span { text-align: center; font-size: 2.2vmin; color: #A3A7B4; font-weight: 500; }
+  .row span.on { justify-self: center; color: #1D2230; font-weight: 700; background: #D9E8FF; border-radius: 3vmin; padding: .7vmin 2vmin; position: relative; }
+  .row span.on::before { content: ""; display: inline-block; width: 1vmin; height: 1vmin; border-radius: 50%; background: #4D79D8; margin-right: .9vmin; vertical-align: .15vmin; }
+
+  .buy { grid-area: buy; margin-top: 3vmin; display: flex; justify-content: space-between; align-items: center; gap: 2vmin; white-space: nowrap; }
+  .price small { display: block; font-size: 1.7vmin; font-weight: 600; color: #6E7384; letter-spacing: .06em; }
+  .price b { font-weight: 800; font-size: 4.6vmin; letter-spacing: -.03em; }
+  .price s { margin-left: 1.2vmin; font-size: 2.2vmin; color: #A3A7B4; }
+  .price em { margin-left: 1vmin; font-style: normal; font-weight: 800; font-size: 2.2vmin; color: #E0587A; }
+  .cta { font-weight: 700; font-size: 2vmin; color: #fff; background: #1D2230; border-radius: 4vmin; padding: 1.7vmin 3vmin; }
+
+  .col { grid-area: col; display: none; align-self: start; align-items: center; gap: 1.4vmin; white-space: nowrap; font-size: 1.8vmin; color: #6E7384; }
+  .col .c { display: flex; align-items: center; gap: .7vmin; color: #1D2230; font-weight: 600; }
+  .col .c i { width: 2.4vmin; height: 2.4vmin; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+  .col .c.on i { box-shadow: 0 0 0 .35vmin #FAFAF7, 0 0 0 .6vmin #1D2230; }
+
+  /* SHORTER PORTRAIT */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { padding: 4.4vmin 6vmin 4.6vmin; }
+    .head { margin-bottom: 2vmin; }
+    .copy { margin-top: 2.4vmin; }
+    h1 { font-size: 5.8vmin; }
+    .row span { font-size: 1.9vmin; }
+    .tbl { margin-top: 2.2vmin; }
+    .row { height: 5vmin; }
+    .buy { margin-top: 2.2vmin; }
+  }
+  /* SQUARE — photo left, notes right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { padding: 5vmin; column-gap: 4.6vmin; grid-template-columns: 44% minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+      grid-template-areas: "ph head" "ph col" "ph copy" "ph tbl" "ph buy"; }
+    .col { display: flex; margin-top: .6vmin; }
+    .col .c:nth-child(n+4) { display: none; }
+    .copy { margin-top: 0; align-self: end; flex-direction: column; align-items: flex-start; gap: 1.6vmin; }
+    .kr { order: -1; }
+    h1 { font-size: 5.6vmin; }
+    .row { grid-template-columns: 10vmin repeat(3, minmax(0, 1fr)); height: 5.6vmin; }
+    .row span { font-size: 1.7vmin; }
+    .row span.on { padding: .6vmin 1.4vmin; }
+    .row span.on::before { display: none; }
+    .buy { margin-top: 3vmin; }
+    .price b { font-size: 4.2vmin; }
+    .cta { padding: 1.5vmin 2.4vmin; font-size: 1.8vmin; }
+  }
+  /* WIDE */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { padding: 5.5vmin 6vmin; column-gap: 5.5vmin; grid-template-columns: 40% minmax(0, 1fr); }
+    h1 { font-size: 6.6vmin; }
+    .row { grid-template-columns: 12vmin repeat(3, minmax(0, 1fr)); height: 5.4vmin; }
+    .row span { font-size: 1.9vmin; }
+    .row span.on { padding: .7vmin 2vmin; }
+    .row span.on::before { display: inline-block; }
+    .price b { font-size: 4.6vmin; }
+    .cta { padding: 1.7vmin 3vmin; font-size: 2vmin; }
+    .col .c:nth-child(n+4) { display: flex; }
+  }
+  /* ───────────── motion (6 s loop · t=0 = static design) ─────────────
+     quiet and measured: the lit steps of the scale table are "checked" one row after another,
+     the second headline line wipes out and back, the CTA arrow steps forward, the photo breathes */
+  .ph img { transform-origin: 50% 30%; animation: fn-push 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes fn-push { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .row span.on { animation: fn-check 6s cubic-bezier(.3,0,.3,1) infinite; }
+  .row:nth-child(2) span.on { animation-name: fn-check2; }
+  .row:nth-child(3) span.on { animation-name: fn-check3; }
+  .row:nth-child(4) span.on { animation-name: fn-check4; }
+  @keyframes fn-check  { 0%, 8%, 20%, 100% { transform: scale(1); background: #D9E8FF; } 12% { transform: scale(1.12); background: #BCD5FF; } 15% { transform: scale(.98); } }
+  @keyframes fn-check2 { 0%, 13%, 25%, 100% { transform: scale(1); background: #D9E8FF; } 17% { transform: scale(1.12); background: #BCD5FF; } 20% { transform: scale(.98); } }
+  @keyframes fn-check3 { 0%, 18%, 30%, 100% { transform: scale(1); background: #D9E8FF; } 22% { transform: scale(1.12); background: #BCD5FF; } 25% { transform: scale(.98); } }
+  @keyframes fn-check4 { 0%, 23%, 35%, 100% { transform: scale(1); background: #D9E8FF; } 27% { transform: scale(1.12); background: #BCD5FF; } 30% { transform: scale(.98); } }
+  .row span.on::before { animation: fn-dot 1.5s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes fn-dot { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+  h1 .ln { display: inline-block; animation: fn-wipe 6s cubic-bezier(.7,0,.2,1) infinite; }
+  @keyframes fn-wipe {
+    0%, 44%, 100% { clip-path: inset(-10% 0 -10% 0); transform: translateY(0); }
+    52% { clip-path: inset(-10% 0 -10% 100%); transform: translateY(0); }
+    53% { clip-path: inset(-10% 100% -10% 0); transform: translateY(.8vmin); }
+    64% { clip-path: inset(-10% 0 -10% 0); transform: translateY(0); }
+  }
+
+  .shown { animation: fn-float 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes fn-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-.6vmin); } }
+  .kr { animation: fn-kr 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes fn-kr { 0%, 100% { box-shadow: 0 0 0 0 rgba(77,121,216,0); } 50% { box-shadow: 0 0 0 .5vmin rgba(77,121,216,.14); } }
+
+  .cta { display: inline-block; background-image: linear-gradient(105deg, rgba(255,255,255,0) 40%, rgba(255,255,255,.28) 50%, rgba(255,255,255,0) 60%);
+    background-size: 300% 100%; background-repeat: no-repeat; background-position: 100% 0; animation: fn-sheen 6s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes fn-sheen { 0%, 72% { background-position: 100% 0; } 92%, 100% { background-position: 0% 0; } }
+  .cta .ar { display: inline-block; animation: fn-ar 3s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes fn-ar { 0%, 60%, 90%, 100% { transform: translateX(0); } 75% { transform: translateX(.7vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="head"><b>PRODUCT NOTES</b><span>02 / 상품 정보</span></div>
+  <div class="ph"><img src="{{PRODUCT_IMAGE}}" alt=""><div class="shown"><i></i>Shown in Oat</div></div>
+  <div class="col">Colour<span class="c on"><i style="background:#E9DFCB"></i>Oat</span><span class="c"><i style="background:#CFE1F5"></i>Sky</span><span class="c"><i style="background:#F4D2DB"></i>Blush</span><span class="c"><i style="background:#D3E6D4"></i>Sage</span></div>
+  <div class="copy"><div><div class="n">No. 0417 — The daily edit</div><h1>Made to be<br><span class="ln">worn daily.</span></h1></div><span class="kr">Ships in 24 h</span></div>
+  <div class="tbl">
+    <div class="row"><b class="l">Weight</b><span class="on">Light</span><span>Mid</span><span>Heavy</span></div>
+    <div class="row"><b class="l">Feel</b><span>Crisp</span><span class="on">Soft</span><span>Fluid</span></div>
+    <div class="row"><b class="l">Shape</b><span>Fitted</span><span class="on">Regular</span><span>Relaxed</span></div>
+    <div class="row"><b class="l">Season</b><span>Summer</span><span class="on">All year</span><span>Winter</span></div>
+  </div>
+  <div class="buy"><div class="price"><small>MEMBER PRICE</small><b>€64</b><s>€80</s><em>−20%</em></div><span class="cta">Shop now <span class="ar">→</span></span></div>
+</div>
+</body>
+</html>

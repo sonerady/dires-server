@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Chivo:wght@300;700;900&family=Chivo+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Masking Easel — the enlarging easel on the darkroom baseboard: two white enamel blades with engraved rulers square
+     up the colour print, a black knob at the corner, and the offer stamped on a brushed-aluminium maker's plate.
+     tall → easel above, copy on the baseboard below · square & wide → easel left, copy right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #1B1B1A; }
+  .banner { --pb: 54vmin; --pr: 4vmin; position: fixed; inset: 0; overflow: hidden; color: #EDEBE6; font-family: "Chivo", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(ellipse 120vmin 90vmin at 30% 20%, #262625, #1B1B1A 70%); }
+
+  .photo { position: absolute; left: 11vmin; top: 12vmin; width: calc(100% - 11vmin - var(--pr)); height: calc(100% - 12vmin - var(--pb)); object-fit: cover; object-position: 50% 20%; }
+
+  /* blades */
+  .blade { position: absolute; background: #EFEDE7; box-shadow: 0 .6vmin 1.4vmin rgba(0,0,0,.45); color: #1B1B1A; font-family: "Chivo Mono", Menlo, monospace; font-size: 1.6vmin; }
+  .top { left: 4vmin; top: 5vmin; height: 7vmin; width: calc(100% - 4vmin - var(--pr)); box-sizing: border-box; padding: .9vmin 1vmin 0 8vmin;
+    background-image: repeating-linear-gradient(90deg, #1B1B1A 0 1px, transparent 1px 1.25vmin), repeating-linear-gradient(90deg, #1B1B1A 0 1px, transparent 1px 6.25vmin);
+    background-size: 100% 1.1vmin, 100% 2.4vmin; background-position: 7vmin 100%, 7vmin 100%; background-repeat: no-repeat; }
+  .left { left: 4vmin; top: 5vmin; width: 7vmin; height: calc(100% - 5vmin - var(--pb)); box-sizing: border-box; padding: 8vmin 0 1vmin .9vmin;
+    background-image: repeating-linear-gradient(180deg, #1B1B1A 0 1px, transparent 1px 1.25vmin), repeating-linear-gradient(180deg, #1B1B1A 0 1px, transparent 1px 6.25vmin);
+    background-size: 1.1vmin 100%, 2.4vmin 100%; background-position: 100% 7vmin, 100% 7vmin; background-repeat: no-repeat; }
+  .top .nums { display: flex; justify-content: space-between; line-height: 1; }
+  .left .nums { height: 100%; display: flex; flex-direction: column; justify-content: space-between; line-height: 1; }
+  .knob { position: absolute; left: 5.2vmin; top: 6.2vmin; width: 4.6vmin; height: 4.6vmin; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #4A4A48, #121211 70%); box-shadow: 0 .4vmin 1vmin rgba(0,0,0,.5); }
+  .knob::after { content: ""; position: absolute; inset: 1.5vmin; border-radius: 50%; border: 1px solid #5E5E5B; }
+
+  /* copy on the baseboard */
+  .copy { position: absolute; left: 4vmin; right: 4vmin; bottom: 5vmin; height: calc(var(--pb) - 11vmin); display: flex; flex-direction: column; justify-content: space-between; }
+  .kick { display: flex; justify-content: space-between; gap: 2vmin; font-family: "Chivo Mono", Menlo, monospace; font-size: 1.7vmin; letter-spacing: .1em; text-transform: uppercase; color: #A6A49E; }
+  h1 { margin: 0; font-weight: 900; font-size: 12.4vmin; line-height: .86; letter-spacing: -.045em; }
+  h1 span { font-weight: 300; }
+  .sub { margin: 1.6vmin 0 0; font-size: 2.2vmin; font-weight: 300; line-height: 1.4; color: #CFCDC7; }
+  .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 3vmin; }
+  .cta { font-family: "Chivo Mono", Menlo, monospace; font-size: 1.8vmin; letter-spacing: .12em; text-transform: uppercase; padding-bottom: .8vmin; border-bottom: 1px solid #EDEBE6; white-space: nowrap; }
+  /* brushed aluminium maker's plate */
+  .plate { position: relative; flex: none; padding: 1.6vmin 3.4vmin 1.6vmin; color: #1B1B1A; text-align: center;
+    background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 40%, rgba(0,0,0,.08)), repeating-linear-gradient(90deg, #C9C8C3 0 1px, #D6D5D0 1px 3px, #CFCEC9 3px 4px); box-shadow: inset 0 0 0 1px rgba(0,0,0,.25), 0 .4vmin 1vmin rgba(0,0,0,.4); }
+  .plate::before, .plate::after { content: ""; position: absolute; top: 50%; width: 1.1vmin; height: 1.1vmin; margin-top: -.55vmin; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #EEE, #77766F); }
+  .plate::before { left: 1.1vmin; } .plate::after { right: 1.1vmin; }
+  .plate b { display: block; font-weight: 900; font-size: 6.4vmin; line-height: .9; letter-spacing: -.03em; }
+  .plate small { display: block; margin-top: .6vmin; font-family: "Chivo Mono", Menlo, monospace; font-weight: 500; font-size: 1.6vmin; letter-spacing: .14em; text-transform: uppercase; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --pb: 5vmin; --pr: 40vmin; }
+    .copy { left: auto; right: 4.4vmin; top: 5vmin; bottom: 5vmin; height: auto; width: calc(var(--pr) - 9.4vmin); }
+    .kick { flex-direction: column; gap: .5vmin; font-size: 1.6vmin; }
+    h1 { font-size: 7.6vmin; }
+    .sub { font-size: 1.8vmin; }
+    .row { flex-direction: column; align-items: flex-start; gap: 3vmin; }
+    .plate b { font-size: 5vmin; }
+    .cta { font-size: 1.7vmin; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --pr: 44vmin; }
+    h1 { font-size: 7.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --pr: 66vmin; }
+    .copy { right: 6vmin; width: calc(var(--pr) - 12vmin); top: 6vmin; bottom: 6vmin; }
+    .kick { flex-direction: row; font-size: 1.7vmin; }
+    h1 { font-size: 11vmin; }
+    .sub { font-size: 2.1vmin; }
+    .row { flex-direction: row; align-items: flex-end; }
+    .plate b { font-size: 6vmin; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <img class="photo" src="{{PRODUCT_IMAGE}}" alt="">
+  <div class="blade top"><div class="nums"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span></div></div>
+  <div class="blade left"><div class="nums"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span></div></div>
+  <div class="knob"></div>
+  <div class="copy">
+    <div class="kick"><span>Easel set · 5 mm border</span><span>Print 20 × 25</span></div>
+    <div><h1>Sized<br><span>just right.</span></h1><p class="sub">The new edit in every size,<br>with free exchanges for 30 days.</p></div>
+    <div class="row"><div class="plate"><b>−20%</b><small>Code EASEL20</small></div><div class="cta">Shop the edit →</div></div>
+  </div>
+</div>
+</body>
+</html>

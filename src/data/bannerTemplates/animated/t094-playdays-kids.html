@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="4">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* Playdays — the kids' edit: chunky rounded type, crayon doodles (sun, squiggle, star), a crayon outline
+     offset behind a sharp photo, a round offer sticker. tall → headline above photo; 9/10+ → photo left */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #FFF3E2; }
+  .banner { position: fixed; inset: 0; overflow: hidden; background: #FFF3E2; color: #2B2A3A; font-family: "Fredoka", "Arial Rounded MT Bold", "Helvetica Neue", Arial, sans-serif; }
+  .dots { position: absolute; inset: 0; background: radial-gradient(circle, rgba(43,42,58,.07) .25vmin, transparent .3vmin) 0 0 / 3.4vmin 3.4vmin; }
+
+  .head { position: absolute; left: 7vmin; right: 7vmin; top: 7vmin; }
+  .k { display: inline-block; padding: .9vmin 2.2vmin; border-radius: 99vmin; background: #2B2A3A; color: #FFF3E2; font-size: 1.9vmin; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+  h1 { width: fit-content; margin: 2vmin 0 0; font-weight: 700; font-size: 13.5vmin; line-height: .88; letter-spacing: -.02em; color: #F0563A; }
+  h1 small { display: block; font-size: 6.2vmin; font-weight: 600; color: #2B2A3A; letter-spacing: -.01em; margin-bottom: 1vmin; }
+  .squig { display: block; width: 46vmin; height: 3.4vmin; margin-top: .8vmin; }
+
+  /* photo with a crayon outline + yellow block offset behind it */
+  .frame { position: absolute; left: 7vmin; right: 7vmin; top: 44vmin; bottom: 25vmin; }
+  .frame .blk { position: absolute; inset: 0; transform: translate(2.4vmin, 2.4vmin); background: #FFC23D; }
+  .frame img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  .frame .crayon { position: absolute; left: -2vmin; top: -2vmin; width: calc(100% + 4vmin); height: calc(100% + 4vmin); overflow: visible; pointer-events: none; }
+  .crayon path { fill: none; stroke: #4E9FDB; stroke-width: .55vmin; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+
+  /* doodles */
+  .sun { position: absolute; right: 7vmin; top: 5vmin; width: 16vmin; height: 16vmin; }
+  .star { position: absolute; width: 7vmin; height: 7vmin; }
+  .st1 { right: 33vmin; top: 33vmin; transform: rotate(-12deg); }
+
+  .sticker { position: absolute; right: 4vmin; top: 25vmin; width: 21vmin; height: 21vmin; border-radius: 50%; background: #F0563A; color: #FFF3E2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform: rotate(10deg); box-shadow: 0 0 0 .7vmin #FFF3E2, 0 1vmin 2vmin rgba(43,42,58,.2); z-index: 3; }
+  .sticker span { font-size: 2.1vmin; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  .sticker b { font-size: 5.4vmin; font-weight: 700; line-height: .95; }
+  .note { position: absolute; left: 9vmin; bottom: 16.6vmin; font-family: "Caveat", "Comic Sans MS", cursive; font-weight: 700; font-size: 4.4vmin; color: #2B2A3A; transform: rotate(-4deg); display: flex; align-items: flex-end; gap: 1vmin; }
+  .note svg { width: 8vmin; height: 5vmin; transform: translateY(-1.6vmin); }
+  .note path { fill: none; stroke: #2B2A3A; stroke-width: .45vmin; stroke-linecap: round; stroke-linejoin: round; }
+
+  .foot { position: absolute; left: 7vmin; right: 7vmin; bottom: 5.5vmin; display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .meta { font-size: 2.3vmin; font-weight: 500; line-height: 1.35; }
+  .meta b { display: block; font-weight: 700; font-size: 2.7vmin; }
+  .cta { flex: none; padding: 2vmin 3.6vmin; border-radius: 99vmin; background: #2B2A3A; color: #FFF3E2; font-size: 2.5vmin; font-weight: 600; white-space: nowrap; box-shadow: .6vmin .6vmin 0 #5DB075; }
+
+  /* ── 3:4 / 4:5: tighter header ── */
+  @media (min-aspect-ratio: 7/10) {
+    .head { top: 5vmin; }
+    h1 { font-size: 10.4vmin; }
+    h1 small { font-size: 4.8vmin; }
+    .squig { width: 36vmin; height: 2.8vmin; }
+    .sun { width: 15vmin; height: 15vmin; right: 5vmin; top: 4vmin; }
+    .st1 { top: 23vmin; right: 24vmin; width: 5.6vmin; height: 5.6vmin; }
+    .frame { top: 34vmin; bottom: 22vmin; left: 7vmin; right: 30vmin; }
+    .sticker { right: 5vmin; top: auto; bottom: 26vmin; }
+    .note { left: auto; right: 4vmin; bottom: auto; top: 44vmin; flex-direction: column-reverse; align-items: center; }
+    .note svg { transform: rotate(80deg); }
+  }
+  /* ── square / wide: photo left, copy on the right ── */
+  @media (min-aspect-ratio: 9/10) {
+    .frame { left: 6vmin; top: 6vmin; bottom: 8vmin; right: auto; width: 44%; }
+    .head { left: calc(44% + 14vmin); right: 5vmin; top: 7vmin; }
+    h1 { font-size: 9vmin; }
+    h1 small { font-size: 4.2vmin; }
+    .squig { width: 30vmin; }
+    .sun { right: 4vmin; top: 37vmin; bottom: auto; width: 11vmin; height: 11vmin; }
+    .st1 { right: auto; left: calc(44% + 16vmin); top: auto; bottom: 33vmin; width: 5vmin; height: 5vmin; }
+    .sticker { right: 6vmin; top: auto; bottom: 25vmin; width: 18vmin; height: 18vmin; }
+    .sticker span { font-size: 1.8vmin; } .sticker b { font-size: 4.6vmin; }
+    .note { left: calc(44% + 14vmin); right: auto; top: 40vmin; bottom: auto; flex-direction: row; align-items: flex-end; }
+    .note svg { transform: scaleX(-1) translateY(-1.6vmin); }
+    .foot { left: calc(44% + 14vmin); right: 5vmin; bottom: 6vmin; flex-direction: column; align-items: flex-start; gap: 2.4vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .frame { width: 40%; }
+    .head { left: calc(40% + 16vmin); right: 6vmin; top: 9vmin; }
+    h1 { font-size: 11.4vmin; }
+    h1 small { font-size: 5vmin; }
+    .squig { width: 40vmin; height: 3vmin; }
+    .sun { right: 6vmin; top: 6vmin; bottom: auto; width: 16vmin; height: 16vmin; }
+    .st1 { left: auto; right: 34vmin; bottom: 30vmin; width: 6vmin; height: 6vmin; }
+    .sticker { right: 9vmin; bottom: 24vmin; width: 20vmin; height: 20vmin; }
+    .note { left: calc(40% + 16vmin); top: 51vmin; }
+    .foot { left: calc(40% + 16vmin); right: 6vmin; bottom: 8vmin; flex-direction: row; align-items: center; }
+  }
+
+  /* ───────── motion: 4s loop, bouncy & playful — t=0 = the static design ───────── */
+  /* headline hops: squash, jump, land */
+  h1 .pd { display: inline-block; transform-origin: 50% 100%; animation: hop 4s linear infinite; }
+  @keyframes hop {
+    0%, 6% { transform: translateY(0) scale(1, 1); animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    10% { transform: translateY(0) scale(1.03, .94); animation-timing-function: cubic-bezier(.2,.7,.4,1); }
+    17% { transform: translateY(-1.4vmin) scale(.98, 1.04); animation-timing-function: cubic-bezier(.6,0,.8,.4); }
+    24% { transform: translateY(0) scale(1.03, .95); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    29%, 100% { transform: translateY(0) scale(1, 1); }
+  }
+  /* crayon squiggle: scribbled away, then drawn again */
+  .squig path { stroke-dasharray: 100 100; stroke-dashoffset: 0; animation: scribble 4s linear infinite; }
+  @keyframes scribble {
+    0%, 28% { stroke-dashoffset: 0; animation-timing-function: cubic-bezier(.6,0,.9,.5); }
+    36% { stroke-dashoffset: -100; animation-timing-function: steps(1, end); }
+    37% { stroke-dashoffset: 100; animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    60%, 100% { stroke-dashoffset: 0; }
+  }
+  /* the sun wobbles and breathes */
+  .sun { transform-origin: 50% 50%; animation: sun 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes sun { 0%, 100% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(9deg) scale(1.05); } 50% { transform: rotate(0deg) scale(1); } 75% { transform: rotate(-9deg) scale(1.05); } }
+  /* the star does a spin-and-pop */
+  .st1 { animation: star 4s linear infinite; }
+  @keyframes star {
+    0%, 32% { transform: rotate(-12deg) scale(1); animation-timing-function: cubic-bezier(.5,0,.3,1); }
+    44% { transform: rotate(168deg) scale(1.25); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+    52%, 100% { transform: rotate(348deg) scale(1); }
+  }
+  /* offer sticker: a springy boing */
+  .sticker { animation: boing 4s linear infinite; }
+  @keyframes boing {
+    0%, 48% { transform: rotate(10deg) scale(1); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    52% { transform: rotate(4deg) scale(1.12); animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    57% { transform: rotate(15deg) scale(.95); animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    62% { transform: rotate(8deg) scale(1.03); animation-timing-function: cubic-bezier(.4,0,.5,1); }
+    67%, 100% { transform: rotate(10deg) scale(1); }
+  }
+  /* handwritten note bobs gently */
+  .note { animation: bob 2s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes bob { 0%, 100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(-2deg) translateY(-.8vmin); } }
+  /* CTA: pushed like a real button, arrow skips ahead */
+  .cta { animation: press 4s linear infinite; }
+  @keyframes press {
+    0%, 74% { transform: translate(0, 0); box-shadow: .6vmin .6vmin 0 #5DB075; animation-timing-function: cubic-bezier(.4,0,.6,1); }
+    78%, 80% { transform: translate(.6vmin, .6vmin); box-shadow: 0 0 0 #5DB075; animation-timing-function: cubic-bezier(.2,.8,.3,1.3); }
+    86%, 100% { transform: translate(0, 0); box-shadow: .6vmin .6vmin 0 #5DB075; }
+  }
+  .cta .ar { display: inline-block; animation: skip 4s linear infinite; }
+  @keyframes skip {
+    0%, 80% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    85% { transform: translateX(1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    90%, 100% { transform: translateX(0); }
+  }
+  /* the yellow block shuffles under the photo */
+  .frame .blk { animation: blk 4s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes blk { 0%, 100% { transform: translate(2.4vmin, 2.4vmin); } 50% { transform: translate(1.6vmin, 3vmin); } }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="dots"></div>
+  <svg class="sun" viewBox="0 0 100 100" aria-hidden="true"><g fill="none" stroke="#FFC23D" stroke-width="5" stroke-linecap="round"><path d="M50 30c11 0 20 8 20 19s-8 21-20 21-21-9-20-21c1-11 9-19 20-19z" fill="#FFC23D"/><path d="M50 6v12M50 82v12M6 50h12M82 50h12M19 19l8 8M73 73l8 8M81 19l-8 8M27 73l-8 8"/></g></svg>
+  <svg class="star st1" viewBox="0 0 50 50" aria-hidden="true"><path d="M25 4l5.5 13.5L45 19l-11 9.5 3.5 15L25 35.5 12.5 43.5 16 28.5 5 19l14.5-1.5z" fill="#5DB075" stroke="#2B2A3A" stroke-width="2.4" stroke-linejoin="round"/></svg>
+  <div class="head">
+    <div class="k">The Mini Edit</div>
+    <h1><small>Made for</small><span class="pd">playdays!</span></h1>
+    <svg class="squig" viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M3 9c10-9 18-9 26 0s16 9 26 0 18-9 26 0 16 9 26 0 18-9 26 0 16 9 26 0 18-9 26 0 16 9 20 2" fill="none" stroke="#4E9FDB" stroke-width="4" stroke-linecap="round"/></svg>
+  </div>
+  <div class="frame">
+    <div class="blk"></div>
+    <img src="{{PRODUCT_IMAGE}}" alt="">
+    <svg class="crayon" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M1.5 2.2C22 1.2 60 2.8 98.4 1.6c.8 30-.6 66 .4 96.6-30 .9-66-.8-97 .3C1.2 70 2.4 33 1.5 2.2z"/></svg>
+  </div>
+  <div class="sticker"><span>Buy 2</span><b>Get 1</b><span>Free</span></div>
+  <div class="note">play-tested!<svg viewBox="0 0 80 50" aria-hidden="true"><path d="M4 44C20 40 44 32 70 10M70 10l-14 2M70 10l-2 13"/></svg></div>
+  <div class="foot">
+    <div class="meta"><b>Ages 2–12</b>New colours every week</div>
+    <div class="cta">Shop kids <span class="ar">→</span></div>
+  </div>
+</div>
+</body>
+</html>

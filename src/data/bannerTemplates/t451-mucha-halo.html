@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Lancelot&family=Tenor+Sans&display=swap" rel="stylesheet">
+<style>
+  /* Mucha Halo — an 1890s Paris poster without the figure: the look stands in a round-topped arch under a sunburst lunette,
+     a segmented halo wheel blooms behind its crown, whiplash tendrils pour down the sides, a mosaic plinth underneath.
+     tall → arch above, lettering below · square & wide → lettering left, arch on the right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F1E5CC; }
+  .banner { --ink: #3B2A20; --ochre: #C08A3E; --sage: #7F8F62; --rose: #B8665A; --cream: #F1E5CC;
+    --at: 15vmin; --al: 18vmin; --aw: 64vmin; --ab: 64vmin; --hd: 86vmin;
+    position: fixed; inset: 0; overflow: hidden; color: var(--ink); font-family: "Tenor Sans", "Gill Sans", "Helvetica Neue", Arial, sans-serif;
+    background: radial-gradient(90% 60% at 50% 30%, #F7EDD8 0%, #F1E5CC 55%, #E8D8B8 100%); }
+
+  /* halo wheel, centred on the arch's crown */
+  .halo { position: absolute; width: var(--hd); height: var(--hd); left: calc(var(--al) + var(--aw) / 2 - var(--hd) / 2); top: calc(var(--at) + var(--aw) / 2 - var(--hd) / 2); }
+  .halo svg { width: 100%; height: 100%; display: block; }
+
+  /* tendrils */
+  .vine { position: absolute; top: calc(var(--at) + var(--aw) * .55); bottom: calc(var(--ab) + 1vmin); width: calc(var(--al) - 4vmin); }
+  .vine.l { left: 2vmin; }
+  .vine.r { right: 2vmin; transform: scaleX(-1); }
+  .vine svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .vine path { fill: none; stroke: var(--ochre); stroke-width: .55vmin; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .vine path.t { stroke: var(--sage); stroke-width: .28vmin; }
+  .vine path.u { stroke: var(--rose); stroke-width: .22vmin; opacity: .8; }
+
+  /* the arch */
+  .arch { position: absolute; left: var(--al); top: var(--at); width: var(--aw); bottom: var(--ab); }
+  .arch::before, .arch::after { content: ""; position: absolute; border-radius: 100vmin 100vmin 0 0; }
+  .arch::before { inset: -2.2vmin -2.2vmin 0; background: var(--cream); border: .5vmin solid var(--ochre); border-bottom: 0; }
+  .arch::after { inset: -.9vmin -.9vmin 0; border: 1px solid var(--ink); border-bottom: 0; }
+  .arch img { position: absolute; left: 0; top: calc(var(--aw) / 2); width: 100%; height: calc(100% - var(--aw) / 2); object-fit: cover; object-position: 50% 18%; display: block; z-index: 1; }
+  /* sunburst lunette above the springline */
+  .arch .lun { position: absolute; left: 0; top: 0; width: 100%; height: calc(var(--aw) / 2); z-index: 1; border-radius: 100vmin 100vmin 0 0; border-bottom: .5vmin solid var(--ochre);
+    box-sizing: border-box; overflow: hidden;
+    background:
+      radial-gradient(circle calc(var(--aw) * .17) at 50% 100%, var(--rose) 0 62%, var(--cream) 62% 72%, var(--ochre) 72% 78%, rgba(0,0,0,0) 78%),
+      repeating-conic-gradient(from 270deg at 50% 100%, #E9CF9E 0 7.5deg, #F4E6CB 7.5deg 15deg),
+      #F4E6CB; }
+  .arch .lun::after { content: ""; position: absolute; left: 50%; bottom: 0; width: calc(var(--aw) * .62); height: calc(var(--aw) * .31); transform: translateX(-50%);
+    border: 1px solid rgba(59,42,32,.55); border-bottom: 0; border-radius: 100vmin 100vmin 0 0; }
+
+  /* mosaic plinth */
+  .plinth { position: absolute; left: calc(var(--al) - 5vmin); width: calc(var(--aw) + 10vmin); top: calc(100% - var(--ab)); height: 4.4vmin;
+    background: var(--ochre); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .plinth::before { content: ""; position: absolute; left: 1.2vmin; right: 1.2vmin; top: 1.2vmin; bottom: 1.2vmin;
+    background: repeating-linear-gradient(90deg, var(--rose) 0 1.4vmin, var(--cream) 1.4vmin 1.8vmin, var(--sage) 1.8vmin 3.2vmin, var(--cream) 3.2vmin 3.6vmin); }
+
+  /* lettering */
+  .copy { position: absolute; left: 7vmin; right: 7vmin; top: calc(100% - var(--ab) + 4.4vmin); bottom: 1vmin; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .rule { display: block; width: 34vmin; height: 3.2vmin; margin-top: 1.8vmin; overflow: visible; }
+  .rule path { fill: none; stroke: var(--ochre); stroke-width: .3vmin; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+  .rule circle { fill: var(--rose); }
+  .k { font-size: 1.9vmin; letter-spacing: .38em; margin-right: -.38em; text-transform: uppercase; color: var(--sage); white-space: nowrap; }
+  .k i { font-style: normal; color: var(--rose); padding: 0 .6em; }
+  h1 { margin: 1.6vmin 0 0; font-family: "Lancelot", "Didot", Georgia, serif; font-weight: 400; font-size: 15vmin; line-height: .9; letter-spacing: .01em; color: var(--ink); white-space: nowrap; }
+  .sub { margin-top: 1.4vmin; font-family: "Lancelot", Georgia, serif; font-size: 3.4vmin; color: var(--rose); }
+  .band { display: inline-flex; align-items: center; gap: 2.4vmin; margin-top: 3.4vmin; padding: 1.7vmin 5vmin 1.5vmin; border-radius: 10vmin; background: var(--rose); color: #FBF1DE;
+    box-shadow: 0 0 0 .5vmin var(--cream), 0 0 0 .8vmin var(--ochre); font-size: 2.3vmin; letter-spacing: .24em; text-transform: uppercase; white-space: nowrap; }
+  .band b { font-family: "Lancelot", Georgia, serif; font-weight: 400; font-size: 5vmin; letter-spacing: 0; line-height: .8; }
+  .band s { width: 1px; height: 3.4vmin; background: rgba(251,241,222,.6); text-decoration: none; }
+  .foot { margin-top: 3vmin; font-size: 1.8vmin; letter-spacing: .26em; margin-right: -.26em; text-transform: uppercase; color: var(--ink); opacity: .8; white-space: nowrap; }
+
+  /* shorter portrait */
+  @media (min-aspect-ratio: 7/10) {
+    .banner { --at: 13vmin; --al: 26vmin; --aw: 48vmin; --ab: 50vmin; --hd: 66vmin; }
+    h1 { font-size: 11.5vmin; }
+    .sub { font-size: 3vmin; margin-top: 1vmin; }
+    .band { margin-top: 2.6vmin; }
+    .foot { margin-top: 2.4vmin; }
+  }
+  /* square: lettering left, arch right */
+  @media (min-aspect-ratio: 9/10) {
+    .banner { --at: 17vmin; --al: calc(100% - 44vmin); --aw: 36vmin; --ab: 6vmin; --hd: 50vmin; }
+    .vine.l { display: none; }
+    .vine.r { width: 5.5vmin; right: 1vmin; top: calc(var(--at) + 30vmin); }
+    .plinth { top: auto; bottom: 1.6vmin; height: 4.4vmin; }
+    .copy { left: 6vmin; right: auto; width: calc(100% - 57vmin); top: 0; bottom: 0; align-items: flex-start; text-align: left; }
+    .rule { width: 26vmin; margin-left: -1vmin; }
+    .k { letter-spacing: .2em; margin-right: 0; font-size: 1.7vmin; }
+    h1 { margin-top: 2vmin; font-size: 10.4vmin; white-space: normal; line-height: .92; }
+    .sub { font-size: 2.8vmin; margin-top: 1.6vmin; }
+    .band { margin-top: 3.4vmin; padding: 1.4vmin 3vmin 1.2vmin; gap: 1.5vmin; font-size: 1.8vmin; letter-spacing: .14em; }
+    .band b { font-size: 4.2vmin; }
+    .foot { margin-top: 3vmin; font-size: 1.7vmin; letter-spacing: .18em; margin-right: 0; white-space: normal; line-height: 1.6; }
+  }
+  /* wide */
+  @media (min-aspect-ratio: 6/5) {
+    .banner { --at: 17vmin; --al: calc(100% - 64vmin); --aw: 48vmin; --ab: 6vmin; --hd: 70vmin; }
+    .vine.l { display: block; left: calc(100% - 78vmin); width: 10vmin; top: calc(var(--at) + 30vmin); }
+    .vine.r { width: 12vmin; right: 2vmin; top: calc(var(--at) + 30vmin); }
+    .copy { left: 9vmin; width: calc(100% - 94vmin); }
+    h1 { font-size: 12.5vmin; white-space: nowrap; }
+    .sub { font-size: 3.2vmin; }
+    .band { padding: 1.7vmin 4.4vmin 1.5vmin; font-size: 2.2vmin; }
+    .band b { font-size: 5vmin; }
+    .foot { white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="halo" aria-hidden="true">
+    <svg viewBox="-50 -50 100 100">
+      <circle r="49.4" fill="#EAD3AA" stroke="#C08A3E" stroke-width=".5"/>
+      <circle r="45.2" fill="none" stroke="#7F8F62" stroke-width="7" stroke-dasharray="5.917 5.917" opacity=".55"/>
+      <circle r="48.6" fill="none" stroke="#3B2A20" stroke-width=".25"/>
+      <circle r="41.5" fill="#F4E6CB" stroke="#3B2A20" stroke-width=".25"/>
+      <circle r="38.6" fill="none" stroke="#B8665A" stroke-width="2.1" stroke-linecap="round" stroke-dasharray="0 5.053"/>
+      <circle r="35.6" fill="none" stroke="#C08A3E" stroke-width=".5"/>
+      <circle r="33.8" fill="#EDD9B4" opacity=".7"/>
+      <g fill="none" stroke="#C08A3E" stroke-width=".45" opacity=".8">
+        <circle r="30"/><circle r="26"/><circle r="22"/>
+      </g>
+    </svg>
+  </div>
+  <div class="vine l" aria-hidden="true">
+    <svg viewBox="0 0 100 400" preserveAspectRatio="none">
+      <path d="M92 0 C 40 40, 96 90, 50 140 S 4 230, 40 280 S 96 350, 60 392 C 48 404, 30 392, 40 380"/>
+      <path class="t" d="M80 10 C 20 70, 70 120, 30 180 S -6 270, 26 320 C 40 342, 20 358, 12 344"/>
+      <path class="u" d="M98 30 C 70 80, 100 120, 76 170 S 50 250, 80 300 S 86 360, 70 370"/>
+      <path class="t" d="M60 0 C 14 30, 34 70, 10 110 C 0 128, 14 142, 22 132"/>
+    </svg>
+  </div>
+  <div class="vine r" aria-hidden="true">
+    <svg viewBox="0 0 100 400" preserveAspectRatio="none">
+      <path d="M92 0 C 40 40, 96 90, 50 140 S 4 230, 40 280 S 96 350, 60 392 C 48 404, 30 392, 40 380"/>
+      <path class="t" d="M80 10 C 20 70, 70 120, 30 180 S -6 270, 26 320 C 40 342, 20 358, 12 344"/>
+      <path class="u" d="M98 30 C 70 80, 100 120, 76 170 S 50 250, 80 300 S 86 360, 70 370"/>
+      <path class="t" d="M60 0 C 14 30, 34 70, 10 110 C 0 128, 14 142, 22 132"/>
+    </svg>
+  </div>
+  <div class="arch"><i class="lun" aria-hidden="true"></i><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="plinth" aria-hidden="true"></div>
+  <div class="copy">
+    <div class="k">Atelier Nord<i>✦</i>Spring 2026</div>
+    <h1>La Saison</h1>
+    <svg class="rule" viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 12 C 40 -2, 60 22, 92 10 M196 12 C 160 -2, 140 22, 108 10 M92 10 C 96 4, 104 4, 108 10"/><circle cx="100" cy="14" r="2.6"/></svg>
+    <div class="sub">The new collection, in full bloom</div>
+    <div class="band"><b>30%</b><span>off</span><s></s><span>Code SAISON</span></div>
+    <div class="foot">Until 30 April · ateliernord.com</div>
+  </div>
+</div>
+</body>
+</html>

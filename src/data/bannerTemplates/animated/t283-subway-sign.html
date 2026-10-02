@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="loop-duration" content="6">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Subway Sign — an overhead platform sign: black enamel band with the thin white rule, round route bullets that spell
+     S·A·L·E, the destination set in tight grotesk, then a strip map where the collection is the line and every
+     department a stop (the sale stop highlighted as "next stop").
+     tall → sign / photo / horizontal strip map · square & wide → sign on top, photo left, vertical line map right */
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; background: #F4F3EF; }
+  .banner { --blk: #141414; --wht: #F7F7F4; --or: #F26A1B; --gr: #1E9B4B; --mg: #D6307A; --pu: #6C3FB0;
+    position: fixed; inset: 0; overflow: hidden; background: #F4F3EF; color: var(--blk); font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif; }
+
+  .sign { position: absolute; left: 0; right: 0; top: 0; height: 33vmin; background: var(--blk); color: var(--wht); box-sizing: border-box; padding: 5.4vmin 6vmin 0; }
+  .sign::before { content: ""; position: absolute; left: 0; right: 0; top: 2vmin; height: .7vmin; background: var(--wht); }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; }
+  .bul { display: flex; gap: 1.4vmin; }
+  .bul i { font-style: normal; width: 8.4vmin; height: 8.4vmin; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 5.6vmin; line-height: 1; color: #fff; }
+  .bul i:nth-child(1) { background: var(--or); } .bul i:nth-child(2) { background: var(--gr); } .bul i:nth-child(3) { background: var(--mg); } .bul i:nth-child(4) { background: var(--pu); }
+  .arw { flex: none; width: 8.4vmin; height: 8.4vmin; background: var(--wht); display: grid; place-items: center; }
+  .arw svg { width: 5.6vmin; height: 5.6vmin; }
+  .dest { font-weight: 700; font-size: 9vmin; line-height: 1; letter-spacing: -.035em; margin-top: 2.6vmin; white-space: nowrap; }
+  .via { font-weight: 500; font-size: 3vmin; line-height: 1.2; letter-spacing: -.01em; color: #C9C9C4; margin-top: 1vmin; white-space: nowrap; }
+  .via b { color: var(--wht); font-weight: 700; }
+
+  .photo { position: absolute; left: 0; right: 0; top: 33vmin; height: calc(100% - 33vmin - 45vmin); overflow: hidden; }
+  .photo img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; display: block; }
+
+  .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 45vmin; box-sizing: border-box; padding: 4.4vmin 6vmin 4.6vmin; display: flex; flex-direction: column; justify-content: space-between; }
+  .nx { display: flex; align-items: baseline; justify-content: space-between; gap: 3vmin; }
+  .nx small { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 1.8vmin; letter-spacing: .14em; text-transform: uppercase; color: #6A6A66; white-space: nowrap; }
+  .nx b { font-weight: 800; font-size: 7vmin; letter-spacing: -.03em; line-height: 1; white-space: nowrap; }
+  .nx b em { font-style: normal; color: var(--or); }
+
+  .map { position: relative; display: flex; justify-content: space-between; margin: 0 1vmin; }
+  .map::before { content: ""; position: absolute; left: 1.8vmin; right: 1.8vmin; top: 1.1vmin; height: 1.6vmin; background: var(--or); }
+  .stop { position: relative; display: flex; flex-direction: column; align-items: center; width: 3.8vmin; }
+  .dot { width: 3.8vmin; height: 3.8vmin; box-sizing: border-box; border-radius: 50%; background: #fff; border: .6vmin solid var(--blk); }
+  .stop.x .dot { background: var(--blk); border-color: var(--blk); box-shadow: 0 0 0 .7vmin #fff, 0 0 0 1.3vmin var(--or); }
+  .lbl { margin-top: 1.4vmin; font-weight: 700; font-size: 2.4vmin; letter-spacing: -.01em; white-space: nowrap; text-align: center; }
+  .stop.x .lbl { color: var(--or); }
+  .stop:first-child { align-items: flex-start; } .stop:first-child .lbl { text-align: left; }
+  .stop:last-child { align-items: flex-end; } .stop:last-child .lbl { text-align: right; }
+
+  .ft { display: flex; align-items: center; justify-content: space-between; gap: 3vmin; border-top: 1px solid rgba(20,20,20,.25); padding-top: 2.2vmin; }
+  .code { font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 2vmin; letter-spacing: .06em; white-space: nowrap; }
+  .code b { font-weight: 600; background: var(--blk); color: var(--wht); padding: .3vmin 1vmin; margin-left: .6vmin; }
+  .cta { font-weight: 800; font-size: 2.4vmin; letter-spacing: -.01em; white-space: nowrap; display: flex; align-items: center; gap: 1.2vmin; }
+  .cta i { width: 4.4vmin; height: 4.4vmin; border-radius: 50%; background: var(--blk); color: #fff; display: grid; place-items: center; font-style: normal; font-size: 2.6vmin; }
+
+  @media (min-aspect-ratio: 7/10) {
+    .sign { height: 30vmin; padding-top: 5vmin; }
+    .bul i, .arw { width: 7.6vmin; height: 7.6vmin; } .bul i { font-size: 5vmin; }
+    .dest { font-size: 8.4vmin; margin-top: 2.2vmin; }
+    .photo { top: 30vmin; height: calc(100% - 30vmin - 41vmin); }
+    .panel { height: 41vmin; padding: 3.6vmin 12vmin 3.8vmin; }
+  }
+
+  /* square & wide: sign on top, photo left, vertical line map right */
+  @media (min-aspect-ratio: 9/10) {
+    .sign { height: 29vmin; padding: 5vmin 5vmin 0; }
+    .bul i, .arw { width: 7vmin; height: 7vmin; } .bul i { font-size: 4.6vmin; }
+    .arw svg { width: 4.6vmin; height: 4.6vmin; }
+    .dest { font-size: 7.6vmin; margin-top: 2vmin; }
+    .via { font-size: 2.5vmin; margin-top: .8vmin; }
+    .photo { top: 29vmin; left: 0; right: auto; width: 54%; height: calc(100% - 29vmin); }
+    .panel { top: 29vmin; left: 54%; height: auto; padding: 4vmin 4vmin 4vmin 4.4vmin; }
+    .nx { flex-direction: column; align-items: flex-start; gap: .8vmin; }
+    .nx b { font-size: 4.8vmin; }
+    .map { flex-direction: column; margin: 0; gap: 0; height: 36vmin; }
+    .map::before { left: 1.1vmin; right: auto; top: 1.8vmin; bottom: 1.8vmin; width: 1.6vmin; height: auto; }
+    .stop, .stop:first-child, .stop:last-child { flex-direction: row; align-items: center; width: auto; }
+    .dot { flex: none; }
+    .lbl, .stop:first-child .lbl, .stop:last-child .lbl { margin: 0 0 0 2vmin; text-align: left; font-size: 2.4vmin; }
+    .ft { flex-direction: column; align-items: flex-start; gap: 1.6vmin; padding-top: 1.8vmin; }
+  }
+  @media (min-aspect-ratio: 6/5) {
+    .sign { height: 26vmin; padding: 0 6vmin; }
+    .row { justify-content: flex-start; gap: 3vmin; }
+    .sign .row { position: absolute; right: 6vmin; top: 8.6vmin; }
+    .sign .row .arw { order: -1; }
+    .hd2 { position: absolute; left: 6vmin; top: 6.8vmin; }
+    .dest { margin-top: 0; }
+    .bul i, .arw { width: 8vmin; height: 8vmin; } .bul i { font-size: 5.2vmin; }
+    .dest { font-size: 8vmin; }
+    .photo { top: 26vmin; width: 52%; height: calc(100% - 26vmin); }
+    .panel { top: 26vmin; left: 52%; padding: 4.4vmin 6vmin 4.4vmin 6vmin; }
+    .nx b { font-size: 5.4vmin; }
+    .map { height: 38vmin; }
+    .ft { flex-direction: row; align-items: center; }
+  }
+
+  /* ───────── motion: 6s loop, t=0 = the static design ─────────
+     the up-arrow bobs · a light pulse runs down the line map (horizontal or vertical)
+     and the Sale stop rings as it passes · "Next stop" blinks like a platform display ·
+     S·A·L·E bullets flip over in a wave · CTA nudge */
+  .photo img { transform-origin: 50% 30%; animation: breathe 6s cubic-bezier(.45,0,.55,1) infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+  .bul i { animation: hop 6s linear infinite; }
+  .bul i:nth-child(1) { animation-delay: -.36s; }
+  .bul i:nth-child(2) { animation-delay: -.24s; }
+  .bul i:nth-child(3) { animation-delay: -.12s; }
+  @keyframes hop {
+    0%, 14% { transform: translateY(0) rotateY(0deg); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    74% { transform: translateY(-1.4vmin) rotateY(180deg); animation-timing-function: cubic-bezier(.5,0,.4,1); }
+    78% { transform: translateY(0) rotateY(360deg); animation-timing-function: cubic-bezier(.3,0,.3,1); }
+    80%, 100% { transform: translateY(0) rotateY(360deg); }
+  }
+
+  /* route light: a bright pulse travels the orange line end to end */
+  .map::before { background: linear-gradient(90deg, #F26A1B 0 42%, #FFC08F 48%, #FFF1E4 50%, #FFC08F 52%, #F26A1B 58% 100%) no-repeat 100% 0 / 300% 100%;
+    animation: runH 6s linear infinite; }
+  @keyframes runH {
+    0%, 16% { background-position: 100% 0; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    60%, 100% { background-position: 0% 0; }
+  }
+  @media (min-aspect-ratio: 9/10) {
+    .map::before { background: linear-gradient(180deg, #F26A1B 0 42%, #FFC08F 48%, #FFF1E4 50%, #FFC08F 52%, #F26A1B 58% 100%) no-repeat 0 100% / 100% 300%;
+      animation-name: runV; }
+  }
+  @keyframes runV {
+    0%, 16% { background-position: 0 100%; animation-timing-function: cubic-bezier(.45,0,.55,1); }
+    60%, 100% { background-position: 0 0%; }
+  }
+
+  /* Sale stop: two rings leave the bullet as the pulse arrives */
+  .stop.x .dot { position: relative; }
+  .stop.x .dot::after { content: ""; position: absolute; left: 50%; top: 50%; width: 3.8vmin; height: 3.8vmin; margin: -1.9vmin 0 0 -1.9vmin; box-sizing: border-box;
+    border-radius: 50%; border: .5vmin solid #F26A1B; opacity: 0; animation: ping 6s linear infinite; }
+  @keyframes ping {
+    0%, 36% { transform: scale(1); opacity: 0; }
+    37% { transform: scale(1.2); opacity: 1; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    47% { transform: scale(2.6); opacity: 0; animation-timing-function: steps(1, end); }
+    47.5% { transform: scale(1); opacity: 0; }
+    48% { transform: scale(1.2); opacity: 1; animation-timing-function: cubic-bezier(.15,.6,.35,1); }
+    58% { transform: scale(2.6); opacity: 0; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
+  .stop.x .lbl { animation: lit 6s linear infinite; }
+  @keyframes lit { 0%, 36% { color: #F26A1B; } 38% { color: #141414; } 44%, 100% { color: #F26A1B; } }
+
+  /* platform display blink */
+  .nx small { animation: pids 6s steps(1, end) infinite; }
+  @keyframes pids { 0%, 30% { opacity: 1; } 31%, 34% { opacity: 0; } 35%, 38% { opacity: 1; } 39%, 42% { opacity: 0; } 43%, 100% { opacity: 1; } }
+
+  /* up-arrow: two bobs */
+  .arw svg { animation: bob 6s linear infinite; }
+  @keyframes bob {
+    0%, 8% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    11% { transform: translateY(-1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    14% { transform: translateY(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    17% { transform: translateY(-1vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    20%, 100% { transform: translateY(0); }
+  }
+  .cta i { animation: nudge 6s linear infinite; }
+  @keyframes nudge {
+    0%, 84% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    87% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    90% { transform: translateX(0); animation-timing-function: cubic-bezier(.3,0,.2,1); }
+    93% { transform: translateX(.9vmin); animation-timing-function: cubic-bezier(.5,0,.5,1); }
+    96%, 100% { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="sign">
+    <div class="row">
+      <div class="bul"><i>S</i><i>A</i><i>L</i><i>E</i></div>
+      <div class="arw"><svg viewBox="0 0 24 24"><path d="M12 3 L21 12 L16 12 L16 21 L8 21 L8 12 L3 12 Z" fill="#141414"/></svg></div>
+    </div>
+    <div class="hd2">
+      <div class="dest">Uptown · New Season</div>
+      <div class="via">All stops to <b>30% off</b> · this weekend</div>
+    </div>
+  </div>
+  <div class="photo"><img src="{{PRODUCT_IMAGE}}" alt=""></div>
+  <div class="panel">
+    <div class="nx"><small>Next stop</small><b>Sale <em>−30%</em></b></div>
+    <div class="map">
+      <div class="stop"><i class="dot"></i><span class="lbl">New in</span></div>
+      <div class="stop"><i class="dot"></i><span class="lbl">Best sellers</span></div>
+      <div class="stop x"><i class="dot"></i><span class="lbl">Sale</span></div>
+      <div class="stop"><i class="dot"></i><span class="lbl">Essentials</span></div>
+      <div class="stop"><i class="dot"></i><span class="lbl">Checkout</span></div>
+    </div>
+    <div class="ft">
+      <div class="code">Fare code<b>EXPRESS30</b></div>
+      <div class="cta">Shop the line <i>→</i></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
