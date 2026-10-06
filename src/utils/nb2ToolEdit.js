@@ -1,12 +1,13 @@
 // Direct model policy for color, pose, backside, Edit Room and Edit Chat.
 const NB2_EDIT_MODEL = "google/nano-banana-2.1/edit";
-const NBPRO_EDIT_MODEL = "fal-ai/nano-banana-pro/edit";
+// Eki 2026 (kullanıcı kararı): v2 artık NB Pro değil, Nano Banana 2.1 2K. Ad geriye uyum için korunuyor.
+const NBPRO_EDIT_MODEL = "google/nano-banana-2.1/edit";
 
 /**
  * Araç ekranlarının (renk değiştir, poz değiştir, arka taraf) kalite versiyonu
  * → model/çözünürlük eşlemesi — 11 Eyl 2026 (kullanıcı kararı):
  *   v1 → nano-banana-2, 1K
- *   v2 → nano-banana-pro, 2K
+ *   v2 → nano-banana-pro, 2K  (Eki 2026: → nano-banana-2.1, 2K)
  * Öncesinde her iki versiyon da NB2 2K'ya gidiyordu, yani 35 kredilik v2 ile
  * 10 kredilik v1 arasında hiçbir çıktı farkı yoktu.
  */

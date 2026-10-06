@@ -3153,7 +3153,7 @@ router.post("/generate", async (req, res) => {
     // V2 model seçimi (Pro model)
     const isV2 = req.body.quality === "v2";
     const falModel = isV2 // req.body'de quality varsa v2 kontrolü yap
-      ? "fal-ai/nano-banana-pro/edit"
+      ? "google/nano-banana-2.1/edit"
       : "google/nano-banana-lite/edit";
 
     console.log(
@@ -3182,6 +3182,7 @@ router.post("/generate", async (req, res) => {
           num_images: 1,
           output_format: "png",
           aspect_ratio: aspectRatioForRequest,
+          ...(isV2 ? { resolution: "2K" } : {}), // v2 → Nano Banana 2.1 2K (Eki 2026; eskiden NB Pro 2K)
         };
 
         console.log("📋 Fal.ai Request Body:", {
