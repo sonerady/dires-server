@@ -77,7 +77,7 @@ test("rotalar legacy bayraklarını uyguluyor", () => {
 });
 
 for (const route of ["referenceBrowserRoutesV7", "referenceJewelryBrowserRoutesV7"]) {
-  test(`${route}: RLS ile gizlenen liste admin bağlantısından okunur ve V2 NB 2.1 4K'ya gider`, async () => {
+  test(`${route}: RLS ile gizlenen liste admin bağlantısından okunur ve V2 NB 2.1 2K'ya gider`, async () => {
     const src = fs.readFileSync(path.join(__dirname, `../src/routes/${route}.js`), "utf8");
     const ast = parser.parse(src, {sourceType: "script"}), nodes = [];
     function visit(n) {
@@ -100,7 +100,7 @@ for (const route of ["referenceBrowserRoutesV7", "referenceJewelryBrowserRoutesV
       requestUserId: "u-1", logger: silent,
       isV2: true, req: {body: {}}, modelPhoto: null, photoSwapMode: null,
       promptForNanoBananaPro: "preserve product", imageInputArray: ["https://test/product"],
-      aspectRatioForRequest: "9:16", qualityParam: "4K", safetyTolerance: "4",
+      aspectRatioForRequest: "9:16", qualityParam: "2K", safetyTolerance: "4",
       process: {env: {FAL_API_KEY: "fixture"}},
       axios: {post: async (url, body) => {sent = {url, body};}},
     };
@@ -112,7 +112,7 @@ for (const route of ["referenceBrowserRoutesV7", "referenceJewelryBrowserRoutesV
     context.requestBody = vm.runInNewContext(`(${code(input)})`, context);
     await vm.runInNewContext(code(send), context);
     assert.equal(sent.url, "https://fal.run/google/nano-banana-2.1/edit");
-    assert.equal(sent.body.resolution, "4K");
+    assert.equal(sent.body.resolution, "2K");
     assert.equal(sent.body.image_urls, context.imageInputArray);
   });
 }

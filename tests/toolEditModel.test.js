@@ -6,7 +6,7 @@ const { selectToolEditModel, NB2_EDIT_MODEL, NBPRO_EDIT_MODEL } = require("../sr
 
 test("v1 → nano-banana-2 1K, v2 → nano-banana-pro 2K", () => {
   assert.deepEqual(selectToolEditModel("v1"), { model: NB2_EDIT_MODEL, resolution: "1K" });
-  assert.deepEqual(selectToolEditModel("v2"), { model: NBPRO_EDIT_MODEL, resolution: "4K" });
+  assert.deepEqual(selectToolEditModel("v2"), { model: NBPRO_EDIT_MODEL, resolution: "2K" });
   // Bilinmeyen/boş değer güvenli tarafta kalır (v1).
   assert.deepEqual(selectToolEditModel(null), { model: NB2_EDIT_MODEL, resolution: "1K" });
   assert.deepEqual(selectToolEditModel("V2"), { model: NB2_EDIT_MODEL, resolution: "1K" });

@@ -107,7 +107,7 @@ test('NB2 input strips GPT sizing/quality without mutating edit images or source
 });
 
 // Execute the actual dispatch through the HTTP request, including retry attempts.
-for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7']) test(`${name}: all V2 users submit directly to NB 2.1 4K`, async () => {
+for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7']) test(`${name}: all V2 users submit directly to NB 2.1 2K`, async () => {
  const r = read(name);
  const model = r.nodes.find(n => n.type === 'VariableDeclarator' && n.id.name === 'falModel' && n.init?.value === 'google/nano-banana-2.1/edit');
  const send = r.nodes.find(n => n.type === 'CallExpression' && n.callee.object?.name === 'axios' && n.callee.property?.name === 'post' && r.code(n.arguments[0]).includes('${falModel}'));
@@ -129,7 +129,7 @@ for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7
   await vm.runInNewContext(`(async()=>{let requestBody;for(let once=0;once<1;once++){${dispatch}}})()`, ctx);
   assert.equal(calls.length, 1);
   assert.equal(calls[0].url, 'https://fal.run/google/nano-banana-2.1/edit');
-  assert.equal(calls[0].input.resolution, '4K');
+  assert.equal(calls[0].input.resolution, '2K');
   assert.equal(calls[0].input.enable_web_search, false);
   assert.equal(calls[0].input.aspect_ratio, '9:16');
   assert.deepEqual(calls[0].input.image_urls, original.image_urls);

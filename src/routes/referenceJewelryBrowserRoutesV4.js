@@ -3588,9 +3588,9 @@ router.post("/generate", async (req, res) => {
 
         if (qualityVersion === "v2") {
           logger.log(
-            "🚀 [QUALITY] V2 seçili - Fal.ai Nano Banana 2.1 4K kullanılacak"
+            "🚀 [QUALITY] V2 seçili - Fal.ai Nano Banana 2.1 2K kullanılacak"
           );
-          falModel = "google/nano-banana-2.1/edit"; // v2 → Nano Banana 2.1 4K (Eki 2026; eskiden NB Pro)
+          falModel = "google/nano-banana-2.1/edit"; // v2 → Nano Banana 2.1 2K (Eki 2026; eskiden NB Pro)
         } else {
           logger.log(
             "🚀 [QUALITY] V1 seçili - Fal.ai Nano Banana parametreleri (varsayılan)"
@@ -3606,7 +3606,7 @@ router.post("/generate", async (req, res) => {
           output_format: "png",
           aspect_ratio: aspectRatioForRequest,
           num_images: 1, // İzin ver
-          resolution: qualityVersion === "v2" ? "4K" : "2K", // v2 → 4K, v1 → 2K
+          resolution: "2K", // 2K çözünürlük (v1 ve v2)
           // 🔒 Sadece test hesabında (nodselemen) en katı güvenlik toleransı eklenir.
           ...(safetyToleranceOverride
             ? { safety_tolerance: safetyToleranceOverride }

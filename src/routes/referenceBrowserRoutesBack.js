@@ -3182,7 +3182,7 @@ router.post("/generate", async (req, res) => {
           num_images: 1,
           output_format: "png",
           aspect_ratio: aspectRatioForRequest,
-          ...(isV2 ? { resolution: "4K" } : {}), // v2 → Nano Banana 2.1 4K (Eki 2026; eskiden NB Pro)
+          ...(isV2 ? { resolution: "2K" } : {}), // v2 → Nano Banana 2.1 2K (Eki 2026; eskiden NB Pro 2K)
         };
 
         console.log("📋 Fal.ai Request Body:", {

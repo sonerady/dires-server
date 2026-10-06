@@ -4894,7 +4894,7 @@ router.post("/generate", async (req, res) => {
         const isV2 = qualityVersion === "v2";
         // Model seçimi:
         //   v1 (default)    → openai/gpt-image-2/edit (aşağıdaki branch'te handle edilir)
-        //   v2 veya backSide → google/nano-banana-2.1/edit (4K)
+        //   v2 veya backSide → google/nano-banana-2.1/edit (2K)
         const falModel = "google/nano-banana-2.1/edit"; // v2/backSide için
 
         logger.log(
@@ -5004,7 +5004,7 @@ router.post("/generate", async (req, res) => {
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla (nano-banana-pro için)
         const qualityParam =
-          isV2 || req.body.isBackSideAnalysis ? "4K" : undefined;
+          isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
 
         if (isPoseChange) {
           // POSE CHANGE MODE - Farklı input parametreleri
@@ -5014,7 +5014,7 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 4K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
+            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 2K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
             enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
             ...(isV2 || req.body.isBackSideAnalysis ? { safety_tolerance: "6" } : {}),
           };
@@ -5033,7 +5033,7 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 4K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
+            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 2K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
             enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
             ...(isV2 || req.body.isBackSideAnalysis ? { safety_tolerance: "6" } : {}),
           };
