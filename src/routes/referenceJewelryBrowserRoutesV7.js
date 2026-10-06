@@ -7632,7 +7632,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
           }
           {
             // ── nano-banana-2 yolu ──
-            const nanoModel = "fal-ai/nano-banana-2/edit";
+            const nanoModel = "google/nano-banana-2.1/edit";
             // 🧠 Render öncesi muhakeme — app_config.nb2_thinking_level ile yönetilir
             const nb2ThinkingLevel = await getNb2ThinkingLevel();
             const nanoRequestBody = {
@@ -7643,7 +7643,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
               num_images: 1,
               resolution: useNb2 ? "1K" : "2K",
               safety_tolerance: safetyTolerance,
-              enable_web_search: true,
+              enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
               ...(nb2ThinkingLevel !== "off"
                 ? { thinking_level: nb2ThinkingLevel }
                 : {}),

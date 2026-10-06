@@ -75,7 +75,7 @@ async function generateLocationWithImagen4(prompt, userId) {
 
     const response = await fetch(
       // ⚠️ 25 Ağu 2026: fal imagen4 ucunu kaldırdı (404) → nano-banana-2 t2i
-      "https://fal.run/fal-ai/nano-banana-2",
+      "https://fal.run/google/nano-banana-2.1",
       {
         method: "POST",
         headers: {

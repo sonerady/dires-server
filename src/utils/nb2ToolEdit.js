@@ -1,5 +1,5 @@
 // Direct model policy for color, pose, backside, Edit Room and Edit Chat.
-const NB2_EDIT_MODEL = "fal-ai/nano-banana-2/edit";
+const NB2_EDIT_MODEL = "google/nano-banana-2.1/edit";
 const NBPRO_EDIT_MODEL = "fal-ai/nano-banana-pro/edit";
 
 /**

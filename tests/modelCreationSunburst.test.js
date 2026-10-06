@@ -100,7 +100,7 @@ for (const route of ['referenceBrowserRoutesV7.js', 'referenceJewelryBrowserRout
       getNb2ThinkingLevel: async () => 'off', process: {env: {FAL_API_KEY: 'test'}}, uuidv4: () => 'test',
       axios: {post: async (url, body) => {
         nbCalls++;
-        assert.equal(url, 'https://fal.run/fal-ai/nano-banana-2/edit');
+        assert.equal(url, 'https://fal.run/google/nano-banana-2.1/edit');
         assert.equal(body.prompt, 'product photo'); assert.deepEqual(body.image_urls, refs);
         assert.equal(body.safety_tolerance, '4'); assert.equal(body.aspect_ratio, '3:4');
         if(nbCalls===1) throw new Error('temporary NB2 failure');

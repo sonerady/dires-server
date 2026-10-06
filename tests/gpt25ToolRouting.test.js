@@ -162,7 +162,7 @@ for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7
   if (nb2Builder) ctx.buildNb2GenerationRequest = vm.runInNewContext(`(${r.code(nb2Builder)})`);
   await vm.runInNewContext(`(async()=>{let replicateResponse;for(let attempt=1;attempt<=1;attempt++){${r.code(branch)}}})()`, ctx);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, 'https://fal.run/fal-ai/nano-banana-2/edit');
+  assert.equal(calls[0].url, 'https://fal.run/google/nano-banana-2.1/edit');
   assert.equal(calls[0].input.resolution, '1K');
   assert.equal(calls[0].input.aspect_ratio, '9:16');
   assert.deepEqual(calls[0].input.image_urls, original.image_urls);

@@ -294,7 +294,7 @@ async function callNanoBanana2ForRefiner(
   aspectRatio = DEFAULT_REFINER_RATIO,
   maxRetries = 3,
 ) {
-  const nanoModel = "fal-ai/nano-banana-2/edit";
+  const nanoModel = "google/nano-banana-2.1/edit";
   let lastError = null;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {

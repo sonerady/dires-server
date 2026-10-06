@@ -42,9 +42,9 @@ for (const route of ['createModelRoutes.js', 'createModelRoutesWeb.js']) {
     let body;
     const transform = vm.runInNewContext(`${extract('transformImageToIDPhoto')}; transformImageToIDPhoto`, {
       REFERENCE_ID_PHOTO_PROMPT, logger: quiet, console: quiet, process: { env: {} },
-      NANO_BANANA_API_URL: 'https://fal.run/fal-ai/nano-banana-2/edit',
+      NANO_BANANA_API_URL: 'https://fal.run/google/nano-banana-2.1/edit',
       fetch: async () => ({ status: 200 }),
-      axios: { post: async (url, payload) => { assert.equal(url, 'https://fal.run/fal-ai/nano-banana-2/edit'); body = payload; return { data: { images: [{ url: 'result.jpg' }] } }; } },
+      axios: { post: async (url, payload) => { assert.equal(url, 'https://fal.run/google/nano-banana-2.1/edit'); body = payload; return { data: { images: [{ url: 'result.jpg' }] } }; } },
       uploadModelImageToSupabaseStorage: async () => ({ publicUrl: 'saved.jpg' }),
     });
     await transform('reference.jpg', 'user');

@@ -93,7 +93,7 @@ async function callFal({ prompt, imageUrls = null, aspectRatio = "4:5", resoluti
   const edit = Array.isArray(imageUrls) && imageUrls.length > 0;
   const models = [
     { name: "nano-banana-pro", url: `https://fal.run/fal-ai/nano-banana-pro${edit ? "/edit" : ""}` },
-    { name: "nano-banana-2", url: `https://fal.run/fal-ai/nano-banana-2${edit ? "/edit" : ""}` },
+    { name: "nano-banana-2", url: `https://fal.run/google/nano-banana-2.1${edit ? "/edit" : ""}` },
   ];
 
   for (const model of models) {

@@ -1,5 +1,5 @@
 const { randomInt } = require('node:crypto');
-const MODEL_T2I_API_URL = 'https://fal.run/fal-ai/nano-banana-2';
+const MODEL_T2I_API_URL = 'https://fal.run/google/nano-banana-2.1';
 
 // Shared by manual text portraits and the automatic starter trio.
 function starterPortraitInput(prompt) {

@@ -53,7 +53,7 @@ test('falls back to Nano Banana 2 only when GPT fails', async () => {
   assert.equal(url, 'https://cdn/nb.jpg');
   const kinds = calls.map(c => c.kind);
   assert.deepEqual(kinds, ['gpt', 'gpt', 'nb']); // 2 GPT attempts, then NB2
-  assert.match(calls[2].url, /nano-banana-2\/edit/);
+  assert.match(calls[2].url, /nano-banana-2\.1\/edit/);
   assert.equal(calls[2].body.aspect_ratio, '9:16');
 });
 

@@ -4909,7 +4909,7 @@ router.post("/generate", async (req, res) => {
 
         // 🎨 V1 MODE → app_config.is_gpt bayrağına göre model seç:
         //   true  → GPT Image 2 (openai/gpt-image-2/edit)
-        //   false → nano-banana-2 (fal-ai/nano-banana-2/edit)
+        //   false → nano-banana-2 (google/nano-banana-2.1/edit)
         // v2 veya backSide analysis için aşağıdaki nano-banana akışı devam eder.
         if (!isV2 && !req.body.isBackSideAnalysis) {
           const useGpt = await isGptEnabledForV1();
@@ -4952,7 +4952,7 @@ router.post("/generate", async (req, res) => {
             break;
           } else {
             // ── nano-banana-2 yolu ──
-            const nanoModel = "fal-ai/nano-banana-2/edit";
+            const nanoModel = "google/nano-banana-2.1/edit";
             const nanoRequestBody = {
               prompt: enhancedPrompt,
               image_urls: imageInputArray,

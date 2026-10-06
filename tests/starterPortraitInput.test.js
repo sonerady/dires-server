@@ -15,7 +15,7 @@ function assertInput(input) {
 }
 
 test('native and web starter requests use Nano Banana 2 1K text endpoint and its supported schema', async () => {
-  assert.equal(MODEL_T2I_API_URL, 'https://fal.run/fal-ai/nano-banana-2');
+  assert.equal(MODEL_T2I_API_URL, 'https://fal.run/google/nano-banana-2.1');
   for (const route of ['createModelRoutes.js', 'createModelRoutesWeb.js']) {
     const source = fs.readFileSync(require.resolve('../src/routes/' + route), 'utf8');
     const start = source.indexOf('router.use(require("./starterModelRoutes")({');

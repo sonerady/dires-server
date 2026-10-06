@@ -142,7 +142,7 @@ test('starter prompts keep casting quality without assigning fixed identities to
 test('native and web use shared text provider and use NB2 1K for reference photos', () => {
   for (const name of ['createModelRoutes.js', 'createModelRoutesWeb.js']) {
     const source = fs.readFileSync(require.resolve('../src/routes/' + name), 'utf8');
-    assert.match(source, /https:\/\/fal.run\/fal-ai\/nano-banana-2\/edit/);
+    assert.match(source, /https:\/\/fal.run\/google\/nano-banana-2\.1\/edit/);
     assert.match(source, /starterPortraitInput, MODEL_T2I_API_URL/);
     assert.doesNotMatch(source, /https:\/\/fal.run\/google\/nano-banana-lite"/);
     assert.match(source, /resolution: "1K"/);

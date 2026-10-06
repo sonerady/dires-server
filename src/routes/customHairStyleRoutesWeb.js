@@ -7,7 +7,7 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const { callGeminiFlash } = require("../utils/promptEnhanceProvider");
 
-const NANO_BANANA_API_URL = "https://fal.run/fal-ai/nano-banana-2/edit";
+const NANO_BANANA_API_URL = "https://fal.run/google/nano-banana-2.1/edit";
 
 // Example image paths - hair styles için
 const getExampleHairImagePath = () => {

@@ -151,7 +151,7 @@ async function callNanoBananaKitEdit({ prompt, imageUrls, aspectRatio, maxRetrie
     if (!urls.length) throw new Error("No input images for Nano Banana kit edit");
 
     const models = [
-        { name: "nano-banana-2", url: "https://fal.run/fal-ai/nano-banana-2/edit" },
+        { name: "nano-banana-2", url: "https://fal.run/google/nano-banana-2.1/edit" },
         { name: "nano-banana-pro", url: "https://fal.run/fal-ai/nano-banana-pro/edit" },
     ];
 

@@ -115,7 +115,7 @@ async function persistGridToSupabase(supabase, falUrl) {
 
 // 🧩 Komple pipeline — GPT Image 2.5 (yedek nano-banana-2) çağrısı + Supabase persist + log.
 // Hata durumunda { success:false, error } döner (caller fallback yapabilir).
-const NB2_EDIT_MODEL = "fal-ai/nano-banana-2/edit";
+const NB2_EDIT_MODEL = "google/nano-banana-2.1/edit";
 /** "nano-banana-2" | "gpt-image-2.5" → denenecek modeller (24 Eyl 2026: Ürün satış videosu NB2, diğerleri GPT 2.5).
  *  26 Eyl 2026 (kullanıcı kararı): satış DIŞI kartlar yalnız GPT 2.5 medium'a gider — NB2'ye yedek düşmez
  *  (GPT hata verirse önizleme hata döner, kullanıcı "Tekrar dene"yi kullanır). Satış videosu NB2, yedeği GPT 2.5. */

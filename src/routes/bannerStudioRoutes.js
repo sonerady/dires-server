@@ -446,7 +446,7 @@ async function callBannerModelViaReplicate(options, ratio, language) {
 // bir GÖRSELDİR; mevcut HTML altyapısı (viewer/JPG/liste) bozulmasın diye tam
 // ekran <img> sarmalayıcıyla `html` alanına yazılır (22 Ağu'daki görsel-banner
 // denemesinde kanıtlanan yaklaşım).
-const FAL_STYLE_SWAP_ENDPOINT = "https://fal.run/fal-ai/nano-banana-2/edit";
+const FAL_STYLE_SWAP_ENDPOINT = "https://fal.run/google/nano-banana-2.1/edit";
 
 function buildStyleSwapPrompt(options, language) {
   const lines = [

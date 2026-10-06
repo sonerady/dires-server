@@ -4880,7 +4880,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
         // input şemasında yok). Hedef rengi (örn. marka/moda rengi) web'den
         // doğrulayıp isabetli üretmesi için açık.
         const webSearchParam = falModel.includes("nano-banana-2")
-          ? { enable_web_search: true }
+          ? { enable_web_search: false } // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
           : {};
 
         if (isPoseChange) {
@@ -5250,7 +5250,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
             resolution: falResolution, // v1 → 1K, v2 → 2K (selectToolEditModel)
             safety_tolerance: "6",
             ...(falModel.includes("nano-banana-2")
-              ? { enable_web_search: true }
+              ? { enable_web_search: false } // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
               : {}),
           };
 
@@ -6688,7 +6688,7 @@ PRESERVE: All design details, fabric textures, weave patterns, fold shapes, silh
       resolution: falResolution,
       safety_tolerance: "6",
       ...(falModel.includes("nano-banana-2")
-        ? { enable_web_search: true }
+        ? { enable_web_search: false } // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
         : {}),
     });
 
