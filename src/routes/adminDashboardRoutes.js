@@ -1264,6 +1264,102 @@ router.get("/refiner", async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
+// GET /api/admin-dashboard/listing   (6 Eki 2026)
+// Listing Stüdyosu işleri — `listing_studio_results` satırları İŞ (job_id) bazında gruplanır:
+// bir iş = kaynak ürün fotoğrafı + o setin tüm görselleri (tür/kare/varyant).
+// Query: page, limit (iş sayısı), user_id, marketplace, status (completed|failed|pending|processing)
+// ─────────────────────────────────────────────────────────────
+router.get("/listing", async (req, res) => {
+  try {
+    const { page = 1, limit = 24, user_id = "", marketplace = "", status = "" } = req.query;
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(Math.max(1, parseInt(limit, 10) || 24), 60);
+
+    // 1) Sayfadaki iş kimlikleri (en yeni önce). Tablo küçük; son 5000 satırdan iş listesi çıkarılır.
+    let idQuery = db
+      .from("listing_studio_results")
+      .select("job_id, created_at")
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    if (user_id) idQuery = idQuery.eq("user_id", String(user_id));
+    if (marketplace) idQuery = idQuery.eq("marketplace", String(marketplace));
+    if (status && ["pending", "processing", "completed", "failed"].includes(String(status))) {
+      idQuery = idQuery.eq("status", String(status));
+    }
+    const { data: idRows, error: idErr } = await idQuery;
+    if (idErr) throw idErr;
+    const jobIds = [];
+    const seen = new Set();
+    for (const r of idRows || []) {
+      if (r.job_id && !seen.has(r.job_id)) { seen.add(r.job_id); jobIds.push(r.job_id); }
+    }
+    const totalJobs = jobIds.length;
+    const pageJobs = jobIds.slice((pageNum - 1) * limitNum, pageNum * limitNum);
+    if (pageJobs.length === 0) {
+      return res.json({ success: true, data: [], total: totalJobs, page: pageNum, totalPages: Math.ceil(totalJobs / limitNum) });
+    }
+
+    // 2) Bu işlerin bütün satırları
+    const { data: rows, error } = await db
+      .from("listing_studio_results")
+      .select("id, user_id, job_id, image_type, marketplace, style, ratio, language, product_details, source_image_url, result_image_url, thumbnail_url, status, error, provider, credits_deducted, processing_time_seconds, created_at, completed_at, frame_index, variant_index")
+      .in("job_id", pageJobs)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+
+    // 3) Sahip bilgisi
+    const userIds = Array.from(new Set((rows || []).map((r) => r.user_id).filter(Boolean)));
+    const userMap = new Map();
+    if (userIds.length > 0) {
+      const { data: users } = await db.from("users").select(ADMIN_OWNER_FIELDS).in("id", userIds);
+      (users || []).forEach((u) => userMap.set(u.id, u));
+    }
+
+    // 4) İş bazında grupla (sayfa sırası korunur)
+    const byJob = new Map(pageJobs.map((id) => [id, []]));
+    for (const r of rows || []) byJob.get(r.job_id)?.push(r);
+    const data = pageJobs.map((jobId) => {
+      const items = (byJob.get(jobId) || []).sort((a, b) =>
+        (a.frame_index ?? 0) - (b.frame_index ?? 0) || (a.variant_index ?? 0) - (b.variant_index ?? 0));
+      const first = items[0] || {};
+      const statusCounts = items.reduce((acc, r) => { acc[r.status || "unknown"] = (acc[r.status || "unknown"] || 0) + 1; return acc; }, {});
+      return {
+        job_id: jobId,
+        user_id: first.user_id || null,
+        created_at: first.created_at || null,
+        marketplace: first.marketplace || null,
+        style: first.style || null,
+        ratio: first.ratio || null,
+        language: first.language || null,
+        product_details: first.product_details || null,
+        provider: first.provider || null,
+        source_image_url: first.source_image_url || null,
+        source_image_thumbnail: first.source_image_url ? optimizeForThumbnail(first.source_image_url) : null,
+        credits_total: items.reduce((sum, r) => sum + (Number(r.credits_deducted) || 0), 0),
+        status_counts: statusCounts,
+        images: items.map((r) => ({
+          id: r.id,
+          image_type: r.image_type,
+          status: r.status,
+          error: r.error,
+          frame_index: r.frame_index,
+          variant_index: r.variant_index,
+          processing_time_seconds: r.processing_time_seconds,
+          result_image_url: r.result_image_url,
+          result_image_thumbnail: r.thumbnail_url || (r.result_image_url ? optimizeForThumbnail(r.result_image_url) : null),
+        })),
+        ...adminGenerationOwner(userMap.get(first.user_id)),
+      };
+    });
+
+    res.json({ success: true, data, total: totalJobs, page: pageNum, totalPages: Math.ceil(totalJobs / limitNum) });
+  } catch (error) {
+    console.error("[Admin/Listing] error:", error?.message || error);
+    res.status(500).json({ success: false, error: error?.message || "Listing işleri yüklenemedi" });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
 // GET /api/admin-dashboard/videos
 // Lists rows from `video_generations` with owner info + thumbnail URLs.
 // Query params: page, limit, search, user_id, status
