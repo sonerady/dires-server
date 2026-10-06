@@ -5025,7 +5025,7 @@ router.post("/generate", async (req, res) => {
         // Back side analysis modunda her zaman nano-banana-pro kullan
         const falModel =
           isV2 || req.body.isBackSideAnalysis
-            ? "google/nano-banana-2.1/edit"
+            ? "fal-ai/nano-banana-pro/edit"
             : "google/nano-banana-lite/edit";
 
         logger.log(
@@ -5050,8 +5050,8 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 2K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
-            enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
+            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
           };
           logger.log(
             `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`
@@ -5068,8 +5068,8 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 2K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
-            enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
+            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
           };
         }
 
@@ -5401,8 +5401,8 @@ router.post("/generate", async (req, res) => {
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
-            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 2K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
-            enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
+            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
+            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
           };
 
           logger.log(
