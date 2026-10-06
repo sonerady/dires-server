@@ -1,6 +1,6 @@
 // Ortak kit görsel üretim yolu (SimpleImageModal kitleri: e-ticaret V2, fashion, product V1, street icon).
 //
-// Varsayılan: GPT Image 2.5 (fal; kalite app_config.gpt25_quality, boyut gpt25Edit ~4 MP tablosu). Hata olursa Nano Banana 2 (→ nano-banana-pro).
+// Varsayılan: GPT Image 2.5 (fal; kalite app_config.gpt25_quality, boyut gpt25Edit ~4 MP tablosu). Hata olursa Nano Banana 2.1.
 // app_config.kit_route ("gpt" | "nb2", varsayılan "gpt") hangi sağlayıcının ÖNCE deneneceğini seçer;
 // diğeri her zaman yedek olarak kalır. 60 sn önbellek — tablo değişince yeniden deploy gerekmez
 // (gpt25_quality ile aynı desen).
@@ -143,7 +143,7 @@ async function callGpt25KitEdit({ prompt, imageUrls, imageSize, maxRetries = 2, 
     }
 }
 
-// ─── Nano Banana 2 (fal.run, senkron) → nano-banana-pro yedeği ───
+// ─── Nano Banana 2.1 (fal.run, senkron) ───
 async function callNanoBananaKitEdit({ prompt, imageUrls, aspectRatio, maxRetries = 2, tag = "KIT" }) {
     const FAL_API_KEY = process.env.FAL_API_KEY;
     if (!FAL_API_KEY) throw new Error("FAL_API_KEY environment variable is not set");
@@ -151,8 +151,7 @@ async function callNanoBananaKitEdit({ prompt, imageUrls, aspectRatio, maxRetrie
     if (!urls.length) throw new Error("No input images for Nano Banana kit edit");
 
     const models = [
-        { name: "nano-banana-2", url: "https://fal.run/google/nano-banana-2.1/edit" },
-        { name: "nano-banana-pro", url: "https://fal.run/fal-ai/nano-banana-pro/edit" },
+        { name: "nano-banana-2.1", url: "https://fal.run/google/nano-banana-2.1/edit" }, // Eki 2026: NB Pro yedeği kaldırıldı
     ];
 
     for (const model of models) {
@@ -192,7 +191,7 @@ async function callNanoBananaKitEdit({ prompt, imageUrls, aspectRatio, maxRetrie
         }
         console.log(`⚠️ [${tag}_NB] ${model.name} failed, trying next model...`);
     }
-    throw new Error("All Nano Banana models failed on Fal.ai (nano-banana-2 and nano-banana-pro)");
+    throw new Error("Nano Banana 2.1 failed on Fal.ai");
 }
 
 /**

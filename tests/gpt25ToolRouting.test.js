@@ -70,7 +70,7 @@ test('Edit room V4 uses NB2 for tools and retains other generation routes', asyn
    const ctx = {...api, isV2, isEditMode: mode === 'edit', isPoseChange: mode === 'pose', isColorChange: mode === 'color', req: {body: {isBackSideAnalysis: mode === 'backside'}}};
    const isNb2Tool = vm.runInNewContext(r.code(toolSelector.init), ctx);
    const model = vm.runInNewContext(r.code(modelSelector.init), {...ctx, isNb2Tool});
-   assert.equal(model, mode === 'normal' ? (isV2 ? 'fal-ai/nano-banana-pro/edit' : 'google/nano-banana-lite/edit') : api.NB2_EDIT_MODEL);
+   assert.equal(model, mode === 'normal' ? (isV2 ? 'google/nano-banana-2.1/edit' : 'google/nano-banana-lite/edit') : api.NB2_EDIT_MODEL);
   }
  }
  const call = r.nodes.find(n => n.type === 'CallExpression' && n.callee?.object?.name === 'axios' && n.callee?.property?.name === 'post' && r.code(n.arguments[0]).includes('${falModel}'));
@@ -107,9 +107,9 @@ test('NB2 input strips GPT sizing/quality without mutating edit images or source
 });
 
 // Execute the actual dispatch through the HTTP request, including retry attempts.
-for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7']) test(`${name}: all V2 users submit directly to NB Pro 2K`, async () => {
+for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7']) test(`${name}: all V2 users submit directly to NB 2.1 4K`, async () => {
  const r = read(name);
- const model = r.nodes.find(n => n.type === 'VariableDeclarator' && n.id.name === 'falModel' && n.init?.value === 'fal-ai/nano-banana-pro/edit');
+ const model = r.nodes.find(n => n.type === 'VariableDeclarator' && n.id.name === 'falModel' && n.init?.value === 'google/nano-banana-2.1/edit');
  const send = r.nodes.find(n => n.type === 'CallExpression' && n.callee.object?.name === 'axios' && n.callee.property?.name === 'post' && r.code(n.arguments[0]).includes('${falModel}'));
  const start = r.source.lastIndexOf('const falModel', model.start);
  const dispatch = r.source.slice(start, send.end) + ';';
@@ -128,8 +128,9 @@ for (const name of ['referenceBrowserRoutesV7', 'referenceJewelryBrowserRoutesV7
   };
   await vm.runInNewContext(`(async()=>{let requestBody;for(let once=0;once<1;once++){${dispatch}}})()`, ctx);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, 'https://fal.run/fal-ai/nano-banana-pro/edit');
-  assert.equal(calls[0].input.resolution, '2K');
+  assert.equal(calls[0].url, 'https://fal.run/google/nano-banana-2.1/edit');
+  assert.equal(calls[0].input.resolution, '4K');
+  assert.equal(calls[0].input.enable_web_search, false);
   assert.equal(calls[0].input.aspect_ratio, '9:16');
   assert.deepEqual(calls[0].input.image_urls, original.image_urls);
   assert.equal(calls[0].input.prompt, ctx.enhancedPrompt);

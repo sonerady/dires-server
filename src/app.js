@@ -3,6 +3,8 @@ require("./utils/assertNodeVersion");
 require("dotenv").config();
 // Install before route/SDK imports: legacy console calls must redact secrets too.
 require("./utils/logRedaction").installLogRedaction();
+// Tüm Nano Banana 2.1 isteklerinde thinking_level "high" (Eki 2026 kullanıcı kararı).
+require("./utils/nb21Thinking").installNb21Thinking();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");

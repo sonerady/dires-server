@@ -3744,7 +3744,7 @@ router.post("/generate", async (req, res) => {
     const isV2 = req.body.quality === "v2";
     const isNb2Tool = isEditMode || isPoseChange || isColorChange || req.body.isBackSideAnalysis;
     const falModel = isNb2Tool ? NB2_EDIT_MODEL : isV2
-      ? "fal-ai/nano-banana-pro/edit"
+      ? "google/nano-banana-2.1/edit"
       : "google/nano-banana-lite/edit";
 
     logger.log(
@@ -3846,6 +3846,7 @@ router.post("/generate", async (req, res) => {
           num_images: 1,
           output_format: "png",
           aspect_ratio: aspectRatioForRequest,
+          ...(isV2 ? { resolution: "4K" } : {}), // v2 → Nano Banana 2.1 4K (Eki 2026; eskiden NB Pro)
           // 🔒 Sadece test hesabında (nodselemen) en katı güvenlik toleransı eklenir.
           ...(safetyToleranceOverride
             ? { safety_tolerance: safetyToleranceOverride }

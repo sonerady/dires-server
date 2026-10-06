@@ -71,13 +71,13 @@ test("rotalar legacy bayraklarını uyguluyor", () => {
   for (const route of ["referenceBrowserRoutesV7", "referenceJewelryBrowserRoutesV7"]) {
     const src = fs.readFileSync(path.join(__dirname, `../src/routes/${route}.js`), "utf8");
     assert.ok(src.includes("!legacyFlags.skipAutoPoolModel"), `${route}: havuz atlama`);
-    assert.ok(src.includes('const falModel = "fal-ai/nano-banana-pro/edit"'), `${route}: V2 nb-pro`);
+    assert.ok(src.includes('const falModel = "google/nano-banana-2.1/edit"'), `${route}: V2 NB 2.1`);
     assert.ok(src.includes("getLegacyFlags(modelPoolDb || supabase, requestUserId"), `${route}: admin bağlantısı ve istek kullanıcı id'si`);
   }
 });
 
 for (const route of ["referenceBrowserRoutesV7", "referenceJewelryBrowserRoutesV7"]) {
-  test(`${route}: RLS ile gizlenen liste admin bağlantısından okunur ve V2 NB Pro 2K'ya gider`, async () => {
+  test(`${route}: RLS ile gizlenen liste admin bağlantısından okunur ve V2 NB 2.1 4K'ya gider`, async () => {
     const src = fs.readFileSync(path.join(__dirname, `../src/routes/${route}.js`), "utf8");
     const ast = parser.parse(src, {sourceType: "script"}), nodes = [];
     function visit(n) {
@@ -89,8 +89,8 @@ for (const route of ["referenceBrowserRoutesV7", "referenceJewelryBrowserRoutesV
     const code = n => src.slice(n.start, n.end);
     const lookup = nodes.find(n => n.type === "CallExpression" && n.callee.name === "getLegacyFlags");
     const poolBranch = nodes.find(n => n.type === "IfStatement" && code(n.test).includes("!legacyFlags.skipAutoPoolModel"));
-    const model = nodes.find(n => n.type === "VariableDeclarator" && n.id.name === "falModel" && n.init?.value === "fal-ai/nano-banana-pro/edit");
-    const input = nodes.find(n => n.type === "ObjectExpression" && n.properties.some(p => p.key?.name === "prompt" && p.value?.name === "promptForNanoBananaPro") && n.properties.some(p => p.key?.name === "resolution" && p.value?.value === "2K"));
+    const model = nodes.find(n => n.type === "VariableDeclarator" && n.id.name === "falModel" && n.init?.value === "google/nano-banana-2.1/edit");
+    const input = nodes.find(n => n.type === "ObjectExpression" && n.properties.some(p => p.key?.name === "prompt" && p.value?.name === "promptForNanoBananaPro") && n.properties.some(p => p.key?.name === "resolution" && code(p.value) === 'qualityParam || "2K"'));
     const send = nodes.find(n => n.type === "CallExpression" && n.callee.object?.name === "axios" && n.callee.property?.name === "post" && code(n.arguments[0]).includes("${falModel}"));
     let anonReads = 0, sent;
     const context = {
@@ -100,7 +100,7 @@ for (const route of ["referenceBrowserRoutesV7", "referenceJewelryBrowserRoutesV
       requestUserId: "u-1", logger: silent,
       isV2: true, req: {body: {}}, modelPhoto: null, photoSwapMode: null,
       promptForNanoBananaPro: "preserve product", imageInputArray: ["https://test/product"],
-      aspectRatioForRequest: "9:16", qualityParam: "2K", safetyTolerance: "4",
+      aspectRatioForRequest: "9:16", qualityParam: "4K", safetyTolerance: "4",
       process: {env: {FAL_API_KEY: "fixture"}},
       axios: {post: async (url, body) => {sent = {url, body};}},
     };
@@ -111,8 +111,8 @@ for (const route of ["referenceBrowserRoutesV7", "referenceJewelryBrowserRoutesV
     context.falModel = vm.runInNewContext(code(model.init), context);
     context.requestBody = vm.runInNewContext(`(${code(input)})`, context);
     await vm.runInNewContext(code(send), context);
-    assert.equal(sent.url, "https://fal.run/fal-ai/nano-banana-pro/edit");
-    assert.equal(sent.body.resolution, "2K");
+    assert.equal(sent.url, "https://fal.run/google/nano-banana-2.1/edit");
+    assert.equal(sent.body.resolution, "4K");
     assert.equal(sent.body.image_urls, context.imageInputArray);
   });
 }

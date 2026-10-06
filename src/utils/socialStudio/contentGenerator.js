@@ -84,7 +84,7 @@ function fillSkeleton(skeleton, slots) {
 }
 
 // ---------------------------------------------------------------
-// Nano Banana Pro — fal.ai (nano-banana-2 fallback'li)
+// Nano Banana 2.1 — fal.ai (4K, sonra istenen çözünürlükle yedek)
 // ---------------------------------------------------------------
 async function callFal({ prompt, imageUrls = null, aspectRatio = "4:5", resolution = "2K" }) {
   const FAL_API_KEY = process.env.FAL_API_KEY;
@@ -92,18 +92,19 @@ async function callFal({ prompt, imageUrls = null, aspectRatio = "4:5", resoluti
 
   const edit = Array.isArray(imageUrls) && imageUrls.length > 0;
   const models = [
-    { name: "nano-banana-pro", url: `https://fal.run/fal-ai/nano-banana-pro${edit ? "/edit" : ""}` },
-    { name: "nano-banana-2", url: `https://fal.run/google/nano-banana-2.1${edit ? "/edit" : ""}` },
+    // Eki 2026 (kullanıcı kararı): NB Pro yerine Nano Banana 2.1 4K; yedek = aynı model, istenen çözünürlük
+    { name: "nano-banana-2.1", url: `https://fal.run/google/nano-banana-2.1${edit ? "/edit" : ""}`, resolution: "4K" },
+    { name: "nano-banana-2.1", url: `https://fal.run/google/nano-banana-2.1${edit ? "/edit" : ""}` },
   ];
 
   for (const model of models) {
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
-        console.log(`🍌 [SOCIAL_FAL] ${model.name} (${resolution}) attempt ${attempt}`);
+        console.log(`🍌 [SOCIAL_FAL] ${model.name} (${model.resolution || resolution}) attempt ${attempt}`);
         const body = {
           prompt,
           aspect_ratio: aspectRatio,
-          resolution,
+          resolution: model.resolution || resolution,
           output_format: "jpeg",
           num_images: 1,
         };

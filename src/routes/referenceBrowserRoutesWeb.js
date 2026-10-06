@@ -5329,8 +5329,8 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
         const isV2 = qualityVersion === "v2";
         // Model seçimi:
         //   v1 (default)    → openai/gpt-image-2/edit VEYA google/nano-banana-2.1/edit (aşağıdaki branch'te handle edilir)
-        //   v2 veya backSide → fal-ai/nano-banana-pro/edit
-        const falModel = "fal-ai/nano-banana-pro/edit"; // v2/backSide için
+        //   v2 veya backSide → google/nano-banana-2.1/edit (4K)
+        const falModel = "google/nano-banana-2.1/edit"; // v2/backSide için
 
         logger.log(
           `🎨 [QUALITY_VERSION] Seçilen versiyon: ${qualityVersion}, Model (v2/backSide fallback): ${falModel}`,
@@ -5444,7 +5444,7 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
 
         // Back side analysis veya v2 modunda quality "2K" olarak ayarla (nano-banana-pro için)
         const qualityParam =
-          isV2 || req.body.isBackSideAnalysis ? "2K" : undefined;
+          isV2 || req.body.isBackSideAnalysis ? "4K" : undefined;
 
         const promptForNanoBananaPro = enhancedPrompt;
 
@@ -5456,8 +5456,8 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
-            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 4K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
+            enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
           };
           logger.log(
             `🕺 [POSE_CHANGE] fal.ai ${falModel} request body hazırlandı`,
@@ -5474,8 +5474,8 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             output_format: "png",
             aspect_ratio: aspectRatioForRequest,
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
-            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 4K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
+            enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
           };
         }
 
@@ -5805,8 +5805,8 @@ SIZE REFERENCE IMAGE: An additional size/scale reference image is attached along
             output_format: "png",
             aspect_ratio: formattedRatio || "9:16",
             num_images: 1,
-            resolution: "2K", // 2K çözünürlük (1K, 2K, 4K destekleniyor)
-            ...(qualityParam && { quality: qualityParam }), // nano-banana-pro için quality parametresi
+            resolution: qualityParam || "2K", // v2 → Nano Banana 2.1 4K (Eki 2026 kullanıcı kararı; eskiden NB Pro 2K)
+            enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
           };
 
           logger.log(
