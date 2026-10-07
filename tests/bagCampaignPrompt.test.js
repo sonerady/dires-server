@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const bag = require('../src/utils/bagCampaignPrompt');
 const fashion = require('../src/utils/fashionCampaignPrompt');
 const source = fs.readFileSync(require.resolve('../src/routes/referenceBrowserRoutesV7'), 'utf8');
-const context = {...bag, ...fashion, ...require('../src/utils/footwearPrompt'), ...require('../src/utils/modelHairDirection'), ...require('../src/utils/userInstructionLock'), logger: {log(){}}};
+const context = {...require('../src/utils/minorModelSafety'), ...bag, ...fashion, ...require('../src/utils/footwearPrompt'), ...require('../src/utils/modelHairDirection'), ...require('../src/utils/userInstructionLock'), logger: {log(){}}};
 vm.runInNewContext(source.slice(source.indexOf('const PRODUCT_CATEGORIES ='), source.indexOf('async function callReplicateGeminiFlash(')), context);
 vm.runInNewContext(source.slice(source.indexOf('const UNIVERSAL_PHOTOREALISM_DIRECTIVE ='), source.indexOf('// Replicate API üzerinden')) + '\n' + source.slice(source.indexOf('function finalizeGenerationPrompt('), source.indexOf('router.post("/generate"')), context);
 

@@ -13,7 +13,7 @@ const source = fs.readFileSync(require.resolve('../src/routes/referenceBrowserRo
 const realism = source.slice(source.indexOf('const UNIVERSAL_PHOTOREALISM_DIRECTIVE ='), source.indexOf('// Replicate API üzerinden'));
 const finalizer = source.slice(source.indexOf('function finalizeGenerationPrompt('), source.indexOf('router.post("/generate"'));
 assert.ok(realism && finalizer.startsWith('function finalizeGenerationPrompt('));
-const context = {...require('../src/utils/bagCampaignPrompt'), ...fashion, ...footwear, ...hair, ...locks, logger: {log() {}}};
+const context = {...require('../src/utils/minorModelSafety'), ...require('../src/utils/bagCampaignPrompt'), ...fashion, ...footwear, ...hair, ...locks, logger: {log() {}}};
 vm.runInNewContext(`${realism}\n${finalizer}\nthis.finalize = finalizeGenerationPrompt; this.universal = appendUniversalPhotorealism;`, context);
 const finalize = context.finalize;
 

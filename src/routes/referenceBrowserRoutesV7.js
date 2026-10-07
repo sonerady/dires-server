@@ -66,6 +66,7 @@ const {
   appendUserInstructionLock,
   buildUserInstructionLock,
 } = require("../utils/userInstructionLock");
+const { applyMinorModelSafety } = require("../utils/minorModelSafety");
 const {
   callDeepSeekFlashRaw,
   isInvalidInputError,
@@ -5155,6 +5156,9 @@ function finalizeGenerationPrompt(enhancedPrompt, {
       });
       if (campaignDirection) enhancedPrompt += `\n\n${campaignDirection}`;
     }
+
+  // 👧 Yaş ≤ 12: "N-year-old woman" / "bust, hips" ifadeleri çocuğa çevrilir + çocuk oranları kilidi (en sonda)
+  enhancedPrompt = applyMinorModelSafety(enhancedPrompt, settings);
 
   return enhancedPrompt;
 }
