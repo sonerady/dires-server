@@ -60,6 +60,26 @@ const VARIATION_MODEL_SETTINGS = {
   quality: VARIATION_QUALITY,
 };
 
+// 10 Eki 2026 (kullanıcı isteği): bu listedeki kullanıcıların Çeşitlendir'i GPT 2.5 yerine
+// Nano Banana 2.1'e gider; diğer herkes GPT 2.5'te kalır. Liste env ile genişletilebilir:
+// VARIATION_NB21_USER_IDS="uuid1,uuid2". Hata olursa yine Nano Banana Lite yedeği çalışır.
+const VARIATION_NB21_MODEL = "google/nano-banana-2.1/edit";
+const VARIATION_NB21_USER_IDS = new Set([
+  "ae008ffe-039b-4389-a1e4-f3b344556f46",
+  ...String(process.env.VARIATION_NB21_USER_IDS || "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean),
+]);
+const VARIATION_NB21_SETTINGS = {
+  num_images: 1,
+  output_format: "jpeg",
+  resolution: "2K", // GPT 2.5'in ~4 MP tablosuna denk
+  enable_web_search: false, // NB 2.1: web araması kapalı (Eki 2026 kullanıcı kararı)
+  thinking_level: "high", // tüm NB 2.1 çağrılarında high (fal istemcisi axios kancasından geçmez)
+  limit_generations: true,
+};
+
 // 11 Eyl 2026 (kullanıcı kararı): varyantlar artık GPT Image 2'nin ENUM boyutlarını
 // (square_hd/portrait_4_3 ~1 MP) değil, diğer üretimlerle AYNI ~4 MP tablosunu
 // kullanıyor (utils/gpt25Edit.js → GPT25_IMAGE_SIZES: 1:1 2000×2000, 9:16
@@ -148,6 +168,26 @@ const getVariationModelSettings = (aspectRatio) => ({
   ...VARIATION_MODEL_SETTINGS,
   image_size: mapVariationRatioToSize(aspectRatio),
 });
+
+const usesNb21Variation = (userId) => VARIATION_NB21_USER_IDS.has(String(userId || ""));
+
+// Kullanıcıya göre birincil varyant modeli ve girdi ayarları.
+// GPT 2.5 boyutu ~4 MP tablosundan (sizeRatio), NB 2.1 kaynağın oranını aspect_ratio ile alır
+// ("Orijinal" → auto).
+function selectVariationModel(userId, sizeRatio, aspectRatio) {
+  if (usesNb21Variation(userId)) {
+    return {
+      model: VARIATION_NB21_MODEL,
+      label: "Nano Banana 2.1",
+      settings: { ...VARIATION_NB21_SETTINGS, aspect_ratio: aspectRatio || "auto" },
+    };
+  }
+  return {
+    model: VARIATION_MODEL,
+    label: "GPT Image 2.5 Sunburst",
+    settings: getVariationModelSettings(sizeRatio || aspectRatio),
+  };
+}
 
 // Gemini yaratıcı pozu/kadrajı seçer; referanstaki kimlik, ürün ve sahne
 // bütünlüğü ise modele giden HER promptta backend tarafından zorunlu tutulur.
@@ -1264,11 +1304,12 @@ async function runFalVariation(
   const startedAt = Date.now();
 
   try {
+    const primary = selectVariationModel(userId, sizeRatio, aspectRatio);
     // Gemini'nin yazdığı ve modele aynen gönderilen nihai prompt.
     console.log(
-      `🎨 [VARIATION] GPT Image 2.5 Sunburst prompt | generation=${generationId} | ` +
-        `model=${VARIATION_MODEL} | input_images=${imageUrls.length} | ` +
-        `image_size=${JSON.stringify(mapVariationRatioToSize(sizeRatio || aspectRatio))} quality=${VARIATION_QUALITY}` +
+      `🎨 [VARIATION] ${primary.label} prompt | generation=${generationId} | ` +
+        `model=${primary.model} | input_images=${imageUrls.length} | ` +
+        `settings=${JSON.stringify(primary.settings)}` +
         ` (kaynak oran ${aspectRatio || "varsayılan"}):\n${prompt}`
     );
 
@@ -1323,10 +1364,7 @@ async function runFalVariation(
 
     let temporaryResultUrl;
     try {
-      temporaryResultUrl = await submitAndWait(
-        VARIATION_MODEL,
-        getVariationModelSettings(sizeRatio || aspectRatio),
-      );
+      temporaryResultUrl = await submitAndWait(primary.model, primary.settings);
     } catch (gptError) {
       const detail =
         gptError?.body?.detail ||
@@ -1334,7 +1372,7 @@ async function runFalVariation(
         gptError?.message ||
         "bilinmeyen hata";
       logger.warn(
-        `🛟 [VARIATION] GPT Image 2.5 Sunburst başarısız (${String(detail).slice(0, 140)}) — ` +
+        `🛟 [VARIATION] ${primary.label} başarısız (${String(detail).slice(0, 140)}) — ` +
           `${generationId} Nano Banana Lite ile tekrarlanıyor`,
       );
       temporaryResultUrl = await submitAndWait(
@@ -1428,6 +1466,7 @@ async function startAutomaticTrialVariation({
   });
   const sourceAspectRatio = sourceContext.aspectRatio;
   const sourceSizeRatio = await resolveVariationSizeRatio(sourceAspectRatio, sourceImageUrl);
+  const variationModel = selectVariationModel(userId, sourceSizeRatio, sourceAspectRatio);
   if (imageUrls.length === 0) {
     return { started: false, reason: "no_images" };
   }
@@ -1462,8 +1501,8 @@ async function startAutomaticTrialVariation({
     variation_index: access.variationIndex,
     credits_used: 0,
     settings: {
-      model: VARIATION_MODEL,
-      ...getVariationModelSettings(sourceSizeRatio || sourceAspectRatio),
+      model: variationModel.model,
+      ...variationModel.settings,
       batchId,
       slot: index + 1,
       automaticTrial: true,
@@ -1539,8 +1578,8 @@ async function startAutomaticTrialVariation({
           .update({
             prompt,
             settings: {
-              model: VARIATION_MODEL,
-              ...getVariationModelSettings(sourceSizeRatio || sourceAspectRatio),
+              model: variationModel.model,
+              ...variationModel.settings,
               batchId,
               slot: index + 1,
               automaticTrial: true,
@@ -1656,6 +1695,7 @@ router.post("/generate", async (req, res) => {
     });
     const sourceAspectRatio = sourceContext.aspectRatio;
     const sourceSizeRatio = await resolveVariationSizeRatio(sourceAspectRatio, sourceImageUrl);
+    const variationModel = selectVariationModel(userId, sourceSizeRatio, sourceAspectRatio);
 
     if (imageUrls.length === 0) {
       return res
@@ -1787,8 +1827,8 @@ router.post("/generate", async (req, res) => {
       // Kredi TÜM PARTİ için bir kez düşer; ikinci satır 0 taşır
       credits_used: i === 0 ? creditCost : 0,
       settings: {
-        model: VARIATION_MODEL,
-        ...getVariationModelSettings(sourceSizeRatio || sourceAspectRatio),
+        model: variationModel.model,
+        ...variationModel.settings,
         batchId,
         automaticTrial: automaticTrial === true && access.isInTrial === true,
         initiatedBy: automaticTrial === true && access.isInTrial === true ? "automatic_trial" : "user",
